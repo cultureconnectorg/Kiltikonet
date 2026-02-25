@@ -346,7 +346,10 @@ export const LandingPage = () => {
           </div>
           
           <div className="text-center mt-10 animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
-            <button className="text-[#D2A53C] hover:text-[#E5B84D] font-medium underline underline-offset-4 transition-colors">
+            <button 
+              onClick={() => navigate('/partnership')}
+              className="text-[#D2A53C] hover:text-[#E5B84D] font-medium underline underline-offset-4 transition-colors"
+            >
               {language === 'fr' ? 'Devenir partenaire →' : 'Become a partner →'}
             </button>
           </div>
