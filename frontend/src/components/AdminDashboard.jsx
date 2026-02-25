@@ -158,9 +158,9 @@ export const AdminDashboard = () => {
           >
             <div className="flex items-center gap-3 mb-2">
               <Users className="w-5 h-5 text-[#D2A53C]" />
-              <span className="text-sm text-[#F5F5F0]/60">{t('totalRegistrations')}</span>
+              <span className="text-sm text-[#EDE8DC]/60">{t('totalRegistrations')}</span>
             </div>
-            <p className="font-serif text-3xl text-[#F5F5F0]">{counts.total}</p>
+            <p className="font-serif text-3xl text-[#EDE8DC]">{counts.total}</p>
           </div>
           
           <div 
@@ -169,7 +169,7 @@ export const AdminDashboard = () => {
           >
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-5 h-5 text-[#D2A53C]" />
-              <span className="text-sm text-[#F5F5F0]/60">{t('pending')}</span>
+              <span className="text-sm text-[#EDE8DC]/60">{t('pending')}</span>
             </div>
             <p className="font-serif text-3xl text-[#D2A53C]">{counts.by_status?.pending || 0}</p>
           </div>
@@ -180,7 +180,7 @@ export const AdminDashboard = () => {
           >
             <div className="flex items-center gap-3 mb-2">
               <CheckCircle className="w-5 h-5 text-[#4ADE80]" />
-              <span className="text-sm text-[#F5F5F0]/60">{t('approved')}</span>
+              <span className="text-sm text-[#EDE8DC]/60">{t('approved')}</span>
             </div>
             <p className="font-serif text-3xl text-[#4ADE80]">{counts.by_status?.approved || 0}</p>
           </div>
@@ -191,7 +191,7 @@ export const AdminDashboard = () => {
           >
             <div className="flex items-center gap-3 mb-2">
               <XCircle className="w-5 h-5 text-[#F87171]" />
-              <span className="text-sm text-[#F5F5F0]/60">{t('rejected')}</span>
+              <span className="text-sm text-[#EDE8DC]/60">{t('rejected')}</span>
             </div>
             <p className="font-serif text-3xl text-[#F87171]">{counts.by_status?.rejected || 0}</p>
           </div>
@@ -201,7 +201,7 @@ export const AdminDashboard = () => {
         <div className="bg-[#141311] border border-[#2A2825] p-4 sm:p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-4 h-4 text-[#D2A53C]" />
-            <span className="text-[#F5F5F0] font-medium">{t('filters')}</span>
+            <span className="text-[#EDE8DC] font-medium">{t('filters')}</span>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -211,20 +211,20 @@ export const AdminDashboard = () => {
               onValueChange={(value) => setFilters(prev => ({ ...prev, profile_type: value === 'all' ? '' : value }))}
             >
               <SelectTrigger 
-                className="bg-[#1A1917] border-[#33312E] text-white h-10 focus:border-[#D2A53C]"
+                className="bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-10 focus:border-[#D2A53C]"
                 data-testid="filter-profile-type"
               >
                 <SelectValue placeholder={t('allProfiles')} />
               </SelectTrigger>
-              <SelectContent className="bg-[#1A1917] border-[#33312E]">
-                <SelectItem value="all" className="text-white hover:bg-[#2A2825]">
+              <SelectContent className="bg-[#1A1917] border-[#2A2825]">
+                <SelectItem value="all" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('allProfiles')}
                 </SelectItem>
                 {profileTypes.map((profile) => (
                   <SelectItem 
                     key={profile.value} 
                     value={profile.value}
-                    className="text-white hover:bg-[#2A2825]"
+                    className="text-[#EDE8DC] hover:bg-[#2A2825]"
                   >
                     {t(profile.labelKey)}
                   </SelectItem>
@@ -238,20 +238,20 @@ export const AdminDashboard = () => {
               onValueChange={(value) => setFilters(prev => ({ ...prev, country: value === 'all' ? '' : value }))}
             >
               <SelectTrigger 
-                className="bg-[#1A1917] border-[#33312E] text-white h-10 focus:border-[#D2A53C]"
+                className="bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-10 focus:border-[#D2A53C]"
                 data-testid="filter-country"
               >
                 <SelectValue placeholder={t('allCountries')} />
               </SelectTrigger>
-              <SelectContent className="bg-[#1A1917] border-[#33312E]">
-                <SelectItem value="all" className="text-white hover:bg-[#2A2825]">
+              <SelectContent className="bg-[#1A1917] border-[#2A2825]">
+                <SelectItem value="all" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('allCountries')}
                 </SelectItem>
                 {countries.map((country) => (
                   <SelectItem 
                     key={country} 
                     value={country}
-                    className="text-white hover:bg-[#2A2825]"
+                    className="text-[#EDE8DC] hover:bg-[#2A2825]"
                   >
                     {t(`countries.${country}`) !== `countries.${country}` ? t(`countries.${country}`) : country}
                   </SelectItem>
@@ -265,19 +265,19 @@ export const AdminDashboard = () => {
               onValueChange={(value) => setFilters(prev => ({ ...prev, stand_request: value === 'all' ? '' : value }))}
             >
               <SelectTrigger 
-                className="bg-[#1A1917] border-[#33312E] text-white h-10 focus:border-[#D2A53C]"
+                className="bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-10 focus:border-[#D2A53C]"
                 data-testid="filter-stand"
               >
                 <SelectValue placeholder={t('allStands')} />
               </SelectTrigger>
-              <SelectContent className="bg-[#1A1917] border-[#33312E]">
-                <SelectItem value="all" className="text-white hover:bg-[#2A2825]">
+              <SelectContent className="bg-[#1A1917] border-[#2A2825]">
+                <SelectItem value="all" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('allStands')}
                 </SelectItem>
-                <SelectItem value="true" className="text-white hover:bg-[#2A2825]">
+                <SelectItem value="true" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('withStand')}
                 </SelectItem>
-                <SelectItem value="false" className="text-white hover:bg-[#2A2825]">
+                <SelectItem value="false" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('withoutStand')}
                 </SelectItem>
               </SelectContent>
@@ -289,22 +289,22 @@ export const AdminDashboard = () => {
               onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? '' : value }))}
             >
               <SelectTrigger 
-                className="bg-[#1A1917] border-[#33312E] text-white h-10 focus:border-[#D2A53C]"
+                className="bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-10 focus:border-[#D2A53C]"
                 data-testid="filter-status"
               >
                 <SelectValue placeholder={t('allStatuses')} />
               </SelectTrigger>
-              <SelectContent className="bg-[#1A1917] border-[#33312E]">
-                <SelectItem value="all" className="text-white hover:bg-[#2A2825]">
+              <SelectContent className="bg-[#1A1917] border-[#2A2825]">
+                <SelectItem value="all" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('allStatuses')}
                 </SelectItem>
-                <SelectItem value="pending" className="text-white hover:bg-[#2A2825]">
+                <SelectItem value="pending" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('pending')}
                 </SelectItem>
-                <SelectItem value="approved" className="text-white hover:bg-[#2A2825]">
+                <SelectItem value="approved" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('approved')}
                 </SelectItem>
-                <SelectItem value="rejected" className="text-white hover:bg-[#2A2825]">
+                <SelectItem value="rejected" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                   {t('rejected')}
                 </SelectItem>
               </SelectContent>
@@ -330,13 +330,13 @@ export const AdminDashboard = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-[#F5F5F0]/60">
+                    <TableCell colSpan={7} className="text-center py-12 text-[#EDE8DC]/60">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : registrations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-[#F5F5F0]/60">
+                    <TableCell colSpan={7} className="text-center py-12 text-[#EDE8DC]/60">
                       {t('noRegistrations')}
                     </TableCell>
                   </TableRow>
@@ -347,17 +347,17 @@ export const AdminDashboard = () => {
                       className="border-b border-[#2A2825] hover:bg-[#1A1917]"
                       data-testid={`registration-row-${reg.id}`}
                     >
-                      <TableCell className="text-[#F5F5F0]">{reg.full_name}</TableCell>
-                      <TableCell className="text-[#F5F5F0]/80">{reg.organization_name}</TableCell>
-                      <TableCell className="text-[#F5F5F0]/80">{getProfileLabel(reg.profile_type)}</TableCell>
-                      <TableCell className="text-[#F5F5F0]/80">
+                      <TableCell className="text-[#EDE8DC]">{reg.full_name}</TableCell>
+                      <TableCell className="text-[#EDE8DC]/80">{reg.organization_name}</TableCell>
+                      <TableCell className="text-[#EDE8DC]/80">{getProfileLabel(reg.profile_type)}</TableCell>
+                      <TableCell className="text-[#EDE8DC]/80">
                         {t(`countries.${reg.country}`) !== `countries.${reg.country}` ? t(`countries.${reg.country}`) : reg.country}
                       </TableCell>
-                      <TableCell className="text-[#F5F5F0]/80">
+                      <TableCell className="text-[#EDE8DC]/80">
                         {reg.stand_request ? (
                           <span className="text-[#D2A53C]">{t('yes')}{reg.stand_category ? ` (${t(reg.stand_category)})` : ''}</span>
                         ) : (
-                          <span className="text-[#F5F5F0]/50">{t('no')}</span>
+                          <span className="text-[#EDE8DC]/50">{t('no')}</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -366,7 +366,7 @@ export const AdminDashboard = () => {
                             className={`status-dot ${reg.status}`}
                             data-testid={`status-dot-${reg.id}`}
                           />
-                          <span className="text-[#F5F5F0]/80">
+                          <span className="text-[#EDE8DC]/80">
                             {getStatusLabel(reg.status)}
                           </span>
                         </div>
@@ -377,19 +377,19 @@ export const AdminDashboard = () => {
                           onValueChange={(value) => handleStatusChange(reg.id, value)}
                         >
                           <SelectTrigger 
-                            className="w-32 bg-[#1A1917] border-[#33312E] text-white h-8 text-sm focus:border-[#D2A53C]"
+                            className="w-32 bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-8 text-sm focus:border-[#D2A53C]"
                             data-testid={`status-select-${reg.id}`}
                           >
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1A1917] border-[#33312E]">
-                            <SelectItem value="pending" className="text-white hover:bg-[#2A2825]">
+                          <SelectContent className="bg-[#1A1917] border-[#2A2825]">
+                            <SelectItem value="pending" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                               {t('pending')}
                             </SelectItem>
-                            <SelectItem value="approved" className="text-white hover:bg-[#2A2825]">
+                            <SelectItem value="approved" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                               {t('approved')}
                             </SelectItem>
-                            <SelectItem value="rejected" className="text-white hover:bg-[#2A2825]">
+                            <SelectItem value="rejected" className="text-[#EDE8DC] hover:bg-[#2A2825]">
                               {t('rejected')}
                             </SelectItem>
                           </SelectContent>

@@ -169,16 +169,9 @@ export const RegistrationForm = () => {
       </section>
       
       {/* Registration Form */}
-      <section className="py-12 sm:py-16 lg:py-20">
+      <section className="pb-16 sm:pb-20 lg:pb-24">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-[#141311] border border-[#2A2825] p-6 sm:p-8 lg:p-10">
-            <h2 
-              className="font-serif text-2xl sm:text-3xl text-[#D2A53C] mb-8"
-              data-testid="form-title"
-            >
-              {t('formTitle')}
-            </h2>
-            
             <form onSubmit={handleSubmit} className="space-y-6" data-testid="registration-form">
               {/* Full Name */}
               <div className="space-y-2">

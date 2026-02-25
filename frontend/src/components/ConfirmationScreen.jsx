@@ -89,7 +89,7 @@ export const ConfirmationScreen = () => {
           
           {/* Confirmation Message */}
           <p 
-            className="text-[#F5F5F0]/80 mb-8 leading-relaxed"
+            className="text-[#EDE8DC]/80 mb-8 leading-relaxed"
             data-testid="confirmation-message"
           >
             {language === 'fr' 
@@ -99,28 +99,28 @@ export const ConfirmationScreen = () => {
           </p>
           
           {/* Registration Details */}
-          <div className="bg-[#1A1917] border border-[#33312E] p-6 mb-8 text-left">
+          <div className="bg-[#1A1917] border border-[#2A2825] p-6 mb-8 text-left">
             <h3 className="font-serif text-lg text-[#D2A53C] mb-4">
               {t('registrationDetails')}
             </h3>
             
             <div className="space-y-3">
-              <div className="flex justify-between items-center border-b border-[#33312E] pb-3">
-                <span className="text-[#F5F5F0]/60">{t('name')}</span>
-                <span className="text-[#F5F5F0] font-medium" data-testid="confirmation-name">
+              <div className="flex justify-between items-center border-b border-[#2A2825] pb-3">
+                <span className="text-[#EDE8DC]/60">{t('name')}</span>
+                <span className="text-[#EDE8DC] font-medium" data-testid="confirmation-name">
                   {registration.full_name}
                 </span>
               </div>
               
-              <div className="flex justify-between items-center border-b border-[#33312E] pb-3">
-                <span className="text-[#F5F5F0]/60">{t('organization')}</span>
-                <span className="text-[#F5F5F0] font-medium" data-testid="confirmation-organization">
+              <div className="flex justify-between items-center border-b border-[#2A2825] pb-3">
+                <span className="text-[#EDE8DC]/60">{t('organization')}</span>
+                <span className="text-[#EDE8DC] font-medium" data-testid="confirmation-organization">
                   {registration.organization_name}
                 </span>
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-[#F5F5F0]/60">{t('profile')}</span>
+                <span className="text-[#EDE8DC]/60">{t('profile')}</span>
                 <span 
                   className="bg-[#D2A53C]/20 text-[#D2A53C] px-3 py-1 rounded-full text-sm font-medium"
                   data-testid="confirmation-profile"

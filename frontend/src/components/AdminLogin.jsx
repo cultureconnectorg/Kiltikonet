@@ -56,7 +56,7 @@ export const AdminLogin = ({ onLogin }) => {
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[#F5F5F0]">
+              <Label htmlFor="password" className="text-[#EDE8DC]">
                 {t('password')}
               </Label>
               <Input
@@ -68,7 +68,7 @@ export const AdminLogin = ({ onLogin }) => {
                   setPassword(e.target.value);
                   setError(false);
                 }}
-                className={`bg-[#1A1917] border-[#33312E] text-white placeholder:text-white/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${error ? 'border-red-500' : ''}`}
+                className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] placeholder:text-[#EDE8DC]/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${error ? 'border-red-500' : ''}`}
                 data-testid="admin-password-input"
               />
               {error && (
