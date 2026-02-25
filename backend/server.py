@@ -553,10 +553,14 @@ async def stripe_webhook(request: Request):
             transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
             if transaction and not transaction.get("processed"):
                 await process_successful_payment(transaction, metadata)
+                logger.info(f"Successfully processed payment for session {session_id}")
         
-        return {"status": "success"}
+        return {"status": "success", "event": webhook_response.event_type}
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")
+        # Return 400 for signature verification failures
+        if "signature" in str(e).lower():
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
         return {"status": "error", "message": str(e)}
 
 async def process_successful_payment(transaction: dict, metadata: dict):
