@@ -363,7 +363,8 @@ export const AdminDashboard = () => {
                               <XCircle className="w-4 h-4" />
                             </button>
                             <button onClick={() => handleDelete(reg.id)}
-                              className="p-2 border border-lightborder text-charcoal/40 hover:border-terracotta hover:text-terracotta transition-colors">
+                              className="p-2 border border-lightborder text-charcoal/40 hover:border-[#C94040] hover:text-[#C94040] hover:bg-[#C94040]/10 transition-colors"
+                              data-testid={`delete-btn-${reg.id}`}>
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
