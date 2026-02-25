@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, File, UploadFile, Form, HTTPException, Query
+from fastapi import FastAPI, APIRouter, File, UploadFile, Form, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -7,7 +7,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone
 import io
@@ -16,6 +16,7 @@ import asyncio
 import cloudinary
 import cloudinary.uploader
 import resend
+from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -37,6 +38,11 @@ cloudinary.config(
 resend.api_key = os.environ.get("RESEND_API_KEY")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
 
+# Stripe configuration
+STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
+BASE_URL = os.environ.get("BASE_URL", "https://kiltikonet.fr")
+
 # Create the main app
 app = FastAPI()
 
@@ -50,16 +56,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Tier info for emails
-TIER_INFO = {
-    "emerging": {"name": "Émergent", "price": "50€"},
-    "professional": {"name": "Professionnel", "price": "150€"},
-    "institutional": {"name": "Institutionnel", "price": "300€"}
+# ================== PRICING CONFIGURATION ==================
+ACCREDITATION_TIERS = {
+    "emerging": {"name": "Émergent", "price": 50.00, "currency": "eur"},
+    "professional": {"name": "Professionnel", "price": 150.00, "currency": "eur"},
+    "institutional": {"name": "Institutionnel", "price": 300.00, "currency": "eur"}
 }
 
-# Email templates
+PARTNERSHIP_TIERS = {
+    "bronze": {"name": "Partenaire Bronze", "price": 2500.00, "currency": "eur", "vip_count": 2},
+    "silver": {"name": "Partenaire Silver", "price": 5000.00, "currency": "eur", "vip_count": 5},
+    "gold": {"name": "Partenaire Gold", "price": 10000.00, "currency": "eur", "vip_count": 10}
+}
+
+# ================== EMAIL TEMPLATES ==================
 def get_confirmation_email(name: str, tier: str, email: str) -> str:
-    tier_data = TIER_INFO.get(tier, TIER_INFO["professional"])
+    tier_data = ACCREDITATION_TIERS.get(tier, ACCREDITATION_TIERS["professional"])
     return f"""
     <!DOCTYPE html>
     <html>
@@ -79,16 +91,15 @@ def get_confirmation_email(name: str, tier: str, email: str) -> str:
     <body>
         <div class="container">
             <div class="header">
-                <img src="https://res.cloudinary.com/dnabomyak/image/upload/v1/culture-connect/logo.png" alt="Culture Connect 2026" style="height: 60px;" onerror="this.style.display='none'">
                 <h2 style="margin: 10px 0 0 0; color: #1A1A1A; font-size: 18px;">Culture Connect 2026</h2>
             </div>
             <div class="content">
-                <h1>Demande d'accréditation reçue</h1>
+                <h1>Paiement confirmé — Demande d'accréditation reçue</h1>
                 <p>Bonjour <span class="highlight">{name}</span>,</p>
-                <p>Nous avons bien reçu votre demande d'accréditation pour <strong>Culture Connect 2026</strong>.</p>
+                <p>Nous avons bien reçu votre paiement et votre demande d'accréditation pour <strong>Culture Connect 2026</strong>.</p>
                 <p>
                     <strong>Formule choisie :</strong><br>
-                    <span class="badge">{tier_data['name']} — {tier_data['price']}</span>
+                    <span class="badge">{tier_data['name']} — {int(tier_data['price'])}€</span>
                 </p>
                 <p>Notre équipe examine votre dossier et vous répondra sous <strong>72 heures</strong>.</p>
                 <p>En attendant, n'hésitez pas à nous contacter pour toute question.</p>
@@ -104,7 +115,7 @@ def get_confirmation_email(name: str, tier: str, email: str) -> str:
     """
 
 def get_approval_email(name: str, tier: str, registration_id: str) -> str:
-    tier_data = TIER_INFO.get(tier, TIER_INFO["professional"])
+    tier_data = ACCREDITATION_TIERS.get(tier, ACCREDITATION_TIERS["professional"])
     return f"""
     <!DOCTYPE html>
     <html>
@@ -125,7 +136,6 @@ def get_approval_email(name: str, tier: str, registration_id: str) -> str:
     <body>
         <div class="container">
             <div class="header">
-                <img src="https://res.cloudinary.com/dnabomyak/image/upload/v1/culture-connect/logo.png" alt="Culture Connect 2026" style="height: 60px;" onerror="this.style.display='none'">
                 <h2 style="margin: 10px 0 0 0; color: #1A1A1A; font-size: 18px;">Culture Connect 2026</h2>
             </div>
             <div class="content">
@@ -173,7 +183,6 @@ def get_rejection_email(name: str) -> str:
     <body>
         <div class="container">
             <div class="header">
-                <img src="https://res.cloudinary.com/dnabomyak/image/upload/v1/culture-connect/logo.png" alt="Culture Connect 2026" style="height: 60px;" onerror="this.style.display='none'">
                 <h2 style="margin: 10px 0 0 0; color: #1A1A1A; font-size: 18px;">Culture Connect 2026</h2>
             </div>
             <div class="content">
@@ -191,6 +200,57 @@ def get_rejection_email(name: str) -> str:
             </div>
             <div class="footer">
                 <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+def get_partner_welcome_email(company_name: str, tier: str, contact_name: str) -> str:
+    tier_data = PARTNERSHIP_TIERS.get(tier, PARTNERSHIP_TIERS["bronze"])
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Georgia, serif; margin: 0; padding: 0; background-color: #F4F1EA; }}
+            .container {{ max-width: 600px; margin: 0 auto; background: #FFFFFF; }}
+            .header {{ padding: 30px; text-align: center; border-bottom: 3px solid #4A5D4E; }}
+            .content {{ padding: 40px 30px; color: #1A1A1A; line-height: 1.7; }}
+            .partner-badge {{ display: inline-block; background: #4A5D4E; color: #FFFFFF; padding: 12px 24px; font-size: 16px; margin: 20px 0; }}
+            .benefits-box {{ background: #F4F1EA; padding: 20px; margin: 20px 0; border-left: 4px solid #4A5D4E; }}
+            .footer {{ padding: 20px 30px; background: #F4F1EA; text-align: center; font-size: 12px; color: #8A8578; }}
+            h1 {{ color: #1A1A1A; font-size: 24px; margin: 0 0 20px 0; }}
+            .highlight {{ color: #4A5D4E; font-weight: bold; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2 style="margin: 10px 0 0 0; color: #1A1A1A; font-size: 18px;">Culture Connect 2026</h2>
+            </div>
+            <div class="content">
+                <h1>Bienvenue parmi nos partenaires !</h1>
+                <p>Bonjour <span class="highlight">{contact_name}</span>,</p>
+                <p>Nous sommes ravis d'accueillir <strong>{company_name}</strong> parmi les partenaires officiels de <strong>Culture Connect 2026</strong>.</p>
+                <div style="text-align: center;">
+                    <span class="partner-badge">✓ {tier_data['name'].upper()}</span>
+                </div>
+                <div class="benefits-box">
+                    <strong>Vos avantages :</strong><br><br>
+                    ✓ Logo affiché sur notre site officiel<br>
+                    ✓ {tier_data['vip_count']} accréditations VIP offertes<br>
+                    ✓ Visibilité sur tous nos supports de communication<br>
+                    ✓ Accès à l'espace partenaires privilégié<br><br>
+                    <strong>Événement :</strong> 20-23 Mai 2026 · Fort-de-France, Martinique
+                </div>
+                <p>Notre équipe vous contactera très prochainement pour finaliser les détails de votre partenariat.</p>
+                <p style="margin-top: 30px;">Merci pour votre confiance,<br><strong>L'équipe Culture Connect</strong></p>
+            </div>
+            <div class="footer">
+                <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
+                <p>cultureconnectorg@gmail.com</p>
             </div>
         </div>
     </body>
@@ -229,7 +289,7 @@ async def upload_to_cloudinary(file: UploadFile, folder: str = "culture-connect/
         logger.error(f"Cloudinary upload failed: {str(e)}")
         return None
 
-# Models
+# ================== MODELS ==================
 class RegistrationResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
@@ -279,7 +339,338 @@ class ManualRegistration(BaseModel):
     stand_request: bool = False
     stand_category: Optional[str] = None
 
-# Routes
+class CheckoutRequest(BaseModel):
+    type: str  # "accreditation" or "partnership"
+    tier: str  # "emerging", "professional", "institutional" OR "bronze", "silver", "gold"
+    origin_url: str
+    # For accreditation
+    full_name: Optional[str] = None
+    organization_name: Optional[str] = None
+    country: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    profile_type: Optional[str] = None
+    stand_request: Optional[bool] = False
+    stand_category: Optional[str] = None
+    bio: Optional[str] = ""
+    language_preference: Optional[str] = "fr"
+    how_heard: Optional[str] = None
+    # For partnership
+    company_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    website: Optional[str] = None
+    logo_url: Optional[str] = None
+
+class PartnerResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    company_name: str
+    contact_name: str
+    contact_email: str
+    contact_phone: str
+    tier: str
+    website: Optional[str] = None
+    logo_url: Optional[str] = None
+    vip_accreditations: List[str] = []
+    created_at: str
+
+# ================== STRIPE ROUTES ==================
+@api_router.post("/create-checkout-session")
+async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
+    """Create a Stripe checkout session for accreditation or partnership"""
+    
+    if checkout_data.type == "accreditation":
+        if checkout_data.tier not in ACCREDITATION_TIERS:
+            raise HTTPException(status_code=400, detail="Invalid accreditation tier")
+        tier_data = ACCREDITATION_TIERS[checkout_data.tier]
+        success_url = f"{BASE_URL}/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{BASE_URL}/inscription"
+        
+    elif checkout_data.type == "partnership":
+        if checkout_data.tier not in PARTNERSHIP_TIERS:
+            raise HTTPException(status_code=400, detail="Invalid partnership tier")
+        tier_data = PARTNERSHIP_TIERS[checkout_data.tier]
+        success_url = f"{BASE_URL}/partenaire/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{BASE_URL}/partenaires"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid checkout type")
+    
+    # Initialize Stripe
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    # Prepare metadata
+    metadata = {
+        "type": checkout_data.type,
+        "tier": checkout_data.tier,
+    }
+    
+    if checkout_data.type == "accreditation":
+        metadata.update({
+            "full_name": checkout_data.full_name or "",
+            "organization_name": checkout_data.organization_name or "",
+            "country": checkout_data.country or "",
+            "email": checkout_data.email or "",
+            "phone": checkout_data.phone or "",
+            "profile_type": checkout_data.profile_type or "",
+            "stand_request": str(checkout_data.stand_request),
+            "stand_category": checkout_data.stand_category or "",
+            "bio": (checkout_data.bio or "")[:500],  # Stripe metadata limit
+            "language_preference": checkout_data.language_preference or "fr",
+            "how_heard": checkout_data.how_heard or ""
+        })
+    else:
+        metadata.update({
+            "company_name": checkout_data.company_name or "",
+            "contact_name": checkout_data.contact_name or "",
+            "contact_email": checkout_data.contact_email or "",
+            "contact_phone": checkout_data.contact_phone or "",
+            "website": checkout_data.website or "",
+            "logo_url": checkout_data.logo_url or ""
+        })
+    
+    # Create checkout session
+    checkout_request = CheckoutSessionRequest(
+        amount=tier_data["price"],
+        currency=tier_data["currency"],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata=metadata
+    )
+    
+    try:
+        session = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Create payment transaction record
+        transaction = {
+            "id": str(uuid.uuid4()),
+            "session_id": session.session_id,
+            "type": checkout_data.type,
+            "tier": checkout_data.tier,
+            "amount": tier_data["price"],
+            "currency": tier_data["currency"],
+            "payment_status": "pending",
+            "metadata": metadata,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.payment_transactions.insert_one(transaction)
+        
+        return {
+            "url": session.url,
+            "session_id": session.session_id
+        }
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Payment error: {str(e)}")
+
+@api_router.get("/checkout/status/{session_id}")
+async def get_checkout_status(request: Request, session_id: str):
+    """Get the status of a checkout session"""
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    try:
+        status = await stripe_checkout.get_checkout_status(session_id)
+        
+        # Update transaction in database
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "payment_status": status.payment_status,
+                "status": status.status,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # If payment is successful, create the registration/partner record
+        if status.payment_status == "paid":
+            transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+            if transaction and not transaction.get("processed"):
+                await process_successful_payment(transaction, status.metadata)
+        
+        return {
+            "status": status.status,
+            "payment_status": status.payment_status,
+            "amount_total": status.amount_total,
+            "currency": status.currency,
+            "metadata": status.metadata
+        }
+    except Exception as e:
+        logger.error(f"Error getting checkout status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events"""
+    body = await request.body()
+    signature = request.headers.get("Stripe-Signature")
+    
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    try:
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        if webhook_response.event_type == "checkout.session.completed":
+            session_id = webhook_response.session_id
+            metadata = webhook_response.metadata
+            
+            # Update transaction
+            await db.payment_transactions.update_one(
+                {"session_id": session_id},
+                {"$set": {
+                    "payment_status": webhook_response.payment_status,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Process the payment
+            transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+            if transaction and not transaction.get("processed"):
+                await process_successful_payment(transaction, metadata)
+        
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+async def process_successful_payment(transaction: dict, metadata: dict):
+    """Process a successful payment - create registration or partner"""
+    session_id = transaction.get("session_id")
+    payment_type = metadata.get("type") or transaction.get("type")
+    tier = metadata.get("tier") or transaction.get("tier")
+    
+    # Mark as processed to prevent duplicate processing
+    await db.payment_transactions.update_one(
+        {"session_id": session_id},
+        {"$set": {"processed": True}}
+    )
+    
+    if payment_type == "accreditation":
+        # Create registration
+        registration_id = str(uuid.uuid4())
+        registration = {
+            "id": registration_id,
+            "full_name": metadata.get("full_name", ""),
+            "organization_name": metadata.get("organization_name", ""),
+            "country": metadata.get("country", ""),
+            "email": metadata.get("email", ""),
+            "phone": metadata.get("phone", ""),
+            "profile_type": metadata.get("profile_type", ""),
+            "stand_request": metadata.get("stand_request", "false").lower() == "true",
+            "stand_category": metadata.get("stand_category") or None,
+            "bio": metadata.get("bio", ""),
+            "logo_url": None,
+            "language_preference": metadata.get("language_preference", "fr"),
+            "how_heard": metadata.get("how_heard", ""),
+            "tier": tier,
+            "status": "pending",
+            "show_in_catalog": False,
+            "payment_session_id": session_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.registrations.insert_one(registration)
+        
+        # Send confirmation email
+        email = metadata.get("email")
+        if email:
+            asyncio.create_task(send_email_async(
+                email,
+                "Votre demande d'accréditation Culture Connect 2026 a été reçue",
+                get_confirmation_email(metadata.get("full_name", ""), tier, email)
+            ))
+        
+        logger.info(f"Created registration {registration_id} from payment {session_id}")
+        
+    elif payment_type == "partnership":
+        # Create partner
+        partner_id = str(uuid.uuid4())
+        tier_data = PARTNERSHIP_TIERS.get(tier, PARTNERSHIP_TIERS["bronze"])
+        
+        partner = {
+            "id": partner_id,
+            "company_name": metadata.get("company_name", ""),
+            "contact_name": metadata.get("contact_name", ""),
+            "contact_email": metadata.get("contact_email", ""),
+            "contact_phone": metadata.get("contact_phone", ""),
+            "tier": tier,
+            "website": metadata.get("website") or None,
+            "logo_url": metadata.get("logo_url") or None,
+            "vip_accreditations": [],
+            "payment_session_id": session_id,
+            "show_on_landing": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.partners.insert_one(partner)
+        
+        # Create VIP accreditations for the partner
+        vip_ids = []
+        for i in range(tier_data["vip_count"]):
+            vip_id = str(uuid.uuid4())
+            vip_registration = {
+                "id": vip_id,
+                "full_name": f"VIP {i+1} - {metadata.get('company_name', '')}",
+                "organization_name": metadata.get("company_name", ""),
+                "country": "",
+                "email": metadata.get("contact_email", ""),
+                "phone": "",
+                "profile_type": "institution",
+                "stand_request": False,
+                "stand_category": None,
+                "bio": f"Accréditation VIP offerte - {tier_data['name']}",
+                "logo_url": None,
+                "language_preference": "fr",
+                "how_heard": "partner_benefit",
+                "tier": "institutional",
+                "status": "approved",
+                "show_in_catalog": False,
+                "partner_id": partner_id,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.registrations.insert_one(vip_registration)
+            vip_ids.append(vip_id)
+        
+        # Update partner with VIP IDs
+        await db.partners.update_one(
+            {"id": partner_id},
+            {"$set": {"vip_accreditations": vip_ids}}
+        )
+        
+        # Send welcome email
+        email = metadata.get("contact_email")
+        if email:
+            asyncio.create_task(send_email_async(
+                email,
+                f"Bienvenue parmi nos partenaires — Culture Connect 2026",
+                get_partner_welcome_email(
+                    metadata.get("company_name", ""),
+                    tier,
+                    metadata.get("contact_name", "")
+                )
+            ))
+        
+        logger.info(f"Created partner {partner_id} with {len(vip_ids)} VIP accreditations from payment {session_id}")
+
+@api_router.get("/stripe-public-key")
+async def get_stripe_public_key():
+    """Return the Stripe public key for frontend"""
+    return {"publicKey": STRIPE_PUBLIC_KEY}
+
+@api_router.get("/partners")
+async def get_partners():
+    """Get all partners for display on landing page"""
+    partners = await db.partners.find(
+        {"show_on_landing": True},
+        {"_id": 0}
+    ).to_list(100)
+    return {"partners": partners, "total": len(partners)}
+
+# ================== EXISTING ROUTES ==================
 @api_router.get("/")
 async def root():
     return {"message": "Culture Connect 2026 API"}
@@ -303,7 +694,6 @@ async def create_registration(
     registration_id = str(uuid.uuid4())
     logo_url = None
     
-    # Upload logo to Cloudinary
     if logo and logo.filename:
         logo_url = await upload_to_cloudinary(logo, f"culture-connect/logos/{registration_id}")
     
@@ -329,7 +719,6 @@ async def create_registration(
     
     await db.registrations.insert_one(registration)
     
-    # Send confirmation email asynchronously (non-blocking)
     asyncio.create_task(send_email_async(
         email,
         "Votre demande d'accréditation Culture Connect 2026 a été reçue",
@@ -382,12 +771,10 @@ async def update_registration_status(registration_id: str, status_update: Status
     if status_update.status not in ["pending", "approved", "rejected"]:
         raise HTTPException(status_code=400, detail="Invalid status")
     
-    # Get registration first to get email and name
     registration = await db.registrations.find_one({"id": registration_id}, {"_id": 0})
     if not registration:
         raise HTTPException(status_code=404, detail="Registration not found")
     
-    # Get previous status
     previous_status = registration.get("status")
     
     result = await db.registrations.update_one(
@@ -395,7 +782,6 @@ async def update_registration_status(registration_id: str, status_update: Status
         {"$set": {"status": status_update.status}}
     )
     
-    # Send email notification if status changed to approved or rejected
     if previous_status != status_update.status:
         email = registration.get("email")
         name = registration.get("full_name")
@@ -439,7 +825,6 @@ async def delete_registration(registration_id: str):
 
 @api_router.post("/registrations/manual", response_model=RegistrationResponse)
 async def create_manual_registration(data: ManualRegistration):
-    """Admin endpoint to manually add a participant"""
     registration_id = str(uuid.uuid4())
     
     registration = {
@@ -468,7 +853,6 @@ async def create_manual_registration(data: ManualRegistration):
 
 @api_router.get("/catalog")
 async def get_catalog_entries():
-    """Get only registrations that are approved and visible in catalog"""
     registrations = await db.registrations.find(
         {"show_in_catalog": True},
         {"_id": 0}
