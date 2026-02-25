@@ -64,7 +64,7 @@ export const AdminDashboard = () => {
       const response = await axios.get(`${API}/registrations?${params.toString()}`);
       const regs = response.data.registrations.map((r, i) => ({
         ...r,
-        image: placeholderImages[i % placeholderImages.length],
+        image: r.logo_url || placeholderImages[i % placeholderImages.length],
         show_in_catalog: r.show_in_catalog || false
       }));
       setRegistrations(regs);
