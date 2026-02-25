@@ -182,7 +182,7 @@ export const RegistrationForm = () => {
             <form onSubmit={handleSubmit} className="space-y-6" data-testid="registration-form">
               {/* Full Name */}
               <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-[#F5F5F0]">
+                <Label htmlFor="full_name" className="text-[#EDE8DC]">
                   {t('fullName')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Input
@@ -191,14 +191,14 @@ export const RegistrationForm = () => {
                   placeholder={t('fullNamePlaceholder')}
                   value={formData.full_name}
                   onChange={(e) => handleInputChange('full_name', e.target.value)}
-                  className={`bg-[#1A1917] border-[#33312E] text-white placeholder:text-white/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.full_name ? 'border-red-500' : ''}`}
+                  className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] placeholder:text-[#EDE8DC]/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.full_name ? 'border-red-500' : ''}`}
                   data-testid="input-full-name"
                 />
               </div>
               
               {/* Organization Name */}
               <div className="space-y-2">
-                <Label htmlFor="organization_name" className="text-[#F5F5F0]">
+                <Label htmlFor="organization_name" className="text-[#EDE8DC]">
                   {t('organizationName')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Input
@@ -207,14 +207,14 @@ export const RegistrationForm = () => {
                   placeholder={t('organizationPlaceholder')}
                   value={formData.organization_name}
                   onChange={(e) => handleInputChange('organization_name', e.target.value)}
-                  className={`bg-[#1A1917] border-[#33312E] text-white placeholder:text-white/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.organization_name ? 'border-red-500' : ''}`}
+                  className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] placeholder:text-[#EDE8DC]/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.organization_name ? 'border-red-500' : ''}`}
                   data-testid="input-organization-name"
                 />
               </div>
               
               {/* Country */}
               <div className="space-y-2">
-                <Label className="text-[#F5F5F0]">
+                <Label className="text-[#EDE8DC]">
                   {t('country')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Select 
@@ -222,17 +222,17 @@ export const RegistrationForm = () => {
                   onValueChange={(value) => handleInputChange('country', value)}
                 >
                   <SelectTrigger 
-                    className={`bg-[#1A1917] border-[#33312E] text-white h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.country ? 'border-red-500' : ''}`}
+                    className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.country ? 'border-red-500' : ''}`}
                     data-testid="select-country"
                   >
                     <SelectValue placeholder={t('countryPlaceholder')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A1917] border-[#33312E]">
+                  <SelectContent className="bg-[#1A1917] border-[#2A2825]">
                     {countryList.map((country) => (
                       <SelectItem 
                         key={country.value} 
                         value={country.value}
-                        className="text-white hover:bg-[#2A2825] focus:bg-[#2A2825]"
+                        className="text-[#EDE8DC] hover:bg-[#2A2825] focus:bg-[#2A2825]"
                       >
                         {t(`countries.${country.labelKey}`)}
                       </SelectItem>
@@ -243,7 +243,7 @@ export const RegistrationForm = () => {
               
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-[#F5F5F0]">
+                <Label htmlFor="email" className="text-[#EDE8DC]">
                   {t('email')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Input
@@ -252,14 +252,14 @@ export const RegistrationForm = () => {
                   placeholder={t('emailPlaceholder')}
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`bg-[#1A1917] border-[#33312E] text-white placeholder:text-white/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.email ? 'border-red-500' : ''}`}
+                  className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] placeholder:text-[#EDE8DC]/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.email ? 'border-red-500' : ''}`}
                   data-testid="input-email"
                 />
               </div>
               
               {/* Phone */}
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-[#F5F5F0]">
+                <Label htmlFor="phone" className="text-[#EDE8DC]">
                   {t('phone')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Input
@@ -268,14 +268,14 @@ export const RegistrationForm = () => {
                   placeholder={t('phonePlaceholder')}
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={`bg-[#1A1917] border-[#33312E] text-white placeholder:text-white/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.phone ? 'border-red-500' : ''}`}
+                  className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] placeholder:text-[#EDE8DC]/30 h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.phone ? 'border-red-500' : ''}`}
                   data-testid="input-phone"
                 />
               </div>
               
               {/* Profile Type */}
               <div className="space-y-2">
-                <Label className="text-[#F5F5F0]">
+                <Label className="text-[#EDE8DC]">
                   {t('profileType')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Select 
@@ -283,17 +283,17 @@ export const RegistrationForm = () => {
                   onValueChange={(value) => handleInputChange('profile_type', value)}
                 >
                   <SelectTrigger 
-                    className={`bg-[#1A1917] border-[#33312E] text-white h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.profile_type ? 'border-red-500' : ''}`}
+                    className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.profile_type ? 'border-red-500' : ''}`}
                     data-testid="select-profile-type"
                   >
                     <SelectValue placeholder={t('selectProfileType')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A1917] border-[#33312E]">
+                  <SelectContent className="bg-[#1A1917] border-[#2A2825]">
                     {profileTypes.map((profile) => (
                       <SelectItem 
                         key={profile.value} 
                         value={profile.value}
-                        className="text-white hover:bg-[#2A2825] focus:bg-[#2A2825]"
+                        className="text-[#EDE8DC] hover:bg-[#2A2825] focus:bg-[#2A2825]"
                       >
                         {t(profile.labelKey)}
                       </SelectItem>
@@ -304,7 +304,7 @@ export const RegistrationForm = () => {
               
               {/* Stand Request */}
               <div className="space-y-3">
-                <Label className="text-[#F5F5F0]">{t('standRequest')}</Label>
+                <Label className="text-[#EDE8DC]">{t('standRequest')}</Label>
                 <RadioGroup
                   value={formData.stand_request}
                   onValueChange={(value) => handleInputChange('stand_request', value)}
@@ -317,7 +317,7 @@ export const RegistrationForm = () => {
                       id="stand-yes" 
                       className="border-[#D2A53C] text-[#D2A53C]"
                     />
-                    <Label htmlFor="stand-yes" className="text-[#F5F5F0] cursor-pointer">
+                    <Label htmlFor="stand-yes" className="text-[#EDE8DC] cursor-pointer">
                       {t('yes')}
                     </Label>
                   </div>
@@ -327,7 +327,7 @@ export const RegistrationForm = () => {
                       id="stand-no" 
                       className="border-[#D2A53C] text-[#D2A53C]"
                     />
-                    <Label htmlFor="stand-no" className="text-[#F5F5F0] cursor-pointer">
+                    <Label htmlFor="stand-no" className="text-[#EDE8DC] cursor-pointer">
                       {t('no')}
                     </Label>
                   </div>
@@ -337,7 +337,7 @@ export const RegistrationForm = () => {
               {/* Stand Category (conditional) */}
               {formData.stand_request === 'yes' && (
                 <div className="space-y-2 animate-fade-in">
-                  <Label className="text-[#F5F5F0]">
+                  <Label className="text-[#EDE8DC]">
                     {t('standCategory')} <span className="text-[#D2A53C]">*</span>
                   </Label>
                   <Select 
@@ -345,17 +345,17 @@ export const RegistrationForm = () => {
                     onValueChange={(value) => handleInputChange('stand_category', value)}
                   >
                     <SelectTrigger 
-                      className={`bg-[#1A1917] border-[#33312E] text-white h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.stand_category ? 'border-red-500' : ''}`}
+                      className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.stand_category ? 'border-red-500' : ''}`}
                       data-testid="select-stand-category"
                     >
                       <SelectValue placeholder={t('selectStandCategory')} />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1A1917] border-[#33312E]">
+                    <SelectContent className="bg-[#1A1917] border-[#2A2825]">
                       {standCategories.map((category) => (
                         <SelectItem 
                           key={category.value} 
                           value={category.value}
-                          className="text-white hover:bg-[#2A2825] focus:bg-[#2A2825]"
+                          className="text-[#EDE8DC] hover:bg-[#2A2825] focus:bg-[#2A2825]"
                         >
                           {t(category.labelKey)}
                         </SelectItem>
@@ -367,7 +367,7 @@ export const RegistrationForm = () => {
               
               {/* Bio */}
               <div className="space-y-2">
-                <Label htmlFor="bio" className="text-[#F5F5F0]">
+                <Label htmlFor="bio" className="text-[#EDE8DC]">
                   {t('bio')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Textarea
@@ -379,20 +379,20 @@ export const RegistrationForm = () => {
                       handleInputChange('bio', e.target.value);
                     }
                   }}
-                  className={`bg-[#1A1917] border-[#33312E] text-white placeholder:text-white/30 min-h-[120px] focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.bio ? 'border-red-500' : ''}`}
+                  className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] placeholder:text-[#EDE8DC]/30 min-h-[120px] focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.bio ? 'border-red-500' : ''}`}
                   data-testid="textarea-bio"
                 />
-                <p className="text-sm text-[#F5F5F0]/50 text-right">
+                <p className="text-sm text-[#EDE8DC]/50 text-right">
                   {maxBioLength - bioLength} {t('charactersRemaining')}
                 </p>
               </div>
               
               {/* Logo Upload */}
               <div className="space-y-2">
-                <Label className="text-[#F5F5F0]">{t('logoUpload')}</Label>
+                <Label className="text-[#EDE8DC]">{t('logoUpload')}</Label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-[#33312E] bg-[#1A1917] p-6 text-center cursor-pointer hover:border-[#D2A53C] transition-colors"
+                  className="border-2 border-dashed border-[#2A2825] bg-[#1A1917] p-6 text-center cursor-pointer hover:border-[#D2A53C] transition-colors"
                   data-testid="file-upload-area"
                 >
                   {logoPreview ? (
@@ -407,7 +407,7 @@ export const RegistrationForm = () => {
                   ) : (
                     <div className="flex flex-col items-center gap-2">
                       <Upload className="w-8 h-8 text-[#D2A53C]" />
-                      <span className="text-sm text-[#F5F5F0]/50">{t('uploadLabel')}</span>
+                      <span className="text-sm text-[#EDE8DC]/50">{t('uploadLabel')}</span>
                     </div>
                   )}
                   <input
@@ -423,22 +423,22 @@ export const RegistrationForm = () => {
               
               {/* Language Preference */}
               <div className="space-y-2">
-                <Label className="text-[#F5F5F0]">{t('languagePreference')}</Label>
+                <Label className="text-[#EDE8DC]">{t('languagePreference')}</Label>
                 <Select 
                   value={formData.language_preference} 
                   onValueChange={(value) => handleInputChange('language_preference', value)}
                 >
                   <SelectTrigger 
-                    className="bg-[#1A1917] border-[#33312E] text-white h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C]"
+                    className="bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C]"
                     data-testid="select-language-preference"
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A1917] border-[#33312E]">
-                    <SelectItem value="fr" className="text-white hover:bg-[#2A2825] focus:bg-[#2A2825]">
+                  <SelectContent className="bg-[#1A1917] border-[#2A2825]">
+                    <SelectItem value="fr" className="text-[#EDE8DC] hover:bg-[#2A2825] focus:bg-[#2A2825]">
                       {t('french')}
                     </SelectItem>
-                    <SelectItem value="en" className="text-white hover:bg-[#2A2825] focus:bg-[#2A2825]">
+                    <SelectItem value="en" className="text-[#EDE8DC] hover:bg-[#2A2825] focus:bg-[#2A2825]">
                       {t('english')}
                     </SelectItem>
                   </SelectContent>
@@ -447,7 +447,7 @@ export const RegistrationForm = () => {
               
               {/* How Heard */}
               <div className="space-y-2">
-                <Label className="text-[#F5F5F0]">
+                <Label className="text-[#EDE8DC]">
                   {t('howHeard')} <span className="text-[#D2A53C]">*</span>
                 </Label>
                 <Select 
@@ -455,17 +455,17 @@ export const RegistrationForm = () => {
                   onValueChange={(value) => handleInputChange('how_heard', value)}
                 >
                   <SelectTrigger 
-                    className={`bg-[#1A1917] border-[#33312E] text-white h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.how_heard ? 'border-red-500' : ''}`}
+                    className={`bg-[#1A1917] border-[#2A2825] text-[#EDE8DC] h-12 focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] ${errors.how_heard ? 'border-red-500' : ''}`}
                     data-testid="select-how-heard"
                   >
                     <SelectValue placeholder={t('selectHowHeard')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A1917] border-[#33312E]">
+                  <SelectContent className="bg-[#1A1917] border-[#2A2825]">
                     {howHeardOptions.map((option) => (
                       <SelectItem 
                         key={option.value} 
                         value={option.value}
-                        className="text-white hover:bg-[#2A2825] focus:bg-[#2A2825]"
+                        className="text-[#EDE8DC] hover:bg-[#2A2825] focus:bg-[#2A2825]"
                       >
                         {t(option.labelKey)}
                       </SelectItem>
