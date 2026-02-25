@@ -8,7 +8,6 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Upload, Loader2, MapPin, Calendar } from 'lucide-react';
-import React from 'react';
 import { countryList, profileTypes, standCategories, howHeardOptions } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
