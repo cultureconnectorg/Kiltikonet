@@ -33,11 +33,16 @@ export const Header = () => {
             )}
             <button 
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
               data-testid="logo-button"
             >
-              <span className="font-serif text-lg sm:text-xl lg:text-2xl font-semibold text-[#D2A53C] tracking-wide">
-                CULTURE CONNECT 2026
+              <img 
+                src="/logo.png" 
+                alt="Culture Connect" 
+                className="h-10 sm:h-12 w-auto"
+              />
+              <span className="font-serif text-base sm:text-lg lg:text-xl font-semibold text-[#D2A53C] tracking-wide hidden sm:inline">
+                2026
               </span>
             </button>
           </div>

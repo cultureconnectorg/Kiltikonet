@@ -127,11 +127,19 @@ export const LandingPage = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0C0B09] via-transparent to-[#0C0B09] opacity-80" />
         
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/logo.png" 
+              alt="Culture Connect" 
+              className="h-32 sm:h-40 lg:h-48 w-auto"
+              data-testid="hero-logo"
+            />
+          </div>
           <h1 
-            className="font-serif text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-[#D2A53C] mb-6 tracking-tight"
+            className="font-serif text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#D2A53C] mb-6 tracking-tight"
             data-testid="hero-title"
           >
-            Culture Connect 2026
+            2026
           </h1>
           
           <p className="text-lg sm:text-xl lg:text-2xl text-[#EDE8DC] mb-4 font-light tracking-wide">
@@ -387,11 +395,11 @@ export const LandingPage = () => {
               
               <div className="space-y-4 mb-8">
                 <a 
-                  href="mailto:contact@cultureconnect2026.com" 
+                  href="mailto:cultureconnectorg@gmail.com" 
                   className="flex items-center gap-3 text-[#EDE8DC] hover:text-[#D2A53C] transition-colors"
                 >
                   <Mail className="w-5 h-5" />
-                  contact@cultureconnect2026.com
+                  cultureconnectorg@gmail.com
                 </a>
               </div>
               
