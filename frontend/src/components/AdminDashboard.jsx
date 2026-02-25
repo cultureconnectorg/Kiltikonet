@@ -131,6 +131,30 @@ export const AdminDashboard = () => {
       toast.error('Error');
     }
   };
+
+  const handleAddParticipant = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/registrations/manual`, newParticipant);
+      toast.success(language === 'fr' ? 'Participant ajouté' : 'Participant added');
+      setShowAddModal(false);
+      setNewParticipant({
+        full_name: '',
+        organization_name: '',
+        country: 'SN',
+        email: '',
+        phone: '',
+        profile_type: 'artist',
+        tier: 'professional',
+        status: 'approved',
+        show_in_catalog: true,
+        bio: ''
+      });
+      fetchRegistrations();
+    } catch (error) {
+      toast.error(language === 'fr' ? 'Erreur lors de l\'ajout' : 'Error adding participant');
+    }
+  };
   
   const handleExportCSV = async () => {
     try {
