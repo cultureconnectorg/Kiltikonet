@@ -24,8 +24,8 @@ export const ConfirmationScreen = () => {
   
   const participantWithTier = { 
     ...registration, 
-    tier: 'professional',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop'
+    tier: registration.tier || 'professional',
+    image: registration.logo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop'
   };
   
   return (
