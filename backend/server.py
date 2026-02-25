@@ -67,6 +67,20 @@ class StatusUpdate(BaseModel):
 class CatalogUpdate(BaseModel):
     show_in_catalog: bool
 
+class ManualRegistration(BaseModel):
+    full_name: str
+    organization_name: str
+    country: str
+    email: str
+    phone: str
+    profile_type: str
+    tier: str = "professional"
+    status: str = "approved"
+    show_in_catalog: bool = True
+    bio: str = ""
+    stand_request: bool = False
+    stand_category: Optional[str] = None
+
 # Routes
 @api_router.get("/")
 async def root():
