@@ -209,6 +209,24 @@ select:focus {
   }
 }
 
+/* Hide Emergent badge */
+[data-testid="emergent-badge"],
+.emergent-badge,
+div[class*="emergent"],
+a[href*="emergent"],
+div:has(> a[href*="emergentagent"]),
+iframe[src*="emergent"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Target the Made with Emergent text */
+body > div:last-child:not(.App):not(#root) {
+  display: none !important;
+}
+
 /* Print styles for admin */
 @media print {
   .no-print {

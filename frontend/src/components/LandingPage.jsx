@@ -408,7 +408,9 @@ export const LandingPage = () => {
               
               <div className="flex items-center gap-4">
                 <a 
-                  href="#" 
+                  href="https://www.instagram.com/culturconnect?igsh=ODB1cXF1enVya3cz&utm_source=qr" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 bg-[#1A1917] border border-[#2A2825] flex items-center justify-center text-[#EDE8DC] hover:text-[#D2A53C] hover:border-[#D2A53C] transition-all"
                   aria-label="Instagram"
                 >
