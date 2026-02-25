@@ -2,23 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
-import { Check, Sparkles, Users, Crown, ArrowRight, Star } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 
 export const PricingPage = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const [hoveredTier, setHoveredTier] = useState(null);
 
   const tiers = [
     {
       id: 'emerging',
-      name: language === 'fr' ? 'ÉMERGENT' : 'EMERGING',
+      name: language === 'fr' ? 'Émergent' : 'Emerging',
       price: 50,
       description: language === 'fr' 
         ? 'Pour les artistes émergents et étudiants'
         : 'For emerging artists and students',
-      icon: Sparkles,
-      color: '#00d4ff',
+      color: 'sage',
       features: language === 'fr' ? [
         'Accès aux conférences',
         'Badge accréditation',
@@ -33,18 +31,17 @@ export const PricingPage = () => {
         'La Savane access (May 22)',
         'Digital documentation',
         'Participation certificate'
-      ],
-      popular: false
+      ]
     },
     {
       id: 'professional',
-      name: language === 'fr' ? 'PROFESSIONNEL' : 'PROFESSIONAL',
+      name: language === 'fr' ? 'Professionnel' : 'Professional',
       price: 150,
       description: language === 'fr'
         ? 'Pour les professionnels et structures'
         : 'For professionals and organizations',
-      icon: Users,
-      color: '#D2A53C',
+      color: 'terracotta',
+      popular: true,
       features: language === 'fr' ? [
         'Tout le pack Émergent',
         'Accès prioritaire aux tables rondes',
@@ -63,18 +60,16 @@ export const PricingPage = () => {
         'Shared stand (option)',
         'Concert backstage access',
         'Dedicated support'
-      ],
-      popular: true
+      ]
     },
     {
       id: 'institutional',
-      name: language === 'fr' ? 'INSTITUTIONNEL' : 'INSTITUTIONAL',
+      name: language === 'fr' ? 'Institutionnel' : 'Institutional',
       price: 300,
       description: language === 'fr'
         ? 'Pour les institutions et partenaires majeurs'
         : 'For institutions and major partners',
-      icon: Crown,
-      color: '#a855f7',
+      color: 'charcoal',
       features: language === 'fr' ? [
         'Tout le pack Professionnel',
         'Stand dédié au Marché Culturel',
@@ -95,213 +90,103 @@ export const PricingPage = () => {
         'Press zone access',
         'Exclusive post-event report',
         'Priority media partnership'
-      ],
-      popular: false
+      ]
     }
   ];
 
-  const handleSelectTier = (tierId) => {
-    navigate('/register', { state: { selectedTier: tierId } });
-  };
-
   return (
-    <div className="min-h-screen bg-[#0a0a0f] pt-20 sm:pt-24 overflow-hidden">
-      {/* Animated background patterns */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00d4ff]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#D2A53C]/10 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#a855f7]/5 rounded-full blur-[150px]" />
-        
-        {/* Afro-futuristic pattern overlay */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="afro-pattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-              <circle cx="30" cy="30" r="20" fill="none" stroke="#00d4ff" strokeWidth="0.5"/>
-              <circle cx="30" cy="30" r="10" fill="none" stroke="#D2A53C" strokeWidth="0.5"/>
-              <path d="M30 10 L30 50 M10 30 L50 30" stroke="#a855f7" strokeWidth="0.3"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#afro-pattern)"/>
-        </svg>
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+    <div className="min-h-screen bg-paper pt-24 sm:pt-32">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-6">
-            <Star className="w-4 h-4 text-[#D2A53C]" />
-            <span className="text-sm text-white/70">
-              {language === 'fr' ? 'Tarifs Early Bird jusqu\'au 1er Avril' : 'Early Bird pricing until April 1st'}
-            </span>
-          </div>
-          
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-white mb-4">
-            {language === 'fr' ? 'Choisissez votre' : 'Choose your'}
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#00d4ff] via-[#D2A53C] to-[#a855f7]">
-              {language === 'fr' ? 'Accréditation' : 'Accreditation'}
-            </span>
+          <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
+            {language === 'fr' ? 'Tarifs 2026' : 'Pricing 2026'}
+          </p>
+          <h1 className="font-serif text-4xl sm:text-5xl text-charcoal mb-6">
+            {language === 'fr' ? 'Choisissez votre accréditation' : 'Choose your accreditation'}
           </h1>
-          
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
+          <p className="text-charcoal/70 font-body text-lg max-w-2xl mx-auto">
             {language === 'fr'
-              ? 'Accédez au plus grand marché culturel afro-descendant de la Caraïbe. Fort-de-France, 20-23 Mai 2026.'
-              : 'Access the largest Afro-descendant cultural market in the Caribbean. Fort-de-France, May 20-23, 2026.'
+              ? 'Accédez au plus grand marché culturel afro-descendant de la Caraïbe.'
+              : 'Access the largest Afro-descendant cultural market in the Caribbean.'
             }
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-          {tiers.map((tier, index) => {
-            const IconComponent = tier.icon;
-            const isHovered = hoveredTier === tier.id;
-            
-            return (
-              <div
-                key={tier.id}
-                className={`relative group ${tier.popular ? 'lg:-mt-4 lg:mb-4' : ''}`}
-                onMouseEnter={() => setHoveredTier(tier.id)}
-                onMouseLeave={() => setHoveredTier(null)}
-                data-testid={`pricing-card-${tier.id}`}
-              >
-                {/* Popular badge */}
-                {tier.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <div 
-                      className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${tier.color}40, ${tier.color}20)`,
-                        border: `1px solid ${tier.color}50`,
-                        color: tier.color,
-                        boxShadow: `0 0 20px ${tier.color}30`
-                      }}
-                    >
-                      {language === 'fr' ? 'Populaire' : 'Popular'}
-                    </div>
-                  </div>
-                )}
-
-                {/* Card */}
-                <div 
-                  className={`relative h-full rounded-2xl overflow-hidden transition-all duration-500 ${
-                    tier.popular ? 'bg-gradient-to-b from-white/15 to-white/5' : 'bg-gradient-to-b from-white/10 to-white/[0.02]'
-                  }`}
-                  style={{
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid ${isHovered || tier.popular ? tier.color + '50' : 'rgba(255,255,255,0.1)'}`,
-                    boxShadow: isHovered ? `0 0 40px ${tier.color}20, inset 0 0 60px ${tier.color}05` : 'none',
-                    transform: isHovered ? 'translateY(-8px)' : 'translateY(0)'
-                  }}
-                >
-                  {/* Glow effect on hover */}
-                  <div 
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px transition-opacity duration-500"
-                    style={{ 
-                      background: `linear-gradient(90deg, transparent, ${tier.color}, transparent)`,
-                      opacity: isHovered ? 1 : 0
-                    }}
-                  />
-
-                  <div className="p-6 sm:p-8">
-                    {/* Icon */}
-                    <div 
-                      className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-all duration-300"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${tier.color}30, ${tier.color}10)`,
-                        border: `1px solid ${tier.color}30`,
-                        boxShadow: isHovered ? `0 0 30px ${tier.color}40` : 'none'
-                      }}
-                    >
-                      <IconComponent className="w-7 h-7" style={{ color: tier.color }} />
-                    </div>
-
-                    {/* Name & Description */}
-                    <h3 
-                      className="text-xl font-bold mb-2 tracking-wider"
-                      style={{ color: tier.color }}
-                    >
-                      {tier.name}
-                    </h3>
-                    <p className="text-white/50 text-sm mb-6">
-                      {tier.description}
-                    </p>
-
-                    {/* Price */}
-                    <div className="mb-8">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-bold text-white">{tier.price}</span>
-                        <span className="text-xl text-white/50">€</span>
-                      </div>
-                      <p className="text-white/40 text-sm mt-1">
-                        {language === 'fr' ? 'par participant' : 'per participant'}
-                      </p>
-                    </div>
-
-                    {/* Features */}
-                    <ul className="space-y-3 mb-8">
-                      {tier.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <div 
-                            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                            style={{ 
-                              background: `${tier.color}20`,
-                              boxShadow: `0 0 10px ${tier.color}30`
-                            }}
-                          >
-                            <Check className="w-3 h-3" style={{ color: tier.color }} />
-                          </div>
-                          <span className="text-white/70 text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* CTA Button */}
-                    <Button
-                      onClick={() => handleSelectTier(tier.id)}
-                      className="w-full h-12 font-semibold transition-all duration-300 group/btn"
-                      style={{
-                        background: tier.popular 
-                          ? `linear-gradient(135deg, ${tier.color}, ${tier.color}cc)`
-                          : 'transparent',
-                        border: `1px solid ${tier.color}`,
-                        color: tier.popular ? '#0a0a0f' : tier.color,
-                        boxShadow: isHovered ? `0 0 30px ${tier.color}40` : 'none'
-                      }}
-                      data-testid={`select-${tier.id}-btn`}
-                    >
-                      <span>{language === 'fr' ? 'Sélectionner' : 'Select'}</span>
-                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
-                    </Button>
-                  </div>
+        <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {tiers.map((tier) => (
+            <div
+              key={tier.id}
+              className={`relative border bg-cream ${
+                tier.popular ? 'border-terracotta' : 'border-lightborder'
+              }`}
+              data-testid={`pricing-card-${tier.id}`}
+            >
+              {tier.popular && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="bg-terracotta text-paper px-4 py-1 text-xs font-syne tracking-wider uppercase">
+                    {language === 'fr' ? 'Recommandé' : 'Recommended'}
+                  </span>
                 </div>
+              )}
+
+              <div className="p-8">
+                <h3 className="font-serif text-2xl text-charcoal mb-2">
+                  {tier.name}
+                </h3>
+                <p className="text-charcoal/60 text-sm mb-6">
+                  {tier.description}
+                </p>
+
+                <div className="mb-8">
+                  <span className="font-serif text-5xl text-charcoal">{tier.price}</span>
+                  <span className="text-charcoal/60 ml-1">€</span>
+                  <p className="text-charcoal/50 text-sm mt-1">
+                    {language === 'fr' ? 'par participant' : 'per participant'}
+                  </p>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {tier.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <Check className={`w-4 h-4 mt-1 flex-shrink-0 ${
+                        tier.color === 'terracotta' ? 'text-terracotta' : 
+                        tier.color === 'sage' ? 'text-sage' : 'text-charcoal'
+                      }`} />
+                      <span className="text-charcoal/70 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  onClick={() => navigate('/register', { state: { selectedTier: tier.id } })}
+                  className={`w-full h-12 font-syne text-sm tracking-wide rounded-none ${
+                    tier.popular 
+                      ? 'bg-terracotta text-paper hover:bg-terracotta/90' 
+                      : 'bg-charcoal text-paper hover:bg-charcoal/90'
+                  }`}
+                  data-testid={`select-${tier.id}-btn`}
+                >
+                  {language === 'fr' ? 'Sélectionner' : 'Select'}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
         {/* Bottom info */}
         <div className="mt-16 text-center">
-          <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 text-sm text-white/40">
-            <span className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#4ADE80]" />
-              {language === 'fr' ? 'Paiement sécurisé' : 'Secure payment'}
-            </span>
-            <span className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#00d4ff]" />
-              {language === 'fr' ? 'Confirmation immédiate' : 'Instant confirmation'}
-            </span>
-            <span className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#D2A53C]" />
-              {language === 'fr' ? 'Remboursable jusqu\'au 1er Mai' : 'Refundable until May 1st'}
-            </span>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-charcoal/50">
+            <span>✓ {language === 'fr' ? 'Paiement sécurisé' : 'Secure payment'}</span>
+            <span>✓ {language === 'fr' ? 'Confirmation immédiate' : 'Instant confirmation'}</span>
+            <span>✓ {language === 'fr' ? 'Remboursable jusqu\'au 1er Mai' : 'Refundable until May 1st'}</span>
           </div>
           
-          <p className="mt-8 text-white/30 text-sm">
-            {language === 'fr' 
-              ? 'Besoin d\'une solution sur mesure ? '
-              : 'Need a custom solution? '
-            }
-            <a href="mailto:cultureconnectorg@gmail.com" className="text-[#00d4ff] hover:underline">
+          <p className="mt-8 text-charcoal/50 text-sm">
+            {language === 'fr' ? 'Besoin d\'une solution sur mesure ? ' : 'Need a custom solution? '}
+            <a href="mailto:cultureconnectorg@gmail.com" className="text-terracotta hover:underline">
               {language === 'fr' ? 'Contactez-nous' : 'Contact us'}
             </a>
           </p>
