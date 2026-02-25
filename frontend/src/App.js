@@ -5,6 +5,7 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { Header } from "./components/Header";
 import { LandingPage } from "./components/LandingPage";
 import { PricingPage } from "./components/PricingPage";
+import { PartnershipPage } from "./components/PartnershipPage";
 import { RegistrationForm } from "./components/RegistrationForm";
 import { ConfirmationScreen } from "./components/ConfirmationScreen";
 import { AdminDashboard } from "./components/AdminDashboard";
@@ -19,6 +20,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/partnership" element={<PartnershipPage />} />
             <Route path="/register" element={<RegistrationForm />} />
             <Route path="/confirmation" element={<ConfirmationScreen />} />
             <Route path="/admin" element={<AdminDashboard />} />
