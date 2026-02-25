@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { 
   Search, Filter, MapPin, Briefcase, Star, Users, Globe, 
   Building2, Mic2, Newspaper, MoreHorizontal, ExternalLink,
-  Sparkles, Crown, Mail, Grid, List
+  Sparkles, Crown, Mail, Grid, List, CreditCard
 } from 'lucide-react';
 import { profileTypes, countryList } from '../lib/translations';
+import { BadgeGenerator } from './BadgeGenerator';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -51,6 +52,7 @@ export const CatalogPage = () => {
     sector: '',
     tier: ''
   });
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
 
   const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
@@ -405,18 +407,27 @@ export const CatalogPage = () => {
                         {participant.bio}
                       </p>
 
-                      {/* Action */}
-                      <button 
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all"
-                        style={{
-                          background: `${tierInfo.color}15`,
-                          border: `1px solid ${tierInfo.color}30`,
-                          color: tierInfo.color
-                        }}
-                      >
-                        <Mail className="w-4 h-4" />
-                        {language === 'fr' ? 'Contacter' : 'Contact'}
-                      </button>
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => setSelectedParticipant(participant)}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all"
+                          style={{
+                            background: `${tierInfo.color}15`,
+                            border: `1px solid ${tierInfo.color}30`,
+                            color: tierInfo.color
+                          }}
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          Badge
+                        </button>
+                        <button 
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all bg-white/5 border border-white/10 text-white/70 hover:text-white hover:border-white/30"
+                        >
+                          <Mail className="w-4 h-4" />
+                          {language === 'fr' ? 'Contact' : 'Contact'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
