@@ -3,6 +3,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
 import { Header } from "./components/Header";
+import { LandingPage } from "./components/LandingPage";
 import { RegistrationForm } from "./components/RegistrationForm";
 import { ConfirmationScreen } from "./components/ConfirmationScreen";
 import { AdminDashboard } from "./components/AdminDashboard";
@@ -11,11 +12,12 @@ import { Toaster } from "./components/ui/sonner";
 function App() {
   return (
     <LanguageProvider>
-      <div className="App noise-overlay">
+      <div className="App">
         <BrowserRouter>
           <Header />
           <Routes>
-            <Route path="/" element={<RegistrationForm />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/register" element={<RegistrationForm />} />
             <Route path="/confirmation" element={<ConfirmationScreen />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
@@ -25,8 +27,8 @@ function App() {
           toastOptions={{
             style: {
               background: '#141311',
-              border: '1px solid #33312E',
-              color: '#F5F5F0',
+              border: '1px solid #2A2825',
+              color: '#EDE8DC',
             },
           }}
         />

@@ -8,6 +8,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Upload, Loader2, MapPin, Calendar } from 'lucide-react';
+import React from 'react';
 import { countryList, profileTypes, standCategories, howHeardOptions } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -19,6 +20,11 @@ export const RegistrationForm = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  
+  // Scroll to top on mount
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -131,23 +137,15 @@ export const RegistrationForm = () => {
   
   return (
     <div className="min-h-screen bg-[#0C0B09] pt-20 sm:pt-24">
-      {/* Hero Section */}
-      <section className="relative py-16 sm:py-24 lg:py-32 overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ 
-            backgroundImage: `url('https://images.unsplash.com/photo-1761437855598-a84c2849dc6a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGdvbGQlMjBibGFjayUyMHRleHR1cmV8ZW58MHx8fHwxNzcyMDIxNzM3fDA&ixlib=rb-4.1.0&q=85')` 
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0C0B09] via-transparent to-[#0C0B09]" />
-        
+      {/* Page Header */}
+      <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden">
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-6 text-[#D2A53C]/80">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               <span className="text-sm font-medium">{t('eventLocation')}</span>
             </div>
-            <span className="text-[#33312E]">|</span>
+            <span className="text-[#2A2825]">|</span>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               <span className="text-sm font-medium">{t('eventDate')}</span>
@@ -155,14 +153,17 @@ export const RegistrationForm = () => {
           </div>
           
           <h1 
-            className="font-serif text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-semibold text-[#F5F5F0] leading-tight mb-6"
-            data-testid="hero-title"
+            className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#D2A53C] leading-tight mb-4"
+            data-testid="register-page-title"
           >
-            {t('heroTitle')}
+            {t('formTitle')}
           </h1>
           
-          <p className="text-base sm:text-lg text-[#F5F5F0]/70 max-w-2xl mx-auto">
-            {t('heroSubtitle')}
+          <p className="text-base sm:text-lg text-[#EDE8DC]/60 max-w-2xl mx-auto">
+            {language === 'fr' 
+              ? 'Remplissez le formulaire ci-dessous pour demander votre accréditation'
+              : 'Fill out the form below to request your accreditation'
+            }
           </p>
         </div>
       </section>

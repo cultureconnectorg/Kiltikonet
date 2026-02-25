@@ -5,7 +5,55 @@
   background-color: #0C0B09;
 }
 
-/* Animations */
+/* Particle Animation */
+.particles-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #D2A53C;
+  border-radius: 50%;
+  opacity: 0;
+  animation: particle-float 6s ease-in-out infinite;
+}
+
+@keyframes particle-float {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scale(0);
+  }
+  10% {
+    opacity: 0.6;
+    transform: translateY(-20px) scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translateY(-100px) scale(0.8);
+  }
+  90% {
+    opacity: 0;
+    transform: translateY(-200px) scale(0.3);
+  }
+}
+
+/* Scroll Animation Classes */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.animate-on-scroll.animate-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Standard Animations */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -47,6 +95,11 @@
 
 .animate-checkmark {
   animation: checkmark-draw 0.6s ease-out forwards;
+}
+
+/* Smooth scroll for the whole page */
+html {
+  scroll-behavior: smooth;
 }
 
 /* Form field focus states */
@@ -98,6 +151,26 @@ select:focus {
   color: #F87171;
 }
 
+/* Status dots */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.pending {
+  background-color: #D2A53C;
+}
+
+.status-dot.approved {
+  background-color: #4ADE80;
+}
+
+.status-dot.rejected {
+  background-color: #F87171;
+}
+
 /* Scrollbar for select dropdowns */
 [role="listbox"] {
   max-height: 250px;
@@ -108,6 +181,25 @@ select:focus {
 .file-upload-drag {
   border-color: #D2A53C;
   background-color: rgba(210, 165, 60, 0.05);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1A1917;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #33312E;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D2A53C;
 }
 
 /* Mobile responsive tweaks */
