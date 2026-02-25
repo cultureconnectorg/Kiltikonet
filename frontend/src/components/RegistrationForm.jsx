@@ -150,6 +150,33 @@ export const RegistrationForm = () => {
       {/* Page Header */}
       <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden">
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Back to pricing */}
+          <button 
+            onClick={() => navigate('/pricing')}
+            className="inline-flex items-center gap-2 text-[#EDE8DC]/60 hover:text-[#D2A53C] transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm">{language === 'fr' ? 'Modifier le forfait' : 'Change plan'}</span>
+          </button>
+          
+          {/* Selected Tier Badge */}
+          {tier && (
+            <div 
+              className="inline-flex items-center gap-3 px-5 py-3 rounded-xl mb-6"
+              style={{ 
+                background: `linear-gradient(135deg, ${tier.color}20, ${tier.color}10)`,
+                border: `1px solid ${tier.color}40`
+              }}
+            >
+              <TierIcon className="w-5 h-5" style={{ color: tier.color }} />
+              <span className="font-semibold" style={{ color: tier.color }}>
+                {language === 'fr' ? tier.name : tier.nameEn}
+              </span>
+              <span className="text-white/60">—</span>
+              <span className="text-white font-bold">{tier.price}€</span>
+            </div>
+          )}
+          
           <div className="flex items-center justify-center gap-4 mb-6 text-[#D2A53C]/80">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
