@@ -155,7 +155,7 @@ export const LandingPage = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/pricing')}
               className="h-14 px-8 bg-[#D2A53C] text-[#0C0B09] font-semibold text-base hover:bg-[#E5B84D] hover:shadow-[0_0_30px_rgba(210,165,60,0.4)] transition-all duration-300"
               data-testid="hero-cta-register"
             >
@@ -370,7 +370,7 @@ export const LandingPage = () => {
             }
           </p>
           <Button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate('/pricing')}
             className="h-14 px-10 bg-[#0C0B09] text-[#D2A53C] font-semibold text-base hover:bg-[#1A1917] transition-all duration-300"
             data-testid="cta-register-button"
           >
