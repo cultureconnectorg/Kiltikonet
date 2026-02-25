@@ -475,6 +475,168 @@ export const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Add Participant Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-charcoal/50 flex items-center justify-center z-50" onClick={() => setShowAddModal(false)}>
+          <div className="bg-paper w-full max-w-lg mx-4 max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-lightborder">
+              <div className="flex items-center justify-between">
+                <h2 className="font-serif text-xl text-charcoal">
+                  {language === 'fr' ? 'Ajouter un participant' : 'Add a participant'}
+                </h2>
+                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-cream transition-colors">
+                  <X className="w-5 h-5 text-charcoal/50" />
+                </button>
+              </div>
+            </div>
+            
+            <form onSubmit={handleAddParticipant} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                    {language === 'fr' ? 'Nom complet' : 'Full name'} *
+                  </label>
+                  <Input
+                    required
+                    value={newParticipant.full_name}
+                    onChange={(e) => setNewParticipant(prev => ({ ...prev, full_name: e.target.value }))}
+                    className="bg-cream border-lightborder rounded-none"
+                    data-testid="add-participant-fullname"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                    Organisation *
+                  </label>
+                  <Input
+                    required
+                    value={newParticipant.organization_name}
+                    onChange={(e) => setNewParticipant(prev => ({ ...prev, organization_name: e.target.value }))}
+                    className="bg-cream border-lightborder rounded-none"
+                    data-testid="add-participant-org"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">Email *</label>
+                  <Input
+                    type="email"
+                    required
+                    value={newParticipant.email}
+                    onChange={(e) => setNewParticipant(prev => ({ ...prev, email: e.target.value }))}
+                    className="bg-cream border-lightborder rounded-none"
+                    data-testid="add-participant-email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                    {language === 'fr' ? 'Téléphone' : 'Phone'} *
+                  </label>
+                  <Input
+                    required
+                    value={newParticipant.phone}
+                    onChange={(e) => setNewParticipant(prev => ({ ...prev, phone: e.target.value }))}
+                    className="bg-cream border-lightborder rounded-none"
+                    data-testid="add-participant-phone"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                    {language === 'fr' ? 'Pays' : 'Country'} *
+                  </label>
+                  <Select value={newParticipant.country} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, country: v }))}>
+                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-country">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-paper border-lightborder max-h-60">
+                      {countryList.map(c => (
+                        <SelectItem key={c.value} value={c.value}>{c.value}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                    {language === 'fr' ? 'Type de profil' : 'Profile type'} *
+                  </label>
+                  <Select value={newParticipant.profile_type} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, profile_type: v }))}>
+                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-profile">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-paper border-lightborder">
+                      {profileTypes.map(p => (
+                        <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                    {language === 'fr' ? 'Formule' : 'Tier'}
+                  </label>
+                  <Select value={newParticipant.tier} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, tier: v }))}>
+                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-tier">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-paper border-lightborder">
+                      <SelectItem value="emerging">{language === 'fr' ? 'Émergent (50€)' : 'Emerging (50€)'}</SelectItem>
+                      <SelectItem value="professional">{language === 'fr' ? 'Professionnel (150€)' : 'Professional (150€)'}</SelectItem>
+                      <SelectItem value="institutional">{language === 'fr' ? 'Institutionnel (300€)' : 'Institutional (300€)'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">Statut</label>
+                  <Select value={newParticipant.status} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, status: v }))}>
+                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-paper border-lightborder">
+                      <SelectItem value="pending">{language === 'fr' ? 'En attente' : 'Pending'}</SelectItem>
+                      <SelectItem value="approved">{language === 'fr' ? 'Approuvé' : 'Approved'}</SelectItem>
+                      <SelectItem value="rejected">{language === 'fr' ? 'Refusé' : 'Rejected'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newParticipant.show_in_catalog}
+                    onChange={(e) => setNewParticipant(prev => ({ ...prev, show_in_catalog: e.target.checked }))}
+                    className="w-4 h-4 accent-sage"
+                    data-testid="add-participant-catalog"
+                  />
+                  <span className="text-sm text-charcoal">
+                    {language === 'fr' ? 'Afficher dans le catalogue public' : 'Show in public catalog'}
+                  </span>
+                </label>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}
+                  className="flex-1 h-11 border-lightborder text-charcoal rounded-none font-syne">
+                  {language === 'fr' ? 'Annuler' : 'Cancel'}
+                </Button>
+                <Button type="submit" className="flex-1 h-11 bg-sage text-paper rounded-none font-syne" data-testid="add-participant-submit">
+                  {language === 'fr' ? 'Ajouter' : 'Add'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
