@@ -506,16 +506,35 @@ async def get_checkout_status(request: Request, session_id: str):
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    """Handle Stripe webhook events"""
+    """Handle Stripe webhook events with signature verification"""
     body = await request.body()
     signature = request.headers.get("Stripe-Signature")
     
+    # Verify signature is present
+    if not signature:
+        logger.error("Webhook received without Stripe-Signature header")
+        raise HTTPException(status_code=400, detail="Missing Stripe-Signature header")
+    
+    # Verify webhook secret is configured
+    if not STRIPE_WEBHOOK_SECRET:
+        logger.error("STRIPE_WEBHOOK_SECRET not configured")
+        raise HTTPException(status_code=500, detail="Webhook secret not configured")
+    
     host_url = str(request.base_url).rstrip('/')
     webhook_url = f"{host_url}/api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    # Initialize Stripe checkout with webhook secret for signature verification
+    stripe_checkout = StripeCheckout(
+        api_key=STRIPE_API_KEY, 
+        webhook_url=webhook_url,
+        webhook_secret=STRIPE_WEBHOOK_SECRET
+    )
     
     try:
+        # handle_webhook will verify signature using webhook_secret
         webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        logger.info(f"Webhook event received: {webhook_response.event_type}")
         
         if webhook_response.event_type == "checkout.session.completed":
             session_id = webhook_response.session_id
