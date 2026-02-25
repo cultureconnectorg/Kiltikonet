@@ -48,8 +48,9 @@ export const CatalogPage = () => {
       
       const withImages = catalogParticipants.map((p, i) => ({
         ...p,
-        image: placeholderImages[i % placeholderImages.length],
-        tier: ['emerging', 'professional', 'institutional'][Math.floor(Math.random() * 3)]
+        // Use logo_url from Cloudinary if available, otherwise use placeholder
+        image: p.logo_url || placeholderImages[i % placeholderImages.length],
+        tier: p.tier || 'professional'
       }));
       
       if (withImages.length === 0) {
