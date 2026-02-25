@@ -1,34 +1,130 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Culture Connect 2026 - Custom Styles */
+
+.App {
+  min-height: 100vh;
+  background-color: #0C0B09;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.App-link {
-    color: #61dafb;
+@keyframes checkmark-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+
+.animate-checkmark {
+  animation: checkmark-draw 0.6s ease-out forwards;
+}
+
+/* Form field focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* Custom checkbox/radio styling */
+[data-state="checked"] {
+  background-color: #D2A53C !important;
+  border-color: #D2A53C !important;
+}
+
+/* Table hover effects */
+.table-row-hover:hover {
+  background-color: #1A1917;
+}
+
+/* Gold glow button effect */
+.gold-button:hover {
+  box-shadow: 0 0 20px rgba(210, 165, 60, 0.3);
+}
+
+/* Status badge styles */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.pending {
+  background-color: rgba(210, 165, 60, 0.15);
+  color: #D2A53C;
+}
+
+.status-badge.approved {
+  background-color: rgba(74, 222, 128, 0.15);
+  color: #4ADE80;
+}
+
+.status-badge.rejected {
+  background-color: rgba(248, 113, 113, 0.15);
+  color: #F87171;
+}
+
+/* Scrollbar for select dropdowns */
+[role="listbox"] {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* File upload drag state */
+.file-upload-drag {
+  border-color: #D2A53C;
+  background-color: rgba(210, 165, 60, 0.05);
+}
+
+/* Mobile responsive tweaks */
+@media (max-width: 640px) {
+  .font-serif {
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Print styles for admin */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
 }
