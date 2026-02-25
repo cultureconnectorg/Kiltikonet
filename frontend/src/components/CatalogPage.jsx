@@ -478,6 +478,14 @@ export const CatalogPage = () => {
           </div>
         )}
       </div>
+
+      {/* Badge Modal */}
+      {selectedParticipant && (
+        <BadgeGenerator 
+          participant={selectedParticipant} 
+          onClose={() => setSelectedParticipant(null)} 
+        />
+      )}
     </div>
   );
 };
