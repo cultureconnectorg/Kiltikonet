@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { 
   Download, LogOut, Users, Clock, CheckCircle, XCircle, 
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
-  Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff
+  Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus
 } from 'lucide-react';
 import { profileTypes, countryList } from '../lib/translations';
 import axios from 'axios';
