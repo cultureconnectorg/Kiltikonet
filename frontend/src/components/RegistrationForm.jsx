@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -7,7 +7,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Upload, Loader2, MapPin, Calendar } from 'lucide-react';
+import { Upload, Loader2, MapPin, Calendar, Sparkles, Users, Crown, ArrowLeft } from 'lucide-react';
 import { countryList, profileTypes, standCategories, howHeardOptions } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -15,10 +15,21 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+const tierInfo = {
+  emerging: { name: 'ÉMERGENT', nameEn: 'EMERGING', price: 50, icon: Sparkles, color: '#00d4ff' },
+  professional: { name: 'PROFESSIONNEL', nameEn: 'PROFESSIONAL', price: 150, icon: Users, color: '#D2A53C' },
+  institutional: { name: 'INSTITUTIONNEL', nameEn: 'INSTITUTIONAL', price: 300, icon: Crown, color: '#a855f7' }
+};
+
 export const RegistrationForm = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef(null);
+  
+  const selectedTier = location.state?.selectedTier || 'emerging';
+  const tier = tierInfo[selectedTier];
+  const TierIcon = tier?.icon || Sparkles;
   
   // Scroll to top on mount
   React.useEffect(() => {
