@@ -6,6 +6,7 @@ import { Header } from "./components/Header";
 import { LandingPage } from "./components/LandingPage";
 import { PricingPage } from "./components/PricingPage";
 import { PartnershipPage } from "./components/PartnershipPage";
+import { CatalogPage } from "./components/CatalogPage";
 import { RegistrationForm } from "./components/RegistrationForm";
 import { ConfirmationScreen } from "./components/ConfirmationScreen";
 import { AdminDashboard } from "./components/AdminDashboard";
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/partnership" element={<PartnershipPage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/register" element={<RegistrationForm />} />
             <Route path="/confirmation" element={<ConfirmationScreen />} />
             <Route path="/admin" element={<AdminDashboard />} />
