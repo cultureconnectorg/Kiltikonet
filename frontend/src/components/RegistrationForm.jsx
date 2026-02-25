@@ -104,12 +104,14 @@ export const RegistrationForm = () => {
         if (key === 'stand_request') submitData.append(key, value === 'yes');
         else if (value) submitData.append(key, value);
       });
+      // Add tier from selected tier
+      submitData.append('tier', selectedTier);
       if (logoFile) submitData.append('logo', logoFile);
       
       const response = await axios.post(`${API}/registrations`, submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      navigate('/confirmation', { state: { registration: response.data } });
+      navigate('/confirmation', { state: { registration: { ...response.data, tier: selectedTier } } });
     } catch (error) {
       toast.error(language === 'fr' ? 'Une erreur est survenue' : 'An error occurred');
     } finally {
