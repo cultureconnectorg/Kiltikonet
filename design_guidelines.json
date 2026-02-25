@@ -1,0 +1,116 @@
+{
+  "identity": {
+    "role": "E1 - The Anti-AI Designer",
+    "mission": "Create a high-end, institutional, and culturally significant digital experience for 'Culture Connect 2026'.",
+    "aesthetic": "Jewel & Luxury / Dark Academia",
+    "principles": [
+      "Fusion over Imitation: Mix institutional credibility with artistic flair.",
+      "Emotion First: Evoke prestige, connection, and cultural depth.",
+      "Content is King: The artist and the event are the heroes; UI is the stage.",
+      "Negative Space: Luxurious breathing room.",
+      "Contrast: High contrast Gold on Deep Black for legibility and impact."
+    ]
+  },
+  "typography": {
+    "headings": {
+      "family": "'Playfair Display', serif",
+      "weights": ["400", "600", "700"],
+      "usage": "All section titles, hero text, and major emphasis points.",
+      "import_url": "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+    },
+    "body": {
+      "family": "'Space Grotesk', sans-serif",
+      "weights": ["300", "400", "500", "700"],
+      "usage": "Body text, form labels, buttons, dashboard data.",
+      "import_url": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap"
+    }
+  },
+  "colors": {
+    "theme": "dark",
+    "palette": {
+      "background": "#0C0B09",
+      "foreground": "#F5F5F0",
+      "primary": "#D2A53C",
+      "primary_foreground": "#0C0B09",
+      "secondary": "#1F1E1B",
+      "secondary_foreground": "#D2A53C",
+      "muted": "#1A1917",
+      "muted_foreground": "#A1A1AA",
+      "accent": "#2A2825",
+      "border": "#33312E",
+      "input": "#1A1917",
+      "ring": "#D2A53C"
+    },
+    "status": {
+      "pending": "#D2A53C",
+      "approved": "#4ADE80",
+      "rejected": "#F87171"
+    }
+  },
+  "layout": {
+    "spacing_scale": "generous",
+    "container_padding": "p-8 md:p-12 lg:p-24",
+    "grid_system": "Bento Grid (Mode A) for Landing, Dense Grid (Mode B) for Admin.",
+    "border_radius": "rounded-none or rounded-sm (Sharp edges for institutional feel)"
+  },
+  "visual_enhancers": {
+    "textures": "Subtle noise overlay (opacity 0.03) to prevent digital flatness.",
+    "shadows": "Glow effects instead of drop shadows. e.g., shadow-[0_0_15px_rgba(210,165,60,0.15)]",
+    "glassmorphism": "Used sparingly on sticky headers. bg-[#0C0B09]/80 backdrop-blur-md border-b border-[#33312E]"
+  },
+  "components": {
+    "Button": {
+      "base": "rounded-sm font-medium transition-all duration-300",
+      "variants": {
+        "default": "bg-[#D2A53C] text-[#0C0B09] hover:bg-[#E5B84D] hover:shadow-[0_0_20px_rgba(210,165,60,0.3)]",
+        "outline": "border border-[#D2A53C] text-[#D2A53C] hover:bg-[#D2A53C] hover:text-[#0C0B09]",
+        "ghost": "text-[#F5F5F0] hover:text-[#D2A53C] hover:bg-transparent"
+      }
+    },
+    "Input": {
+      "style": "bg-[#1A1917] border border-[#33312E] text-white focus:border-[#D2A53C] focus:ring-1 focus:ring-[#D2A53C] placeholder:text-white/20 rounded-sm h-12"
+    },
+    "Card": {
+      "style": "bg-[#141311] border border-[#2A2825] p-6 hover:border-[#D2A53C]/50 transition-colors duration-300"
+    },
+    "Badge": {
+      "style": "rounded-full px-3 py-0.5 text-xs font-medium uppercase tracking-wider"
+    }
+  },
+  "media": {
+    "hero_background": "https://images.unsplash.com/photo-1761437855598-a84c2849dc6a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGdvbGQlMjBibGFjayUyMHRleHR1cmV8ZW58MHx8fHwxNzcyMDIxNzM3fDA&ixlib=rb-4.1.0&q=85",
+    "section_arts": "https://images.pexels.com/photos/2233930/pexels-photo-2233930.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "section_music": "https://images.unsplash.com/photo-1761925116230-d24410fbe1a0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHw0fHxjb25jZXJ0JTIwc3RhZ2UlMjBkYXJrJTIwZ29sZCUyMGxpZ2h0aW5nfGVufDB8fHx8MTc3MjAyMTczNnww&ixlib=rb-4.1.0&q=85",
+    "auth_background": "https://images.unsplash.com/photo-1761437855598-011cf89b2ad4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGdvbGQlMjBibGFjayUyMHRleHR1cmV8ZW58MHx8fHwxNzcyMDIxNzM3fDA&ixlib=rb-4.1.0&q=85",
+    "logo_placeholder": "Text: CULTURE CONNECT 2026. Font: Playfair Display. Color: #D2A53C"
+  },
+  "functionality_specs": {
+    "bilingual": {
+      "languages": ["fr", "en"],
+      "default": "fr",
+      "toggle_location": "Top Right Fixed"
+    },
+    "admin": {
+      "password": "CC2026admin",
+      "export_format": "csv",
+      "filters": ["profile_type", "country", "stand_request", "status"]
+    }
+  },
+  "universal_guidelines": [
+    "Do NOT use gradients for the main background. Use the solid #0C0B09.",
+    "Do NOT center align the entire app. Use left align for forms and text, center only for Hero titles.",
+    "Use 'sonner' for toast notifications.",
+    "Use 'lucide-react' for icons.",
+    "Ensure all interactive elements have data-testid attributes.",
+    "Status dots in admin dashboard must be small circles (w-2 h-2) next to the status text.",
+    "Confirmation screen must use a large Gold Checkmark icon."
+  ],
+  "instructions_to_main_agent": [
+    "1. Configure Tailwind colors in tailwind.config.js to match the palette exactly.",
+    "2. Update index.css to enforce the dark theme variables by default.",
+    "3. Create a 'Layout' component that handles the bilingual toggle and common header/footer.",
+    "4. Build the Registration Form using shadcn Form components (customized).",
+    "5. Build the Admin Dashboard with a clean table layout.",
+    "6. Use the provided image URLs for backgrounds where appropriate."
+  ]
+}
