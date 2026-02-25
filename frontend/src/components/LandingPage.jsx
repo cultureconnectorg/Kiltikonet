@@ -94,7 +94,7 @@ export const LandingPage = () => {
   ];
   
   const partners = [
-    'CTM', 'Skillfor Campus', 'ISCA Business School', 'Pôle Emploi', 'SACEM', 'Factory Maker Studio'
+    'CTM', 'Skillfor Campus', 'ISCA Business School', 'France Travail', 'SACEM', 'Factory Maker Studio', 'Direction des Affaires Culturelles'
   ];
   
   return (
