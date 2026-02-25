@@ -1,120 +1,237 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-    :root {
-        --background: 30 11% 4%;
-        --foreground: 40 11% 96%;
-        --card: 30 8% 8%;
-        --card-foreground: 40 11% 96%;
-        --popover: 30 8% 8%;
-        --popover-foreground: 40 11% 96%;
-        --primary: 41 60% 53%;
-        --primary-foreground: 30 11% 4%;
-        --secondary: 30 6% 11%;
-        --secondary-foreground: 41 60% 53%;
-        --muted: 30 5% 10%;
-        --muted-foreground: 240 4% 65%;
-        --accent: 30 5% 15%;
-        --accent-foreground: 40 11% 96%;
-        --destructive: 0 72% 51%;
-        --destructive-foreground: 40 11% 96%;
-        --border: 30 5% 18%;
-        --input: 30 5% 10%;
-        --ring: 41 60% 53%;
-        --radius: 0.25rem;
-    }
+/* Culture Connect - High-End Institutional Design */
+:root {
+  --paper-white: #F4F1EA;
+  --charcoal: #1A1A1A;
+  --terracotta: #A65D47;
+  --sage: #4A5D4E;
+  --cream: #FAF8F5;
+  --warm-gray: #8A8578;
+  --light-border: #E5E0D8;
+  
+  --background: 40 20% 95%;
+  --foreground: 0 0% 10%;
+  --card: 40 30% 98%;
+  --card-foreground: 0 0% 10%;
+  --popover: 40 30% 98%;
+  --popover-foreground: 0 0% 10%;
+  --primary: 15 40% 46%;
+  --primary-foreground: 40 20% 95%;
+  --secondary: 140 12% 33%;
+  --secondary-foreground: 40 20% 95%;
+  --muted: 40 15% 90%;
+  --muted-foreground: 40 10% 40%;
+  --accent: 15 40% 46%;
+  --accent-foreground: 40 20% 95%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 40 20% 95%;
+  --border: 40 15% 85%;
+  --input: 40 15% 90%;
+  --ring: 15 40% 46%;
+  --radius: 0.25rem;
 }
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    font-family: 'Space Grotesk', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: #0C0B09;
-    color: #F5F5F0;
+  margin: 0;
+  font-family: 'Lora', Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--paper-white);
+  color: var(--charcoal);
+  line-height: 1.7;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+.font-syne {
+  font-family: 'Syne', sans-serif;
 }
 
-@layer base {
-    * {
-        @apply border-border;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* Remove all glow effects */
+*:focus {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar - minimal */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #1A1917;
+  background: var(--paper-white);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #33312E;
-    border-radius: 4px;
+  background: var(--warm-gray);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #D2A53C;
+  background: var(--charcoal);
 }
 
-/* Noise texture overlay */
-.noise-overlay::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    z-index: 9999;
+/* Animations - subtle */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Gold glow effect */
-.gold-glow {
-    box-shadow: 0 0 20px rgba(210, 165, 60, 0.3);
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Status dots */
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+/* Scroll animations */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.animate-on-scroll.animate-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Clean card styles */
+.card-institutional {
+  background: var(--cream);
+  border: 1px solid var(--light-border);
+  transition: border-color 0.3s ease;
+}
+
+.card-institutional:hover {
+  border-color: var(--terracotta);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--terracotta);
+  color: var(--paper-white);
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #8B4D3A;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--sage);
+  color: var(--paper-white);
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #3D4D40;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--charcoal);
+  color: var(--charcoal);
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background-color: var(--charcoal);
+  color: var(--paper-white);
+}
+
+/* Form inputs - clean */
+input, textarea, select {
+  background-color: var(--cream);
+  border: 1px solid var(--light-border);
+  color: var(--charcoal);
+  transition: border-color 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--terracotta);
+  outline: none;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--warm-gray);
+}
+
+/* Status indicators */
 .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 .status-dot.pending {
-    background-color: #D2A53C;
+  background-color: #D4A854;
 }
 
 .status-dot.approved {
-    background-color: #4ADE80;
+  background-color: var(--sage);
 }
 
 .status-dot.rejected {
-    background-color: #F87171;
+  background-color: var(--terracotta);
+}
+
+/* Hide Emergent badge */
+[data-testid="emergent-badge"],
+.emergent-badge,
+div[class*="emergent"],
+a[href*="emergent"],
+div:has(> a[href*="emergentagent"]),
+iframe[src*="emergent"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+body > div:last-child:not(.App):not(#root) {
+  display: none !important;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--terracotta);
+  color: var(--paper-white);
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
 }
