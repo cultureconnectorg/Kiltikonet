@@ -99,22 +99,35 @@ export const RegistrationForm = () => {
     
     setIsSubmitting(true);
     try {
-      const submitData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'stand_request') submitData.append(key, value === 'yes');
-        else if (value) submitData.append(key, value);
-      });
-      // Add tier from selected tier
-      submitData.append('tier', selectedTier);
-      if (logoFile) submitData.append('logo', logoFile);
+      // Create Stripe checkout session for payment
+      const checkoutData = {
+        type: "accreditation",
+        tier: selectedTier,
+        origin_url: window.location.origin,
+        full_name: formData.full_name,
+        organization_name: formData.organization_name,
+        country: formData.country,
+        email: formData.email,
+        phone: formData.phone,
+        profile_type: formData.profile_type,
+        stand_request: formData.stand_request === 'yes',
+        stand_category: formData.stand_category || null,
+        bio: formData.bio,
+        language_preference: formData.language_preference,
+        how_heard: formData.how_heard
+      };
       
-      const response = await axios.post(`${API}/registrations`, submitData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      navigate('/confirmation', { state: { registration: { ...response.data, tier: selectedTier } } });
+      const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
+      
+      // Redirect to Stripe Checkout
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error) {
-      toast.error(language === 'fr' ? 'Une erreur est survenue' : 'An error occurred');
-    } finally {
+      console.error('Payment error:', error);
+      toast.error(language === 'fr' ? 'Erreur lors de la création du paiement' : 'Payment creation error');
       setIsSubmitting(false);
     }
   };
