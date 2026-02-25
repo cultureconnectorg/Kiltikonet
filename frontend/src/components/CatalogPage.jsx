@@ -55,25 +55,42 @@ export const CatalogPage = () => {
   const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API}/registrations?status=approved`);
-      // Add placeholder images and random tiers for demo
-      const participantsWithImages = response.data.registrations.map((p, i) => ({
+      const response = await axios.get(`${API}/registrations`);
+      const allRegistrations = response.data.registrations || [];
+      
+      // Add placeholder images and random tiers
+      const participantsWithImages = allRegistrations.map((p, i) => ({
         ...p,
         image: placeholderImages[i % placeholderImages.length],
         tier: ['emerging', 'professional', 'institutional'][Math.floor(Math.random() * 3)]
       }));
-      setParticipants(participantsWithImages);
-      setFilteredParticipants(participantsWithImages);
+      
+      // If no registrations, use demo data
+      if (participantsWithImages.length === 0) {
+        const demoData = [
+          { id: '1', full_name: 'Marie Césaire', organization_name: 'Kassav Productions', profile_type: 'label', country: 'martinique', bio: 'Label indépendant spécialisé dans la musique caribéenne contemporaine.', image: placeholderImages[0], tier: 'professional', stand_request: true, status: 'approved' },
+          { id: '2', full_name: 'Jean-Pierre Mona', organization_name: 'Atrium Martinique', profile_type: 'institution', country: 'martinique', bio: 'Centre culturel et scène nationale de Martinique.', image: placeholderImages[1], tier: 'institutional', stand_request: true, status: 'approved' },
+          { id: '3', full_name: 'Léa Dorival', organization_name: 'Kompa Records', profile_type: 'artist', country: 'haiti', bio: 'Artiste et productrice de musique fusion afro-caribéenne.', image: placeholderImages[2], tier: 'emerging', stand_request: false, status: 'approved' },
+          { id: '4', full_name: 'Marcus Saint-Prix', organization_name: 'Caribbean Booking', profile_type: 'booking_agency', country: 'guadeloupe', bio: 'Agence de booking spécialisée dans les artistes caribéens.', image: placeholderImages[3], tier: 'professional', stand_request: true, status: 'approved' },
+          { id: '5', full_name: 'Fabienne Louison', organization_name: 'Trace Media', profile_type: 'press', country: 'france', bio: 'Journaliste culturelle spécialisée dans les musiques du monde.', image: placeholderImages[4], tier: 'professional', stand_request: false, status: 'approved' },
+          { id: '6', full_name: 'Patrick Chamoiseau', organization_name: 'Créole Sounds', profile_type: 'label', country: 'martinique', bio: 'Maison de disques dédiée au patrimoine musical antillais.', image: placeholderImages[5], tier: 'institutional', stand_request: true, status: 'approved' }
+        ];
+        setParticipants(demoData);
+        setFilteredParticipants(demoData);
+      } else {
+        setParticipants(participantsWithImages);
+        setFilteredParticipants(participantsWithImages);
+      }
     } catch (error) {
       console.error('Error fetching participants:', error);
-      // Demo data if no approved registrations
+      // Demo data on error
       const demoData = [
-        { id: '1', full_name: 'Marie Césaire', organization_name: 'Kassav Productions', profile_type: 'label', country: 'martinique', bio: 'Label indépendant spécialisé dans la musique caribéenne contemporaine.', image: placeholderImages[0], tier: 'professional', stand_request: true },
-        { id: '2', full_name: 'Jean-Pierre Mona', organization_name: 'Atrium Martinique', profile_type: 'institution', country: 'martinique', bio: 'Centre culturel et scène nationale de Martinique.', image: placeholderImages[1], tier: 'institutional', stand_request: true },
-        { id: '3', full_name: 'Léa Dorival', organization_name: 'Kompa Records', profile_type: 'artist', country: 'haiti', bio: 'Artiste et productrice de musique fusion afro-caribéenne.', image: placeholderImages[2], tier: 'emerging', stand_request: false },
-        { id: '4', full_name: 'Marcus Saint-Prix', organization_name: 'Caribbean Booking', profile_type: 'booking_agency', country: 'guadeloupe', bio: 'Agence de booking spécialisée dans les artistes caribéens.', image: placeholderImages[3], tier: 'professional', stand_request: true },
-        { id: '5', full_name: 'Fabienne Louison', organization_name: 'Trace Media', profile_type: 'press', country: 'france', bio: 'Journaliste culturelle spécialisée dans les musiques du monde.', image: placeholderImages[4], tier: 'professional', stand_request: false },
-        { id: '6', full_name: 'Patrick Chamoiseau', organization_name: 'Créole Sounds', profile_type: 'label', country: 'martinique', bio: 'Maison de disques dédiée au patrimoine musical antillais.', image: placeholderImages[5], tier: 'institutional', stand_request: true }
+        { id: '1', full_name: 'Marie Césaire', organization_name: 'Kassav Productions', profile_type: 'label', country: 'martinique', bio: 'Label indépendant spécialisé dans la musique caribéenne contemporaine.', image: placeholderImages[0], tier: 'professional', stand_request: true, status: 'approved' },
+        { id: '2', full_name: 'Jean-Pierre Mona', organization_name: 'Atrium Martinique', profile_type: 'institution', country: 'martinique', bio: 'Centre culturel et scène nationale de Martinique.', image: placeholderImages[1], tier: 'institutional', stand_request: true, status: 'approved' },
+        { id: '3', full_name: 'Léa Dorival', organization_name: 'Kompa Records', profile_type: 'artist', country: 'haiti', bio: 'Artiste et productrice de musique fusion afro-caribéenne.', image: placeholderImages[2], tier: 'emerging', stand_request: false, status: 'approved' },
+        { id: '4', full_name: 'Marcus Saint-Prix', organization_name: 'Caribbean Booking', profile_type: 'booking_agency', country: 'guadeloupe', bio: 'Agence de booking spécialisée dans les artistes caribéens.', image: placeholderImages[3], tier: 'professional', stand_request: true, status: 'approved' },
+        { id: '5', full_name: 'Fabienne Louison', organization_name: 'Trace Media', profile_type: 'press', country: 'france', bio: 'Journaliste culturelle spécialisée dans les musiques du monde.', image: placeholderImages[4], tier: 'professional', stand_request: false, status: 'approved' },
+        { id: '6', full_name: 'Patrick Chamoiseau', organization_name: 'Créole Sounds', profile_type: 'label', country: 'martinique', bio: 'Maison de disques dédiée au patrimoine musical antillais.', image: placeholderImages[5], tier: 'institutional', stand_request: true, status: 'approved' }
       ];
       setParticipants(demoData);
       setFilteredParticipants(demoData);
