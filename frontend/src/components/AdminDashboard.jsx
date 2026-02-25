@@ -39,6 +39,19 @@ export const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReg, setSelectedReg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newParticipant, setNewParticipant] = useState({
+    full_name: '',
+    organization_name: '',
+    country: 'SN',
+    email: '',
+    phone: '',
+    profile_type: 'artist',
+    tier: 'professional',
+    status: 'approved',
+    show_in_catalog: true,
+    bio: ''
+  });
   
   const fetchRegistrations = useCallback(async () => {
     setIsLoading(true);
