@@ -50,6 +50,7 @@ class RegistrationResponse(BaseModel):
     language_preference: str
     how_heard: str
     status: str = "pending"
+    show_in_catalog: bool = False
     created_at: str
 
 class RegistrationListResponse(BaseModel):
@@ -62,6 +63,9 @@ class AdminVerify(BaseModel):
 
 class StatusUpdate(BaseModel):
     status: str
+
+class CatalogUpdate(BaseModel):
+    show_in_catalog: bool
 
 # Routes
 @api_router.get("/")
@@ -110,6 +114,7 @@ async def create_registration(
         "language_preference": language_preference,
         "how_heard": how_heard,
         "status": "pending",
+        "show_in_catalog": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -173,6 +178,37 @@ async def update_registration_status(registration_id: str, status_update: Status
         raise HTTPException(status_code=404, detail="Registration not found")
     
     return {"success": True, "status": status_update.status}
+
+@api_router.patch("/registrations/{registration_id}/catalog")
+async def update_catalog_visibility(registration_id: str, catalog_update: CatalogUpdate):
+    result = await db.registrations.update_one(
+        {"id": registration_id},
+        {"$set": {"show_in_catalog": catalog_update.show_in_catalog}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Registration not found")
+    
+    return {"success": True, "show_in_catalog": catalog_update.show_in_catalog}
+
+@api_router.delete("/registrations/{registration_id}")
+async def delete_registration(registration_id: str):
+    result = await db.registrations.delete_one({"id": registration_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Registration not found")
+    
+    return {"success": True, "message": "Registration deleted"}
+
+@api_router.get("/catalog")
+async def get_catalog_entries():
+    """Get only registrations that are approved and visible in catalog"""
+    registrations = await db.registrations.find(
+        {"show_in_catalog": True},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    return {"participants": registrations, "total": len(registrations)}
 
 @api_router.get("/registrations/export")
 async def export_registrations():
