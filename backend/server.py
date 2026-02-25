@@ -214,6 +214,35 @@ async def delete_registration(registration_id: str):
     
     return {"success": True, "message": "Registration deleted"}
 
+@api_router.post("/registrations/manual", response_model=RegistrationResponse)
+async def create_manual_registration(data: ManualRegistration):
+    """Admin endpoint to manually add a participant"""
+    registration_id = str(uuid.uuid4())
+    
+    registration = {
+        "id": registration_id,
+        "full_name": data.full_name,
+        "organization_name": data.organization_name,
+        "country": data.country,
+        "email": data.email,
+        "phone": data.phone,
+        "profile_type": data.profile_type,
+        "stand_request": data.stand_request,
+        "stand_category": data.stand_category,
+        "bio": data.bio,
+        "logo_filename": None,
+        "language_preference": "fr",
+        "how_heard": "admin",
+        "tier": data.tier,
+        "status": data.status,
+        "show_in_catalog": data.show_in_catalog,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.registrations.insert_one(registration)
+    
+    return RegistrationResponse(**registration)
+
 @api_router.get("/catalog")
 async def get_catalog_entries():
     """Get only registrations that are approved and visible in catalog"""
