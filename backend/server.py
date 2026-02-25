@@ -41,6 +41,7 @@ SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
 # Stripe configuration
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
 STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 BASE_URL = os.environ.get("BASE_URL", "https://kiltikonet.fr")
 
 # Create the main app
