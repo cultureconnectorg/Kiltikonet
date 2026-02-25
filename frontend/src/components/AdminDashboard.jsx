@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { 
   Download, LogOut, Users, Clock, CheckCircle, XCircle, 
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
-  Mic2, Globe, Newspaper, MoreHorizontal
+  Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff
 } from 'lucide-react';
 import { profileTypes, countryList } from '../lib/translations';
 import axios from 'axios';
@@ -34,7 +34,7 @@ export const AdminDashboard = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [registrations, setRegistrations] = useState([]);
-  const [counts, setCounts] = useState({ total: 0, by_status: { pending: 0, approved: 0, rejected: 0 } });
+  const [counts, setCounts] = useState({ total: 0, by_status: { pending: 0, approved: 0, rejected: 0 }, in_catalog: 0 });
   const [filters, setFilters] = useState({ profile_type: '', country: '', status: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReg, setSelectedReg] = useState(null);
@@ -51,10 +51,17 @@ export const AdminDashboard = () => {
       const response = await axios.get(`${API}/registrations?${params.toString()}`);
       const regs = response.data.registrations.map((r, i) => ({
         ...r,
-        image: placeholderImages[i % placeholderImages.length]
+        image: placeholderImages[i % placeholderImages.length],
+        show_in_catalog: r.show_in_catalog || false
       }));
       setRegistrations(regs);
-      setCounts(response.data.counts);
+      
+      // Calculate catalog count
+      const inCatalog = regs.filter(r => r.show_in_catalog).length;
+      setCounts({
+        ...response.data.counts,
+        in_catalog: inCatalog
+      });
     } catch (error) {
       toast.error('Error loading data');
     } finally {
@@ -78,6 +85,35 @@ export const AdminDashboard = () => {
       if (selectedReg?.id === id) {
         setSelectedReg(prev => ({ ...prev, status }));
       }
+    } catch (error) {
+      toast.error('Error');
+    }
+  };
+
+  const handleCatalogToggle = async (id, showInCatalog) => {
+    try {
+      await axios.patch(`${API}/registrations/${id}/catalog`, { show_in_catalog: showInCatalog });
+      toast.success(language === 'fr' 
+        ? (showInCatalog ? 'Ajouté au catalogue' : 'Retiré du catalogue')
+        : (showInCatalog ? 'Added to catalog' : 'Removed from catalog')
+      );
+      fetchRegistrations();
+      if (selectedReg?.id === id) {
+        setSelectedReg(prev => ({ ...prev, show_in_catalog: showInCatalog }));
+      }
+    } catch (error) {
+      toast.error('Error');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm(language === 'fr' ? 'Supprimer cette inscription ?' : 'Delete this registration?')) return;
+    
+    try {
+      await axios.delete(`${API}/registrations/${id}`);
+      toast.success(language === 'fr' ? 'Inscription supprimée' : 'Registration deleted');
+      setSelectedReg(null);
+      fetchRegistrations();
     } catch (error) {
       toast.error('Error');
     }
@@ -138,7 +174,7 @@ export const AdminDashboard = () => {
     <div className="min-h-screen bg-paper pt-20">
       <div className="flex h-[calc(100vh-5rem)]">
         {/* Main Content */}
-        <div className={`flex-1 flex flex-col overflow-hidden ${selectedReg ? 'lg:mr-[400px]' : ''}`}>
+        <div className={`flex-1 flex flex-col overflow-hidden ${selectedReg ? 'lg:mr-[420px]' : ''}`}>
           {/* Header */}
           <div className="border-b border-lightborder bg-cream px-6 py-4">
             <div className="flex items-center justify-between">
@@ -149,27 +185,13 @@ export const AdminDashboard = () => {
                 <p className="text-sm text-charcoal/50 mt-1">Culture Connect 2026</p>
               </div>
               <div className="flex items-center gap-3">
-                <Button
-                  onClick={fetchRegistrations}
-                  variant="outline"
-                  className="h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none"
-                >
+                <Button onClick={fetchRegistrations} variant="outline" className="h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none">
                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>
-                <Button
-                  onClick={handleExportCSV}
-                  className="h-10 bg-charcoal text-paper font-syne text-sm rounded-none"
-                  data-testid="export-csv-button"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  CSV
+                <Button onClick={handleExportCSV} className="h-10 bg-charcoal text-paper font-syne text-sm rounded-none" data-testid="export-csv-button">
+                  <Download className="w-4 h-4 mr-2" /> CSV
                 </Button>
-                <Button
-                  onClick={() => { setIsAuthenticated(false); navigate('/'); }}
-                  variant="outline"
-                  className="h-10 border-lightborder text-charcoal/50 rounded-none"
-                  data-testid="logout-button"
-                >
+                <Button onClick={() => { setIsAuthenticated(false); navigate('/'); }} variant="outline" className="h-10 border-lightborder text-charcoal/50 rounded-none" data-testid="logout-button">
                   <LogOut className="w-4 h-4" />
                 </Button>
               </div>
@@ -178,7 +200,7 @@ export const AdminDashboard = () => {
           
           {/* Stats */}
           <div className="border-b border-lightborder bg-paper px-6 py-4">
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-8 flex-wrap">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 border border-lightborder flex items-center justify-center">
                   <Users className="w-4 h-4 text-charcoal/60" />
@@ -201,6 +223,11 @@ export const AdminDashboard = () => {
                 <XCircle className="w-4 h-4 text-terracotta" />
                 <span className="text-sm text-charcoal/70">{counts.by_status?.rejected || 0} {language === 'fr' ? 'refusés' : 'rejected'}</span>
               </div>
+              <div className="h-8 w-px bg-lightborder" />
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-sage" />
+                <span className="text-sm text-charcoal/70">{counts.in_catalog || 0} {language === 'fr' ? 'au catalogue' : 'in catalog'}</span>
+              </div>
             </div>
           </div>
           
@@ -209,12 +236,8 @@ export const AdminDashboard = () => {
             <div className="flex flex-wrap items-center gap-3">
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
-                <Input
-                  placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-10 bg-cream border-lightborder rounded-none text-sm"
-                />
+                <Input placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-10 bg-cream border-lightborder rounded-none text-sm" />
               </div>
               <Select value={filters.status} onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? '' : v }))}>
                 <SelectTrigger className="w-[130px] h-10 bg-cream border-lightborder rounded-none text-sm">
@@ -233,9 +256,7 @@ export const AdminDashboard = () => {
                 </SelectTrigger>
                 <SelectContent className="bg-paper border-lightborder">
                   <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
-                  {profileTypes.map(p => (
-                    <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>
-                  ))}
+                  {profileTypes.map(p => <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -246,30 +267,23 @@ export const AdminDashboard = () => {
             <table className="w-full" data-testid="registrations-table">
               <thead className="bg-cream border-b border-lightborder sticky top-0">
                 <tr>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">{language === 'fr' ? 'Participant' : 'Participant'}</th>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">{language === 'fr' ? 'Organisation' : 'Organization'}</th>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">{language === 'fr' ? 'Profil' : 'Profile'}</th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Participant</th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Organisation</th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Profil</th>
                   <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Statut</th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Catalogue</th>
                   <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-lightborder">
                 {filteredRegs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-12 text-center text-charcoal/50">
-                      {language === 'fr' ? 'Aucune inscription' : 'No registrations'}
-                    </td>
-                  </tr>
+                  <tr><td colSpan={6} className="py-12 text-center text-charcoal/50">{language === 'fr' ? 'Aucune inscription' : 'No registrations'}</td></tr>
                 ) : (
                   filteredRegs.map((reg) => {
                     const Icon = profileIcons[reg.profile_type] || Users;
                     return (
-                      <tr 
-                        key={reg.id} 
-                        className={`hover:bg-cream/50 cursor-pointer transition-colors ${selectedReg?.id === reg.id ? 'bg-cream' : ''}`}
-                        onClick={() => setSelectedReg(reg)}
-                        data-testid={`registration-row-${reg.id}`}
-                      >
+                      <tr key={reg.id} className={`hover:bg-cream/50 cursor-pointer transition-colors ${selectedReg?.id === reg.id ? 'bg-cream' : ''}`}
+                        onClick={() => setSelectedReg(reg)} data-testid={`registration-row-${reg.id}`}>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
                             <img src={reg.image} alt="" className="w-10 h-10 object-cover" />
@@ -286,24 +300,31 @@ export const AdminDashboard = () => {
                             {getProfileLabel(reg.profile_type)}
                           </div>
                         </td>
-                        <td className="py-4 px-6">
-                          <StatusBadge status={reg.status} />
+                        <td className="py-4 px-6"><StatusBadge status={reg.status} /></td>
+                        <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleCatalogToggle(reg.id, !reg.show_in_catalog)}
+                            className={`p-2 border transition-colors ${reg.show_in_catalog 
+                              ? 'border-sage bg-sage/10 text-sage' 
+                              : 'border-lightborder text-charcoal/30 hover:border-sage hover:text-sage'}`}
+                            title={reg.show_in_catalog ? 'Retirer du catalogue' : 'Ajouter au catalogue'}
+                          >
+                            {reg.show_in_catalog ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                          </button>
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              onClick={() => handleStatusChange(reg.id, 'approved')}
-                              className={`p-2 border transition-colors ${reg.status === 'approved' ? 'border-sage bg-sage/10 text-sage' : 'border-lightborder text-charcoal/40 hover:border-sage hover:text-sage'}`}
-                              title="Approve"
-                            >
+                            <button onClick={() => handleStatusChange(reg.id, 'approved')}
+                              className={`p-2 border transition-colors ${reg.status === 'approved' ? 'border-sage bg-sage/10 text-sage' : 'border-lightborder text-charcoal/40 hover:border-sage hover:text-sage'}`}>
                               <CheckCircle className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => handleStatusChange(reg.id, 'rejected')}
-                              className={`p-2 border transition-colors ${reg.status === 'rejected' ? 'border-terracotta bg-terracotta/10 text-terracotta' : 'border-lightborder text-charcoal/40 hover:border-terracotta hover:text-terracotta'}`}
-                              title="Reject"
-                            >
+                            <button onClick={() => handleStatusChange(reg.id, 'rejected')}
+                              className={`p-2 border transition-colors ${reg.status === 'rejected' ? 'border-terracotta bg-terracotta/10 text-terracotta' : 'border-lightborder text-charcoal/40 hover:border-terracotta hover:text-terracotta'}`}>
                               <XCircle className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDelete(reg.id)}
+                              className="p-2 border border-lightborder text-charcoal/40 hover:border-terracotta hover:text-terracotta transition-colors">
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -318,14 +339,11 @@ export const AdminDashboard = () => {
         
         {/* Detail Panel */}
         {selectedReg && (
-          <div className="hidden lg:block fixed right-0 top-20 w-[400px] h-[calc(100vh-5rem)] border-l border-lightborder bg-cream overflow-auto">
+          <div className="hidden lg:block fixed right-0 top-20 w-[420px] h-[calc(100vh-5rem)] border-l border-lightborder bg-cream overflow-auto">
             <div className="p-6">
-              {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <p className="text-xs text-charcoal/50 uppercase tracking-wider mb-1">
-                    {language === 'fr' ? 'Détail inscription' : 'Registration Detail'}
-                  </p>
+                  <p className="text-xs text-charcoal/50 uppercase tracking-wider mb-2">{language === 'fr' ? 'Détail inscription' : 'Registration Detail'}</p>
                   <StatusBadge status={selectedReg.status} />
                 </div>
                 <button onClick={() => setSelectedReg(null)} className="p-2 hover:bg-paper transition-colors">
@@ -333,14 +351,12 @@ export const AdminDashboard = () => {
                 </button>
               </div>
               
-              {/* Profile */}
               <div className="text-center mb-8">
                 <img src={selectedReg.image} alt="" className="w-24 h-24 object-cover mx-auto mb-4" />
                 <h2 className="font-serif text-xl text-charcoal mb-1">{selectedReg.full_name}</h2>
                 <p className="text-charcoal/60">{selectedReg.organization_name}</p>
               </div>
               
-              {/* Info */}
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3 text-sm">
                   <Mail className="w-4 h-4 text-charcoal/40" />
@@ -362,40 +378,59 @@ export const AdminDashboard = () => {
                 )}
               </div>
               
-              {/* Bio */}
               {selectedReg.bio && (
                 <div className="mb-8">
                   <p className="text-xs text-charcoal/50 uppercase tracking-wider mb-2">Bio</p>
                   <p className="text-sm text-charcoal/70 leading-relaxed">{selectedReg.bio}</p>
                 </div>
               )}
-              
-              {/* Actions */}
-              <div className="space-y-3">
-                <p className="text-xs text-charcoal/50 uppercase tracking-wider mb-2">
-                  {language === 'fr' ? 'Changer le statut' : 'Change status'}
-                </p>
-                <div className="grid grid-cols-3 gap-2">
+
+              {/* Catalog Toggle */}
+              <div className="mb-8 p-4 border border-lightborder bg-paper">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-charcoal">{language === 'fr' ? 'Visible au catalogue' : 'Visible in catalog'}</p>
+                    <p className="text-xs text-charcoal/50">{language === 'fr' ? 'Afficher ce profil publiquement' : 'Show this profile publicly'}</p>
+                  </div>
                   <button
-                    onClick={() => handleStatusChange(selectedReg.id, 'pending')}
-                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'pending' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-lightborder text-charcoal/60 hover:border-amber-500'}`}
+                    onClick={() => handleCatalogToggle(selectedReg.id, !selectedReg.show_in_catalog)}
+                    className={`px-4 py-2 text-sm font-syne transition-colors ${selectedReg.show_in_catalog 
+                      ? 'bg-sage text-paper' 
+                      : 'border border-lightborder text-charcoal/60 hover:border-sage'}`}
                   >
+                    {selectedReg.show_in_catalog 
+                      ? (language === 'fr' ? 'Visible' : 'Visible')
+                      : (language === 'fr' ? 'Masqué' : 'Hidden')
+                    }
+                  </button>
+                </div>
+              </div>
+              
+              {/* Status Actions */}
+              <div className="space-y-3 mb-6">
+                <p className="text-xs text-charcoal/50 uppercase tracking-wider">{language === 'fr' ? 'Changer le statut' : 'Change status'}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={() => handleStatusChange(selectedReg.id, 'pending')}
+                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'pending' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-lightborder text-charcoal/60 hover:border-amber-500'}`}>
                     {language === 'fr' ? 'Attente' : 'Pending'}
                   </button>
-                  <button
-                    onClick={() => handleStatusChange(selectedReg.id, 'approved')}
-                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'approved' ? 'border-sage bg-sage/10 text-sage' : 'border-lightborder text-charcoal/60 hover:border-sage'}`}
-                  >
+                  <button onClick={() => handleStatusChange(selectedReg.id, 'approved')}
+                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'approved' ? 'border-sage bg-sage/10 text-sage' : 'border-lightborder text-charcoal/60 hover:border-sage'}`}>
                     {language === 'fr' ? 'Approuver' : 'Approve'}
                   </button>
-                  <button
-                    onClick={() => handleStatusChange(selectedReg.id, 'rejected')}
-                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'rejected' ? 'border-terracotta bg-terracotta/10 text-terracotta' : 'border-lightborder text-charcoal/60 hover:border-terracotta'}`}
-                  >
+                  <button onClick={() => handleStatusChange(selectedReg.id, 'rejected')}
+                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'rejected' ? 'border-terracotta bg-terracotta/10 text-terracotta' : 'border-lightborder text-charcoal/60 hover:border-terracotta'}`}>
                     {language === 'fr' ? 'Refuser' : 'Reject'}
                   </button>
                 </div>
               </div>
+
+              {/* Delete */}
+              <button onClick={() => handleDelete(selectedReg.id)}
+                className="w-full py-3 text-sm font-syne border border-terracotta/30 text-terracotta hover:bg-terracotta/10 transition-colors">
+                <Trash2 className="w-4 h-4 inline mr-2" />
+                {language === 'fr' ? 'Supprimer cette inscription' : 'Delete this registration'}
+              </button>
             </div>
           </div>
         )}

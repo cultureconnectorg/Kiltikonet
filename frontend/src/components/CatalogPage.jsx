@@ -42,22 +42,21 @@ export const CatalogPage = () => {
   const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API}/registrations`);
-      const all = response.data.registrations || [];
-      const withImages = all.map((p, i) => ({
+      // Fetch only catalog-visible participants
+      const response = await axios.get(`${API}/catalog`);
+      const catalogParticipants = response.data.participants || [];
+      
+      const withImages = catalogParticipants.map((p, i) => ({
         ...p,
         image: placeholderImages[i % placeholderImages.length],
         tier: ['emerging', 'professional', 'institutional'][Math.floor(Math.random() * 3)]
       }));
       
       if (withImages.length === 0) {
+        // Demo data only if no real catalog entries
         const demo = [
           { id: '1', full_name: 'Marie Césaire', organization_name: 'Kassav Productions', profile_type: 'label', country: 'martinique', bio: 'Label indépendant spécialisé dans la musique caribéenne.', image: placeholderImages[0], tier: 'professional', stand_request: true },
           { id: '2', full_name: 'Jean-Pierre Mona', organization_name: 'Atrium Martinique', profile_type: 'institution', country: 'martinique', bio: 'Centre culturel et scène nationale.', image: placeholderImages[1], tier: 'institutional', stand_request: true },
-          { id: '3', full_name: 'Léa Dorival', organization_name: 'Kompa Records', profile_type: 'artist', country: 'haiti', bio: 'Artiste fusion afro-caribéenne.', image: placeholderImages[2], tier: 'emerging', stand_request: false },
-          { id: '4', full_name: 'Marcus Saint-Prix', organization_name: 'Caribbean Booking', profile_type: 'booking_agency', country: 'guadeloupe', bio: 'Agence de booking caribéenne.', image: placeholderImages[3], tier: 'professional', stand_request: true },
-          { id: '5', full_name: 'Fabienne Louison', organization_name: 'Trace Media', profile_type: 'press', country: 'france', bio: 'Journaliste culturelle.', image: placeholderImages[4], tier: 'professional', stand_request: false },
-          { id: '6', full_name: 'Patrick Chamoiseau', organization_name: 'Créole Sounds', profile_type: 'label', country: 'martinique', bio: 'Patrimoine musical antillais.', image: placeholderImages[5], tier: 'institutional', stand_request: true }
         ];
         setParticipants(demo);
         setFilteredParticipants(demo);
@@ -68,7 +67,6 @@ export const CatalogPage = () => {
     } catch (error) {
       const demo = [
         { id: '1', full_name: 'Marie Césaire', organization_name: 'Kassav Productions', profile_type: 'label', country: 'martinique', bio: 'Label indépendant.', image: placeholderImages[0], tier: 'professional', stand_request: true },
-        { id: '2', full_name: 'Jean-Pierre Mona', organization_name: 'Atrium Martinique', profile_type: 'institution', country: 'martinique', bio: 'Centre culturel.', image: placeholderImages[1], tier: 'institutional', stand_request: true }
       ];
       setParticipants(demo);
       setFilteredParticipants(demo);
