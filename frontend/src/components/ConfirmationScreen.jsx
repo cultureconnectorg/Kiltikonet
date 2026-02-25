@@ -1,38 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
-import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download, Share2, Sparkles, Users, Crown } from 'lucide-react';
 import { profileTypes } from '../lib/translations';
+import { BadgeGenerator } from './BadgeGenerator';
+
+const tierConfig = {
+  emerging: { name: 'ÉMERGENT', nameEn: 'EMERGING', color: '#00d4ff', icon: Sparkles },
+  professional: { name: 'PROFESSIONNEL', nameEn: 'PROFESSIONAL', color: '#D2A53C', icon: Users },
+  institutional: { name: 'INSTITUTIONNEL', nameEn: 'INSTITUTIONAL', color: '#a855f7', icon: Crown }
+};
 
 export const ConfirmationScreen = () => {
   const { t, language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const registration = location.state?.registration;
+  const [showBadge, setShowBadge] = useState(false);
   
-  // If no registration data, redirect to home
   React.useEffect(() => {
     if (!registration) {
       navigate('/');
     }
   }, [registration, navigate]);
   
-  if (!registration) {
-    return null;
-  }
+  if (!registration) return null;
   
-  // Find the profile type label
   const profileTypeObj = profileTypes.find(p => p.value === registration.profile_type);
   const profileLabel = profileTypeObj ? t(profileTypeObj.labelKey) : registration.profile_type;
   
+  // Assign a random tier for demo (in production, this would come from backend)
+  const tier = tierConfig[['emerging', 'professional', 'institutional'][Math.floor(Math.random() * 3)]];
+  const participantWithTier = { 
+    ...registration, 
+    tier: Object.keys(tierConfig).find(k => tierConfig[k] === tier) || 'professional',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop'
+  };
+  
   return (
-    <div className="min-h-screen bg-[#0C0B09] pt-20 sm:pt-24 flex items-center justify-center">
-      <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-[#0a0a0f] pt-20 sm:pt-24 flex items-center justify-center">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00d4ff]/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#D2A53C]/5 rounded-full blur-[150px]" />
+      </div>
+
+      <div className="relative max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div 
-          className="bg-[#141311] border border-[#2A2825] p-8 sm:p-10 text-center animate-scale-in"
+          className="relative rounded-2xl p-8 sm:p-10 text-center overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(0,212,255,0.2)'
+          }}
           data-testid="confirmation-card"
         >
+          {/* Glow effect */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-[#00d4ff] to-transparent" />
+          
           {/* Gold Checkmark */}
           <div className="flex justify-center mb-6">
             <div className="relative">
@@ -47,7 +73,7 @@ export const ConfirmationScreen = () => {
                   r="45"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="3"
+                  strokeWidth="2"
                   opacity="0.3"
                 />
                 <circle
@@ -59,10 +85,10 @@ export const ConfirmationScreen = () => {
                   strokeWidth="3"
                   strokeDasharray="283"
                   strokeDashoffset="0"
-                  className="animate-checkmark"
                   style={{
                     transformOrigin: 'center',
-                    transform: 'rotate(-90deg)'
+                    transform: 'rotate(-90deg)',
+                    filter: 'drop-shadow(0 0 10px #D2A53C)'
                   }}
                 />
                 <path
@@ -72,8 +98,7 @@ export const ConfirmationScreen = () => {
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="animate-fade-in"
-                  style={{ animationDelay: '0.3s' }}
+                  style={{ filter: 'drop-shadow(0 0 8px #D2A53C)' }}
                 />
               </svg>
             </div>
@@ -81,15 +106,19 @@ export const ConfirmationScreen = () => {
           
           {/* Title */}
           <h1 
-            className="font-serif text-2xl sm:text-3xl text-[#D2A53C] mb-4"
+            className="font-serif text-2xl sm:text-3xl text-white mb-2"
             data-testid="confirmation-title"
           >
-            {t('confirmationTitle')}
+            {language === 'fr' ? 'Demande reçue !' : 'Request received!'}
           </h1>
           
-          {/* Confirmation Message */}
+          <p className="text-[#00d4ff] font-medium mb-6">
+            Culture Connect 2026
+          </p>
+          
+          {/* Message */}
           <p 
-            className="text-[#EDE8DC]/80 mb-8 leading-relaxed"
+            className="text-white/70 mb-8 leading-relaxed"
             data-testid="confirmation-message"
           >
             {language === 'fr' 
@@ -99,30 +128,37 @@ export const ConfirmationScreen = () => {
           </p>
           
           {/* Registration Details */}
-          <div className="bg-[#1A1917] border border-[#2A2825] p-6 mb-8 text-left">
-            <h3 className="font-serif text-lg text-[#D2A53C] mb-4">
+          <div 
+            className="rounded-xl p-6 mb-8 text-left"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            <h3 className="text-sm text-[#00d4ff] uppercase tracking-wider mb-4">
               {t('registrationDetails')}
             </h3>
             
             <div className="space-y-3">
-              <div className="flex justify-between items-center border-b border-[#2A2825] pb-3">
-                <span className="text-[#EDE8DC]/60">{t('name')}</span>
-                <span className="text-[#EDE8DC] font-medium" data-testid="confirmation-name">
+              <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                <span className="text-white/50">{t('name')}</span>
+                <span className="text-white font-medium" data-testid="confirmation-name">
                   {registration.full_name}
                 </span>
               </div>
               
-              <div className="flex justify-between items-center border-b border-[#2A2825] pb-3">
-                <span className="text-[#EDE8DC]/60">{t('organization')}</span>
-                <span className="text-[#EDE8DC] font-medium" data-testid="confirmation-organization">
+              <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                <span className="text-white/50">{t('organization')}</span>
+                <span className="text-white font-medium" data-testid="confirmation-organization">
                   {registration.organization_name}
                 </span>
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-[#EDE8DC]/60">{t('profile')}</span>
+                <span className="text-white/50">{t('profile')}</span>
                 <span 
-                  className="bg-[#D2A53C]/20 text-[#D2A53C] px-3 py-1 rounded-full text-sm font-medium"
+                  className="px-3 py-1 rounded-full text-sm font-medium"
+                  style={{ background: '#D2A53C20', color: '#D2A53C' }}
                   data-testid="confirmation-profile"
                 >
                   {profileLabel}
@@ -131,18 +167,46 @@ export const ConfirmationScreen = () => {
             </div>
           </div>
           
-          {/* Back Button */}
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="w-full h-12 border-[#D2A53C] text-[#D2A53C] hover:bg-[#D2A53C] hover:text-[#0C0B09] transition-all duration-300"
-            data-testid="back-to-home-button"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {t('backToHome')}
-          </Button>
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <Button
+              onClick={() => setShowBadge(true)}
+              className="w-full h-12 bg-[#00d4ff] text-[#0a0a0f] font-semibold hover:bg-[#00d4ff]/90"
+              data-testid="preview-badge-button"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {language === 'fr' ? 'Prévisualiser mon badge' : 'Preview my badge'}
+            </Button>
+            
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="w-full h-12 border-white/20 text-white/70 hover:text-white hover:border-white/40"
+              data-testid="back-to-home-button"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {t('backToHome')}
+            </Button>
+          </div>
         </div>
+        
+        {/* Email info */}
+        <p className="text-center text-white/40 text-sm mt-6">
+          {language === 'fr' 
+            ? 'Un email de confirmation sera envoyé à '
+            : 'A confirmation email will be sent to '
+          }
+          <span className="text-[#00d4ff]">{registration.email}</span>
+        </p>
       </div>
+
+      {/* Badge Modal */}
+      {showBadge && (
+        <BadgeGenerator 
+          participant={participantWithTier} 
+          onClose={() => setShowBadge(false)} 
+        />
+      )}
     </div>
   );
 };
