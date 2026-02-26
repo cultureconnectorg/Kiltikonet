@@ -199,7 +199,63 @@ export const CatalogPage = () => {
           <p className="mt-4 text-sm text-charcoal/50">
             {filteredParticipants.length} {language === 'fr' ? 'participant(s)' : 'participant(s)'}
           </p>
+          
+          {/* Smart Connect - Sector Keywords */}
+          {sectorKeywords.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-lightborder">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-terracotta" />
+                <span className="text-xs text-charcoal/50 uppercase font-syne">
+                  {language === 'fr' ? 'Recherche par secteur' : 'Search by sector'}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {sectorKeywords.map((keyword) => (
+                  <button
+                    key={keyword}
+                    onClick={() => searchBySector(keyword)}
+                    className="px-3 py-1.5 text-xs border border-lightborder bg-paper text-charcoal/70 hover:border-terracotta hover:text-terracotta transition-colors"
+                  >
+                    {keyword}
+                  </button>
+                ))}
+                <button
+                  onClick={() => { setFilters({ search: '', region: '', sector: '', tier: '' }); fetchParticipants(); }}
+                  className="px-3 py-1.5 text-xs border border-sage/30 text-sage hover:bg-sage/10 transition-colors"
+                >
+                  {language === 'fr' ? 'Réinitialiser' : 'Reset'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Smart Connect - Partner Suggestions Panel */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="mb-8 border border-sage/30 bg-sage/5 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-sage" />
+                <h3 className="text-sm font-syne text-charcoal uppercase">
+                  {language === 'fr' ? 'Connexions suggérées' : 'Suggested Connections'}
+                </h3>
+              </div>
+              <button onClick={() => setShowSuggestions(false)} className="text-charcoal/40 hover:text-charcoal">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {suggestions.map((s) => (
+                <div key={s.id} className="flex-shrink-0 w-48 p-4 bg-paper border border-lightborder">
+                  <p className="font-medium text-charcoal text-sm truncate">{s.name}</p>
+                  <p className="text-xs text-charcoal/50 truncate">{s.organization}</p>
+                  <p className="text-xs text-sage mt-1">{s.reason}</p>
+                  <p className="text-xs text-charcoal/40 mt-1">{s.country}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Grid/List */}
         {isLoading ? (
