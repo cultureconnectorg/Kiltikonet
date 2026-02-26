@@ -123,10 +123,35 @@ Estimated revenue is calculated from:
 - Accreditations: Émergent (50€), Professionnel (150€), Institutionnel (300€)
 - Partnerships: Bronze (2500€), Silver (5000€), Gold (10000€)
 
+### Legal Compliance (Feb 26, 2026) ✅
+
+#### Pages Légales Statiques HTML
+- `/legal/mentions-legales.html` - Mentions légales complètes
+- `/legal/politique-confidentialite.html` - Politique de confidentialité RGPD
+- `/legal/cgu.html` - Conditions générales d'utilisation
+- `/legal/cookies.html` - Politique de cookies
+
+#### Bannière Cookies
+- Script vanilla JS isolé (`/public/legal/legal-compliance.js`)
+- Stockage consentement via localStorage (clé: `cc_cookie_consent`)
+- Boutons Accepter/Refuser avec tracking conditionnel
+- Style CSS isolé (`/public/legal/legal-compliance.css`)
+
+#### Footer Légal
+- Composant React `LegalFooter` intégré
+- Liens vers toutes les pages légales
+- Bouton "Gérer les cookies" pour reset consentement
+
+#### Checkbox RGPD
+- Composant `RGPDCheckbox` obligatoire sur formulaire inscription (étape 3)
+- Validation empêche soumission sans consentement
+- Liens vers politique de confidentialité et CGU
+
 ## Mode: MAINTENANCE & EXPLOITATION
 
-Platform is now feature-complete and ready for:
+Platform is now feature-complete and legally compliant, ready for:
 1. Data entry and registration management
 2. Partner report generation
 3. Badge distribution
 4. Event accreditation validation via QR codes
+5. Legal compliance for GDPR/RGPD regulations
