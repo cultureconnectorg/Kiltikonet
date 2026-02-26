@@ -314,6 +314,7 @@ class RegistrationResponse(BaseModel):
     show_in_catalog: bool = False
     created_at: str
     tier: Optional[str] = None
+    expertise_tags: Optional[List[str]] = None  # NEW: Expertise tags
 
 class RegistrationListResponse(BaseModel):
     registrations: List[RegistrationResponse]
