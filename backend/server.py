@@ -359,10 +359,11 @@ class CheckoutRequest(BaseModel):
     bio: Optional[str] = ""
     language_preference: Optional[str] = "fr"
     how_heard: Optional[str] = None
-    # NEW: Additional fields for complete data capture
+    # Additional fields for complete data capture
     profile_image_url: Optional[str] = None  # Cloudinary URL uploaded before checkout
     siret_number: Optional[str] = None
     website_url: Optional[str] = None
+    expertise_tags: Optional[str] = None  # NEW: Comma-separated expertise tags
     # For partnership
     company_name: Optional[str] = None
     contact_name: Optional[str] = None
