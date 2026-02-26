@@ -31,6 +31,7 @@ function App() {
             <Route path="/inscription" element={<RegistrationForm />} />
             <Route path="/confirmation" element={<ConfirmationScreen />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/participant/:participantId" element={<ParticipantProfile />} />
           </Routes>
         </BrowserRouter>
         <Toaster 
