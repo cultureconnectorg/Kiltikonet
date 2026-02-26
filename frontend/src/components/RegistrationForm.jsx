@@ -170,10 +170,12 @@ export const RegistrationForm = () => {
         bio: formData.bio,
         language_preference: formData.language_preference,
         how_heard: formData.how_heard,
-        // NEW: Additional fields sent to Stripe metadata
+        // Additional fields sent to Stripe metadata
         profile_image_url: formData.profile_image_url || null,
         siret_number: formData.siret_number || null,
-        website_url: formData.website_url || null
+        website_url: formData.website_url || null,
+        // NEW: Expertise tags as comma-separated string (Stripe metadata limit)
+        expertise_tags: (formData.expertise_tags || []).join(',')
       };
       
       const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
