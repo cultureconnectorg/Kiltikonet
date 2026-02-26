@@ -3,8 +3,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Search, MapPin, Briefcase, Users, Globe, Building2, Mic2, Newspaper, MoreHorizontal, Mail, Grid, List, Sparkles, X, ArrowRight } from 'lucide-react';
-import { profileTypes, countryList } from '../lib/translations';
+import { Search, MapPin, Briefcase, Users, Globe, Building2, Mic2, Newspaper, MoreHorizontal, Mail, Grid, List, Sparkles, X, ArrowRight, Tag, Check } from 'lucide-react';
+import { profileTypes, countryList, expertiseTags } from '../lib/translations';
 import { BadgeGenerator } from './BadgeGenerator';
 import axios from 'axios';
 
