@@ -538,19 +538,22 @@ class PartnerResponse(BaseModel):
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
     """Create a Stripe checkout session for accreditation or partnership"""
     
+    # Use origin_url from frontend for redirects (supports preview/production/custom domains)
+    origin_url = checkout_data.origin_url.rstrip('/') if checkout_data.origin_url else BASE_URL
+    
     if checkout_data.type == "accreditation":
         if checkout_data.tier not in ACCREDITATION_TIERS:
             raise HTTPException(status_code=400, detail="Invalid accreditation tier")
         tier_data = ACCREDITATION_TIERS[checkout_data.tier]
-        success_url = f"{BASE_URL}/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
-        cancel_url = f"{BASE_URL}/inscription"
+        success_url = f"{origin_url}/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{origin_url}/inscription"
         
     elif checkout_data.type == "partnership":
         if checkout_data.tier not in PARTNERSHIP_TIERS:
             raise HTTPException(status_code=400, detail="Invalid partnership tier")
         tier_data = PARTNERSHIP_TIERS[checkout_data.tier]
-        success_url = f"{BASE_URL}/partenaire/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
-        cancel_url = f"{BASE_URL}/partenaires"
+        success_url = f"{origin_url}/partenaire/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{origin_url}/partenaires"
     else:
         raise HTTPException(status_code=400, detail="Invalid checkout type")
     
