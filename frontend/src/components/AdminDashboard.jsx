@@ -959,6 +959,105 @@ export const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Filtered Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80">
+          <div className="bg-paper w-full max-w-md">
+            <div className="p-5 border-b border-lightborder flex items-center justify-between">
+              <h3 className="font-serif text-lg text-charcoal">
+                {language === 'fr' ? 'Export ciblé' : 'Filtered Export'}
+              </h3>
+              <button onClick={() => setShowExportModal(false)} className="text-charcoal/50 hover:text-charcoal">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                  {language === 'fr' ? 'Filtrer par profil' : 'Filter by profile'}
+                </label>
+                <Select 
+                  value={exportFilters.profileType}
+                  onValueChange={(v) => setExportFilters(prev => ({ ...prev, profileType: v === 'all' ? '' : v }))}
+                >
+                  <SelectTrigger className="rounded-none border-lightborder">
+                    <SelectValue placeholder={language === 'fr' ? 'Tous les profils' : 'All profiles'} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-paper border-lightborder">
+                    <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
+                    {profileTypes.map(p => <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                  {language === 'fr' ? 'Filtrer par expertises' : 'Filter by expertise'}
+                </label>
+                <div className="flex flex-wrap gap-2 p-3 border border-lightborder bg-cream max-h-48 overflow-y-auto">
+                  {expertiseTagsList.map((tag) => {
+                    const isSelected = exportFilters.expertiseTags.includes(tag.value);
+                    return (
+                      <button
+                        key={tag.value}
+                        type="button"
+                        onClick={() => {
+                          setExportFilters(prev => ({
+                            ...prev,
+                            expertiseTags: isSelected
+                              ? prev.expertiseTags.filter(t => t !== tag.value)
+                              : [...prev.expertiseTags, tag.value]
+                          }));
+                        }}
+                        className={`px-2 py-1 text-xs font-syne transition-all border ${
+                          isSelected 
+                            ? 'border-sage bg-sage text-paper' 
+                            : 'border-lightborder bg-paper text-charcoal/70 hover:border-terracotta'
+                        }`}
+                      >
+                        {language === 'fr' ? tag.labelFr : tag.labelEn}
+                      </button>
+                    );
+                  })}
+                </div>
+                {exportFilters.expertiseTags.length > 0 && (
+                  <p className="text-xs text-sage mt-2">
+                    {exportFilters.expertiseTags.length} {language === 'fr' ? 'tag(s) sélectionné(s)' : 'tag(s) selected'}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setExportFilters({ expertiseTags: [], profileType: '' });
+                    setShowExportModal(false);
+                  }}
+                  className="flex-1 h-11 border-lightborder text-charcoal rounded-none font-syne"
+                >
+                  {language === 'fr' ? 'Annuler' : 'Cancel'}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const params = new URLSearchParams();
+                    if (exportFilters.profileType) params.append('profile_type', exportFilters.profileType);
+                    if (exportFilters.expertiseTags.length > 0) params.append('expertise_tags', exportFilters.expertiseTags.join(','));
+                    window.open(`${API}/registrations/export/filtered?${params.toString()}`, '_blank');
+                    setShowExportModal(false);
+                  }}
+                  className="flex-1 h-11 bg-terracotta text-paper rounded-none font-syne"
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Exporter CSV' : 'Export CSV'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
