@@ -63,6 +63,14 @@ export const CatalogPage = () => {
       
       setParticipants(approvedParticipants);
       setFilteredParticipants(approvedParticipants);
+      
+      // Fetch sector suggestions
+      try {
+        const suggestionsRes = await axios.get(`${API_V1}/search/match?limit=5`);
+        setSectorKeywords(suggestionsRes.data.suggestions || []);
+      } catch (e) {
+        console.log('Suggestions not available');
+      }
     } catch (error) {
       console.error('Error fetching catalog:', error);
       setParticipants([]);
@@ -71,6 +79,37 @@ export const CatalogPage = () => {
       setIsLoading(false);
     }
   }, []);
+  
+  // Smart Connect: Get partner suggestions for a participant
+  const fetchSuggestionsFor = async (participantId) => {
+    try {
+      const response = await axios.get(`${API_V1}/search/suggestions?participant_id=${participantId}`);
+      setSuggestions(response.data.suggested_connections || []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setSuggestions([]);
+    }
+  };
+  
+  // Smart Connect: Search by sector keyword
+  const searchBySector = async (keyword) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_V1}/search/match?sector=${encodeURIComponent(keyword)}&limit=20`);
+      const results = response.data.results || [];
+      const mappedResults = results.map((r, i) => ({
+        ...r,
+        full_name: r.name,
+        image: r.image_url || placeholderImages[i % placeholderImages.length]
+      }));
+      setFilteredParticipants(mappedResults);
+    } catch (error) {
+      console.error('Error searching:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => { fetchParticipants(); }, [fetchParticipants]);
 
