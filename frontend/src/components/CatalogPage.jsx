@@ -142,6 +142,21 @@ export const CatalogPage = () => {
     if (filters.region) result = result.filter(p => p.country === filters.region);
     if (filters.sector) result = result.filter(p => p.profile_type === filters.sector);
     if (filters.tier) result = result.filter(p => p.tier === filters.tier);
+    
+    // Filter by expertise tags
+    if (filters.expertiseTags && filters.expertiseTags.length > 0) {
+      result = result.filter(p => {
+        const pTags = p.expertise_tags || [];
+        return filters.expertiseTags.some(ft => pTags.includes(ft));
+      });
+      // Sort by number of shared interests
+      result.sort((a, b) => {
+        const aShared = getSharedInterestsCount(a.expertise_tags, filters.expertiseTags);
+        const bShared = getSharedInterestsCount(b.expertise_tags, filters.expertiseTags);
+        return bShared - aShared;
+      });
+    }
+    
     setFilteredParticipants(result);
   }, [filters, participants]);
 
