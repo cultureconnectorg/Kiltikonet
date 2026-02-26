@@ -257,11 +257,6 @@ export const AdminDashboard = () => {
     }
   };
   
-  const getProfileLabel = (type) => {
-    const p = profileTypes.find(x => x.value === type);
-    return p ? t(p.labelKey) : type;
-  };
-  
   const getCountryLabel = (code) => {
     const c = countryList.find(x => x.value === code);
     return c ? (t(`countries.${c.labelKey}`) !== `countries.${c.labelKey}` ? t(`countries.${c.labelKey}`) : code) : code;
