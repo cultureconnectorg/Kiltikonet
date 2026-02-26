@@ -9,6 +9,7 @@ import {
   Mail, Instagram, Linkedin, Send, ChevronDown, Star
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { LegalFooter } from './legal';
 
 export const LandingPage = () => {
   const { language } = useLanguage();
