@@ -1115,6 +1115,213 @@ async def export_registrations():
         headers={"Content-Disposition": "attachment; filename=registrations.csv"}
     )
 
+# ================== BATCH OPERATIONS ==================
+
+class BatchApproveRequest(BaseModel):
+    registration_ids: List[str]
+
+class BatchSendBadgesRequest(BaseModel):
+    registration_ids: List[str]  # If empty, send to ALL approved
+
+@api_router.post("/registrations/batch/approve")
+async def batch_approve_registrations(request: BatchApproveRequest):
+    """Approve multiple registrations at once (max 50)"""
+    if len(request.registration_ids) > 50:
+        raise HTTPException(status_code=400, detail="Maximum 50 registrations per batch")
+    
+    if not request.registration_ids:
+        raise HTTPException(status_code=400, detail="No registration IDs provided")
+    
+    results = {"approved": [], "failed": [], "already_approved": []}
+    
+    for reg_id in request.registration_ids:
+        registration = await db.registrations.find_one({"id": reg_id}, {"_id": 0})
+        if not registration:
+            results["failed"].append({"id": reg_id, "reason": "Not found"})
+            continue
+        
+        if registration.get("status") == "approved":
+            results["already_approved"].append(reg_id)
+            continue
+        
+        # Update status
+        await db.registrations.update_one(
+            {"id": reg_id},
+            {"$set": {"status": "approved", "show_in_catalog": True}}
+        )
+        
+        # Send approval email
+        email = registration.get("email")
+        name = registration.get("full_name")
+        tier = registration.get("tier", "professional")
+        
+        if email:
+            asyncio.create_task(send_email_async(
+                email,
+                "Votre accréditation Culture Connect 2026 est confirmée ✓",
+                get_approval_email(name, tier, reg_id)
+            ))
+        
+        # Notify partner if sponsored
+        sponsored_by = registration.get("sponsored_by")
+        if sponsored_by:
+            asyncio.create_task(notify_partner_of_approval(sponsored_by, registration))
+        
+        results["approved"].append(reg_id)
+    
+    return {
+        "success": True,
+        "total_processed": len(request.registration_ids),
+        "approved_count": len(results["approved"]),
+        "already_approved_count": len(results["already_approved"]),
+        "failed_count": len(results["failed"]),
+        "details": results
+    }
+
+@api_router.post("/registrations/batch/send-badges")
+async def batch_send_badges(request: BatchSendBadgesRequest):
+    """Send badge PDFs by email to selected approved participants (max 50)"""
+    
+    # Determine which registrations to send badges to
+    if request.registration_ids:
+        if len(request.registration_ids) > 50:
+            raise HTTPException(status_code=400, detail="Maximum 50 badges per batch")
+        
+        registrations = await db.registrations.find(
+            {"id": {"$in": request.registration_ids}, "status": "approved"},
+            {"_id": 0}
+        ).to_list(50)
+    else:
+        # Send to ALL approved participants
+        registrations = await db.registrations.find(
+            {"status": "approved"},
+            {"_id": 0}
+        ).to_list(1000)
+    
+    if not registrations:
+        return {"success": False, "message": "No approved registrations found", "sent_count": 0}
+    
+    results = {"sent": [], "failed": []}
+    
+    for reg in registrations:
+        email = reg.get("email")
+        name = reg.get("full_name", "Participant")
+        tier = reg.get("tier", "professional")
+        reg_id = reg.get("id")
+        
+        if not email:
+            results["failed"].append({"id": reg_id, "reason": "No email"})
+            continue
+        
+        try:
+            # Generate PDF badge
+            pdf_buffer = generate_badge_pdf_buffer(reg)
+            
+            # Send email with badge attachment
+            email_html = get_badge_email_html(name, tier, reg_id)
+            filename = f"badge_{name.replace(' ', '_')}_{reg_id[:8]}.pdf"
+            
+            await send_email_with_attachment(
+                email,
+                f"Votre badge Culture Connect 2026 — {name}",
+                email_html,
+                pdf_buffer,
+                filename
+            )
+            
+            results["sent"].append({"id": reg_id, "email": email})
+        except Exception as e:
+            logger.error(f"Failed to send badge to {email}: {str(e)}")
+            results["failed"].append({"id": reg_id, "reason": str(e)})
+    
+    return {
+        "success": True,
+        "sent_count": len(results["sent"]),
+        "failed_count": len(results["failed"]),
+        "details": results
+    }
+
+def generate_badge_pdf_buffer(participant: dict) -> bytes:
+    """Generate PDF badge and return as bytes buffer"""
+    pdf_buffer = io.BytesIO()
+    badge_width, badge_height = 105 * mm, 148 * mm  # A6 size
+    c = canvas.Canvas(pdf_buffer, pagesize=(badge_width, badge_height))
+    
+    # Colors
+    tier_colors = {
+        "emerging": "#4A5D4E",
+        "professional": "#A65D47",
+        "institutional": "#1A1A1A"
+    }
+    tier_names = {
+        "emerging": "ÉMERGENT",
+        "professional": "PROFESSIONNEL",
+        "institutional": "INSTITUTIONNEL"
+    }
+    tier = participant.get("tier", "professional")
+    tier_color = HexColor(tier_colors.get(tier, "#A65D47"))
+    
+    # Background
+    c.setFillColor(HexColor("#F4F1EA"))
+    c.rect(0, 0, badge_width, badge_height, fill=1, stroke=0)
+    
+    # Border
+    c.setStrokeColor(tier_color)
+    c.setLineWidth(3)
+    c.rect(3, 3, badge_width - 6, badge_height - 6, fill=0, stroke=1)
+    
+    # Header
+    c.setFillColor(HexColor("#1A1A1A"))
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(badge_width / 2, badge_height - 25, "CULTURE CONNECT 2026")
+    
+    c.setFont("Helvetica", 8)
+    c.setFillColor(HexColor("#8A8578"))
+    c.drawCentredString(badge_width / 2, badge_height - 38, "Fort-de-France · 20-23 Mai 2026")
+    
+    # Name and organization
+    c.setFillColor(HexColor("#1A1A1A"))
+    c.setFont("Helvetica-Bold", 16)
+    full_name = participant.get("full_name", "")[:25]
+    c.drawCentredString(badge_width / 2, badge_height - 75, full_name)
+    
+    c.setFont("Helvetica", 10)
+    c.setFillColor(HexColor("#8A8578"))
+    org_name = participant.get("organization_name", "")[:30]
+    c.drawCentredString(badge_width / 2, badge_height - 92, org_name)
+    
+    # Tier badge
+    tier_text = tier_names.get(tier, "PROFESSIONNEL")
+    c.setFillColor(tier_color)
+    c.rect(badge_width / 2 - 40, badge_height - 118, 80, 18, fill=1, stroke=0)
+    c.setFillColor(HexColor("#F4F1EA"))
+    c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(badge_width / 2, badge_height - 113, tier_text)
+    
+    # QR Code
+    profile_url = f"{BASE_URL}/participant/{participant.get('id')}"
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(profile_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format='PNG')
+    qr_buffer.seek(0)
+    
+    from reportlab.lib.utils import ImageReader
+    qr_image = ImageReader(qr_buffer)
+    qr_size = 35 * mm
+    c.drawImage(qr_image, (badge_width - qr_size) / 2, 25, width=qr_size, height=qr_size)
+    
+    # ID below QR
+    c.setFillColor(HexColor("#8A8578"))
+    c.setFont("Helvetica", 7)
+    c.drawCentredString(badge_width / 2, 18, f"ID: {participant.get('id', '')[:8].upper()}")
+    
+    c.save()
+    pdf_buffer.seek(0)
+    return pdf_buffer.getvalue()
+
 @api_router.get("/registrations/export/filtered")
 async def export_registrations_filtered(
     profile_type: Optional[str] = Query(None),
