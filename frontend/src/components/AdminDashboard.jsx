@@ -99,6 +99,9 @@ export const AdminDashboard = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showInsights, setShowInsights] = useState(true);
   const [stats, setStats] = useState(null);
+  const [activeTab, setActiveTab] = useState('registrations');
+  const [exportFilters, setExportFilters] = useState({ expertiseTags: [], profileType: '' });
+  const [showExportModal, setShowExportModal] = useState(false);
   const [newParticipant, setNewParticipant] = useState({
     full_name: '',
     organization_name: '',
