@@ -597,9 +597,13 @@ async def process_successful_payment(transaction: dict, metadata: dict):
             "stand_request": metadata.get("stand_request", "false").lower() == "true",
             "stand_category": metadata.get("stand_category") or None,
             "bio": metadata.get("bio", ""),
-            "logo_url": None,
+            # NEW: Use profile_image_url from Cloudinary (uploaded before checkout)
+            "logo_url": metadata.get("profile_image_url") or None,
             "language_preference": metadata.get("language_preference", "fr"),
             "how_heard": metadata.get("how_heard", ""),
+            # NEW: Additional fields
+            "siret_number": metadata.get("siret_number") or None,
+            "website_url": metadata.get("website_url") or None,
             "tier": tier,
             "status": "pending",
             "show_in_catalog": False,
