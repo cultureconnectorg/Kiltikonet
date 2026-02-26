@@ -140,6 +140,7 @@ export const RegistrationForm = () => {
     }
     if (step === 3) {
       if (!formData.how_heard) newErrors.how_heard = true;
+      if (!rgpdConsent) newErrors.rgpd = true; // RGPD validation
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
