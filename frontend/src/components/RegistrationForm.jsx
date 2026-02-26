@@ -7,8 +7,8 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Upload, Loader2, ArrowLeft, ArrowRight, Check, User, Building2, Target, CheckCircle, Image } from 'lucide-react';
-import { countryList, profileTypes, standCategories, howHeardOptions } from '../lib/translations';
+import { Upload, Loader2, ArrowLeft, ArrowRight, Check, User, Building2, Target, CheckCircle, Image, Tag } from 'lucide-react';
+import { countryList, profileTypes, standCategories, howHeardOptions, expertiseTags } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
 
