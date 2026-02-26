@@ -456,6 +456,15 @@ export const RegistrationForm = () => {
                 </Select>
               </div>
               
+              {/* RGPD Consent - Required */}
+              <div className="pt-4 border-t border-lightborder">
+                <RGPDCheckbox 
+                  checked={rgpdConsent} 
+                  onCheckedChange={setRgpdConsent}
+                  showError={errors.rgpd}
+                />
+              </div>
+              
               {/* Summary before payment */}
               <div className="border border-lightborder bg-cream p-6 mt-8">
                 <h3 className="font-serif text-lg text-charcoal mb-4">{language === 'fr' ? 'Récapitulatif' : 'Summary'}</h3>
