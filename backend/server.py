@@ -1020,6 +1020,18 @@ async def get_public_statistics():
         if tier in by_tier:
             by_tier[tier] += 1
     
+    # Distribution by expertise tags
+    by_expertise = {}
+    for r in all_registrations:
+        tags = r.get("expertise_tags", [])
+        if isinstance(tags, list):
+            for tag in tags:
+                if tag:
+                    by_expertise[tag] = by_expertise.get(tag, 0) + 1
+    
+    # Sort expertise by count and get top 10
+    sorted_expertise = dict(sorted(by_expertise.items(), key=lambda x: x[1], reverse=True)[:10])
+    
     # Conversion rates
     registration_to_approval = round((approved / total * 100), 1) if total > 0 else 0
     approval_to_catalog = round((in_catalog / approved * 100), 1) if approved > 0 else 0
@@ -1044,6 +1056,8 @@ async def get_public_statistics():
         "by_profile_type": by_profile,
         "by_country": by_country,
         "by_tier": by_tier,
+        "by_expertise": sorted_expertise,
+        "top_5_interests": list(sorted_expertise.keys())[:5],
         "conversion_rates": {
             "registration_to_approval_percent": registration_to_approval,
             "approval_to_catalog_percent": approval_to_catalog
