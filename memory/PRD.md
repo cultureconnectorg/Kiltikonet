@@ -33,27 +33,27 @@ Build a bilingual (French/English) accreditation platform and landing website fo
 - `/admin` - Admin dashboard (password: CC2026admin)
 
 ### API Endpoints
+
 #### Stripe Payment
 - `POST /api/create-checkout-session` - Create Stripe checkout (accreditation or partnership)
 - `GET /api/checkout/status/{session_id}` - Check payment status
 - `POST /api/webhook/stripe` - Handle Stripe webhooks (signature verified)
 - `GET /api/stripe-public-key` - Get Stripe public key
 
-#### API v1 - Statistics & Intelligence (NEW)
-- `GET /api/v1/stats` - Aggregated statistics for BI tools (Tableau, PowerBI compatible)
-  - Response: summary, by_profile_type, by_country, by_tier, conversion_rates, partners
+#### API v1 - Statistics & Intelligence
+- `GET /api/v1/stats` - Aggregated statistics for BI tools
+  - Response: summary, by_profile_type, by_country, by_tier, **by_expertise**, **top_5_interests**, conversion_rates, partners
 - `GET /api/v1/stats/territories` - Detailed territorial analysis
-  - Response: territories with profile/tier breakdown, top_5 countries
 - `GET /api/v1/search/match` - Smart Connect matching API
-  - Params: profile_type, sector, country, limit
-  - Response: filtered results with relevance scoring
+  - Params: profile_type, sector, country, **expertise** (comma-separated), limit
+  - Response: filtered results with relevance scoring and **shared_interests** count
 - `GET /api/v1/search/suggestions` - Partner suggestions for a participant
   - Params: participant_id
-  - Response: complementary profiles based on sector
+  - Response: complementary profiles with **shared expertise tags**
 
 #### Registrations
 - `POST /api/registrations` - Create registration (direct, without payment)
-- `POST /api/registrations/manual` - Admin manual creation
+- `POST /api/registrations/manual` - Admin manual creation (supports **expertise_tags**)
 - `GET /api/registrations` - List registrations (with filters)
 - `DELETE /api/registrations/{id}` - Delete registration
 - `PATCH /api/registrations/{id}/status` - Update status
@@ -68,58 +68,44 @@ Build a bilingual (French/English) accreditation platform and landing website fo
 
 ## What's Been Implemented (Feb 26, 2026)
 
+### Networking & Business Intelligence - FULL STACK ✅ (NEW)
+- [x] **Expertise Tags System**: 12 tags based on flyer categories
+  - Primary: Artistes, Labels, Institutions, Presse, Marché Culturel
+  - Secondary: Musique, Arts Visuels, Digital, Production, Export, Spectacle Vivant, Financement
+- [x] **Registration Form**: Step 3 "Objectifs & Réseautage" with multi-select tags (max 5)
+- [x] **Admin Dashboard Insights**: "Top 5 des Intérêts / Expertises" bar chart with colored bars
+- [x] **Marché Culturel Indicator**: Special highlight for 40+ stands segmentation
+- [x] **Catalog Filters**: Multi-select expertise tags with toggle selection
+- [x] **Colored Pills**: Expertise tags displayed as pills on participant cards
+- [x] **Similarity Score**: "X intérêt(s) commun(s)" badge when filtering
+- [x] **Smart Match API**: `/api/v1/search/match` with expertise parameter and shared_interests
+- [x] **Smart Suggestions**: Partner recommendations based on expertise overlap
+
 ### Data Integrity - FULL STACK ✅
 - [x] **Image Upload Anticipé**: Upload vers Cloudinary AVANT redirection Stripe
-- [x] **Nouveaux champs capturés**: `profile_image_url`, `siret_number`, `website_url`
+- [x] **Nouveaux champs capturés**: `profile_image_url`, `siret_number`, `website_url`, `expertise_tags`
 - [x] **Label contextuel**: "Photo de presse" pour artistes, "Logo institutionnel" pour entreprises
 - [x] **Metadata Stripe étendu**: Tous les champs transmis via checkout session
 - [x] **Webhook sécurisé**: Extraction complète des metadata vers MongoDB
 
 ### Stripe Integration ✅
-- [x] **Accreditation Payment Flow**
-  - Emerging: 50€
-  - Professional: 150€
-  - Institutional: 300€
-  - Redirects to Stripe Checkout
-  - Creates registration with "pending" status after payment
-  - Sends confirmation email
-
-- [x] **Partnership Payment Flow**
-  - Bronze: 2,500€ (2 VIP accreditations)
-  - Silver: 5,000€ (5 VIP accreditations)
-  - Gold: 10,000€ (10 VIP accreditations)
-  - Creates partner record + VIP accreditations automatically
-  - Sends partner welcome email
+- [x] **Accreditation Payment Flow** (50€, 150€, 300€)
+- [x] **Partnership Payment Flow** (2,500€, 5,000€, 10,000€)
 
 ### Cloudinary Integration ✅
 - [x] Logo/photo upload stored in Cloudinary
-- [x] Returns secure URL stored in MongoDB
-- [x] Images displayed in catalog and badges
 
 ### Resend Email Integration ✅
-- [x] **Confirmation Email**: Sent after registration/payment
-- [x] **Approval Email**: Sent when admin approves (with event details)
-- [x] **Rejection Email**: Sent when admin rejects (courteous message)
-- [x] **Partner Welcome Email**: Sent after partnership payment
-- [x] Design: White background, terracotta accents, professional layout
+- [x] Confirmation, Approval, Rejection, and Partner Welcome emails
 
 ### Admin Dashboard ✅
 - [x] Full CRUD: Add, Delete, Update status, Toggle catalog visibility
-- [x] Filtering and search
-- [x] CSV export
-- [x] Statistics cards
+- [x] Filtering, search, CSV export
+- [x] **Insights Management** with conversion rates, profile/territory distribution
+- [x] **Top 5 Expertise Chart** with bar visualization
 
-### Frontend Pages ✅
-- [x] Landing page with partner logos section
-- [x] Pricing page with 3 accreditation tiers
-- [x] Registration form (3 steps) → Stripe payment
-- [x] Partnership page with 3 tiers → Stripe payment
-- [x] Confirmation pages for both flows
-- [x] Public participant catalog
-- [x] Badge generator with QR code placeholder
-
-### MongoDB Collections
-- `registrations` - All accredited participants
+## MongoDB Collections
+- `registrations` - All accredited participants (includes expertise_tags array)
 - `partners` - Partnership records
 - `payment_transactions` - Stripe session tracking
 
@@ -146,12 +132,12 @@ REACT_APP_BACKEND_URL=https://...
 REACT_APP_STRIPE_PUBLIC_KEY=pk_live_***
 ```
 
-## Test Results
-- ✅ Stripe Checkout session creation works
-- ✅ Accreditation flow: Form → Stripe → Confirmation
-- ✅ Partnership flow: Select tier → Form → Stripe → Confirmation
-- ✅ Email templates render correctly
-- ✅ Cloudinary upload functional
+## Test Results (Feb 26, 2026)
+- ✅ API /api/v1/stats returns by_expertise and top_5_interests (100% backend tests)
+- ✅ API /api/v1/search/match with expertise filter (100% backend tests)
+- ✅ Admin Dashboard Insights with Top 5 chart (100% frontend verified)
+- ✅ Catalog expertise filters with pills and similarity (100% frontend verified)
+- ✅ Registration Form Step 3 expertise tags (100% frontend verified)
 
 ## Prioritized Backlog
 
@@ -159,11 +145,12 @@ REACT_APP_STRIPE_PUBLIC_KEY=pk_live_***
 - All payment flows implemented
 - Email notifications working
 - Image storage via Cloudinary
+- **Networking & Intelligence features**
 
-### P1 (High Priority)
-- Webhook signature verification (STRIPE_WEBHOOK_SECRET)
-- Resend domain verification for custom sender email
-- Partner logos display on landing page
+### P1 (High Priority) - DONE ✅
+- Webhook signature verification
+- Admin CRUD operations
+- Catalog live data
 
 ### P2 (Medium Priority)
 - PDF badge generation with real QR code
@@ -171,24 +158,22 @@ REACT_APP_STRIPE_PUBLIC_KEY=pk_live_***
 - Bulk email sending
 
 ### P3 (Low Priority)
-- Analytics dashboard
+- Analytics dashboard enhancements
 - Multi-language admin interface
 - Batch actions in admin
 
 ## Files Reference
 
 ### Backend
-- `/app/backend/server.py` - All API endpoints with Stripe, Cloudinary, Resend
+- `/app/backend/server.py` - All API endpoints
 
 ### Frontend
-- `/app/frontend/src/components/RegistrationForm.jsx` - Stripe checkout integration
-- `/app/frontend/src/components/ConfirmationScreen.jsx` - Payment verification
-- `/app/frontend/src/components/PartnershipPage.jsx` - Partnership tiers + payment
-- `/app/frontend/src/components/PartnerConfirmation.jsx` - Partnership success
-- `/app/frontend/src/components/AdminDashboard.jsx` - Full CRUD admin
-- `/app/frontend/src/App.js` - Routes configuration
+- `/app/frontend/src/components/RegistrationForm.jsx` - Multi-step form with expertise tags
+- `/app/frontend/src/components/AdminDashboard.jsx` - Full admin with Insights
+- `/app/frontend/src/components/CatalogPage.jsx` - Catalog with expertise filters
+- `/app/frontend/src/lib/translations.js` - expertiseTags array
 
 ## Security Notes
-- Stripe webhook signature should be verified with STRIPE_WEBHOOK_SECRET
+- Stripe webhook signature verified with STRIPE_WEBHOOK_SECRET
 - Admin password: CC2026admin (should be changed for production)
 - All sensitive keys stored in environment variables
