@@ -11,6 +11,7 @@ import { CatalogPage } from "./components/CatalogPage";
 import { RegistrationForm } from "./components/RegistrationForm";
 import { ConfirmationScreen } from "./components/ConfirmationScreen";
 import { AdminDashboard } from "./components/AdminDashboard";
+import { ParticipantProfile } from "./components/ParticipantProfile";
 import { Toaster } from "./components/ui/sonner";
 
 function App() {
