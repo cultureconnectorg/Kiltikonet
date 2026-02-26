@@ -1279,24 +1279,30 @@ async def batch_send_badges(request: BatchSendBadgesRequest, background_tasks: B
     if not registrations:
         return {"success": False, "message": "No approved registrations found", "sent_count": 0, "job_id": None}
     
-    # Create batch job for progress tracking
+    # Create batch job in MongoDB for persistence
     job_id = str(uuid.uuid4())
-    job = BatchJob(job_id, len(registrations))
-    batch_jobs[job_id] = job
+    await create_batch_job(job_id, len(registrations), "send_badges")
     
     # Process badges asynchronously with progress tracking
     async def process_badges():
+        processed = 0
+        sent = 0
+        failed = 0
+        
         for reg in registrations:
             email = reg.get("email")
             name = reg.get("full_name", "Participant")
             tier = reg.get("tier", "professional")
             reg_id = reg.get("id")
             
-            job.processed += 1
+            processed += 1
             
             if not email:
-                job.failed += 1
-                job.results["failed"].append({"id": reg_id, "reason": "No email"})
+                failed += 1
+                await update_batch_job_progress(
+                    job_id, processed, sent, failed,
+                    failed_result={"id": reg_id, "reason": "No email"}
+                )
                 await log_email_send(email or "N/A", name, "badge", "failed", reg_id, "No email address")
                 continue
             
@@ -1316,17 +1322,23 @@ async def batch_send_badges(request: BatchSendBadgesRequest, background_tasks: B
                     filename
                 )
                 
-                job.sent += 1
-                job.results["sent"].append({"id": reg_id, "email": email, "name": name})
+                sent += 1
+                await update_batch_job_progress(
+                    job_id, processed, sent, failed,
+                    sent_result={"id": reg_id, "email": email, "name": name}
+                )
                 await log_email_send(email, name, "badge", "sent", reg_id)
             except Exception as e:
                 logger.error(f"Failed to send badge to {email}: {str(e)}")
-                job.failed += 1
-                job.results["failed"].append({"id": reg_id, "reason": str(e)})
+                failed += 1
+                await update_batch_job_progress(
+                    job_id, processed, sent, failed,
+                    failed_result={"id": reg_id, "reason": str(e)}
+                )
                 await log_email_send(email, name, "badge", "failed", reg_id, str(e))
         
-        job.status = "completed"
-        job.completed_at = datetime.now(timezone.utc).isoformat()
+        # Mark job as completed
+        await complete_batch_job(job_id)
     
     # Start async processing
     asyncio.create_task(process_badges())
