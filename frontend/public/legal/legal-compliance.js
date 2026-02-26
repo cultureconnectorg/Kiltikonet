@@ -129,6 +129,39 @@
   function createCookieBanner() {
     // Don't show if already consented
     if (getConsent()) return;
+    
+    // Skip if React's CookieBanner component is already present
+    // Check for React cookie banner (it has role="dialog" and specific structure)
+    const checkForReactBanner = () => {
+      const reactBanner = document.querySelector('[role="dialog"][aria-label*="cookie"], [role="dialog"][aria-label*="Cookie"]');
+      if (reactBanner && !reactBanner.classList.contains('cc-legal-cookie-banner')) {
+        return true;
+      }
+      // Also check for the React-specific class patterns
+      const reactCookieElements = document.querySelectorAll('.fixed.bottom-0[role="dialog"]');
+      for (const el of reactCookieElements) {
+        if (!el.classList.contains('cc-legal-cookie-banner')) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    // Wait a bit for React to potentially render its banner
+    setTimeout(() => {
+      if (checkForReactBanner()) {
+        console.log('[CC Legal] React cookie banner detected, skipping vanilla banner');
+        return;
+      }
+      
+      // Only create vanilla banner if React hasn't created one
+      createVanillaCookieBanner();
+    }, 500);
+  }
+  
+  function createVanillaCookieBanner() {
+    // Double-check consent
+    if (getConsent()) return;
 
     const banner = document.createElement('div');
     banner.className = 'cc-legal-cookie-banner';
