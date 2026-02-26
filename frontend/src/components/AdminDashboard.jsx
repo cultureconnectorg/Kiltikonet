@@ -106,6 +106,10 @@ export const AdminDashboard = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [showBatchActions, setShowBatchActions] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(null);
+  const [showEmailLogs, setShowEmailLogs] = useState(false);
+  const [emailLogs, setEmailLogs] = useState([]);
+  const [advancedStats, setAdvancedStats] = useState(null);
   const [newParticipant, setNewParticipant] = useState({
     full_name: '',
     organization_name: '',
