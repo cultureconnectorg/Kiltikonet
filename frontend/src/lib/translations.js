@@ -177,6 +177,12 @@ export const translations = {
     submitting: "Submitting...",
     charactersRemaining: "characters remaining",
     
+    // Form additional
+    accreditationForm: "Accreditation Request",
+    formSubtitle: "Fill out the form to register for Culture Connect 2026",
+    selectCountry: "Select your country",
+    selectProfile: "Select your profile",
+    
     // Confirmation
     confirmationTitle: "Request Received!",
     confirmationMessage: "Your accreditation request has been received. The Culture Connect team will contact you within 72 hours.",
