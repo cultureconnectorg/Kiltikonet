@@ -775,6 +775,39 @@ export const AdminDashboard = () => {
           
           {/* Table */}
           <div className="flex-1 overflow-auto">
+            {/* Batch Progress Bar */}
+            {batchProgress && (
+              <div className="sticky top-0 z-20 bg-charcoal text-paper px-6 py-4">
+                <div className="flex items-center gap-4 mb-2">
+                  {batchProgress.status === 'completed' ? (
+                    <CheckCircle className="w-5 h-5 text-sage" />
+                  ) : (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  )}
+                  <span className="font-syne text-sm">
+                    {batchProgress.status === 'completed' 
+                      ? (language === 'fr' ? 'Envoi terminé !' : 'Sending complete!')
+                      : (language === 'fr' ? 'Envoi des badges en cours...' : 'Sending badges...')
+                    }
+                  </span>
+                  <span className="ml-auto text-sm">
+                    {batchProgress.sent}/{batchProgress.total} {language === 'fr' ? 'envoyé(s)' : 'sent'}
+                    {batchProgress.failed > 0 && (
+                      <span className="text-terracotta ml-2">
+                        ({batchProgress.failed} {language === 'fr' ? 'échec(s)' : 'failed'})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="w-full bg-paper/20 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-sage transition-all duration-300"
+                    style={{ width: `${batchProgress.percent || 0}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            
             {/* Batch Actions Bar */}
             {selectedIds.length > 0 && (
               <div className="sticky top-0 z-10 bg-terracotta/10 border-b border-terracotta/30 px-6 py-3 flex items-center gap-4">
@@ -797,7 +830,7 @@ export const AdminDashboard = () => {
                   className="h-8 bg-terracotta text-paper text-xs font-syne rounded-none"
                   data-testid="batch-send-badges-btn"
                 >
-                  <Send className="w-3 h-3 mr-1" />
+                  {isBatchProcessing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Send className="w-3 h-3 mr-1" />}
                   {t('sendBadgesToSelected') || 'Send badges'}
                 </Button>
                 <button
@@ -809,9 +842,17 @@ export const AdminDashboard = () => {
               </div>
             )}
             
-            {/* Send to All Approved Button */}
+            {/* Send to All Approved Button + Email History */}
             {selectedIds.length === 0 && counts.by_status?.approved > 0 && (
               <div className="sticky top-0 z-10 bg-paper border-b border-lightborder px-6 py-2 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => { setShowEmailLogs(true); fetchEmailLogs(); }}
+                  className="flex items-center gap-1 text-xs text-charcoal/50 hover:text-terracotta transition-colors"
+                  data-testid="email-history-btn"
+                >
+                  <History className="w-3 h-3" />
+                  {language === 'fr' ? 'Historique envois' : 'Send history'}
+                </button>
                 <Button
                   onClick={() => handleBatchSendBadges(true)}
                   disabled={isBatchProcessing}
@@ -819,7 +860,7 @@ export const AdminDashboard = () => {
                   className="h-8 border-terracotta text-terracotta text-xs font-syne rounded-none hover:bg-terracotta/10"
                   data-testid="send-all-badges-btn"
                 >
-                  <Mail className="w-3 h-3 mr-1" />
+                  {isBatchProcessing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Mail className="w-3 h-3 mr-1" />}
                   {t('sendBadgesToAll') || 'Send badges to all approved'} ({counts.by_status?.approved || 0})
                 </Button>
               </div>
