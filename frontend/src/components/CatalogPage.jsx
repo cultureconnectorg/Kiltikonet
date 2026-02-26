@@ -311,9 +311,13 @@ export const CatalogPage = () => {
                       >
                         Badge
                       </button>
-                      <button className="flex-1 py-2 bg-terracotta text-paper text-sm font-syne hover:bg-terracotta/90 flex items-center justify-center gap-1">
-                        <Mail className="w-4 h-4" />
-                        Contact
+                      <button 
+                        onClick={() => fetchSuggestionsFor(p.id)}
+                        className="flex-1 py-2 bg-sage text-paper text-sm font-syne hover:bg-sage/90 flex items-center justify-center gap-1"
+                        title={language === 'fr' ? 'Trouver des partenaires similaires' : 'Find similar partners'}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Smart
                       </button>
                     </div>
                   </div>
