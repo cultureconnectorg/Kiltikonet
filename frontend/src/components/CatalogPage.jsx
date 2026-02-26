@@ -161,8 +161,19 @@ export const CatalogPage = () => {
         {isLoading ? (
           <div className="text-center py-20 text-charcoal/50">Loading...</div>
         ) : filteredParticipants.length === 0 ? (
-          <div className="text-center py-20 text-charcoal/50">
-            {language === 'fr' ? 'Aucun participant trouvé' : 'No participants found'}
+          <div className="text-center py-20">
+            <div className="w-16 h-16 border-2 border-lightborder mx-auto mb-4 flex items-center justify-center">
+              <Users className="w-8 h-8 text-charcoal/30" />
+            </div>
+            <p className="text-charcoal/50 mb-2">
+              {language === 'fr' ? 'Aucun participant dans le catalogue' : 'No participants in the catalog'}
+            </p>
+            <p className="text-sm text-charcoal/40">
+              {language === 'fr' 
+                ? 'Les participants approuvés apparaîtront ici avec leur photo.'
+                : 'Approved participants will appear here with their photo.'
+              }
+            </p>
           </div>
         ) : (
           <div className={viewMode === 'grid' ? 'grid sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
