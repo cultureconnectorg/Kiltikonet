@@ -42,35 +42,26 @@ export const CatalogPage = () => {
   const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch only catalog-visible participants
+      // Fetch only catalog-visible AND approved participants
       const response = await axios.get(`${API}/catalog`);
       const catalogParticipants = response.data.participants || [];
       
-      const withImages = catalogParticipants.map((p, i) => ({
-        ...p,
-        // Use logo_url from Cloudinary if available, otherwise use placeholder
-        image: p.logo_url || placeholderImages[i % placeholderImages.length],
-        tier: p.tier || 'professional'
-      }));
+      // Filter only approved participants and map with their uploaded photos
+      const approvedParticipants = catalogParticipants
+        .filter(p => p.status === 'approved')
+        .map((p, i) => ({
+          ...p,
+          // Use the photo uploaded by the participant (logo_url from Cloudinary)
+          image: p.logo_url || placeholderImages[i % placeholderImages.length],
+          tier: p.tier || 'professional'
+        }));
       
-      if (withImages.length === 0) {
-        // Demo data only if no real catalog entries
-        const demo = [
-          { id: '1', full_name: 'Marie Césaire', organization_name: 'Kassav Productions', profile_type: 'label', country: 'martinique', bio: 'Label indépendant spécialisé dans la musique caribéenne.', image: placeholderImages[0], tier: 'professional', stand_request: true },
-          { id: '2', full_name: 'Jean-Pierre Mona', organization_name: 'Atrium Martinique', profile_type: 'institution', country: 'martinique', bio: 'Centre culturel et scène nationale.', image: placeholderImages[1], tier: 'institutional', stand_request: true },
-        ];
-        setParticipants(demo);
-        setFilteredParticipants(demo);
-      } else {
-        setParticipants(withImages);
-        setFilteredParticipants(withImages);
-      }
+      setParticipants(approvedParticipants);
+      setFilteredParticipants(approvedParticipants);
     } catch (error) {
-      const demo = [
-        { id: '1', full_name: 'Marie Césaire', organization_name: 'Kassav Productions', profile_type: 'label', country: 'martinique', bio: 'Label indépendant.', image: placeholderImages[0], tier: 'professional', stand_request: true },
-      ];
-      setParticipants(demo);
-      setFilteredParticipants(demo);
+      console.error('Error fetching catalog:', error);
+      setParticipants([]);
+      setFilteredParticipants([]);
     } finally {
       setIsLoading(false);
     }
