@@ -2484,6 +2484,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ================== DATABASE INDEXES ==================
+
+@app.on_event("startup")
+async def create_indexes():
+    """Create MongoDB indexes for performance optimization"""
+    try:
+        # Registrations collection indexes
+        await db.registrations.create_index("status")
+        await db.registrations.create_index("show_in_catalog")
+        await db.registrations.create_index([("status", 1), ("show_in_catalog", 1)])
+        await db.registrations.create_index("profile_type")
+        await db.registrations.create_index("country")
+        await db.registrations.create_index("tier")
+        await db.registrations.create_index("email", unique=False)
+        await db.registrations.create_index("expertise_tags")
+        
+        # Partners collection indexes
+        await db.partners.create_index("tier")
+        await db.partners.create_index("show_on_landing")
+        
+        # Batch jobs collection indexes
+        await db.batch_jobs.create_index("status")
+        await db.batch_jobs.create_index("started_at")
+        
+        # Email logs collection indexes
+        await db.email_logs.create_index("email_type")
+        await db.email_logs.create_index("status")
+        await db.email_logs.create_index("sent_at")
+        await db.email_logs.create_index("participant_id")
+        
+        # Payment transactions collection indexes
+        await db.payment_transactions.create_index("session_id", unique=True)
+        await db.payment_transactions.create_index("payment_status")
+        
+        logger.info("✅ MongoDB indexes created successfully")
+    except Exception as e:
+        logger.error(f"⚠️ Error creating indexes: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
