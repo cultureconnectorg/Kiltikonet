@@ -7,7 +7,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Upload, Loader2, ArrowLeft, ArrowRight, Check, User, Building2, Target } from 'lucide-react';
+import { Upload, Loader2, ArrowLeft, ArrowRight, Check, User, Building2, Target, CheckCircle, Image } from 'lucide-react';
 import { countryList, profileTypes, standCategories, howHeardOptions } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -27,6 +27,9 @@ const steps = [
   { id: 3, icon: Target, labelFr: 'Objectifs', labelEn: 'Goals' }
 ];
 
+// Profile types that should show "Photo de presse" instead of "Logo"
+const artistProfiles = ['artist', 'musician', 'performer', 'dj'];
+
 export const RegistrationForm = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
@@ -40,10 +43,12 @@ export const RegistrationForm = () => {
   const [formData, setFormData] = useState({
     full_name: '', organization_name: '', country: '', email: '', phone: '',
     profile_type: '', stand_request: 'no', stand_category: '', bio: '',
-    language_preference: language, how_heard: '', siret_number: '', website: ''
+    language_preference: language, how_heard: '', siret_number: '', website_url: '',
+    profile_image_url: '' // NEW: Store Cloudinary URL
   });
-  const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -54,18 +59,54 @@ export const RegistrationForm = () => {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
   };
   
-  const handleFileChange = (e) => {
+  // NEW: Immediate upload to Cloudinary on file selection
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Fichier trop volumineux (max 5MB)');
-        return;
-      }
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setLogoPreview(reader.result);
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(language === 'fr' ? 'Fichier trop volumineux (max 5MB)' : 'File too large (max 5MB)');
+      return;
     }
+    
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => setLogoPreview(reader.result);
+    reader.readAsDataURL(file);
+    
+    // Upload to Cloudinary immediately
+    setIsUploading(true);
+    setUploadSuccess(false);
+    
+    try {
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+      
+      const response = await axios.post(`${API}/upload-image`, uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (response.data.url) {
+        // Store URL in formData for Stripe checkout
+        setFormData(prev => ({ ...prev, profile_image_url: response.data.url }));
+        setUploadSuccess(true);
+        toast.success(language === 'fr' ? 'Image uploadée avec succès' : 'Image uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(language === 'fr' ? 'Erreur lors de l\'upload' : 'Upload error');
+      setLogoPreview(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Get contextual label for image upload based on profile type
+  const getImageUploadLabel = () => {
+    if (artistProfiles.includes(formData.profile_type)) {
+      return language === 'fr' ? 'Photo de presse officielle' : 'Official press photo';
+    }
+    return language === 'fr' ? 'Logo institutionnel' : 'Institutional logo';
   };
   
   const validateStep = (step) => {
@@ -99,7 +140,7 @@ export const RegistrationForm = () => {
     
     setIsSubmitting(true);
     try {
-      // Create Stripe checkout session for payment
+      // Create Stripe checkout session with ALL data including image URL
       const checkoutData = {
         type: "accreditation",
         tier: selectedTier,
@@ -114,7 +155,11 @@ export const RegistrationForm = () => {
         stand_category: formData.stand_category || null,
         bio: formData.bio,
         language_preference: formData.language_preference,
-        how_heard: formData.how_heard
+        how_heard: formData.how_heard,
+        // NEW: Additional fields sent to Stripe metadata
+        profile_image_url: formData.profile_image_url || null,
+        siret_number: formData.siret_number || null,
+        website_url: formData.website_url || null
       };
       
       const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
@@ -138,213 +183,280 @@ export const RegistrationForm = () => {
         {/* Header */}
         <div className="mb-10">
           <button onClick={() => navigate('/pricing')} className="flex items-center gap-2 text-charcoal/50 hover:text-terracotta mb-6">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">{language === 'fr' ? 'Modifier le forfait' : 'Change plan'}</span>
+            <ArrowLeft className="w-4 h-4" /> {language === 'fr' ? 'Retour aux formules' : 'Back to pricing'}
           </button>
-          
-          {tier && (
-            <div className="inline-flex items-center gap-3 px-4 py-2 border border-terracotta/30 bg-terracotta/5 mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="font-serif text-2xl sm:text-3xl text-charcoal">{t('accreditationForm')}</h1>
+              <p className="text-charcoal/50 mt-1">{t('formSubtitle')}</p>
+            </div>
+            <div className="px-4 py-2 border border-terracotta/30 bg-terracotta/5">
               <span className="text-terracotta font-syne text-sm">{language === 'fr' ? tier.name : tier.nameEn}</span>
-              <span className="text-charcoal/40">—</span>
-              <span className="text-charcoal font-medium">{tier.price}€</span>
+              <span className="text-charcoal ml-2 font-medium">{tier.price}€</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Stepper */}
+        <div className="flex items-center justify-between mb-12 border-b border-lightborder pb-6">
+          {steps.map((step, index) => (
+            <React.Fragment key={step.id}>
+              <div className="flex flex-col items-center gap-2">
+                <div className={`w-10 h-10 flex items-center justify-center border-2 transition-all ${
+                  currentStep >= step.id ? 'bg-terracotta border-terracotta text-paper' : 'bg-paper border-lightborder text-charcoal/40'
+                }`}>
+                  {currentStep > step.id ? <Check className="w-5 h-5" /> : <step.icon className="w-5 h-5" />}
+                </div>
+                <span className={`text-xs font-syne hidden sm:block ${currentStep >= step.id ? 'text-terracotta' : 'text-charcoal/40'}`}>
+                  {language === 'fr' ? step.labelFr : step.labelEn}
+                </span>
+              </div>
+              {index < steps.length - 1 && <div className={`flex-1 h-0.5 mx-2 ${currentStep > step.id ? 'bg-terracotta' : 'bg-lightborder'}`} />}
+            </React.Fragment>
+          ))}
+        </div>
+        
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Informations personnelles' : 'Personal Information'}</h2>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{t('fullName')} *</Label>
+                  <Input value={formData.full_name} onChange={(e) => handleInputChange('full_name', e.target.value)}
+                    className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.full_name ? 'border-terracotta' : ''}`}
+                    data-testid="input-full-name" />
+                </div>
+                <div>
+                  <Label className="text-charcoal/70 text-sm">Email *</Label>
+                  <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)}
+                    className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.email ? 'border-terracotta' : ''}`}
+                    data-testid="input-email" />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{t('phone')} *</Label>
+                  <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.phone ? 'border-terracotta' : ''}`}
+                    data-testid="input-phone" />
+                </div>
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{t('country')} *</Label>
+                  <Select value={formData.country} onValueChange={(v) => handleInputChange('country', v)}>
+                    <SelectTrigger className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.country ? 'border-terracotta' : ''}`}
+                      data-testid="select-country">
+                      <SelectValue placeholder={t('selectCountry')} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-paper border-lightborder max-h-60">
+                      {countryList.map(c => <SelectItem key={c.value} value={c.value}>{c.value}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Activité professionnelle' : 'Professional Activity'}</h2>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{t('organizationName')} *</Label>
+                  <Input value={formData.organization_name} onChange={(e) => handleInputChange('organization_name', e.target.value)}
+                    className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.organization_name ? 'border-terracotta' : ''}`}
+                    data-testid="input-organization" />
+                </div>
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{t('profileType')} *</Label>
+                  <Select value={formData.profile_type} onValueChange={(v) => handleInputChange('profile_type', v)}>
+                    <SelectTrigger className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.profile_type ? 'border-terracotta' : ''}`}
+                      data-testid="select-profile-type">
+                      <SelectValue placeholder={t('selectProfile')} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-paper border-lightborder">
+                      {profileTypes.map(p => <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* NEW: SIRET and Website fields */}
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{language === 'fr' ? 'N° SIRET (optionnel)' : 'SIRET Number (optional)'}</Label>
+                  <Input value={formData.siret_number} onChange={(e) => handleInputChange('siret_number', e.target.value)}
+                    placeholder="123 456 789 00012"
+                    className="mt-1 h-12 bg-paper border-lightborder rounded-none"
+                    data-testid="input-siret" />
+                </div>
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{language === 'fr' ? 'Site web (optionnel)' : 'Website (optional)'}</Label>
+                  <Input value={formData.website_url} onChange={(e) => handleInputChange('website_url', e.target.value)}
+                    placeholder="https://"
+                    className="mt-1 h-12 bg-paper border-lightborder rounded-none"
+                    data-testid="input-website" />
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-charcoal/70 text-sm">{t('bio')} *</Label>
+                <Textarea value={formData.bio} onChange={(e) => e.target.value.length <= 300 && handleInputChange('bio', e.target.value)}
+                  className={`mt-1 bg-paper border-lightborder rounded-none min-h-[120px] ${errors.bio ? 'border-terracotta' : ''}`}
+                  data-testid="textarea-bio" />
+                <p className="text-xs text-charcoal/40 mt-1 text-right">{300 - formData.bio.length} {language === 'fr' ? 'caractères' : 'characters'}</p>
+              </div>
+              
+              {/* NEW: Contextual image upload with immediate Cloudinary upload */}
+              <div>
+                <Label className="text-charcoal/70 text-sm flex items-center gap-2">
+                  <Image className="w-4 h-4" />
+                  {getImageUploadLabel()}
+                </Label>
+                <div 
+                  onClick={() => !isUploading && fileInputRef.current?.click()}
+                  className={`mt-1 border border-dashed bg-paper p-6 text-center cursor-pointer transition-all ${
+                    isUploading ? 'border-terracotta/50 cursor-wait' : 
+                    uploadSuccess ? 'border-sage bg-sage/5' : 
+                    'border-lightborder hover:border-terracotta'
+                  }`}
+                >
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="w-8 h-8 text-terracotta animate-spin" />
+                      <span className="text-sm text-terracotta">{language === 'fr' ? 'Upload en cours...' : 'Uploading...'}</span>
+                    </div>
+                  ) : logoPreview ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="relative">
+                        <img src={logoPreview} alt="" className="w-20 h-20 object-cover border border-lightborder" />
+                        {uploadSuccess && (
+                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-sage rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-4 h-4 text-paper" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm text-sage font-syne">
+                        {uploadSuccess 
+                          ? (language === 'fr' ? 'Image prête ✓' : 'Image ready ✓')
+                          : (language === 'fr' ? 'Cliquez pour changer' : 'Click to change')
+                        }
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="w-6 h-6 text-charcoal/40" />
+                      <span className="text-sm text-charcoal/50">
+                        {language === 'fr' ? 'Cliquez pour uploader (max 5MB)' : 'Click to upload (max 5MB)'}
+                      </span>
+                      <span className="text-xs text-charcoal/30">JPEG, PNG, WebP</span>
+                    </div>
+                  )}
+                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileChange} className="hidden" />
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-charcoal/70 text-sm mb-2 block">{t('standRequest')}</Label>
+                <RadioGroup value={formData.stand_request} onValueChange={(v) => handleInputChange('stand_request', v)} className="flex gap-6">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="yes" className="border-terracotta text-terracotta" />
+                    <Label htmlFor="yes" className="cursor-pointer">{t('yes')}</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="no" className="border-terracotta text-terracotta" />
+                    <Label htmlFor="no" className="cursor-pointer">{t('no')}</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              {formData.stand_request === 'yes' && (
+                <div>
+                  <Label className="text-charcoal/70 text-sm">{t('standCategory')} *</Label>
+                  <Select value={formData.stand_category} onValueChange={(v) => handleInputChange('stand_category', v)}>
+                    <SelectTrigger className="mt-1 h-12 bg-paper border-lightborder rounded-none">
+                      <SelectValue placeholder={t('selectStandCategory')} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-paper border-lightborder">
+                      {standCategories.map(c => <SelectItem key={c.value} value={c.value}>{t(c.labelKey)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Objectifs' : 'Goals'}</h2>
+              <div>
+                <Label className="text-charcoal/70 text-sm">{t('howHeard')} *</Label>
+                <Select value={formData.how_heard} onValueChange={(v) => handleInputChange('how_heard', v)}>
+                  <SelectTrigger className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.how_heard ? 'border-terracotta' : ''}`}
+                    data-testid="select-how-heard">
+                    <SelectValue placeholder={t('selectHowHeard')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-paper border-lightborder">
+                    {howHeardOptions.map(o => <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Summary before payment */}
+              <div className="border border-lightborder bg-cream p-6 mt-8">
+                <h3 className="font-serif text-lg text-charcoal mb-4">{language === 'fr' ? 'Récapitulatif' : 'Summary'}</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-charcoal/60">{language === 'fr' ? 'Nom' : 'Name'}</span>
+                    <span className="text-charcoal font-medium">{formData.full_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-charcoal/60">Organisation</span>
+                    <span className="text-charcoal font-medium">{formData.organization_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-charcoal/60">Email</span>
+                    <span className="text-charcoal font-medium">{formData.email}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-lightborder mt-2">
+                    <span className="text-charcoal/60">{language === 'fr' ? 'Formule' : 'Plan'}</span>
+                    <span className="text-terracotta font-syne font-medium">{language === 'fr' ? tier.name : tier.nameEn} — {tier.price}€</span>
+                  </div>
+                  {formData.profile_image_url && (
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-charcoal/60">{language === 'fr' ? 'Photo/Logo' : 'Photo/Logo'}</span>
+                      <span className="text-sage font-syne">✓ {language === 'fr' ? 'Uploadé' : 'Uploaded'}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           
-          <h1 className="font-serif text-3xl sm:text-4xl text-charcoal mb-2">
-            {language === 'fr' ? 'Demande d\'accréditation' : 'Accreditation Request'}
-          </h1>
-          <p className="text-charcoal/60">{language === 'fr' ? 'Complétez votre demande en 3 étapes' : 'Complete your request in 3 steps'}</p>
-        </div>
-
-        {/* Steps */}
-        <div className="flex items-center gap-2 mb-10">
-          {steps.map((step, i) => {
-            const StepIcon = step.icon;
-            const isActive = currentStep === step.id;
-            const isCompleted = currentStep > step.id;
-            return (
-              <React.Fragment key={step.id}>
-                <button
-                  onClick={() => step.id < currentStep && setCurrentStep(step.id)}
-                  disabled={step.id > currentStep}
-                  className={`flex items-center gap-2 px-4 py-2 border transition-colors ${
-                    isActive ? 'border-terracotta bg-terracotta/5' : isCompleted ? 'border-sage bg-sage/5' : 'border-lightborder'
-                  }`}
-                >
-                  {isCompleted ? <Check className="w-4 h-4 text-sage" /> : <StepIcon className={`w-4 h-4 ${isActive ? 'text-terracotta' : 'text-charcoal/40'}`} />}
-                  <span className={`text-sm font-syne ${isActive ? 'text-terracotta' : isCompleted ? 'text-sage' : 'text-charcoal/40'}`}>
-                    {language === 'fr' ? step.labelFr : step.labelEn}
-                  </span>
-                </button>
-                {i < steps.length - 1 && <div className={`w-8 h-px ${currentStep > step.id ? 'bg-sage' : 'bg-lightborder'}`} />}
-              </React.Fragment>
-            );
-          })}
-        </div>
-
-        {/* Form */}
-        <div className="border border-lightborder bg-cream p-8">
-          <form onSubmit={handleSubmit}>
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Identité' : 'Identity'}</h2>
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div>
-                    <Label className="text-charcoal/70 text-sm">{t('fullName')} *</Label>
-                    <Input value={formData.full_name} onChange={(e) => handleInputChange('full_name', e.target.value)}
-                      className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.full_name ? 'border-terracotta' : ''}`} />
-                  </div>
-                  <div>
-                    <Label className="text-charcoal/70 text-sm">{t('email')} *</Label>
-                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.email ? 'border-terracotta' : ''}`} />
-                  </div>
-                  <div>
-                    <Label className="text-charcoal/70 text-sm">{t('phone')} *</Label>
-                    <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.phone ? 'border-terracotta' : ''}`} />
-                  </div>
-                  <div>
-                    <Label className="text-charcoal/70 text-sm">{t('country')} *</Label>
-                    <Select value={formData.country} onValueChange={(v) => handleInputChange('country', v)}>
-                      <SelectTrigger className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.country ? 'border-terracotta' : ''}`}>
-                        <SelectValue placeholder={t('countryPlaceholder')} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-paper border-lightborder">
-                        {countryList.map(c => <SelectItem key={c.value} value={c.value}>{t(`countries.${c.labelKey}`)}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
+          {/* Navigation */}
+          <div className="flex gap-4 pt-6 border-t border-lightborder">
+            {currentStep > 1 && (
+              <Button type="button" variant="outline" onClick={() => setCurrentStep(prev => prev - 1)}
+                className="h-12 px-6 border-charcoal text-charcoal rounded-none font-syne">
+                <ArrowLeft className="w-4 h-4 mr-2" /> {language === 'fr' ? 'Retour' : 'Back'}
+              </Button>
             )}
-
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Activité' : 'Activity'}</h2>
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div>
-                    <Label className="text-charcoal/70 text-sm">{t('organizationName')} *</Label>
-                    <Input value={formData.organization_name} onChange={(e) => handleInputChange('organization_name', e.target.value)}
-                      className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.organization_name ? 'border-terracotta' : ''}`} />
-                  </div>
-                  <div>
-                    <Label className="text-charcoal/70 text-sm">{t('profileType')} *</Label>
-                    <Select value={formData.profile_type} onValueChange={(v) => handleInputChange('profile_type', v)}>
-                      <SelectTrigger className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.profile_type ? 'border-terracotta' : ''}`}>
-                        <SelectValue placeholder={t('selectProfileType')} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-paper border-lightborder">
-                        {profileTypes.map(p => <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-charcoal/70 text-sm">{t('bio')} *</Label>
-                  <Textarea value={formData.bio} onChange={(e) => e.target.value.length <= 300 && handleInputChange('bio', e.target.value)}
-                    className={`mt-1 bg-paper border-lightborder rounded-none min-h-[120px] ${errors.bio ? 'border-terracotta' : ''}`} />
-                  <p className="text-xs text-charcoal/40 mt-1 text-right">{300 - formData.bio.length} caractères</p>
-                </div>
-                <div>
-                  <Label className="text-charcoal/70 text-sm">{t('logoUpload')}</Label>
-                  <div onClick={() => fileInputRef.current?.click()}
-                    className="mt-1 border border-dashed border-lightborder bg-paper p-6 text-center cursor-pointer hover:border-terracotta transition-colors">
-                    {logoPreview ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <img src={logoPreview} alt="" className="w-16 h-16 object-cover" />
-                        <span className="text-sm text-terracotta">{logoFile?.name}</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <Upload className="w-6 h-6 text-charcoal/40" />
-                        <span className="text-sm text-charcoal/50">{t('uploadLabel')}</span>
-                      </div>
-                    )}
-                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-charcoal/70 text-sm mb-2 block">{t('standRequest')}</Label>
-                  <RadioGroup value={formData.stand_request} onValueChange={(v) => handleInputChange('stand_request', v)} className="flex gap-6">
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="yes" id="yes" className="border-terracotta text-terracotta" />
-                      <Label htmlFor="yes" className="cursor-pointer">{t('yes')}</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="no" id="no" className="border-terracotta text-terracotta" />
-                      <Label htmlFor="no" className="cursor-pointer">{t('no')}</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                {formData.stand_request === 'yes' && (
-                  <div>
-                    <Label className="text-charcoal/70 text-sm">{t('standCategory')} *</Label>
-                    <Select value={formData.stand_category} onValueChange={(v) => handleInputChange('stand_category', v)}>
-                      <SelectTrigger className="mt-1 h-12 bg-paper border-lightborder rounded-none">
-                        <SelectValue placeholder={t('selectStandCategory')} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-paper border-lightborder">
-                        {standCategories.map(c => <SelectItem key={c.value} value={c.value}>{t(c.labelKey)}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
+            {currentStep < 3 ? (
+              <Button type="button" onClick={handleNext}
+                className="flex-1 h-12 bg-charcoal text-paper rounded-none font-syne">
+                {language === 'fr' ? 'Continuer' : 'Continue'} <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            ) : (
+              <Button type="submit" disabled={isSubmitting}
+                className="flex-1 h-14 bg-terracotta hover:bg-terracotta/90 text-paper rounded-none font-syne text-base"
+                data-testid="submit-payment">
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  <>{language === 'fr' ? 'Procéder au paiement' : 'Proceed to payment'} — {tier.price}€</>
                 )}
-              </div>
+              </Button>
             )}
-
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Objectifs' : 'Goals'}</h2>
-                <div>
-                  <Label className="text-charcoal/70 text-sm">{t('howHeard')} *</Label>
-                  <Select value={formData.how_heard} onValueChange={(v) => handleInputChange('how_heard', v)}>
-                    <SelectTrigger className={`mt-1 h-12 bg-paper border-lightborder rounded-none ${errors.how_heard ? 'border-terracotta' : ''}`}>
-                      <SelectValue placeholder={t('selectHowHeard')} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-paper border-lightborder">
-                      {howHeardOptions.map(o => <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-charcoal/70 text-sm">{t('languagePreference')}</Label>
-                  <Select value={formData.language_preference} onValueChange={(v) => handleInputChange('language_preference', v)}>
-                    <SelectTrigger className="mt-1 h-12 bg-paper border-lightborder rounded-none">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-paper border-lightborder">
-                      <SelectItem value="fr">{t('french')}</SelectItem>
-                      <SelectItem value="en">{t('english')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation */}
-            <div className="flex items-center justify-between mt-10 pt-6 border-t border-lightborder">
-              {currentStep > 1 ? (
-                <Button type="button" variant="outline" onClick={() => setCurrentStep(prev => prev - 1)}
-                  className="h-12 px-6 border-charcoal text-charcoal rounded-none">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> {language === 'fr' ? 'Précédent' : 'Previous'}
-                </Button>
-              ) : <div />}
-              
-              {currentStep < 3 ? (
-                <Button type="button" onClick={handleNext} className="h-12 px-6 bg-charcoal text-paper rounded-none">
-                  {language === 'fr' ? 'Suivant' : 'Next'} <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button type="submit" disabled={isSubmitting} className="h-12 px-8 bg-terracotta text-paper rounded-none">
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                    <><Check className="w-4 h-4 mr-2" /> {language === 'fr' ? 'Soumettre' : 'Submit'}</>
-                  )}
-                </Button>
-              )}
-            </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );
