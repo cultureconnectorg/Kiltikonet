@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
-import { Download, X } from 'lucide-react';
+import { Download, X, ExternalLink } from 'lucide-react';
 import { profileTypes } from '../lib/translations';
+import QRCode from 'react-qr-code';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+const FRONTEND_URL = window.location.origin;
 
 const tierConfig = {
   emerging: { name: 'ÉMERGENT', nameEn: 'EMERGING', color: '#4A5D4E' },
@@ -12,6 +17,7 @@ const tierConfig = {
 
 export const BadgeGenerator = ({ participant, onClose }) => {
   const { language, t } = useLanguage();
+  const badgeRef = useRef(null);
   
   const tier = tierConfig[participant?.tier] || tierConfig.professional;
   
@@ -20,14 +26,21 @@ export const BadgeGenerator = ({ participant, onClose }) => {
     return p ? t(p.labelKey) : type;
   };
 
-  const handleDownload = () => {
-    alert(language === 'fr' 
-      ? 'Le badge sera disponible au téléchargement après validation'
-      : 'Badge will be available for download after validation'
-    );
+  // URL for QR code - points to participant profile page
+  const profileUrl = `${FRONTEND_URL}/participant/${participant?.id}`;
+
+  const handleDownloadPDF = () => {
+    // Download PDF badge from backend
+    window.open(`${API}/participant/${participant.id}/badge`, '_blank');
+  };
+
+  const handleViewProfile = () => {
+    window.open(profileUrl, '_blank');
   };
 
   if (!participant) return null;
+
+  const isApproved = participant.status === 'approved';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80">
@@ -36,15 +49,16 @@ export const BadgeGenerator = ({ participant, onClose }) => {
           {language === 'fr' ? 'Fermer' : 'Close'} <X className="w-4 h-4" />
         </button>
 
-        {/* Badge */}
+        {/* Badge Preview */}
         <div 
+          ref={badgeRef}
           className="bg-paper overflow-hidden"
           style={{ aspectRatio: '3/4', border: `4px solid ${tier.color}` }}
         >
           <div className="h-full flex flex-col">
             {/* Header */}
             <div className="py-4 px-6 text-center border-b border-lightborder">
-              <img src="/logo.png" alt="Culture Connect" className="h-10 mx-auto mb-2" />
+              <p className="font-serif text-lg text-charcoal font-bold">CULTURE CONNECT 2026</p>
               <p className="text-xs text-charcoal/50 tracking-widest uppercase">
                 Fort-de-France · Mai 2026
               </p>
@@ -80,27 +94,62 @@ export const BadgeGenerator = ({ participant, onClose }) => {
               </p>
             </div>
 
-            {/* Footer */}
+            {/* Footer with QR Code */}
             <div className="py-4 px-6 border-t border-lightborder flex items-center justify-between">
               <div>
                 <p className="text-xs text-charcoal/40">ID</p>
-                <p className="text-xs text-charcoal font-mono">{participant.id?.slice(0, 8) || 'CC2026'}</p>
+                <p className="text-xs text-charcoal font-mono">{participant.id?.slice(0, 8).toUpperCase() || 'CC2026'}</p>
+                {participant.stand_request && (
+                  <p className="text-xs text-sage font-syne mt-1">STAND</p>
+                )}
               </div>
               
-              {/* QR placeholder */}
-              <div className="w-16 h-16 bg-charcoal flex items-center justify-center">
-                <span className="text-paper text-xs font-syne">QR</span>
+              {/* Real QR Code */}
+              <div className="bg-white p-1">
+                <QRCode 
+                  value={profileUrl}
+                  size={56}
+                  level="M"
+                  bgColor="#FFFFFF"
+                  fgColor="#1A1A1A"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Download */}
-        <div className="mt-6 flex justify-center">
-          <Button onClick={handleDownload} className="h-12 px-8 font-syne text-sm rounded-none" style={{ backgroundColor: tier.color, color: '#F4F1EA' }}>
-            <Download className="w-4 h-4 mr-2" />
-            {language === 'fr' ? 'Télécharger' : 'Download'}
-          </Button>
+        {/* Actions */}
+        <div className="mt-6 space-y-3">
+          {isApproved ? (
+            <>
+              <Button 
+                onClick={handleDownloadPDF} 
+                className="w-full h-12 px-8 font-syne text-sm rounded-none" 
+                style={{ backgroundColor: tier.color, color: '#F4F1EA' }}
+                data-testid="download-badge-pdf"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Télécharger le Badge PDF' : 'Download PDF Badge'}
+              </Button>
+              <Button 
+                onClick={handleViewProfile}
+                variant="outline"
+                className="w-full h-10 px-8 font-syne text-xs rounded-none border-lightborder text-charcoal/70"
+              >
+                <ExternalLink className="w-3 h-3 mr-2" />
+                {language === 'fr' ? 'Voir le profil public' : 'View public profile'}
+              </Button>
+            </>
+          ) : (
+            <div className="text-center p-4 border border-amber-200 bg-amber-50">
+              <p className="text-amber-700 text-sm font-syne">
+                {language === 'fr' 
+                  ? 'Badge disponible après validation de l\'accréditation'
+                  : 'Badge available after accreditation approval'
+                }
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
