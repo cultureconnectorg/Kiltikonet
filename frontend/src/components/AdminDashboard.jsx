@@ -20,6 +20,7 @@ import { PartnerManagement } from './PartnerManagement';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const API_V1 = `${BACKEND_URL}/api/v1`;
+const API_V1 = `${BACKEND_URL}/api/v1`;
 
 const profileIcons = {
   'artist': Mic2, 'label': Building2, 'booking_agency': Globe,
