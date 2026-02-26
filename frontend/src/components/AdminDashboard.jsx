@@ -9,7 +9,8 @@ import {
   Download, LogOut, Users, Clock, CheckCircle, XCircle, 
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
   Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
-  BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown
+  BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown,
+  CheckSquare, Square, Send
 } from 'lucide-react';
 import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '../lib/translations';
 import axios from 'axios';
