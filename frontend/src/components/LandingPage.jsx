@@ -414,6 +414,10 @@ export const LandingPage = () => {
             <p>Culture Connect 2026 · Fort-de-France, Martinique</p>
             <p>Factory Maker Studio</p>
           </div>
+          {/* Legal links */}
+          <div className="mt-6 pt-4 border-t border-lightborder">
+            <LegalFooter />
+          </div>
         </div>
       </footer>
     </div>
