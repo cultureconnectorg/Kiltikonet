@@ -1318,6 +1318,75 @@ export const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Email History Modal */}
+      {showEmailLogs && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80">
+          <div className="bg-paper w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="p-5 border-b border-lightborder flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="font-serif text-lg text-charcoal">
+                  {language === 'fr' ? 'Historique des envois' : 'Send History'}
+                </h3>
+                <p className="text-xs text-charcoal/50">
+                  {emailLogs.length} {language === 'fr' ? 'email(s) récent(s)' : 'recent email(s)'}
+                </p>
+              </div>
+              <button onClick={() => setShowEmailLogs(false)} className="text-charcoal/50 hover:text-charcoal">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-auto p-5">
+              {emailLogs.length === 0 ? (
+                <div className="text-center py-12 text-charcoal/50">
+                  <Mail className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                  <p>{language === 'fr' ? 'Aucun envoi pour le moment' : 'No emails sent yet'}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {emailLogs.map((log, idx) => (
+                    <div key={log.id || idx} className={`flex items-center gap-3 p-3 border ${
+                      log.status === 'sent' ? 'border-sage/30 bg-sage/5' : 'border-terracotta/30 bg-terracotta/5'
+                    }`}>
+                      {log.status === 'sent' ? (
+                        <CheckCircle className="w-4 h-4 text-sage shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-terracotta shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-charcoal truncate">{log.recipient_name}</p>
+                        <p className="text-xs text-charcoal/50 truncate">{log.recipient_email}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className={`text-xs px-2 py-0.5 ${
+                          log.email_type === 'badge' ? 'bg-terracotta/20 text-terracotta' : 'bg-sage/20 text-sage'
+                        }`}>
+                          {log.email_type}
+                        </span>
+                        <p className="text-xs text-charcoal/40 mt-1">
+                          {new Date(log.sent_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-5 border-t border-lightborder shrink-0 flex justify-end">
+              <Button 
+                onClick={() => setShowEmailLogs(false)}
+                className="h-10 bg-charcoal text-paper rounded-none font-syne"
+              >
+                {language === 'fr' ? 'Fermer' : 'Close'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
