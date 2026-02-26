@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, File, UploadFile, Form, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -17,6 +17,14 @@ import cloudinary
 import cloudinary.uploader
 import resend
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+import qrcode
+from reportlab.lib.pagesizes import A6
+from reportlab.lib.units import mm
+from reportlab.pdfgen import canvas
+from reportlab.lib.colors import HexColor
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import requests
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
