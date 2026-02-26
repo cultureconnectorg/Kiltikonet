@@ -93,6 +93,24 @@ export const CatalogPage = () => {
       setSuggestions([]);
     }
   };
+
+  // Toggle expertise tag filter
+  const toggleExpertiseFilter = (tagValue) => {
+    setFilters(prev => {
+      const current = prev.expertiseTags || [];
+      if (current.includes(tagValue)) {
+        return { ...prev, expertiseTags: current.filter(t => t !== tagValue) };
+      } else {
+        return { ...prev, expertiseTags: [...current, tagValue] };
+      }
+    });
+  };
+
+  // Calculate shared interests count
+  const getSharedInterestsCount = (participantTags, filterTags) => {
+    if (!participantTags || !filterTags || filterTags.length === 0) return 0;
+    return participantTags.filter(t => filterTags.includes(t)).length;
+  };
   
   // Smart Connect: Search by sector keyword
   const searchBySector = async (keyword) => {
