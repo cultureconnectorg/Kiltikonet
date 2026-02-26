@@ -233,7 +233,58 @@ export const CatalogPage = () => {
           </div>
           <p className="mt-4 text-sm text-charcoal/50">
             {filteredParticipants.length} {language === 'fr' ? 'participant(s)' : 'participant(s)'}
+            {filters.expertiseTags?.length > 0 && (
+              <span className="ml-2 text-sage">
+                ({language === 'fr' ? 'filtré par' : 'filtered by'} {filters.expertiseTags.length} {language === 'fr' ? 'intérêt(s)' : 'interest(s)'})
+              </span>
+            )}
           </p>
+          
+          {/* Expertise Tags Filter */}
+          <div className="mt-4 pt-4 border-t border-lightborder">
+            <button 
+              onClick={() => setShowExpertiseFilter(!showExpertiseFilter)}
+              className="flex items-center gap-2 text-xs text-charcoal/60 hover:text-terracotta transition-colors mb-3"
+            >
+              <Tag className="w-4 h-4" />
+              <span className="uppercase font-syne">
+                {language === 'fr' ? 'Filtrer par intérêts' : 'Filter by interests'}
+              </span>
+              {filters.expertiseTags?.length > 0 && (
+                <span className="px-2 py-0.5 bg-sage text-paper text-xs">{filters.expertiseTags.length}</span>
+              )}
+            </button>
+            
+            {showExpertiseFilter && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {expertiseTags.map((tag) => {
+                  const isSelected = filters.expertiseTags?.includes(tag.value);
+                  return (
+                    <button
+                      key={tag.value}
+                      onClick={() => toggleExpertiseFilter(tag.value)}
+                      className={`px-3 py-1.5 text-xs font-syne transition-all border ${
+                        isSelected 
+                          ? 'border-sage bg-sage text-paper' 
+                          : 'border-lightborder bg-paper text-charcoal/70 hover:border-terracotta'
+                      }`}
+                    >
+                      {language === 'fr' ? tag.labelFr : tag.labelEn}
+                      {isSelected && <Check className="w-3 h-3 inline ml-1" />}
+                    </button>
+                  );
+                })}
+                {filters.expertiseTags?.length > 0 && (
+                  <button
+                    onClick={() => setFilters(prev => ({ ...prev, expertiseTags: [] }))}
+                    className="px-3 py-1.5 text-xs border border-terracotta/30 text-terracotta hover:bg-terracotta/10"
+                  >
+                    {language === 'fr' ? 'Effacer' : 'Clear'}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           
           {/* Smart Connect - Sector Keywords */}
           {sectorKeywords.length > 0 && (
@@ -255,7 +306,7 @@ export const CatalogPage = () => {
                   </button>
                 ))}
                 <button
-                  onClick={() => { setFilters({ search: '', region: '', sector: '', tier: '' }); fetchParticipants(); }}
+                  onClick={() => { setFilters({ search: '', region: '', sector: '', tier: '', expertiseTags: [] }); fetchParticipants(); }}
                   className="px-3 py-1.5 text-xs border border-sage/30 text-sage hover:bg-sage/10 transition-colors"
                 >
                   {language === 'fr' ? 'Réinitialiser' : 'Reset'}
