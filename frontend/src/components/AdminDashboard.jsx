@@ -355,6 +355,50 @@ export const AdminDashboard = () => {
             </div>
           </div>
           
+          {/* Tab Navigation */}
+          <div className="border-b border-lightborder bg-paper px-6">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setActiveTab('registrations')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'registrations'
+                    ? 'border-terracotta text-terracotta'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-registrations"
+              >
+                <Users className="w-4 h-4 inline mr-2" />
+                {language === 'fr' ? 'Participants' : 'Registrations'}
+              </button>
+              <button
+                onClick={() => setActiveTab('partners')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'partners'
+                    ? 'border-terracotta text-terracotta'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-partners"
+              >
+                <Handshake className="w-4 h-4 inline mr-2" />
+                {language === 'fr' ? 'Partenaires' : 'Partners'}
+              </button>
+              <button
+                onClick={() => setShowExportModal(true)}
+                className="ml-auto px-4 py-3 text-sm font-syne text-charcoal/50 hover:text-terracotta transition-colors"
+                data-testid="filtered-export-btn"
+              >
+                <FileDown className="w-4 h-4 inline mr-2" />
+                {language === 'fr' ? 'Export ciblé' : 'Filtered Export'}
+              </button>
+            </div>
+          </div>
+          
+          {activeTab === 'partners' ? (
+            <div className="flex-1 overflow-auto p-6">
+              <PartnerManagement />
+            </div>
+          ) : (
+            <>
           {/* Insights Section - Business Intelligence */}
           {stats && showInsights && (
             <div className="border-b border-lightborder bg-cream px-6 py-4">
