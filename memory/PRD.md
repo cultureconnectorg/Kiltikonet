@@ -54,7 +54,14 @@ Build a bilingual (French/English) accreditation platform and landing website fo
 - `POST /api/admin/verify` - Admin authentication
 - `GET /api/countries` - Get distinct countries
 
-## What's Been Implemented (Feb 25, 2026)
+## What's Been Implemented (Feb 26, 2026)
+
+### Data Integrity - FULL STACK ✅
+- [x] **Image Upload Anticipé**: Upload vers Cloudinary AVANT redirection Stripe
+- [x] **Nouveaux champs capturés**: `profile_image_url`, `siret_number`, `website_url`
+- [x] **Label contextuel**: "Photo de presse" pour artistes, "Logo institutionnel" pour entreprises
+- [x] **Metadata Stripe étendu**: Tous les champs transmis via checkout session
+- [x] **Webhook sécurisé**: Extraction complète des metadata vers MongoDB
 
 ### Stripe Integration ✅
 - [x] **Accreditation Payment Flow**
