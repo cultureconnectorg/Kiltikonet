@@ -1123,6 +1123,36 @@ class BatchApproveRequest(BaseModel):
 class BatchSendBadgesRequest(BaseModel):
     registration_ids: List[str]  # If empty, send to ALL approved
 
+# Batch jobs storage (in-memory for progress tracking)
+batch_jobs = {}
+
+class BatchJob:
+    def __init__(self, job_id: str, total: int):
+        self.job_id = job_id
+        self.total = total
+        self.processed = 0
+        self.sent = 0
+        self.failed = 0
+        self.status = "running"
+        self.results = {"sent": [], "failed": []}
+        self.started_at = datetime.now(timezone.utc).isoformat()
+        self.completed_at = None
+
+async def log_email_send(recipient_email: str, recipient_name: str, email_type: str, status: str, participant_id: str = None, error: str = None):
+    """Log email send to database for history tracking"""
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "recipient_email": recipient_email,
+        "recipient_name": recipient_name,
+        "email_type": email_type,  # "badge", "approval", "rejection", "partner_notification"
+        "status": status,  # "sent", "failed"
+        "participant_id": participant_id,
+        "error": error,
+        "sent_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.email_logs.insert_one(log_entry)
+    return log_entry
+
 @api_router.post("/registrations/batch/approve")
 async def batch_approve_registrations(request: BatchApproveRequest):
     """Approve multiple registrations at once (max 50)"""
