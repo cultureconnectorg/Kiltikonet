@@ -9,11 +9,12 @@ import {
   Download, LogOut, Users, Clock, CheckCircle, XCircle, 
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
   Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
-  BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles
+  BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown
 } from 'lucide-react';
-import { profileTypes, countryList } from '../lib/translations';
+import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { PartnerManagement } from './PartnerManagement';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
