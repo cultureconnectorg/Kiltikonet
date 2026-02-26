@@ -27,19 +27,17 @@ export const MentionsLegales = () => {
               {language === 'fr' ? (
                 <>
                   Le site Culture Connect 2026 est édité par :<br /><br />
-                  <strong>Factory Maker Studio</strong><br />
-                  [Adresse complète à compléter]<br />
+                  <strong>Culture Connect</strong> (Powered by Factory Maker Studio)<br />
                   Fort-de-France, Martinique<br />
-                  SIRET : [À compléter]<br />
+                  SIRET : 91824710700017<br />
                   Email : cultureconnectorg@gmail.com
                 </>
               ) : (
                 <>
                   The Culture Connect 2026 website is published by:<br /><br />
-                  <strong>Factory Maker Studio</strong><br />
-                  [Full address to complete]<br />
+                  <strong>Culture Connect</strong> (Powered by Factory Maker Studio)<br />
                   Fort-de-France, Martinique<br />
-                  SIRET: [To complete]<br />
+                  SIRET: 91824710700017<br />
                   Email: cultureconnectorg@gmail.com
                 </>
               )}
@@ -50,12 +48,7 @@ export const MentionsLegales = () => {
             <h2 className="font-serif text-xl text-charcoal mb-3">
               {language === 'fr' ? '2. Directeur de la publication' : '2. Publication Director'}
             </h2>
-            <p>
-              {language === 'fr' 
-                ? '[Nom du directeur de publication à compléter]'
-                : '[Publication director name to complete]'
-              }
-            </p>
+            <p>Laurent COEURVOLAN</p>
           </section>
           
           <section>
