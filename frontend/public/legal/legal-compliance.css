@@ -1,0 +1,295 @@
+/**
+ * Culture Connect 2026 - Legal Compliance Styles
+ * 100% Isolated - Does not affect existing styles
+ * All selectors are prefixed with cc-legal- to avoid conflicts
+ */
+
+/* ============================================
+   COOKIE BANNER
+   ============================================ */
+.cc-legal-cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  background: #141311;
+  border-top: 1px solid rgba(237, 232, 220, 0.1);
+  padding: 16px;
+  font-family: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+}
+
+.cc-legal-cookie-banner.cc-legal-visible {
+  transform: translateY(0);
+}
+
+.cc-legal-cookie-banner.cc-legal-hidden {
+  display: none;
+}
+
+.cc-legal-cookie-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .cc-legal-cookie-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.cc-legal-cookie-text {
+  color: #EDE8DC;
+  font-size: 13px;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.cc-legal-cookie-text a {
+  color: #C17A5E;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cc-legal-cookie-text a:hover {
+  color: #d8937a;
+}
+
+.cc-legal-cookie-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cc-legal-btn {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cc-legal-btn-accept {
+  background: #C17A5E;
+  color: #EDE8DC;
+}
+
+.cc-legal-btn-accept:hover {
+  background: #a86a52;
+}
+
+.cc-legal-btn-decline {
+  background: transparent;
+  color: rgba(237, 232, 220, 0.7);
+  border: 1px solid rgba(237, 232, 220, 0.3);
+}
+
+.cc-legal-btn-decline:hover {
+  color: #EDE8DC;
+  border-color: rgba(237, 232, 220, 0.5);
+}
+
+.cc-legal-btn-close {
+  background: transparent;
+  color: rgba(237, 232, 220, 0.5);
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-legal-btn-close:hover {
+  color: #EDE8DC;
+}
+
+/* ============================================
+   LEGAL FOOTER
+   ============================================ */
+.cc-legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 16px;
+  padding: 16px 0;
+  font-family: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  border-top: 1px solid rgba(20, 19, 17, 0.08);
+  margin-top: 16px;
+}
+
+.cc-legal-footer a,
+.cc-legal-footer button {
+  color: rgba(20, 19, 17, 0.4);
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cc-legal-footer a:hover,
+.cc-legal-footer button:hover {
+  color: #C17A5E;
+}
+
+.cc-legal-footer-sep {
+  color: rgba(20, 19, 17, 0.2);
+}
+
+@media (max-width: 640px) {
+  .cc-legal-footer-sep {
+    display: none;
+  }
+}
+
+/* ============================================
+   LEGAL PAGES
+   ============================================ */
+.cc-legal-page {
+  min-height: 100vh;
+  background: #EDE8DC;
+  padding: 120px 16px 64px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cc-legal-page-inner {
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.cc-legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(20, 19, 17, 0.5);
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 32px;
+  transition: color 0.2s ease;
+}
+
+.cc-legal-back:hover {
+  color: #C17A5E;
+}
+
+.cc-legal-back svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cc-legal-page h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: #141311;
+  margin: 0 0 32px;
+  line-height: 1.2;
+}
+
+.cc-legal-page h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #141311;
+  margin: 32px 0 16px;
+  line-height: 1.3;
+}
+
+.cc-legal-page p {
+  color: rgba(20, 19, 17, 0.75);
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+
+.cc-legal-page ul {
+  color: rgba(20, 19, 17, 0.75);
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+
+.cc-legal-page li {
+  margin-bottom: 8px;
+}
+
+.cc-legal-page strong {
+  color: #141311;
+  font-weight: 600;
+}
+
+.cc-legal-page a {
+  color: #C17A5E;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cc-legal-page a:hover {
+  color: #a86a52;
+}
+
+.cc-legal-updated {
+  font-size: 12px;
+  color: rgba(20, 19, 17, 0.4);
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(20, 19, 17, 0.08);
+}
+
+/* ============================================
+   RGPD CHECKBOX (Injected into forms)
+   ============================================ */
+.cc-legal-rgpd-container {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(20, 19, 17, 0.08);
+}
+
+.cc-legal-rgpd-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(20, 19, 17, 0.7);
+}
+
+.cc-legal-rgpd-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: #C17A5E;
+  cursor: pointer;
+}
+
+.cc-legal-rgpd-text a {
+  color: #C17A5E;
+  text-decoration: underline;
+}
+
+.cc-legal-rgpd-error {
+  color: #C17A5E;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.cc-legal-rgpd-container.cc-legal-has-error .cc-legal-rgpd-checkbox {
+  outline: 2px solid #C17A5E;
+  outline-offset: 2px;
+}
