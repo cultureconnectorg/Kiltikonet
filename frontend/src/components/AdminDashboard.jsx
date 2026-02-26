@@ -263,6 +263,77 @@ export const AdminDashboard = () => {
       toast.error('Export error');
     }
   };
+
+  // Batch selection handlers
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredRegs.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredRegs.map(r => r.id));
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  // Batch approve handler
+  const handleBatchApprove = async () => {
+    if (selectedIds.length === 0) {
+      toast.error(language === 'fr' ? 'Aucun participant sélectionné' : 'No participants selected');
+      return;
+    }
+    
+    if (!window.confirm(t('confirmBatchApprove') || `${language === 'fr' ? 'Approuver' : 'Approve'} ${selectedIds.length} ${language === 'fr' ? 'participants ?' : 'participants?'}`)) return;
+    
+    setIsBatchProcessing(true);
+    try {
+      const response = await axios.post(`${API}/registrations/batch/approve`, {
+        registration_ids: selectedIds
+      });
+      
+      toast.success(`${response.data.approved_count} ${t('participantsApproved') || 'participants approved'}`);
+      setSelectedIds([]);
+      fetchRegistrations();
+      fetchStats();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error');
+    } finally {
+      setIsBatchProcessing(false);
+    }
+  };
+
+  // Batch send badges handler
+  const handleBatchSendBadges = async (sendToAll = false) => {
+    const idsToSend = sendToAll ? [] : selectedIds;
+    
+    if (!sendToAll && idsToSend.length === 0) {
+      toast.error(language === 'fr' ? 'Aucun participant sélectionné' : 'No participants selected');
+      return;
+    }
+    
+    const confirmMsg = sendToAll 
+      ? (language === 'fr' ? 'Envoyer les badges à TOUS les participants approuvés ?' : 'Send badges to ALL approved participants?')
+      : `${language === 'fr' ? 'Envoyer les badges à' : 'Send badges to'} ${idsToSend.length} ${language === 'fr' ? 'participant(s) ?' : 'participant(s)?'}`;
+    
+    if (!window.confirm(confirmMsg)) return;
+    
+    setIsBatchProcessing(true);
+    try {
+      const response = await axios.post(`${API}/registrations/batch/send-badges`, {
+        registration_ids: idsToSend
+      });
+      
+      toast.success(`${response.data.sent_count} ${t('badgesSent') || 'badges sent'}`);
+      setSelectedIds([]);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error sending badges');
+    } finally {
+      setIsBatchProcessing(false);
+    }
+  };
   
   const getCountryLabel = (code) => {
     const c = countryList.find(x => x.value === code);
