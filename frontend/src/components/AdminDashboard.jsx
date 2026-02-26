@@ -344,6 +344,148 @@ export const AdminDashboard = () => {
             </div>
           </div>
           
+          {/* Insights Section - Business Intelligence */}
+          {stats && showInsights && (
+            <div className="border-b border-lightborder bg-cream px-6 py-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-terracotta" />
+                  <h3 className="text-sm font-syne text-charcoal uppercase tracking-wider">
+                    {language === 'fr' ? 'Insights Management' : 'Management Insights'}
+                  </h3>
+                </div>
+                <button onClick={() => setShowInsights(false)} className="text-charcoal/40 hover:text-charcoal">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Conversion Rates */}
+                <div className="bg-paper border border-lightborder p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp className="w-4 h-4 text-sage" />
+                    <span className="text-xs text-charcoal/50 uppercase">
+                      {language === 'fr' ? 'Taux de conversion' : 'Conversion Rates'}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-charcoal/60">{language === 'fr' ? 'Inscription → Approbation' : 'Registration → Approval'}</span>
+                      <span className="text-lg font-serif text-sage">{stats.conversion_rates?.registration_to_approval_percent || 0}%</span>
+                    </div>
+                    <div className="w-full bg-lightborder h-1.5">
+                      <div className="bg-sage h-1.5" style={{ width: `${stats.conversion_rates?.registration_to_approval_percent || 0}%` }} />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Profile Distribution */}
+                <div className="bg-paper border border-lightborder p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <PieChart className="w-4 h-4 text-terracotta" />
+                    <span className="text-xs text-charcoal/50 uppercase">
+                      {language === 'fr' ? 'Par profil' : 'By Profile'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MiniDonut 
+                      segments={Object.entries(stats.by_profile_type || {}).map(([key, value], i) => ({
+                        value,
+                        color: ['#A65D47', '#4A5D4E', '#1A1A1A', '#8B7355', '#6B8E7B'][i % 5]
+                      }))}
+                    />
+                    <div className="flex-1 space-y-1">
+                      {Object.entries(stats.by_profile_type || {}).slice(0, 3).map(([key, value]) => (
+                        <div key={key} className="flex justify-between text-xs">
+                          <span className="text-charcoal/60 truncate">{getProfileLabel(key)}</span>
+                          <span className="text-charcoal font-medium">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Geographic Distribution */}
+                <div className="bg-paper border border-lightborder p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Map className="w-4 h-4 text-terracotta" />
+                    <span className="text-xs text-charcoal/50 uppercase">
+                      {language === 'fr' ? 'Territoires' : 'Territories'}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {Object.entries(stats.by_country || {}).slice(0, 4).map(([country, count]) => (
+                      <div key={country} className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <div className="flex justify-between text-xs mb-0.5">
+                            <span className="text-charcoal/60">{country}</span>
+                            <span className="text-charcoal">{count}</span>
+                          </div>
+                          <div className="w-full bg-lightborder h-1">
+                            <div 
+                              className="bg-terracotta/70 h-1" 
+                              style={{ width: `${Math.min((count / (stats.summary?.total_registrations || 1)) * 100, 100)}%` }} 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Tier Distribution */}
+                <div className="bg-paper border border-lightborder p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Users className="w-4 h-4 text-sage" />
+                    <span className="text-xs text-charcoal/50 uppercase">
+                      {language === 'fr' ? 'Par formule' : 'By Tier'}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-charcoal/60">Émergent</span>
+                      <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700">{stats.by_tier?.emerging || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-charcoal/60">Professionnel</span>
+                      <span className="text-xs px-2 py-0.5 bg-sage/10 text-sage">{stats.by_tier?.professional || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-charcoal/60">Institutionnel</span>
+                      <span className="text-xs px-2 py-0.5 bg-terracotta/10 text-terracotta">{stats.by_tier?.institutional || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Partners summary if any */}
+              {stats.partners?.total > 0 && (
+                <div className="mt-4 pt-4 border-t border-lightborder flex items-center gap-6">
+                  <span className="text-xs text-charcoal/50 uppercase">{language === 'fr' ? 'Partenaires' : 'Partners'}:</span>
+                  <span className="text-sm text-charcoal">{stats.partners.total} total</span>
+                  <span className="text-xs text-charcoal/50">
+                    Bronze: {stats.partners.by_tier?.bronze || 0} · 
+                    Silver: {stats.partners.by_tier?.silver || 0} · 
+                    Gold: {stats.partners.by_tier?.gold || 0}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Toggle Insights Button (if hidden) */}
+          {stats && !showInsights && (
+            <div className="border-b border-lightborder bg-paper px-6 py-2">
+              <button 
+                onClick={() => setShowInsights(true)}
+                className="flex items-center gap-2 text-xs text-charcoal/50 hover:text-terracotta transition-colors"
+              >
+                <BarChart3 className="w-3 h-3" />
+                {language === 'fr' ? 'Afficher les insights' : 'Show insights'}
+              </button>
+            </div>
+          )}
+          
           {/* Filters */}
           <div className="border-b border-lightborder bg-paper px-6 py-4">
             <div className="flex flex-wrap items-center gap-3">
