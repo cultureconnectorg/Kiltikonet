@@ -50,6 +50,9 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Create a v1 router for new API endpoints
+api_v1_router = APIRouter(prefix="/api/v1")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
