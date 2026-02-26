@@ -52,6 +52,7 @@ export const RegistrationForm = () => {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [rgpdConsent, setRgpdConsent] = useState(false); // RGPD consent state
   
   React.useEffect(() => { window.scrollTo(0, 0); }, [currentStep]);
   
