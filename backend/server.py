@@ -1122,16 +1122,18 @@ async def smart_connect_matching(
     profile_type: Optional[str] = Query(None, description="Filter by profile type"),
     sector: Optional[str] = Query(None, description="Search keyword in bio/organization"),
     country: Optional[str] = Query(None, description="Filter by country"),
+    expertise: Optional[str] = Query(None, description="Filter by expertise tags (comma-separated)"),
     limit: int = Query(10, le=50, description="Max results")
 ):
     """
-    Smart Connect API - Find matching profiles based on sector similarity
+    Smart Connect API - Find matching profiles based on sector similarity and expertise tags
     SECURITY: Only returns show_in_catalog:true AND status:approved
     
     Use cases:
     - "Find all labels in Martinique"
     - "Find organizations with 'music' in their bio"
     - "Find potential partners by sector"
+    - "Find profiles with specific expertise tags"
     """
     # Base filter: only public catalog entries
     filter_query = {"show_in_catalog": True, "status": "approved"}
@@ -1141,6 +1143,13 @@ async def smart_connect_matching(
     
     if country:
         filter_query["country"] = {"$regex": country, "$options": "i"}
+    
+    # Filter by expertise tags
+    expertise_list = []
+    if expertise:
+        expertise_list = [e.strip() for e in expertise.split(",") if e.strip()]
+        if expertise_list:
+            filter_query["expertise_tags"] = {"$in": expertise_list}
     
     # Fetch candidates
     candidates = await db.registrations.find(
@@ -1157,7 +1166,7 @@ async def smart_connect_matching(
             or sector_lower in (c.get("organization_name", "") or "").lower()
         ]
     
-    # Score and sort by relevance
+    # Score and sort by relevance (with expertise matching bonus)
     def relevance_score(participant):
         score = 0
         if participant.get("logo_url"):
@@ -1166,6 +1175,13 @@ async def smart_connect_matching(
             score += 5  # Good bio
         if participant.get("website_url"):
             score += 3  # Has website
+        
+        # Expertise tag matching bonus
+        participant_tags = participant.get("expertise_tags", [])
+        if expertise_list and participant_tags:
+            shared_tags = len(set(participant_tags) & set(expertise_list))
+            score += shared_tags * 15  # Significant bonus per shared tag
+        
         return score
     
     candidates.sort(key=relevance_score, reverse=True)
@@ -1173,6 +1189,9 @@ async def smart_connect_matching(
     # Format response
     results = []
     for c in candidates[:limit]:
+        participant_tags = c.get("expertise_tags", [])
+        shared_count = len(set(participant_tags) & set(expertise_list)) if expertise_list else 0
+        
         results.append({
             "id": c.get("id"),
             "name": c.get("full_name"),
@@ -1183,14 +1202,17 @@ async def smart_connect_matching(
             "tier": c.get("tier"),
             "image_url": c.get("logo_url"),
             "website": c.get("website_url"),
-            "has_stand": c.get("stand_request", False)
+            "has_stand": c.get("stand_request", False),
+            "expertise_tags": participant_tags,
+            "shared_interests": shared_count
         })
     
     return {
         "query": {
             "profile_type": profile_type,
             "sector": sector,
-            "country": country
+            "country": country,
+            "expertise": expertise_list
         },
         "total_matches": len(results),
         "results": results,
