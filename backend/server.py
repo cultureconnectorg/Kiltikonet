@@ -425,7 +425,11 @@ async def create_checkout_session(request: Request, checkout_data: CheckoutReque
             "stand_category": checkout_data.stand_category or "",
             "bio": (checkout_data.bio or "")[:500],  # Stripe metadata limit
             "language_preference": checkout_data.language_preference or "fr",
-            "how_heard": checkout_data.how_heard or ""
+            "how_heard": checkout_data.how_heard or "",
+            # NEW: Additional data fields
+            "profile_image_url": checkout_data.profile_image_url or "",
+            "siret_number": checkout_data.siret_number or "",
+            "website_url": checkout_data.website_url or ""
         })
     else:
         metadata.update({
