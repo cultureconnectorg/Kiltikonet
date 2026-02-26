@@ -280,3 +280,17 @@ export const howHeardOptions = [
   { value: "website", labelKey: "website" },
   { value: "other", labelKey: "otherSource" }
 ];
+
+// Expertise & Interest Tags for networking
+export const expertiseTags = [
+  { value: "music", labelFr: "Musique", labelEn: "Music", color: "#A65D47" },
+  { value: "visual_arts", labelFr: "Arts Visuels", labelEn: "Visual Arts", color: "#4A5D4E" },
+  { value: "digital", labelFr: "Digital", labelEn: "Digital", color: "#1A1A1A" },
+  { value: "financing", labelFr: "Financement", labelEn: "Financing", color: "#8B7355" },
+  { value: "production", labelFr: "Production", labelEn: "Production", color: "#A65D47" },
+  { value: "export", labelFr: "Export", labelEn: "Export", color: "#4A5D4E" },
+  { value: "regional_cooperation", labelFr: "Coopération Régionale", labelEn: "Regional Cooperation", color: "#6B8E7B" },
+  { value: "live_performance", labelFr: "Spectacle Vivant", labelEn: "Live Performance", color: "#A65D47" },
+  { value: "heritage", labelFr: "Patrimoine", labelEn: "Heritage", color: "#8B7355" },
+  { value: "training", labelFr: "Formation", labelEn: "Training", color: "#4A5D4E" }
+];
