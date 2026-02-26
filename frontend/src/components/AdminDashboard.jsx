@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { 
   Download, LogOut, Users, Clock, CheckCircle, XCircle, 
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
-  Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus
+  Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
+  BarChart3, TrendingUp, Map, PieChart
 } from 'lucide-react';
 import { profileTypes, countryList } from '../lib/translations';
 import axios from 'axios';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const API_V1 = `${BACKEND_URL}/api/v1`;
 
 const profileIcons = {
   'artist': Mic2, 'label': Building2, 'booking_agency': Globe,
@@ -29,6 +31,60 @@ const placeholderImages = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop'
 ];
 
+// Mini Bar Chart Component
+const MiniBarChart = ({ data, maxValue, color = 'terracotta' }) => {
+  const colorClasses = {
+    terracotta: 'bg-terracotta',
+    sage: 'bg-sage',
+    charcoal: 'bg-charcoal'
+  };
+  return (
+    <div className="flex items-end gap-1 h-12">
+      {data.map((value, i) => (
+        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+          <div 
+            className={`w-full ${colorClasses[color]} opacity-80 transition-all`}
+            style={{ height: `${Math.max((value / maxValue) * 100, 4)}%` }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Mini Donut/Pie representation
+const MiniDonut = ({ segments, size = 48 }) => {
+  const total = segments.reduce((acc, s) => acc + s.value, 0);
+  let currentAngle = 0;
+  
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32">
+      {segments.map((segment, i) => {
+        const angle = total > 0 ? (segment.value / total) * 360 : 0;
+        const startAngle = currentAngle;
+        const endAngle = currentAngle + angle;
+        currentAngle = endAngle;
+        
+        const start = polarToCartesian(16, 16, 12, startAngle);
+        const end = polarToCartesian(16, 16, 12, endAngle);
+        const largeArc = angle > 180 ? 1 : 0;
+        
+        const d = angle >= 360 
+          ? `M 16 4 A 12 12 0 1 1 15.99 4` 
+          : `M 16 16 L ${start.x} ${start.y} A 12 12 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
+        
+        return <path key={i} d={d} fill={segment.color} opacity="0.85" />;
+      })}
+      <circle cx="16" cy="16" r="6" fill="#F4F1EA" />
+    </svg>
+  );
+};
+
+const polarToCartesian = (cx, cy, r, angle) => {
+  const rad = (angle - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+};
+
 export const AdminDashboard = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
@@ -40,6 +96,8 @@ export const AdminDashboard = () => {
   const [selectedReg, setSelectedReg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showInsights, setShowInsights] = useState(true);
+  const [stats, setStats] = useState(null);
   const [newParticipant, setNewParticipant] = useState({
     full_name: '',
     organization_name: '',
