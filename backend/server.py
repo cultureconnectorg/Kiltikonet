@@ -1993,6 +1993,194 @@ async def get_territory_insights():
         "top_5": list(sorted_territories.keys())[:5]
     }
 
+@api_v1_router.get("/stats/advanced")
+async def get_advanced_analytics():
+    """
+    Advanced Analytics for Partner Reports
+    Includes trend data, KPIs, and comparative metrics
+    """
+    all_registrations = await db.registrations.find({}, {"_id": 0}).to_list(10000)
+    all_partners = await db.partners.find({}, {"_id": 0}).to_list(100)
+    email_logs = await db.email_logs.find({}, {"_id": 0}).to_list(1000)
+    
+    # Basic counts
+    total = len(all_registrations)
+    approved = sum(1 for r in all_registrations if r.get("status") == "approved")
+    pending = sum(1 for r in all_registrations if r.get("status") == "pending")
+    in_catalog = sum(1 for r in all_registrations if r.get("show_in_catalog") and r.get("status") == "approved")
+    
+    # Registration timeline (by day)
+    registration_timeline = {}
+    for r in all_registrations:
+        created = r.get("created_at", "")[:10]  # Get date part only
+        if created:
+            registration_timeline[created] = registration_timeline.get(created, 0) + 1
+    
+    # Sort by date
+    registration_timeline = dict(sorted(registration_timeline.items()))
+    
+    # Profile type distribution with percentages
+    profile_distribution = {}
+    for r in all_registrations:
+        profile = r.get("profile_type", "other")
+        profile_distribution[profile] = profile_distribution.get(profile, 0) + 1
+    
+    profile_with_percent = {
+        k: {"count": v, "percent": round(v / total * 100, 1) if total > 0 else 0}
+        for k, v in profile_distribution.items()
+    }
+    
+    # Tier distribution with revenue estimates
+    tier_revenue = {
+        "emerging": {"price": 50, "count": 0, "revenue": 0},
+        "professional": {"price": 150, "count": 0, "revenue": 0},
+        "institutional": {"price": 300, "count": 0, "revenue": 0}
+    }
+    for r in all_registrations:
+        if r.get("status") == "approved":
+            tier = r.get("tier", "professional")
+            if tier in tier_revenue:
+                tier_revenue[tier]["count"] += 1
+                tier_revenue[tier]["revenue"] = tier_revenue[tier]["count"] * tier_revenue[tier]["price"]
+    
+    total_registration_revenue = sum(t["revenue"] for t in tier_revenue.values())
+    
+    # Partner revenue estimates
+    partner_revenue = {
+        "bronze": {"price": 2500, "count": 0, "revenue": 0},
+        "silver": {"price": 5000, "count": 0, "revenue": 0},
+        "gold": {"price": 10000, "count": 0, "revenue": 0}
+    }
+    for p in all_partners:
+        tier = p.get("tier", "bronze")
+        if tier in partner_revenue:
+            partner_revenue[tier]["count"] += 1
+            partner_revenue[tier]["revenue"] = partner_revenue[tier]["count"] * partner_revenue[tier]["price"]
+    
+    total_partner_revenue = sum(t["revenue"] for t in partner_revenue.values())
+    
+    # Expertise/Interest engagement
+    expertise_engagement = {}
+    for r in all_registrations:
+        tags = r.get("expertise_tags", [])
+        if isinstance(tags, list):
+            for tag in tags:
+                if tag:
+                    expertise_engagement[tag] = expertise_engagement.get(tag, 0) + 1
+    
+    # Sort and format
+    expertise_sorted = dict(sorted(expertise_engagement.items(), key=lambda x: x[1], reverse=True))
+    
+    # Marché Culturel specific metrics
+    marche_culturel_stats = {
+        "stand_requests": sum(1 for r in all_registrations if r.get("stand_request")),
+        "approved_stands": sum(1 for r in all_registrations if r.get("stand_request") and r.get("status") == "approved"),
+        "stand_categories": {}
+    }
+    for r in all_registrations:
+        if r.get("stand_request"):
+            cat = r.get("stand_category", "general")
+            marche_culturel_stats["stand_categories"][cat] = marche_culturel_stats["stand_categories"].get(cat, 0) + 1
+    
+    # Email delivery stats
+    email_stats = {
+        "total_sent": sum(1 for e in email_logs if e.get("status") == "sent"),
+        "total_failed": sum(1 for e in email_logs if e.get("status") == "failed"),
+        "badges_sent": sum(1 for e in email_logs if e.get("email_type") == "badge" and e.get("status") == "sent"),
+        "delivery_rate": 0
+    }
+    if email_stats["total_sent"] + email_stats["total_failed"] > 0:
+        email_stats["delivery_rate"] = round(
+            email_stats["total_sent"] / (email_stats["total_sent"] + email_stats["total_failed"]) * 100, 1
+        )
+    
+    # KPIs for partner report
+    kpis = {
+        "total_registrations": total,
+        "approval_rate": round(approved / total * 100, 1) if total > 0 else 0,
+        "catalog_visibility_rate": round(in_catalog / approved * 100, 1) if approved > 0 else 0,
+        "total_partners": len(all_partners),
+        "total_revenue_estimate": total_registration_revenue + total_partner_revenue,
+        "avg_expertise_per_participant": round(
+            sum(len(r.get("expertise_tags", [])) for r in all_registrations) / total, 1
+        ) if total > 0 else 0,
+        "badges_sent": email_stats["badges_sent"],
+        "email_delivery_rate": email_stats["delivery_rate"]
+    }
+    
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "report_title": "Culture Connect 2026 - Rapport de Situation",
+        "kpis": kpis,
+        "registration_timeline": registration_timeline,
+        "profile_distribution": profile_with_percent,
+        "tier_analysis": {
+            "registrations": tier_revenue,
+            "total_registration_revenue": total_registration_revenue
+        },
+        "partner_analysis": {
+            "partners": partner_revenue,
+            "total_partner_revenue": total_partner_revenue
+        },
+        "expertise_engagement": expertise_sorted,
+        "top_10_interests": list(expertise_sorted.keys())[:10],
+        "marche_culturel": marche_culturel_stats,
+        "email_delivery": email_stats,
+        "meta": {
+            "currency": "EUR",
+            "event_date": "2026-05-20",
+            "report_type": "advanced_analytics"
+        }
+    }
+
+@api_v1_router.get("/report/summary")
+async def get_partner_report_summary():
+    """
+    Executive Summary for Partner Meetings
+    One-page dashboard data optimized for presentations
+    """
+    stats = await get_advanced_analytics()
+    
+    # Extract key highlights
+    highlights = []
+    
+    kpis = stats["kpis"]
+    if kpis["total_registrations"] > 0:
+        highlights.append(f"{kpis['total_registrations']} inscriptions totales")
+    if kpis["approval_rate"] > 80:
+        highlights.append(f"Taux d'approbation excellent: {kpis['approval_rate']}%")
+    if kpis["badges_sent"] > 0:
+        highlights.append(f"{kpis['badges_sent']} badges envoyés")
+    if kpis["total_partners"] > 0:
+        highlights.append(f"{kpis['total_partners']} partenaire(s) confirmé(s)")
+    
+    # Top territories
+    territories = await get_territory_insights()
+    top_territories = territories.get("top_5", [])
+    
+    # Format for presentation
+    return {
+        "title": "Culture Connect 2026 - Executive Summary",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "highlights": highlights,
+        "key_metrics": {
+            "inscriptions": kpis["total_registrations"],
+            "approuves": int(kpis["total_registrations"] * kpis["approval_rate"] / 100),
+            "partenaires": kpis["total_partners"],
+            "revenus_estimes": f"{kpis['total_revenue_estimate']:,}€".replace(",", " ")
+        },
+        "top_territories": top_territories,
+        "top_interests": stats.get("top_10_interests", [])[:5],
+        "marche_culturel": {
+            "demandes_stand": stats["marche_culturel"]["stand_requests"],
+            "stands_approuves": stats["marche_culturel"]["approved_stands"]
+        },
+        "communication": {
+            "badges_envoyes": kpis["badges_sent"],
+            "taux_delivrabilite": f"{stats['email_delivery']['delivery_rate']}%"
+        }
+    }
+
 @api_v1_router.get("/search/match")
 async def smart_connect_matching(
     profile_type: Optional[str] = Query(None, description="Filter by profile type"),
