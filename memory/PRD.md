@@ -164,6 +164,20 @@ Platform is now feature-complete and legally compliant, ready for:
 - **CRITICAL**: Fixed `/api/catalog` endpoint exposing sensitive data (email, phone)
 - Now properly excludes: `email`, `phone`, `payment_session_id`, `siret_number`
 
+### P1: Batch Jobs Persistence ✅ (Feb 26, 2026)
+- Migrated `batch_jobs` from in-memory storage to MongoDB collection
+- New functions: `create_batch_job()`, `update_batch_job_progress()`, `complete_batch_job()`, `get_batch_job()`
+- New endpoint: `GET /api/registrations/batch/history` - View batch job history
+- Benefits: Jobs persist across server restarts, full audit trail
+
+### P2: MongoDB Indexes ✅ (Feb 26, 2026)
+Created indexes on startup for optimal query performance:
+- **registrations**: `status`, `show_in_catalog`, `profile_type`, `country`, `tier`, `email`, `expertise_tags`
+- **partners**: `tier`, `show_on_landing`
+- **batch_jobs**: `status`, `started_at`
+- **email_logs**: `email_type`, `status`, `sent_at`, `participant_id`
+- **payment_transactions**: `session_id` (unique), `payment_status`
+
 ### Full Audit Available
 See `/app/AUDIT_REPORT.md` for complete technical audit including:
 - Architecture review
