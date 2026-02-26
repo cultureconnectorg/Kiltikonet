@@ -914,6 +914,7 @@ async def create_manual_registration(data: ManualRegistration):
         "tier": data.tier,
         "status": data.status,
         "show_in_catalog": data.show_in_catalog,
+        "expertise_tags": data.expertise_tags or [],  # NEW: Include expertise tags
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
