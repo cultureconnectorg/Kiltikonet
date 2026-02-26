@@ -465,6 +465,55 @@ export const AdminDashboard = () => {
                 </div>
               </div>
               
+              {/* Top 5 Interests / Expertise Tags */}
+              {stats.by_expertise && Object.keys(stats.by_expertise).length > 0 && (
+                <div className="col-span-2 lg:col-span-4 mt-4 pt-4 border-t border-lightborder">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Tag className="w-4 h-4 text-terracotta" />
+                    <span className="text-xs text-charcoal/50 uppercase font-syne">
+                      {language === 'fr' ? 'Top 5 des Intérêts / Expertises' : 'Top 5 Interests / Expertise'}
+                    </span>
+                    <Sparkles className="w-3 h-3 text-sage ml-auto" />
+                  </div>
+                  <div className="grid grid-cols-5 gap-3">
+                    {Object.entries(stats.by_expertise).slice(0, 5).map(([tag, count], index) => {
+                      const maxCount = Math.max(...Object.values(stats.by_expertise));
+                      const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                      const colors = ['#A65D47', '#4A5D4E', '#1A1A1A', '#8B7355', '#6B8E7B'];
+                      return (
+                        <div key={tag} className="bg-paper border border-lightborder p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-charcoal/60 truncate capitalize">
+                              {tag.replace(/_/g, ' ')}
+                            </span>
+                            <span className="text-lg font-serif text-charcoal">{count}</span>
+                          </div>
+                          <div className="w-full bg-lightborder h-2">
+                            <div 
+                              className="h-2 transition-all" 
+                              style={{ 
+                                width: `${percentage}%`,
+                                backgroundColor: colors[index % colors.length]
+                              }} 
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* Marché Culturel highlight if present */}
+                  {stats.by_expertise['marche_culturel'] && stats.by_expertise['marche_culturel'] > 0 && (
+                    <div className="mt-3 flex items-center gap-2 p-2 bg-terracotta/5 border border-terracotta/20">
+                      <span className="text-xs text-terracotta font-syne uppercase">Marché Culturel:</span>
+                      <span className="text-sm text-charcoal font-medium">{stats.by_expertise['marche_culturel']}</span>
+                      <span className="text-xs text-charcoal/50">
+                        {language === 'fr' ? 'demandes de stand' : 'stand requests'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Partners summary if any */}
               {stats.partners?.total > 0 && (
                 <div className="mt-4 pt-4 border-t border-lightborder flex items-center gap-6">
