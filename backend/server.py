@@ -1132,20 +1132,59 @@ class BatchApproveRequest(BaseModel):
 class BatchSendBadgesRequest(BaseModel):
     registration_ids: List[str]  # If empty, send to ALL approved
 
-# Batch jobs storage (in-memory for progress tracking)
-batch_jobs = {}
+# ================== BATCH JOB PERSISTENCE (MongoDB) ==================
 
-class BatchJob:
-    def __init__(self, job_id: str, total: int):
-        self.job_id = job_id
-        self.total = total
-        self.processed = 0
-        self.sent = 0
-        self.failed = 0
-        self.status = "running"
-        self.results = {"sent": [], "failed": []}
-        self.started_at = datetime.now(timezone.utc).isoformat()
-        self.completed_at = None
+async def create_batch_job(job_id: str, total: int, job_type: str = "send_badges") -> dict:
+    """Create a new batch job in MongoDB"""
+    job = {
+        "id": job_id,
+        "type": job_type,
+        "total": total,
+        "processed": 0,
+        "sent": 0,
+        "failed": 0,
+        "status": "running",
+        "results": {"sent": [], "failed": []},
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": None
+    }
+    await db.batch_jobs.insert_one(job)
+    return job
+
+async def update_batch_job_progress(job_id: str, processed: int, sent: int, failed: int, 
+                                     sent_result: dict = None, failed_result: dict = None):
+    """Update batch job progress in MongoDB"""
+    update_data = {
+        "processed": processed,
+        "sent": sent,
+        "failed": failed
+    }
+    
+    push_data = {}
+    if sent_result:
+        push_data["results.sent"] = sent_result
+    if failed_result:
+        push_data["results.failed"] = failed_result
+    
+    update_query = {"$set": update_data}
+    if push_data:
+        update_query["$push"] = push_data
+    
+    await db.batch_jobs.update_one({"id": job_id}, update_query)
+
+async def complete_batch_job(job_id: str):
+    """Mark batch job as completed"""
+    await db.batch_jobs.update_one(
+        {"id": job_id},
+        {"$set": {
+            "status": "completed",
+            "completed_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+
+async def get_batch_job(job_id: str) -> Optional[dict]:
+    """Get batch job from MongoDB"""
+    return await db.batch_jobs.find_one({"id": job_id}, {"_id": 0})
 
 async def log_email_send(recipient_email: str, recipient_name: str, email_type: str, status: str, participant_id: str = None, error: str = None):
     """Log email send to database for history tracking"""
