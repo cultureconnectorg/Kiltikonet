@@ -192,14 +192,28 @@
   // LEGAL FOOTER
   // ============================================
   function injectLegalFooter() {
-    // Find existing footer elements - wait for React to render
+    // Skip if React component already rendered a legal footer
+    // The React app already has its own LegalFooter component
+    // This vanilla JS footer is a backup for cases where React doesn't load
+    
     const checkAndInject = () => {
-      // Look for footer element with data-testid or common footer patterns
+      // Look for footer elements
       const footers = document.querySelectorAll('footer, [data-testid="footer"]');
       
       footers.forEach(footer => {
-        // Skip if already injected
+        // Skip if React's LegalFooter is already present (check for existing legal links)
         if (footer.querySelector('.cc-legal-footer')) return;
+        if (footer.querySelector('a[href*="mentions-legales"]')) return;
+        if (footer.querySelector('a[href*="confidentialite"]')) return;
+        
+        // Only inject if no legal links exist
+        const hasReactLegalFooter = footer.textContent && 
+          (footer.textContent.includes('Mentions légales') || 
+           footer.textContent.includes('Legal Notice') ||
+           footer.textContent.includes('Confidentialité') ||
+           footer.textContent.includes('CGU'));
+        
+        if (hasReactLegalFooter) return;
 
         const legalFooter = document.createElement('div');
         legalFooter.className = 'cc-legal-footer';
