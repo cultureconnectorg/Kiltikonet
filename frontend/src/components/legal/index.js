@@ -5,3 +5,4 @@ export { CGU } from './CGU';
 export { Cookies } from './Cookies';
 export { CookieBanner, getCookieConsent, resetCookieConsent } from './CookieBanner';
 export { LegalFooter } from './LegalFooter';
+export { RGPDCheckbox, CatalogConsentCheckbox } from './RGPDCheckbox';
