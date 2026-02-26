@@ -13,6 +13,8 @@ import { ConfirmationScreen } from "./components/ConfirmationScreen";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { ParticipantProfile } from "./components/ParticipantProfile";
 import { Toaster } from "./components/ui/sonner";
+// Legal pages
+import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner } from "./components/legal";
 
 function App() {
   return (
