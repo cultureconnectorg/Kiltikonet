@@ -310,7 +310,7 @@ export const AdminDashboard = () => {
     }
   };
 
-  // Batch send badges handler
+  // Batch send badges handler with progress tracking
   const handleBatchSendBadges = async (sendToAll = false) => {
     const idsToSend = sendToAll ? [] : selectedIds;
     
@@ -326,19 +326,91 @@ export const AdminDashboard = () => {
     if (!window.confirm(confirmMsg)) return;
     
     setIsBatchProcessing(true);
+    setBatchProgress({ status: 'starting', processed: 0, total: 0, sent: 0, failed: 0 });
+    
     try {
       const response = await axios.post(`${API}/registrations/batch/send-badges`, {
         registration_ids: idsToSend
       });
       
-      toast.success(`${response.data.sent_count} ${t('badgesSent') || 'badges sent'}`);
-      setSelectedIds([]);
+      const jobId = response.data.job_id;
+      const total = response.data.total;
+      
+      setBatchProgress({ status: 'running', processed: 0, total, sent: 0, failed: 0, jobId });
+      
+      // Poll for progress
+      const pollProgress = async () => {
+        try {
+          const progressRes = await axios.get(`${API}/registrations/batch/progress/${jobId}`);
+          const progress = progressRes.data;
+          
+          setBatchProgress({
+            status: progress.status,
+            processed: progress.processed,
+            total: progress.total,
+            sent: progress.sent,
+            failed: progress.failed,
+            percent: progress.progress_percent,
+            jobId
+          });
+          
+          if (progress.status !== 'completed') {
+            setTimeout(pollProgress, 1000);
+          } else {
+            toast.success(`${progress.sent} ${t('badgesSent') || 'badges sent'}`);
+            setSelectedIds([]);
+            setIsBatchProcessing(false);
+            fetchEmailLogs();
+            // Keep progress visible for a moment
+            setTimeout(() => setBatchProgress(null), 5000);
+          }
+        } catch (e) {
+          console.error('Progress poll error:', e);
+          setIsBatchProcessing(false);
+          setBatchProgress(null);
+        }
+      };
+      
+      setTimeout(pollProgress, 500);
+      
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Error sending badges');
-    } finally {
       setIsBatchProcessing(false);
+      setBatchProgress(null);
     }
   };
+
+  // Fetch email logs
+  const fetchEmailLogs = async () => {
+    try {
+      const response = await axios.get(`${API}/email-logs?limit=50`);
+      setEmailLogs(response.data.logs || []);
+    } catch (error) {
+      console.error('Error fetching email logs:', error);
+    }
+  };
+
+  // Fetch advanced stats
+  const fetchAdvancedStats = async () => {
+    try {
+      const response = await axios.get(`${API_V1}/stats/advanced`);
+      setAdvancedStats(response.data);
+    } catch (error) {
+      console.error('Error fetching advanced stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (showEmailLogs && emailLogs.length === 0) {
+      fetchEmailLogs();
+    }
+  }, [showEmailLogs]);
+
+  useEffect(() => {
+    if (showInsights) {
+      fetchAdvancedStats();
+    }
+  }, [showInsights]);
   
   const getCountryLabel = (code) => {
     const c = countryList.find(x => x.value === code);
