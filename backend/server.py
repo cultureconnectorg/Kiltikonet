@@ -1209,7 +1209,7 @@ async def batch_approve_registrations(request: BatchApproveRequest):
     }
 
 @api_router.post("/registrations/batch/send-badges")
-async def batch_send_badges(request: BatchSendBadgesRequest):
+async def batch_send_badges(request: BatchSendBadgesRequest, background_tasks: BackgroundTasks = None):
     """Send badge PDFs by email to selected approved participants (max 50)"""
     
     # Determine which registrations to send badges to
@@ -1229,46 +1229,156 @@ async def batch_send_badges(request: BatchSendBadgesRequest):
         ).to_list(1000)
     
     if not registrations:
-        return {"success": False, "message": "No approved registrations found", "sent_count": 0}
+        return {"success": False, "message": "No approved registrations found", "sent_count": 0, "job_id": None}
     
-    results = {"sent": [], "failed": []}
+    # Create batch job for progress tracking
+    job_id = str(uuid.uuid4())
+    job = BatchJob(job_id, len(registrations))
+    batch_jobs[job_id] = job
     
-    for reg in registrations:
-        email = reg.get("email")
-        name = reg.get("full_name", "Participant")
-        tier = reg.get("tier", "professional")
-        reg_id = reg.get("id")
+    # Process badges asynchronously with progress tracking
+    async def process_badges():
+        for reg in registrations:
+            email = reg.get("email")
+            name = reg.get("full_name", "Participant")
+            tier = reg.get("tier", "professional")
+            reg_id = reg.get("id")
+            
+            job.processed += 1
+            
+            if not email:
+                job.failed += 1
+                job.results["failed"].append({"id": reg_id, "reason": "No email"})
+                await log_email_send(email or "N/A", name, "badge", "failed", reg_id, "No email address")
+                continue
+            
+            try:
+                # Generate PDF badge
+                pdf_buffer = generate_badge_pdf_buffer(reg)
+                
+                # Send email with badge attachment
+                email_html = get_badge_email_html(name, tier, reg_id)
+                filename = f"badge_{name.replace(' ', '_')}_{reg_id[:8]}.pdf"
+                
+                await send_email_with_attachment(
+                    email,
+                    f"Votre badge Culture Connect 2026 — {name}",
+                    email_html,
+                    pdf_buffer,
+                    filename
+                )
+                
+                job.sent += 1
+                job.results["sent"].append({"id": reg_id, "email": email, "name": name})
+                await log_email_send(email, name, "badge", "sent", reg_id)
+            except Exception as e:
+                logger.error(f"Failed to send badge to {email}: {str(e)}")
+                job.failed += 1
+                job.results["failed"].append({"id": reg_id, "reason": str(e)})
+                await log_email_send(email, name, "badge", "failed", reg_id, str(e))
         
-        if not email:
-            results["failed"].append({"id": reg_id, "reason": "No email"})
-            continue
-        
-        try:
-            # Generate PDF badge
-            pdf_buffer = generate_badge_pdf_buffer(reg)
-            
-            # Send email with badge attachment
-            email_html = get_badge_email_html(name, tier, reg_id)
-            filename = f"badge_{name.replace(' ', '_')}_{reg_id[:8]}.pdf"
-            
-            await send_email_with_attachment(
-                email,
-                f"Votre badge Culture Connect 2026 — {name}",
-                email_html,
-                pdf_buffer,
-                filename
-            )
-            
-            results["sent"].append({"id": reg_id, "email": email})
-        except Exception as e:
-            logger.error(f"Failed to send badge to {email}: {str(e)}")
-            results["failed"].append({"id": reg_id, "reason": str(e)})
+        job.status = "completed"
+        job.completed_at = datetime.now(timezone.utc).isoformat()
+    
+    # Start async processing
+    asyncio.create_task(process_badges())
     
     return {
         "success": True,
-        "sent_count": len(results["sent"]),
-        "failed_count": len(results["failed"]),
-        "details": results
+        "job_id": job_id,
+        "total": len(registrations),
+        "message": "Badge sending started"
+    }
+
+@api_router.get("/registrations/batch/progress/{job_id}")
+async def get_batch_progress(job_id: str):
+    """Get progress of a batch job"""
+    job = batch_jobs.get(job_id)
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    progress_percent = (job.processed / job.total * 100) if job.total > 0 else 0
+    
+    return {
+        "job_id": job_id,
+        "status": job.status,
+        "total": job.total,
+        "processed": job.processed,
+        "sent": job.sent,
+        "failed": job.failed,
+        "progress_percent": round(progress_percent, 1),
+        "started_at": job.started_at,
+        "completed_at": job.completed_at,
+        "results": job.results if job.status == "completed" else None
+    }
+
+# ================== EMAIL LOGS ==================
+
+@api_router.get("/email-logs")
+async def get_email_logs(
+    email_type: Optional[str] = Query(None, description="Filter by type: badge, approval, rejection, partner_notification"),
+    status: Optional[str] = Query(None, description="Filter by status: sent, failed"),
+    limit: int = Query(100, le=500)
+):
+    """Get email send history for admin tracking"""
+    filter_query = {}
+    
+    if email_type:
+        filter_query["email_type"] = email_type
+    if status:
+        filter_query["status"] = status
+    
+    logs = await db.email_logs.find(
+        filter_query,
+        {"_id": 0}
+    ).sort("sent_at", -1).to_list(limit)
+    
+    # Get summary stats
+    total_sent = await db.email_logs.count_documents({"status": "sent"})
+    total_failed = await db.email_logs.count_documents({"status": "failed"})
+    badges_sent = await db.email_logs.count_documents({"email_type": "badge", "status": "sent"})
+    
+    return {
+        "logs": logs,
+        "total_count": len(logs),
+        "summary": {
+            "total_sent": total_sent,
+            "total_failed": total_failed,
+            "badges_sent": badges_sent
+        }
+    }
+
+@api_router.get("/email-logs/stats")
+async def get_email_stats():
+    """Get email statistics for dashboard"""
+    # Count by type
+    pipeline = [
+        {"$group": {
+            "_id": {"type": "$email_type", "status": "$status"},
+            "count": {"$sum": 1}
+        }}
+    ]
+    
+    results = await db.email_logs.aggregate(pipeline).to_list(100)
+    
+    # Format stats
+    by_type = {}
+    for r in results:
+        email_type = r["_id"]["type"]
+        status = r["_id"]["status"]
+        if email_type not in by_type:
+            by_type[email_type] = {"sent": 0, "failed": 0}
+        by_type[email_type][status] = r["count"]
+    
+    # Recent activity (last 7 days)
+    seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    recent_count = await db.email_logs.count_documents({"sent_at": {"$gte": seven_days_ago}})
+    
+    return {
+        "by_type": by_type,
+        "recent_7_days": recent_count,
+        "total_emails": sum(v["sent"] + v["failed"] for v in by_type.values())
     }
 
 def generate_badge_pdf_buffer(participant: dict) -> bytes:
