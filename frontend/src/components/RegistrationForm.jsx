@@ -404,7 +404,43 @@ export const RegistrationForm = () => {
 
           {currentStep === 3 && (
             <div className="space-y-6">
-              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Objectifs' : 'Goals'}</h2>
+              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Objectifs & Réseautage' : 'Goals & Networking'}</h2>
+              
+              {/* Expertise Tags - Multi-select */}
+              <div>
+                <Label className="text-charcoal/70 text-sm flex items-center gap-2 mb-3">
+                  <Tag className="w-4 h-4" />
+                  {language === 'fr' ? 'Expertises & Centres d\'intérêt' : 'Expertise & Interests'}
+                  <span className="text-xs text-charcoal/40">({language === 'fr' ? 'max 5' : 'max 5'})</span>
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {expertiseTags.map((tag) => {
+                    const isSelected = formData.expertise_tags?.includes(tag.value);
+                    return (
+                      <button
+                        key={tag.value}
+                        type="button"
+                        onClick={() => toggleExpertiseTag(tag.value)}
+                        className={`px-4 py-2 text-sm font-syne transition-all border ${
+                          isSelected 
+                            ? 'border-sage bg-sage text-paper' 
+                            : 'border-lightborder bg-paper text-charcoal/70 hover:border-terracotta'
+                        }`}
+                      >
+                        {language === 'fr' ? tag.labelFr : tag.labelEn}
+                        {isSelected && <Check className="w-3 h-3 inline ml-2" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-charcoal/40 mt-2">
+                  {language === 'fr' 
+                    ? 'Ces tags permettront de vous connecter avec des profils similaires'
+                    : 'These tags will help connect you with similar profiles'
+                  }
+                </p>
+              </div>
+              
               <div>
                 <Label className="text-charcoal/70 text-sm">{t('howHeard')} *</Label>
                 <Select value={formData.how_heard} onValueChange={(v) => handleInputChange('how_heard', v)}>
@@ -434,6 +470,21 @@ export const RegistrationForm = () => {
                     <span className="text-charcoal/60">Email</span>
                     <span className="text-charcoal font-medium">{formData.email}</span>
                   </div>
+                  {formData.expertise_tags?.length > 0 && (
+                    <div className="flex justify-between items-start pt-2 border-t border-lightborder mt-2">
+                      <span className="text-charcoal/60">{language === 'fr' ? 'Expertises' : 'Expertise'}</span>
+                      <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
+                        {formData.expertise_tags.map(tagValue => {
+                          const tag = expertiseTags.find(t => t.value === tagValue);
+                          return tag && (
+                            <span key={tagValue} className="px-2 py-0.5 text-xs bg-sage/10 text-sage">
+                              {language === 'fr' ? tag.labelFr : tag.labelEn}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center pt-2 border-t border-lightborder mt-2">
                     <span className="text-charcoal/60">{language === 'fr' ? 'Formule' : 'Plan'}</span>
                     <span className="text-terracotta font-syne font-medium">{language === 'fr' ? tier.name : tier.nameEn} — {tier.price}€</span>
