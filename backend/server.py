@@ -285,6 +285,144 @@ async def send_email_async(to_email: str, subject: str, html_content: str):
         logger.error(f"Failed to send email to {to_email}: {str(e)}")
         return None
 
+async def send_email_with_attachment(to_email: str, subject: str, html_content: str, pdf_content: bytes, filename: str):
+    """Send email with PDF attachment using Resend"""
+    try:
+        import base64
+        pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_content,
+            "attachments": [
+                {
+                    "filename": filename,
+                    "content": pdf_base64
+                }
+            ]
+        }
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Email with attachment sent to {to_email}: {result.get('id', 'unknown')}")
+        return result
+    except Exception as e:
+        logger.error(f"Failed to send email with attachment to {to_email}: {str(e)}")
+        return None
+
+async def notify_partner_of_approval(partner_id: str, registration: dict):
+    """Notify partner when their sponsored participant is approved"""
+    try:
+        partner = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+        if not partner or not partner.get("contact_email"):
+            return
+        
+        participant_name = registration.get("full_name", "Un participant")
+        org_name = registration.get("organization_name", "")
+        partner_name = partner.get("company_name", "Partenaire")
+        contact_name = partner.get("contact_name", "")
+        
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Georgia, serif; margin: 0; padding: 0; background-color: #F4F1EA; }}
+                .container {{ max-width: 600px; margin: 0 auto; background: #FFFFFF; }}
+                .header {{ padding: 30px; text-align: center; border-bottom: 3px solid #4A5D4E; }}
+                .content {{ padding: 40px 30px; color: #1A1A1A; line-height: 1.7; }}
+                .highlight-box {{ background: #4A5D4E; color: #FFFFFF; padding: 20px; margin: 20px 0; text-align: center; }}
+                .footer {{ padding: 20px 30px; background: #F4F1EA; text-align: center; font-size: 12px; color: #8A8578; }}
+                h1 {{ color: #1A1A1A; font-size: 24px; margin: 0 0 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h2 style="margin: 10px 0 0 0; color: #1A1A1A; font-size: 18px;">Culture Connect 2026</h2>
+                </div>
+                <div class="content">
+                    <h1>Bonne nouvelle pour {partner_name} !</h1>
+                    <p>Bonjour {contact_name},</p>
+                    <p>Nous avons le plaisir de vous informer qu'un participant que vous parrainez vient d'être accrédité pour <strong>Culture Connect 2026</strong>.</p>
+                    <div class="highlight-box">
+                        <p style="margin: 0; font-size: 18px;"><strong>{participant_name}</strong></p>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9;">{org_name}</p>
+                        <p style="margin: 15px 0 0 0; font-size: 14px;">✓ ACCRÉDITATION VALIDÉE</p>
+                    </div>
+                    <p>Ce participant pourra désormais accéder à l'ensemble des activités de l'événement.</p>
+                    <p style="margin-top: 30px;">Cordialement,<br><strong>L'équipe Culture Connect</strong></p>
+                </div>
+                <div class="footer">
+                    <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        await send_email_async(
+            partner.get("contact_email"),
+            f"✓ Accréditation validée : {participant_name} — Culture Connect 2026",
+            html
+        )
+        logger.info(f"Partner notification sent to {partner.get('contact_email')} for {participant_name}")
+    except Exception as e:
+        logger.error(f"Failed to notify partner {partner_id}: {str(e)}")
+
+def get_badge_email_html(participant_name: str, tier: str, registration_id: str) -> str:
+    """Email template for badge delivery"""
+    tier_names = {"emerging": "Émergent", "professional": "Professionnel", "institutional": "Institutionnel"}
+    tier_name = tier_names.get(tier, "Professionnel")
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Georgia, serif; margin: 0; padding: 0; background-color: #F4F1EA; }}
+            .container {{ max-width: 600px; margin: 0 auto; background: #FFFFFF; }}
+            .header {{ padding: 30px; text-align: center; border-bottom: 3px solid #A65D47; }}
+            .content {{ padding: 40px 30px; color: #1A1A1A; line-height: 1.7; }}
+            .badge-box {{ background: #A65D47; color: #FFFFFF; padding: 25px; margin: 20px 0; text-align: center; }}
+            .info-box {{ background: #F4F1EA; padding: 20px; margin: 20px 0; border-left: 4px solid #4A5D4E; }}
+            .footer {{ padding: 20px 30px; background: #F4F1EA; text-align: center; font-size: 12px; color: #8A8578; }}
+            h1 {{ color: #1A1A1A; font-size: 24px; margin: 0 0 20px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2 style="margin: 10px 0 0 0; color: #1A1A1A; font-size: 18px;">Culture Connect 2026</h2>
+            </div>
+            <div class="content">
+                <h1>Votre badge est prêt !</h1>
+                <p>Bonjour <strong>{participant_name}</strong>,</p>
+                <p>Votre badge officiel pour <strong>Culture Connect 2026</strong> est joint à ce message en pièce attachée (PDF).</p>
+                <div class="badge-box">
+                    <p style="margin: 0; font-size: 14px; opacity: 0.9;">VOTRE STATUT</p>
+                    <p style="margin: 10px 0 0 0; font-size: 22px; font-weight: bold;">{tier_name.upper()}</p>
+                </div>
+                <div class="info-box">
+                    <strong>Instructions :</strong><br><br>
+                    ✓ Imprimez votre badge au format A6 (10.5 x 14.8 cm)<br>
+                    ✓ Présentez-le à l'entrée de l'événement<br>
+                    ✓ Le QR code permet de valider votre accréditation<br><br>
+                    <strong>Événement :</strong> 20-23 Mai 2026 · Fort-de-France, Martinique
+                </div>
+                <p>À très bientôt !</p>
+                <p style="margin-top: 30px;"><strong>L'équipe Culture Connect</strong></p>
+            </div>
+            <div class="footer">
+                <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
+                <p>cultureconnectorg@gmail.com</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
 async def upload_to_cloudinary(file: UploadFile, folder: str = "culture-connect/logos") -> Optional[str]:
     """Upload file to Cloudinary and return the secure URL"""
     try:
