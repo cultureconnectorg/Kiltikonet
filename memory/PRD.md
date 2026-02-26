@@ -6,21 +6,13 @@ Build a bilingual (French/English) accreditation platform and landing website fo
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: React 19 with Tailwind CSS, Shadcn/UI components
-- **Backend**: FastAPI (Python) with Motor async MongoDB
+- **Frontend**: React 19 with Tailwind CSS, Shadcn/UI components, react-qr-code
+- **Backend**: FastAPI (Python) with Motor async MongoDB, reportlab (PDF), qrcode
 - **Database**: MongoDB
 - **Payments**: Stripe Checkout
 - **Images**: Cloudinary
 - **Emails**: Resend
 - **Hosting**: Kubernetes container
-
-### Design Theme: "High-End Institutional"
-- **Background**: #F4F1EA (paper white)
-- **Text**: #1A1A1A (charcoal)
-- **Accent Primary**: #A65D47 (terracotta)
-- **Accent Secondary**: #4A5D4E (sage green)
-- **Borders**: #E5E0D8 (light border)
-- **Fonts**: Lora (serif titles), Syne (sans-serif body), Playfair Display (headings)
 
 ### Routes
 - `/` - Landing page
@@ -30,150 +22,133 @@ Build a bilingual (French/English) accreditation platform and landing website fo
 - `/partenaires` - Partnership packages (2500€, 5000€, 10000€)
 - `/partenaire/confirmation` - Partnership payment success
 - `/catalog` - Public participant directory
+- `/participant/:participantId` - **NEW** Public participant profile (QR code destination)
 - `/admin` - Admin dashboard (password: CC2026admin)
 
 ### API Endpoints
 
+#### NEW - Export & Profiles (Feb 26, 2026)
+- `GET /api/registrations/export/filtered` - **NEW** Targeted CSV export
+  - Params: profile_type, expertise_tags (comma-separated), status, country
+  - Returns: CSV file with matching registrations
+- `GET /api/participant/{id}` - **NEW** Public participant profile for QR validation
+- `GET /api/participant/{id}/badge` - **NEW** Generate PDF badge with QR code
+
+#### NEW - Partner Management (Feb 26, 2026)
+- `GET /api/partners/admin` - Get all partners with full details + sponsored registrations
+- `POST /api/partners/manual` - Create partner manually (without payment)
+- `PATCH /api/partners/{id}` - Update partner details
+- `DELETE /api/partners/{id}` - Delete partner
+- `POST /api/partners/{id}/sponsor/{reg_id}` - Link partner as sponsor to registration
+- `DELETE /api/partners/{id}/sponsor/{reg_id}` - Unlink sponsor from registration
+
 #### Stripe Payment
-- `POST /api/create-checkout-session` - Create Stripe checkout (accreditation or partnership)
+- `POST /api/create-checkout-session` - Create Stripe checkout
 - `GET /api/checkout/status/{session_id}` - Check payment status
-- `POST /api/webhook/stripe` - Handle Stripe webhooks (signature verified)
-- `GET /api/stripe-public-key` - Get Stripe public key
+- `POST /api/webhook/stripe` - Handle Stripe webhooks
 
 #### API v1 - Statistics & Intelligence
-- `GET /api/v1/stats` - Aggregated statistics for BI tools
-  - Response: summary, by_profile_type, by_country, by_tier, **by_expertise**, **top_5_interests**, conversion_rates, partners
-- `GET /api/v1/stats/territories` - Detailed territorial analysis
-- `GET /api/v1/search/match` - Smart Connect matching API
-  - Params: profile_type, sector, country, **expertise** (comma-separated), limit
-  - Response: filtered results with relevance scoring and **shared_interests** count
-- `GET /api/v1/search/suggestions` - Partner suggestions for a participant
-  - Params: participant_id
-  - Response: complementary profiles with **shared expertise tags**
+- `GET /api/v1/stats` - Aggregated statistics with by_expertise and top_5_interests
+- `GET /api/v1/search/match` - Smart Connect matching with expertise parameter
+- `GET /api/v1/search/suggestions` - Partner suggestions based on expertise overlap
 
 #### Registrations
-- `POST /api/registrations` - Create registration (direct, without payment)
-- `POST /api/registrations/manual` - Admin manual creation (supports **expertise_tags**)
-- `GET /api/registrations` - List registrations (with filters)
+- `POST /api/registrations` - Create registration
+- `POST /api/registrations/manual` - Admin manual creation (with expertise_tags)
+- `GET /api/registrations` - List registrations
+- `GET /api/registrations/export` - Full CSV export
 - `DELETE /api/registrations/{id}` - Delete registration
 - `PATCH /api/registrations/{id}/status` - Update status
 - `PATCH /api/registrations/{id}/catalog` - Toggle catalog visibility
-- `GET /api/registrations/export` - CSV export
-
-#### Other
-- `GET /api/catalog` - Get catalog-visible participants
-- `GET /api/partners` - Get partners for landing page
-- `POST /api/admin/verify` - Admin authentication
-- `GET /api/countries` - Get distinct countries
 
 ## What's Been Implemented (Feb 26, 2026)
 
-### Networking & Business Intelligence - FULL STACK ✅ (NEW)
-- [x] **Expertise Tags System**: 12 tags based on flyer categories
-  - Primary: Artistes, Labels, Institutions, Presse, Marché Culturel
-  - Secondary: Musique, Arts Visuels, Digital, Production, Export, Spectacle Vivant, Financement
-- [x] **Registration Form**: Step 3 "Objectifs & Réseautage" with multi-select tags (max 5)
-- [x] **Admin Dashboard Insights**: "Top 5 des Intérêts / Expertises" bar chart with colored bars
-- [x] **Marché Culturel Indicator**: Special highlight for 40+ stands segmentation
-- [x] **Catalog Filters**: Multi-select expertise tags with toggle selection
-- [x] **Colored Pills**: Expertise tags displayed as pills on participant cards
-- [x] **Similarity Score**: "X intérêt(s) commun(s)" badge when filtering
-- [x] **Smart Match API**: `/api/v1/search/match` with expertise parameter and shared_interests
-- [x] **Smart Suggestions**: Partner recommendations based on expertise overlap
+### Export Ciblé - FULL STACK ✅ (NEW)
+- [x] **Backend endpoint** `/api/registrations/export/filtered` with query params
+- [x] **Admin modal** "Export ciblé" with profile type dropdown
+- [x] **Multi-select expertise tags** (12 tags available)
+- [x] **Dynamic filename** based on selected filters
+- [x] **CSV includes expertise_tags** column
 
-### Data Integrity - FULL STACK ✅
-- [x] **Image Upload Anticipé**: Upload vers Cloudinary AVANT redirection Stripe
-- [x] **Nouveaux champs capturés**: `profile_image_url`, `siret_number`, `website_url`, `expertise_tags`
-- [x] **Label contextuel**: "Photo de presse" pour artistes, "Logo institutionnel" pour entreprises
-- [x] **Metadata Stripe étendu**: Tous les champs transmis via checkout session
-- [x] **Webhook sécurisé**: Extraction complète des metadata vers MongoDB
+### Badges PDF & QR Codes - FULL STACK ✅ (NEW)
+- [x] **Public profile page** `/participant/:id` with status banner
+- [x] **Status validation** "ACCRÉDITATION VALIDÉE" for approved participants
+- [x] **PDF badge generation** using reportlab with QR code
+- [x] **QR code points to profile URL** for entry validation
+- [x] **Badge modal** in catalog with real QR code (react-qr-code)
+- [x] **Download buttons** on profile page and badge modal
 
-### Stripe Integration ✅
-- [x] **Accreditation Payment Flow** (50€, 150€, 300€)
-- [x] **Partnership Payment Flow** (2,500€, 5,000€, 10,000€)
+### Gestion Partenaires - FULL STACK ✅ (NEW)
+- [x] **Admin tab "Partenaires"** in dashboard
+- [x] **Full CRUD** for partners (add, edit, delete)
+- [x] **Tier badges** Bronze/Silver/Gold with colors
+- [x] **Link participants** to partners as sponsors
+- [x] **Unlink sponsors** from participants
+- [x] **Show on landing toggle** for partner visibility
+- [x] **Sponsored registrations count** per partner
 
-### Cloudinary Integration ✅
-- [x] Logo/photo upload stored in Cloudinary
+### Networking & Business Intelligence - FULL STACK ✅
+- [x] **12 expertise tags** based on flyer categories
+- [x] **Top 5 Interests chart** in admin dashboard
+- [x] **Marché Culturel indicator** for 40+ stands segmentation
+- [x] **Catalog filters** by expertise with similarity scores
+- [x] **Colored pills** on participant cards
 
-### Resend Email Integration ✅
-- [x] Confirmation, Approval, Rejection, and Partner Welcome emails
-
-### Admin Dashboard ✅
-- [x] Full CRUD: Add, Delete, Update status, Toggle catalog visibility
-- [x] Filtering, search, CSV export
-- [x] **Insights Management** with conversion rates, profile/territory distribution
-- [x] **Top 5 Expertise Chart** with bar visualization
+### Previous Implementations ✅
+- Stripe payment flows (accreditation + partnership)
+- Cloudinary image upload
+- Resend email notifications
+- Admin CRUD operations
+- Multi-step registration form
+- Public catalog with live data
 
 ## MongoDB Collections
-- `registrations` - All accredited participants (includes expertise_tags array)
-- `partners` - Partnership records
+- `registrations` - All accredited participants (includes expertise_tags, sponsored_by)
+- `partners` - Partnership records (includes show_on_landing, vip_accreditations)
 - `payment_transactions` - Stripe session tracking
 
-## Environment Variables
-
-### Backend (.env)
-```
-MONGO_URL=mongodb://localhost:27017
-DB_NAME=test_database
-CORS_ORIGINS=*
-CLOUDINARY_CLOUD_NAME=dnabomyak
-CLOUDINARY_API_KEY=***
-CLOUDINARY_API_SECRET=***
-RESEND_API_KEY=***
-SENDER_EMAIL=Culture Connect <onboarding@resend.dev>
-STRIPE_API_KEY=sk_live_***
-STRIPE_PUBLIC_KEY=pk_live_***
-BASE_URL=https://kiltikonet.fr
-```
-
-### Frontend (.env)
-```
-REACT_APP_BACKEND_URL=https://...
-REACT_APP_STRIPE_PUBLIC_KEY=pk_live_***
-```
-
 ## Test Results (Feb 26, 2026)
-- ✅ API /api/v1/stats returns by_expertise and top_5_interests (100% backend tests)
-- ✅ API /api/v1/search/match with expertise filter (100% backend tests)
-- ✅ Admin Dashboard Insights with Top 5 chart (100% frontend verified)
-- ✅ Catalog expertise filters with pills and similarity (100% frontend verified)
-- ✅ Registration Form Step 3 expertise tags (100% frontend verified)
+- ✅ Export Ciblé: Backend 100% (5 tests) | Frontend 100% (3 features)
+- ✅ Badges & QR: Backend 100% (4 tests) | Frontend 100% (6 features)
+- ✅ Partner Management: Backend 100% (8 tests) | Frontend 100% (10 features)
 
 ## Prioritized Backlog
 
 ### P0 (Critical) - DONE ✅
-- All payment flows implemented
-- Email notifications working
-- Image storage via Cloudinary
-- **Networking & Intelligence features**
+- All payment flows
+- Email notifications
+- Image storage
+- Networking & Intelligence
+- **Export ciblé**
+- **Badges PDF avec QR**
+- **Gestion partenaires**
 
-### P1 (High Priority) - DONE ✅
-- Webhook signature verification
-- Admin CRUD operations
-- Catalog live data
-
-### P2 (Medium Priority)
+### P2 (Medium Priority) - DONE ✅
 - PDF badge generation with real QR code
 - Admin partner management section
-- Bulk email sending
 
 ### P3 (Low Priority)
-- Analytics dashboard enhancements
 - Multi-language admin interface
 - Batch actions in admin
+- Bulk email sending
 
 ## Files Reference
 
 ### Backend
 - `/app/backend/server.py` - All API endpoints
+- `/app/backend/tests/test_new_features.py` - Tests for new features
 
 ### Frontend
-- `/app/frontend/src/components/RegistrationForm.jsx` - Multi-step form with expertise tags
-- `/app/frontend/src/components/AdminDashboard.jsx` - Full admin with Insights
-- `/app/frontend/src/components/CatalogPage.jsx` - Catalog with expertise filters
+- `/app/frontend/src/components/ParticipantProfile.jsx` - **NEW** Public profile page
+- `/app/frontend/src/components/BadgeGenerator.jsx` - **UPDATED** Badge modal with QR
+- `/app/frontend/src/components/PartnerManagement.jsx` - **NEW** Partner admin section
+- `/app/frontend/src/components/AdminDashboard.jsx` - **UPDATED** Tabs + Export modal
+- `/app/frontend/src/components/RegistrationForm.jsx` - Registration form
+- `/app/frontend/src/components/CatalogPage.jsx` - Catalog with filters
 - `/app/frontend/src/lib/translations.js` - expertiseTags array
 
 ## Security Notes
 - Stripe webhook signature verified with STRIPE_WEBHOOK_SECRET
 - Admin password: CC2026admin (should be changed for production)
-- All sensitive keys stored in environment variables
+- Public profile excludes sensitive data (email, phone, siret)
+- Badge PDF only available for approved participants
