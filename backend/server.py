@@ -342,6 +342,7 @@ class ManualRegistration(BaseModel):
     bio: str = ""
     stand_request: bool = False
     stand_category: Optional[str] = None
+    expertise_tags: Optional[List[str]] = None  # NEW: Support expertise tags
 
 class CheckoutRequest(BaseModel):
     type: str  # "accreditation" or "partnership"
