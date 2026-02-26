@@ -229,6 +229,18 @@ export const AdminDashboard = () => {
     }
   };
   
+  const getProfileLabel = (type) => {
+    const labels = {
+      artist: language === 'fr' ? 'Artiste' : 'Artist',
+      label: 'Label',
+      booking_agency: language === 'fr' ? 'Booking' : 'Booking',
+      institution: 'Institution',
+      press: language === 'fr' ? 'Presse' : 'Press',
+      other: language === 'fr' ? 'Autre' : 'Other'
+    };
+    return labels[type] || type;
+  };
+  
   const handleExportCSV = async () => {
     try {
       const response = await axios.get(`${API}/registrations/export`, { responseType: 'blob' });
