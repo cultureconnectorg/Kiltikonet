@@ -971,6 +971,69 @@ async def export_registrations():
         headers={"Content-Disposition": "attachment; filename=registrations.csv"}
     )
 
+@api_router.get("/registrations/export/filtered")
+async def export_registrations_filtered(
+    profile_type: Optional[str] = Query(None),
+    expertise_tags: Optional[str] = Query(None, description="Comma-separated tags"),
+    status: Optional[str] = Query(None),
+    country: Optional[str] = Query(None)
+):
+    """
+    Export filtered registrations as CSV
+    Example: /api/registrations/export/filtered?expertise_tags=labels,marche_culturel&profile_type=label
+    """
+    filter_query = {}
+    
+    if profile_type:
+        filter_query["profile_type"] = profile_type
+    if status:
+        filter_query["status"] = status
+    if country:
+        filter_query["country"] = country
+    
+    # Filter by expertise tags
+    if expertise_tags:
+        tags_list = [t.strip() for t in expertise_tags.split(",") if t.strip()]
+        if tags_list:
+            filter_query["expertise_tags"] = {"$in": tags_list}
+    
+    registrations = await db.registrations.find(filter_query, {"_id": 0}).to_list(10000)
+    
+    if not registrations:
+        registrations = []
+    
+    output = io.StringIO()
+    fieldnames = [
+        "id", "full_name", "organization_name", "country", "email", "phone",
+        "profile_type", "expertise_tags", "stand_request", "stand_category", "bio", "logo_url",
+        "language_preference", "how_heard", "tier", "status", "siret_number", "website_url", "created_at"
+    ]
+    
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+    writer.writeheader()
+    for reg in registrations:
+        # Convert expertise_tags list to string for CSV
+        reg_copy = {**reg}
+        if isinstance(reg_copy.get("expertise_tags"), list):
+            reg_copy["expertise_tags"] = ", ".join(reg_copy["expertise_tags"])
+        writer.writerow(reg_copy)
+    
+    output.seek(0)
+    
+    # Build filename with filters
+    filename_parts = ["registrations"]
+    if profile_type:
+        filename_parts.append(profile_type)
+    if expertise_tags:
+        filename_parts.append(expertise_tags.replace(",", "_"))
+    filename = f"{'_'.join(filename_parts)}_{datetime.now().strftime('%Y%m%d')}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 @api_router.post("/admin/verify")
 async def verify_admin(admin: AdminVerify):
     if admin.password == "CC2026admin":
