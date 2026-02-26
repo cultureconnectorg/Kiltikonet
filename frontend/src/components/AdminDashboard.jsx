@@ -140,13 +140,28 @@ export const AdminDashboard = () => {
     }
   }, [filters]);
   
+  // Fetch statistics from API v1
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_V1}/stats`);
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  }, []);
+  
   useEffect(() => {
     if (isAuthenticated) {
       fetchRegistrations();
+      fetchStats();
       const interval = setInterval(fetchRegistrations, 30000);
-      return () => clearInterval(interval);
+      const statsInterval = setInterval(fetchStats, 60000);
+      return () => {
+        clearInterval(interval);
+        clearInterval(statsInterval);
+      };
     }
-  }, [isAuthenticated, fetchRegistrations]);
+  }, [isAuthenticated, fetchRegistrations, fetchStats]);
   
   const handleStatusChange = async (id, status) => {
     try {
