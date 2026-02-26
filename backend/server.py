@@ -699,6 +699,25 @@ async def get_partners():
 async def root():
     return {"message": "Culture Connect 2026 API"}
 
+@api_router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    """Upload image to Cloudinary before Stripe checkout - returns URL to store in metadata"""
+    if not file or not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Use JPEG, PNG, WebP or GIF")
+    
+    # Upload to Cloudinary
+    image_url = await upload_to_cloudinary(file, "culture-connect/profiles")
+    
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Upload failed")
+    
+    return {"url": image_url, "success": True}
+
 @api_router.post("/registrations", response_model=RegistrationResponse)
 async def create_registration(
     full_name: str = Form(...),
