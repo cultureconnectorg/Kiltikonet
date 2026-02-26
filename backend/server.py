@@ -801,9 +801,16 @@ async def update_registration_status(registration_id: str, status_update: Status
     
     previous_status = registration.get("status")
     
+    # When approving, automatically add to catalog
+    update_data = {"status": status_update.status}
+    if status_update.status == "approved":
+        update_data["show_in_catalog"] = True
+    elif status_update.status == "rejected":
+        update_data["show_in_catalog"] = False
+    
     result = await db.registrations.update_one(
         {"id": registration_id},
-        {"$set": {"status": status_update.status}}
+        {"$set": update_data}
     )
     
     if previous_status != status_update.status:
@@ -824,7 +831,7 @@ async def update_registration_status(registration_id: str, status_update: Status
                 get_rejection_email(name)
             ))
     
-    return {"success": True, "status": status_update.status}
+    return {"success": True, "status": status_update.status, "show_in_catalog": update_data.get("show_in_catalog")}
 
 @api_router.patch("/registrations/{registration_id}/catalog")
 async def update_catalog_visibility(registration_id: str, catalog_update: CatalogUpdate):
