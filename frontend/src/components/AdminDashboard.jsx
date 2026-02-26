@@ -698,27 +698,94 @@ export const AdminDashboard = () => {
           
           {/* Table */}
           <div className="flex-1 overflow-auto">
+            {/* Batch Actions Bar */}
+            {selectedIds.length > 0 && (
+              <div className="sticky top-0 z-10 bg-terracotta/10 border-b border-terracotta/30 px-6 py-3 flex items-center gap-4">
+                <span className="text-sm text-terracotta font-syne">
+                  {selectedIds.length} {t('selected') || 'selected'}
+                </span>
+                <div className="flex-1" />
+                <Button
+                  onClick={handleBatchApprove}
+                  disabled={isBatchProcessing}
+                  className="h-8 bg-sage text-paper text-xs font-syne rounded-none"
+                  data-testid="batch-approve-btn"
+                >
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  {t('approveSelected') || 'Approve selected'}
+                </Button>
+                <Button
+                  onClick={() => handleBatchSendBadges(false)}
+                  disabled={isBatchProcessing}
+                  className="h-8 bg-terracotta text-paper text-xs font-syne rounded-none"
+                  data-testid="batch-send-badges-btn"
+                >
+                  <Send className="w-3 h-3 mr-1" />
+                  {t('sendBadgesToSelected') || 'Send badges'}
+                </Button>
+                <button
+                  onClick={() => setSelectedIds([])}
+                  className="text-charcoal/50 hover:text-charcoal"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            
+            {/* Send to All Approved Button */}
+            {selectedIds.length === 0 && counts.by_status?.approved > 0 && (
+              <div className="sticky top-0 z-10 bg-paper border-b border-lightborder px-6 py-2 flex items-center justify-end gap-3">
+                <Button
+                  onClick={() => handleBatchSendBadges(true)}
+                  disabled={isBatchProcessing}
+                  variant="outline"
+                  className="h-8 border-terracotta text-terracotta text-xs font-syne rounded-none hover:bg-terracotta/10"
+                  data-testid="send-all-badges-btn"
+                >
+                  <Mail className="w-3 h-3 mr-1" />
+                  {t('sendBadgesToAll') || 'Send badges to all approved'} ({counts.by_status?.approved || 0})
+                </Button>
+              </div>
+            )}
+            
             <table className="w-full" data-testid="registrations-table">
               <thead className="bg-cream border-b border-lightborder sticky top-0">
                 <tr>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Participant</th>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Organisation</th>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Profil</th>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Statut</th>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Catalogue</th>
-                  <th className="text-left py-3 px-6 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Actions</th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-charcoal/60">
+                    <button onClick={toggleSelectAll} className="p-1 hover:bg-lightborder">
+                      {selectedIds.length === filteredRegs.length && filteredRegs.length > 0 
+                        ? <CheckSquare className="w-4 h-4 text-terracotta" />
+                        : <Square className="w-4 h-4 text-charcoal/40" />
+                      }
+                    </button>
+                  </th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Participant</th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Organisation</th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Profil</th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Statut</th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Catalogue</th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-charcoal/60 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-lightborder">
                 {filteredRegs.length === 0 ? (
-                  <tr><td colSpan={6} className="py-12 text-center text-charcoal/50">{language === 'fr' ? 'Aucune inscription' : 'No registrations'}</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-charcoal/50">{language === 'fr' ? 'Aucune inscription' : 'No registrations'}</td></tr>
                 ) : (
                   filteredRegs.map((reg) => {
                     const Icon = profileIcons[reg.profile_type] || Users;
+                    const isSelected = selectedIds.includes(reg.id);
                     return (
-                      <tr key={reg.id} className={`hover:bg-cream/50 cursor-pointer transition-colors ${selectedReg?.id === reg.id ? 'bg-cream' : ''}`}
+                      <tr key={reg.id} className={`hover:bg-cream/50 cursor-pointer transition-colors ${selectedReg?.id === reg.id ? 'bg-cream' : ''} ${isSelected ? 'bg-terracotta/5' : ''}`}
                         onClick={() => setSelectedReg(reg)} data-testid={`registration-row-${reg.id}`}>
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-3" onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => toggleSelectOne(reg.id)} className="p-1 hover:bg-lightborder">
+                            {isSelected 
+                              ? <CheckSquare className="w-4 h-4 text-terracotta" />
+                              : <Square className="w-4 h-4 text-charcoal/40" />
+                            }
+                          </button>
+                        </td>
+                        <td className="py-4 px-3">
                           <div className="flex items-center gap-3">
                             <img src={reg.image} alt="" className="w-10 h-10 object-cover" />
                             <div>
@@ -727,15 +794,15 @@ export const AdminDashboard = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-6 text-sm text-charcoal/70">{reg.organization_name}</td>
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-3 text-sm text-charcoal/70">{reg.organization_name}</td>
+                        <td className="py-4 px-3">
                           <div className="flex items-center gap-2 text-sm text-charcoal/70">
                             <Icon className="w-4 h-4 text-charcoal/40" />
                             {getProfileLabel(reg.profile_type)}
                           </div>
                         </td>
-                        <td className="py-4 px-6"><StatusBadge status={reg.status} /></td>
-                        <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-4 px-3"><StatusBadge status={reg.status} /></td>
+                        <td className="py-4 px-3" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleCatalogToggle(reg.id, !reg.show_in_catalog)}
                             className={`p-2 border transition-colors ${reg.show_in_catalog 
@@ -746,7 +813,7 @@ export const AdminDashboard = () => {
                             {reg.show_in_catalog ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                           </button>
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-3">
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <button onClick={() => handleStatusChange(reg.id, 'approved')}
                               className={`p-2 border transition-colors ${reg.status === 'approved' ? 'border-sage bg-sage/10 text-sage' : 'border-lightborder text-charcoal/40 hover:border-sage hover:text-sage'}`}>
