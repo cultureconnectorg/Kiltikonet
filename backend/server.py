@@ -872,6 +872,12 @@ async def update_registration_status(registration_id: str, status_update: Status
                 "Votre accréditation Culture Connect 2026 est confirmée ✓",
                 get_approval_email(name, tier, registration_id)
             ))
+            
+            # NEW: Notify partner if this participant is sponsored
+            sponsored_by = registration.get("sponsored_by")
+            if sponsored_by:
+                asyncio.create_task(notify_partner_of_approval(sponsored_by, registration))
+                
         elif status_update.status == "rejected" and email:
             asyncio.create_task(send_email_async(
                 email,
