@@ -36,8 +36,20 @@ Build a bilingual (French/English) accreditation platform and landing website fo
 #### Stripe Payment
 - `POST /api/create-checkout-session` - Create Stripe checkout (accreditation or partnership)
 - `GET /api/checkout/status/{session_id}` - Check payment status
-- `POST /api/webhook/stripe` - Handle Stripe webhooks
+- `POST /api/webhook/stripe` - Handle Stripe webhooks (signature verified)
 - `GET /api/stripe-public-key` - Get Stripe public key
+
+#### API v1 - Statistics & Intelligence (NEW)
+- `GET /api/v1/stats` - Aggregated statistics for BI tools (Tableau, PowerBI compatible)
+  - Response: summary, by_profile_type, by_country, by_tier, conversion_rates, partners
+- `GET /api/v1/stats/territories` - Detailed territorial analysis
+  - Response: territories with profile/tier breakdown, top_5 countries
+- `GET /api/v1/search/match` - Smart Connect matching API
+  - Params: profile_type, sector, country, limit
+  - Response: filtered results with relevance scoring
+- `GET /api/v1/search/suggestions` - Partner suggestions for a participant
+  - Params: participant_id
+  - Response: complementary profiles based on sector
 
 #### Registrations
 - `POST /api/registrations` - Create registration (direct, without payment)
