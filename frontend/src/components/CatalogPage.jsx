@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Search, MapPin, Briefcase, Users, Globe, Building2, Mic2, Newspaper, MoreHorizontal, Mail, Grid, List } from 'lucide-react';
+import { Search, MapPin, Briefcase, Users, Globe, Building2, Mic2, Newspaper, MoreHorizontal, Mail, Grid, List, Sparkles, X, ArrowRight } from 'lucide-react';
 import { profileTypes, countryList } from '../lib/translations';
 import { BadgeGenerator } from './BadgeGenerator';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const API_V1 = `${BACKEND_URL}/api/v1`;
 
 const tierConfig = {
   emerging: { name: 'Émergent', nameEn: 'Emerging', color: '#4A5D4E' },
@@ -38,6 +40,9 @@ export const CatalogPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [filters, setFilters] = useState({ search: '', region: '', sector: '', tier: '' });
   const [selectedParticipant, setSelectedParticipant] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [sectorKeywords, setSectorKeywords] = useState([]);
 
   const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
