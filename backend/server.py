@@ -1083,7 +1083,13 @@ async def get_catalog_entries():
             "show_in_catalog": True,
             "status": "approved"
         },
-        {"_id": 0}
+        {
+            "_id": 0,
+            "email": 0,
+            "phone": 0,
+            "payment_session_id": 0,
+            "siret_number": 0
+        }
     ).to_list(1000)
     
     return {"participants": registrations, "total": len(registrations)}
