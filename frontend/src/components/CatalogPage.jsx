@@ -366,6 +366,8 @@ export const CatalogPage = () => {
             {filteredParticipants.map((p) => {
               const tier = tierConfig[p.tier] || tierConfig.professional;
               const Icon = profileIcons[p.profile_type] || Users;
+              const sharedCount = getSharedInterestsCount(p.expertise_tags, filters.expertiseTags);
+              const pTags = p.expertise_tags || [];
               
               return viewMode === 'grid' ? (
                 <div key={p.id} className="border border-lightborder bg-cream group hover:border-terracotta transition-colors">
@@ -377,6 +379,13 @@ export const CatalogPage = () => {
                     {p.stand_request && (
                       <div className="absolute top-3 left-3 px-2 py-1 bg-sage text-paper text-xs">Stand</div>
                     )}
+                    {/* Similarity score badge */}
+                    {sharedCount > 0 && (
+                      <div className="absolute bottom-3 left-3 px-2 py-1 bg-terracotta/90 text-paper text-xs flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        {sharedCount} {language === 'fr' ? 'intérêt(s) commun(s)' : 'shared interest(s)'}
+                      </div>
+                    )}
                   </div>
                   <div className="p-5">
                     <div className="flex items-center gap-2 mb-2">
@@ -385,6 +394,30 @@ export const CatalogPage = () => {
                     </div>
                     <h3 className="font-serif text-lg text-charcoal mb-1">{p.full_name}</h3>
                     <p className="text-sm text-charcoal/60 mb-3">{p.organization_name}</p>
+                    
+                    {/* Expertise Tags Pills */}
+                    {pTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {pTags.slice(0, 3).map((tagValue) => {
+                          const tagInfo = expertiseTags.find(t => t.value === tagValue);
+                          const isShared = filters.expertiseTags?.includes(tagValue);
+                          return tagInfo && (
+                            <span 
+                              key={tagValue} 
+                              className={`px-2 py-0.5 text-xs ${isShared ? 'bg-sage text-paper' : 'bg-charcoal/10 text-charcoal/60'}`}
+                            >
+                              {language === 'fr' ? tagInfo.labelFr : tagInfo.labelEn}
+                            </span>
+                          );
+                        })}
+                        {pTags.length > 3 && (
+                          <span className="px-2 py-0.5 text-xs bg-lightborder text-charcoal/50">
+                            +{pTags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="flex gap-2 mb-4">
                       <span className="px-2 py-1 border border-lightborder text-xs text-charcoal/60">{getCountryLabel(p.country)}</span>
                       <span className="px-2 py-1 border border-lightborder text-xs text-charcoal/60">B2B</span>
@@ -414,7 +447,25 @@ export const CatalogPage = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-serif text-charcoal truncate">{p.full_name}</h3>
                     <p className="text-sm text-charcoal/60 truncate">{p.organization_name}</p>
+                    {/* Tags in list view */}
+                    {pTags.length > 0 && (
+                      <div className="flex gap-1 mt-1">
+                        {pTags.slice(0, 2).map((tagValue) => {
+                          const tagInfo = expertiseTags.find(t => t.value === tagValue);
+                          return tagInfo && (
+                            <span key={tagValue} className="px-1.5 py-0.5 text-xs bg-charcoal/10 text-charcoal/60">
+                              {language === 'fr' ? tagInfo.labelFr : tagInfo.labelEn}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
+                  {sharedCount > 0 && (
+                    <span className="hidden sm:flex items-center gap-1 px-2 py-1 bg-terracotta/10 text-terracotta text-xs">
+                      <Sparkles className="w-3 h-3" /> {sharedCount}
+                    </span>
+                  )}
                   <span className="hidden sm:block px-3 py-1 text-xs font-syne" style={{ backgroundColor: tier.color, color: '#F4F1EA' }}>
                     {language === 'fr' ? tier.name : tier.nameEn}
                   </span>
