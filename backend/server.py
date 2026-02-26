@@ -1240,7 +1240,7 @@ def _generate_sector_suggestions(participants: list) -> list:
 async def get_partner_suggestions(participant_id: str):
     """
     Get smart partner suggestions for a specific participant
-    Based on complementary profile types and shared interests
+    Based on complementary profile types and shared expertise tags
     """
     # Get the participant
     participant = await db.registrations.find_one(
@@ -1264,6 +1264,7 @@ async def get_partner_suggestions(participant_id: str):
     }
     
     current_profile = participant.get("profile_type", "other")
+    participant_tags = participant.get("expertise_tags", [])
     target_profiles = complementary_map.get(current_profile, ["artist", "label"])
     
     # Find complementary participants
@@ -1275,38 +1276,63 @@ async def get_partner_suggestions(participant_id: str):
             "profile_type": {"$in": target_profiles}
         },
         {"_id": 0, "email": 0, "phone": 0, "payment_session_id": 0}
-    ).to_list(20)
+    ).to_list(50)
     
-    # Score by country proximity and completeness
+    # Score by expertise tag overlap, country proximity and completeness
     def suggestion_score(s):
         score = 0
+        
+        # Expertise tags matching - highest priority
+        s_tags = s.get("expertise_tags", [])
+        if participant_tags and s_tags:
+            shared_tags = len(set(participant_tags) & set(s_tags))
+            score += shared_tags * 20  # Major bonus per shared interest
+        
+        # Country proximity
         if s.get("country") == participant.get("country"):
             score += 10  # Same country = higher relevance
+        
+        # Profile completeness
         if s.get("logo_url"):
             score += 5
         if s.get("stand_request"):
             score += 3  # Has stand = visible at event
+        
         return score
     
     suggestions.sort(key=suggestion_score, reverse=True)
+    
+    # Build response with shared interests info
+    suggested_connections = []
+    for s in suggestions[:10]:
+        s_tags = s.get("expertise_tags", [])
+        shared_tags = list(set(participant_tags) & set(s_tags)) if participant_tags and s_tags else []
+        shared_count = len(shared_tags)
+        
+        reason = f"Profil complémentaire ({s.get('profile_type')})"
+        if shared_count > 0:
+            reason = f"Partage {shared_count} intérêt(s) commun(s)"
+        
+        suggested_connections.append({
+            "id": s.get("id"),
+            "name": s.get("full_name"),
+            "organization": s.get("organization_name"),
+            "profile_type": s.get("profile_type"),
+            "country": s.get("country"),
+            "expertise_tags": s_tags,
+            "shared_interests": shared_tags,
+            "shared_count": shared_count,
+            "reason": reason
+        })
     
     return {
         "for_participant": {
             "id": participant_id,
             "name": participant.get("full_name"),
-            "profile_type": current_profile
+            "profile_type": current_profile,
+            "expertise_tags": participant_tags
         },
-        "suggested_connections": [
-            {
-                "id": s.get("id"),
-                "name": s.get("full_name"),
-                "organization": s.get("organization_name"),
-                "profile_type": s.get("profile_type"),
-                "country": s.get("country"),
-                "reason": f"Profil complémentaire ({s.get('profile_type')})"
-            }
-            for s in suggestions[:10]
-        ]
+        "suggested_connections": suggested_connections
     }
 
 # Include the routers in the main app
