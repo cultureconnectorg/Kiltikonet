@@ -34,7 +34,13 @@ function App() {
             <Route path="/confirmation" element={<ConfirmationScreen />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/participant/:participantId" element={<ParticipantProfile />} />
+            {/* Legal pages */}
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
+            <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
+            <Route path="/cgu" element={<CGU />} />
+            <Route path="/cookies" element={<Cookies />} />
           </Routes>
+          <CookieBanner />
         </BrowserRouter>
         <Toaster 
           position="top-right"
