@@ -726,6 +726,66 @@ export const AdminDashboard = () => {
                   </span>
                 </div>
               )}
+
+              {/* Advanced Stats - Revenue Estimates */}
+              {advancedStats && (
+                <div className="mt-4 pt-4 border-t border-lightborder">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp className="w-4 h-4 text-sage" />
+                    <span className="text-xs text-charcoal/50 uppercase font-syne">
+                      {language === 'fr' ? 'Rapport partenaires' : 'Partner Report'}
+                    </span>
+                    <button 
+                      onClick={() => window.open(`${API_V1}/report/summary`, '_blank')}
+                      className="ml-auto text-xs text-terracotta hover:underline"
+                    >
+                      {language === 'fr' ? 'Voir rapport complet' : 'View full report'}
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Revenue Estimate */}
+                    <div className="bg-sage/10 border border-sage/30 p-4">
+                      <p className="text-xs text-sage uppercase mb-1">
+                        {language === 'fr' ? 'Revenus estimés' : 'Estimated Revenue'}
+                      </p>
+                      <p className="text-2xl font-serif text-charcoal">
+                        {advancedStats.kpis?.total_revenue_estimate?.toLocaleString() || 0}€
+                      </p>
+                    </div>
+                    
+                    {/* Badges Sent */}
+                    <div className="bg-terracotta/10 border border-terracotta/30 p-4">
+                      <p className="text-xs text-terracotta uppercase mb-1">
+                        {language === 'fr' ? 'Badges envoyés' : 'Badges Sent'}
+                      </p>
+                      <p className="text-2xl font-serif text-charcoal">
+                        {advancedStats.kpis?.badges_sent || 0}
+                      </p>
+                    </div>
+                    
+                    {/* Email Delivery Rate */}
+                    <div className="bg-paper border border-lightborder p-4">
+                      <p className="text-xs text-charcoal/50 uppercase mb-1">
+                        {language === 'fr' ? 'Taux délivrabilité' : 'Delivery Rate'}
+                      </p>
+                      <p className="text-2xl font-serif text-charcoal">
+                        {advancedStats.kpis?.email_delivery_rate || 100}%
+                      </p>
+                    </div>
+                    
+                    {/* Stand Requests */}
+                    <div className="bg-paper border border-lightborder p-4">
+                      <p className="text-xs text-charcoal/50 uppercase mb-1">
+                        {language === 'fr' ? 'Demandes stand' : 'Stand Requests'}
+                      </p>
+                      <p className="text-2xl font-serif text-charcoal">
+                        {advancedStats.marche_culturel?.stand_requests || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
