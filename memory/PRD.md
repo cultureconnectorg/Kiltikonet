@@ -155,3 +155,19 @@ Platform is now feature-complete and legally compliant, ready for:
 3. Badge distribution
 4. Event accreditation validation via QR codes
 5. Legal compliance for GDPR/RGPD regulations
+
+---
+
+## Audit Report (Feb 26, 2026)
+
+### Security Fix Applied ✅
+- **CRITICAL**: Fixed `/api/catalog` endpoint exposing sensitive data (email, phone)
+- Now properly excludes: `email`, `phone`, `payment_session_id`, `siret_number`
+
+### Full Audit Available
+See `/app/AUDIT_REPORT.md` for complete technical audit including:
+- Architecture review
+- Security assessment
+- Performance metrics
+- Functional testing
+- Legal compliance validation
