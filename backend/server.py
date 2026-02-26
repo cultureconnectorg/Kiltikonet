@@ -1352,25 +1352,38 @@ async def batch_send_badges(request: BatchSendBadgesRequest, background_tasks: B
 
 @api_router.get("/registrations/batch/progress/{job_id}")
 async def get_batch_progress(job_id: str):
-    """Get progress of a batch job"""
-    job = batch_jobs.get(job_id)
+    """Get progress of a batch job from MongoDB"""
+    job = await get_batch_job(job_id)
     
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    progress_percent = (job.processed / job.total * 100) if job.total > 0 else 0
+    progress_percent = (job["processed"] / job["total"] * 100) if job["total"] > 0 else 0
     
     return {
         "job_id": job_id,
-        "status": job.status,
-        "total": job.total,
-        "processed": job.processed,
-        "sent": job.sent,
-        "failed": job.failed,
+        "status": job["status"],
+        "total": job["total"],
+        "processed": job["processed"],
+        "sent": job["sent"],
+        "failed": job["failed"],
         "progress_percent": round(progress_percent, 1),
-        "started_at": job.started_at,
-        "completed_at": job.completed_at,
-        "results": job.results if job.status == "completed" else None
+        "started_at": job["started_at"],
+        "completed_at": job["completed_at"],
+        "results": job["results"] if job["status"] == "completed" else None
+    }
+
+@api_router.get("/registrations/batch/history")
+async def get_batch_history(limit: int = Query(20, le=100)):
+    """Get history of batch jobs"""
+    jobs = await db.batch_jobs.find(
+        {},
+        {"_id": 0}
+    ).sort("started_at", -1).to_list(limit)
+    
+    return {
+        "jobs": jobs,
+        "total": len(jobs)
     }
 
 # ================== EMAIL LOGS ==================
