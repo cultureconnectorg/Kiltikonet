@@ -967,8 +967,311 @@ async def get_countries():
     countries = await db.registrations.distinct("country")
     return {"countries": countries if countries else []}
 
-# Include the router in the main app
+# ================== API V1 - STATISTICS & INTELLIGENCE ==================
+
+@api_v1_router.get("/stats")
+async def get_public_statistics():
+    """
+    Public Statistics API - Aggregated data for management & BI
+    No personal data exposed - only show_in_catalog:true entries for public metrics
+    
+    Response Structure (for external BI tools like Tableau, PowerBI):
+    {
+        "generated_at": "ISO timestamp",
+        "summary": { total, approved, pending, rejected, in_catalog },
+        "by_profile_type": { "artist": count, "label": count, ... },
+        "by_country": { "FR": count, "MQ": count, ... },
+        "by_tier": { "emerging": count, "professional": count, "institutional": count },
+        "conversion_rates": { registration_to_approval, approval_to_catalog },
+        "partners": { total, by_tier }
+    }
+    """
+    # Aggregate all registrations
+    all_registrations = await db.registrations.find({}, {"_id": 0}).to_list(10000)
+    
+    # Summary counts
+    total = len(all_registrations)
+    approved = sum(1 for r in all_registrations if r.get("status") == "approved")
+    pending = sum(1 for r in all_registrations if r.get("status") == "pending")
+    rejected = sum(1 for r in all_registrations if r.get("status") == "rejected")
+    in_catalog = sum(1 for r in all_registrations if r.get("show_in_catalog") and r.get("status") == "approved")
+    
+    # Distribution by profile_type
+    by_profile = {}
+    for r in all_registrations:
+        profile = r.get("profile_type", "other")
+        by_profile[profile] = by_profile.get(profile, 0) + 1
+    
+    # Distribution by country
+    by_country = {}
+    for r in all_registrations:
+        country = r.get("country", "unknown")
+        if country:
+            by_country[country] = by_country.get(country, 0) + 1
+    
+    # Distribution by tier
+    by_tier = {"emerging": 0, "professional": 0, "institutional": 0}
+    for r in all_registrations:
+        tier = r.get("tier", "professional")
+        if tier in by_tier:
+            by_tier[tier] += 1
+    
+    # Conversion rates
+    registration_to_approval = round((approved / total * 100), 1) if total > 0 else 0
+    approval_to_catalog = round((in_catalog / approved * 100), 1) if approved > 0 else 0
+    
+    # Partners stats
+    all_partners = await db.partners.find({}, {"_id": 0}).to_list(100)
+    partners_by_tier = {"bronze": 0, "silver": 0, "gold": 0}
+    for p in all_partners:
+        tier = p.get("tier", "bronze")
+        if tier in partners_by_tier:
+            partners_by_tier[tier] += 1
+    
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "summary": {
+            "total_registrations": total,
+            "approved": approved,
+            "pending": pending,
+            "rejected": rejected,
+            "visible_in_catalog": in_catalog
+        },
+        "by_profile_type": by_profile,
+        "by_country": by_country,
+        "by_tier": by_tier,
+        "conversion_rates": {
+            "registration_to_approval_percent": registration_to_approval,
+            "approval_to_catalog_percent": approval_to_catalog
+        },
+        "partners": {
+            "total": len(all_partners),
+            "by_tier": partners_by_tier
+        },
+        "meta": {
+            "api_version": "1.0",
+            "data_policy": "Aggregated only - no personal data exposed",
+            "compatible_with": ["Tableau", "PowerBI", "Google Data Studio", "Custom BI"]
+        }
+    }
+
+@api_v1_router.get("/stats/territories")
+async def get_territory_insights():
+    """
+    Detailed territorial analysis for geographic business intelligence
+    Only includes approved + catalog-visible participants
+    """
+    catalog_participants = await db.registrations.find(
+        {"show_in_catalog": True, "status": "approved"},
+        {"_id": 0, "country": 1, "profile_type": 1, "tier": 1, "organization_name": 1}
+    ).to_list(10000)
+    
+    # Build territory matrix
+    territories = {}
+    for p in catalog_participants:
+        country = p.get("country", "unknown")
+        if country not in territories:
+            territories[country] = {
+                "total": 0,
+                "by_profile": {},
+                "by_tier": {},
+                "organizations": []
+            }
+        territories[country]["total"] += 1
+        
+        profile = p.get("profile_type", "other")
+        territories[country]["by_profile"][profile] = territories[country]["by_profile"].get(profile, 0) + 1
+        
+        tier = p.get("tier", "professional")
+        territories[country]["by_tier"][tier] = territories[country]["by_tier"].get(tier, 0) + 1
+        
+        # Only add org name (public info for catalog-visible)
+        if p.get("organization_name"):
+            territories[country]["organizations"].append(p.get("organization_name"))
+    
+    # Sort by representation
+    sorted_territories = dict(sorted(territories.items(), key=lambda x: x[1]["total"], reverse=True))
+    
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "total_territories": len(sorted_territories),
+        "territories": sorted_territories,
+        "top_5": list(sorted_territories.keys())[:5]
+    }
+
+@api_v1_router.get("/search/match")
+async def smart_connect_matching(
+    profile_type: Optional[str] = Query(None, description="Filter by profile type"),
+    sector: Optional[str] = Query(None, description="Search keyword in bio/organization"),
+    country: Optional[str] = Query(None, description="Filter by country"),
+    limit: int = Query(10, le=50, description="Max results")
+):
+    """
+    Smart Connect API - Find matching profiles based on sector similarity
+    SECURITY: Only returns show_in_catalog:true AND status:approved
+    
+    Use cases:
+    - "Find all labels in Martinique"
+    - "Find organizations with 'music' in their bio"
+    - "Find potential partners by sector"
+    """
+    # Base filter: only public catalog entries
+    filter_query = {"show_in_catalog": True, "status": "approved"}
+    
+    if profile_type:
+        filter_query["profile_type"] = profile_type
+    
+    if country:
+        filter_query["country"] = {"$regex": country, "$options": "i"}
+    
+    # Fetch candidates
+    candidates = await db.registrations.find(
+        filter_query,
+        {"_id": 0, "email": 0, "phone": 0, "payment_session_id": 0}  # Exclude private fields
+    ).to_list(1000)
+    
+    # Apply sector search on bio and organization_name
+    if sector:
+        sector_lower = sector.lower()
+        candidates = [
+            c for c in candidates
+            if sector_lower in (c.get("bio", "") or "").lower()
+            or sector_lower in (c.get("organization_name", "") or "").lower()
+        ]
+    
+    # Score and sort by relevance
+    def relevance_score(participant):
+        score = 0
+        if participant.get("logo_url"):
+            score += 10  # Has image = more complete profile
+        if participant.get("bio") and len(participant.get("bio", "")) > 50:
+            score += 5  # Good bio
+        if participant.get("website_url"):
+            score += 3  # Has website
+        return score
+    
+    candidates.sort(key=relevance_score, reverse=True)
+    
+    # Format response
+    results = []
+    for c in candidates[:limit]:
+        results.append({
+            "id": c.get("id"),
+            "name": c.get("full_name"),
+            "organization": c.get("organization_name"),
+            "profile_type": c.get("profile_type"),
+            "country": c.get("country"),
+            "bio": c.get("bio"),
+            "tier": c.get("tier"),
+            "image_url": c.get("logo_url"),
+            "website": c.get("website_url"),
+            "has_stand": c.get("stand_request", False)
+        })
+    
+    return {
+        "query": {
+            "profile_type": profile_type,
+            "sector": sector,
+            "country": country
+        },
+        "total_matches": len(results),
+        "results": results,
+        "suggestions": _generate_sector_suggestions(candidates) if not sector else []
+    }
+
+def _generate_sector_suggestions(participants: list) -> list:
+    """Generate keyword suggestions based on common terms in bios"""
+    word_freq = {}
+    stop_words = {"de", "la", "le", "les", "et", "en", "un", "une", "des", "du", "pour", "avec", "the", "and", "for", "with", "a", "an"}
+    
+    for p in participants:
+        bio = (p.get("bio") or "").lower()
+        words = bio.split()
+        for word in words:
+            word = ''.join(c for c in word if c.isalnum())
+            if len(word) > 3 and word not in stop_words:
+                word_freq[word] = word_freq.get(word, 0) + 1
+    
+    # Top keywords
+    sorted_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
+    return [w[0] for w in sorted_words[:8]]
+
+@api_v1_router.get("/search/suggestions")
+async def get_partner_suggestions(participant_id: str):
+    """
+    Get smart partner suggestions for a specific participant
+    Based on complementary profile types and shared interests
+    """
+    # Get the participant
+    participant = await db.registrations.find_one(
+        {"id": participant_id, "show_in_catalog": True, "status": "approved"},
+        {"_id": 0}
+    )
+    
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found in catalog")
+    
+    # Define complementary profiles
+    complementary_map = {
+        "artist": ["label", "booking_agency", "press", "institution"],
+        "label": ["artist", "booking_agency", "press", "distribution"],
+        "booking_agency": ["artist", "label", "venue", "institution"],
+        "institution": ["artist", "label", "press", "booking_agency"],
+        "press": ["artist", "label", "institution"],
+        "venue": ["artist", "booking_agency", "label"],
+        "distribution": ["label", "artist"],
+        "other": ["artist", "label", "institution"]
+    }
+    
+    current_profile = participant.get("profile_type", "other")
+    target_profiles = complementary_map.get(current_profile, ["artist", "label"])
+    
+    # Find complementary participants
+    suggestions = await db.registrations.find(
+        {
+            "show_in_catalog": True,
+            "status": "approved",
+            "id": {"$ne": participant_id},
+            "profile_type": {"$in": target_profiles}
+        },
+        {"_id": 0, "email": 0, "phone": 0, "payment_session_id": 0}
+    ).to_list(20)
+    
+    # Score by country proximity and completeness
+    def suggestion_score(s):
+        score = 0
+        if s.get("country") == participant.get("country"):
+            score += 10  # Same country = higher relevance
+        if s.get("logo_url"):
+            score += 5
+        if s.get("stand_request"):
+            score += 3  # Has stand = visible at event
+        return score
+    
+    suggestions.sort(key=suggestion_score, reverse=True)
+    
+    return {
+        "for_participant": {
+            "id": participant_id,
+            "name": participant.get("full_name"),
+            "profile_type": current_profile
+        },
+        "suggested_connections": [
+            {
+                "id": s.get("id"),
+                "name": s.get("full_name"),
+                "organization": s.get("organization_name"),
+                "profile_type": s.get("profile_type"),
+                "country": s.get("country"),
+                "reason": f"Profil complémentaire ({s.get('profile_type')})"
+            }
+            for s in suggestions[:10]
+        ]
+    }
+
+# Include the routers in the main app
 app.include_router(api_router)
+app.include_router(api_v1_router)
 
 app.add_middleware(
     CORSMiddleware,
