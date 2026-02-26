@@ -58,6 +58,12 @@ export const translations = {
     submitting: "Envoi en cours...",
     charactersRemaining: "caractères restants",
     
+    // Form additional
+    accreditationForm: "Demande d'Accréditation",
+    formSubtitle: "Remplissez le formulaire pour vous accréditer à Culture Connect 2026",
+    selectCountry: "Sélectionnez votre pays",
+    selectProfile: "Sélectionnez votre profil",
+    
     // Confirmation
     confirmationTitle: "Demande reçue !",
     confirmationMessage: "Votre demande d'accréditation a bien été reçue. L'équipe Culture Connect vous contactera sous 72h.",
