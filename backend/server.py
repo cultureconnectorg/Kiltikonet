@@ -877,8 +877,12 @@ async def create_manual_registration(data: ManualRegistration):
 
 @api_router.get("/catalog")
 async def get_catalog_entries():
+    """Get only participants that are APPROVED and VISIBLE in catalog"""
     registrations = await db.registrations.find(
-        {"show_in_catalog": True},
+        {
+            "show_in_catalog": True,
+            "status": "approved"
+        },
         {"_id": 0}
     ).to_list(1000)
     
