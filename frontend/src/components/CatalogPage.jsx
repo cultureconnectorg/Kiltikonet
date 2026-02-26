@@ -38,11 +38,13 @@ export const CatalogPage = () => {
   const [filteredParticipants, setFilteredParticipants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
-  const [filters, setFilters] = useState({ search: '', region: '', sector: '', tier: '' });
+  const [filters, setFilters] = useState({ search: '', region: '', sector: '', tier: '', expertiseTags: [] });
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [sectorKeywords, setSectorKeywords] = useState([]);
+  const [showExpertiseFilter, setShowExpertiseFilter] = useState(false);
+  const [similarityScores, setSimilarityScores] = useState({}); // Store similarity scores
 
   const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
