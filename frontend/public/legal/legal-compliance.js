@@ -17,7 +17,7 @@
   // CONFIGURATION
   // ============================================
   const CONFIG = {
-    CONSENT_KEY: 'cc_cookie_consent_v1',
+    CONSENT_KEY: 'cc_cookie_consent',  // Same key as React component
     BANNER_DELAY: 1500,
     LEGAL_PAGES: {
       mentions: '/legal/mentions-legales.html',
