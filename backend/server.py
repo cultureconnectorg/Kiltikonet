@@ -1045,6 +1045,317 @@ async def get_countries():
     countries = await db.registrations.distinct("country")
     return {"countries": countries if countries else []}
 
+# ================== PUBLIC PROFILE & BADGE GENERATION ==================
+
+@api_router.get("/participant/{participant_id}")
+async def get_public_participant_profile(participant_id: str):
+    """
+    Public participant profile for QR code validation at event entry
+    Returns basic info + status for badge verification
+    """
+    participant = await db.registrations.find_one(
+        {"id": participant_id},
+        {"_id": 0, "email": 0, "phone": 0, "payment_session_id": 0, "siret_number": 0}
+    )
+    
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    
+    # Build public profile
+    return {
+        "id": participant.get("id"),
+        "full_name": participant.get("full_name"),
+        "organization_name": participant.get("organization_name"),
+        "profile_type": participant.get("profile_type"),
+        "country": participant.get("country"),
+        "tier": participant.get("tier"),
+        "status": participant.get("status"),
+        "is_approved": participant.get("status") == "approved",
+        "show_in_catalog": participant.get("show_in_catalog", False),
+        "logo_url": participant.get("logo_url"),
+        "bio": participant.get("bio"),
+        "expertise_tags": participant.get("expertise_tags", []),
+        "stand_request": participant.get("stand_request", False),
+        "stand_category": participant.get("stand_category"),
+        "website_url": participant.get("website_url"),
+        "created_at": participant.get("created_at")
+    }
+
+@api_router.get("/participant/{participant_id}/badge")
+async def generate_badge_pdf(request: Request, participant_id: str):
+    """
+    Generate PDF badge with QR code for participant
+    QR code points to public profile page for validation
+    """
+    participant = await db.registrations.find_one(
+        {"id": participant_id},
+        {"_id": 0}
+    )
+    
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    
+    if participant.get("status") != "approved":
+        raise HTTPException(status_code=403, detail="Badge only available for approved participants")
+    
+    # Build profile URL for QR code
+    frontend_url = os.environ.get("FRONTEND_URL", str(request.base_url).rstrip('/'))
+    profile_url = f"{frontend_url}/participant/{participant_id}"
+    
+    # Generate QR code
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(profile_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Save QR to bytes
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format='PNG')
+    qr_buffer.seek(0)
+    
+    # Create PDF
+    pdf_buffer = io.BytesIO()
+    badge_width, badge_height = 105 * mm, 148 * mm  # A6 size
+    c = canvas.Canvas(pdf_buffer, pagesize=(badge_width, badge_height))
+    
+    # Colors
+    tier_colors = {
+        "emerging": "#4A5D4E",
+        "professional": "#A65D47",
+        "institutional": "#1A1A1A"
+    }
+    tier_names = {
+        "emerging": "ÉMERGENT",
+        "professional": "PROFESSIONNEL",
+        "institutional": "INSTITUTIONNEL"
+    }
+    tier = participant.get("tier", "professional")
+    tier_color = HexColor(tier_colors.get(tier, "#A65D47"))
+    
+    # Background
+    c.setFillColor(HexColor("#F4F1EA"))
+    c.rect(0, 0, badge_width, badge_height, fill=1, stroke=0)
+    
+    # Border
+    c.setStrokeColor(tier_color)
+    c.setLineWidth(3)
+    c.rect(3, 3, badge_width - 6, badge_height - 6, fill=0, stroke=1)
+    
+    # Header
+    c.setFillColor(HexColor("#1A1A1A"))
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(badge_width / 2, badge_height - 25, "CULTURE CONNECT 2026")
+    
+    c.setFont("Helvetica", 8)
+    c.setFillColor(HexColor("#8A8578"))
+    c.drawCentredString(badge_width / 2, badge_height - 38, "Fort-de-France · 20-23 Mai 2026")
+    
+    # Separator line
+    c.setStrokeColor(HexColor("#E5E0D8"))
+    c.setLineWidth(0.5)
+    c.line(15, badge_height - 48, badge_width - 15, badge_height - 48)
+    
+    # Name and organization
+    c.setFillColor(HexColor("#1A1A1A"))
+    c.setFont("Helvetica-Bold", 16)
+    
+    # Truncate name if too long
+    full_name = participant.get("full_name", "")[:25]
+    c.drawCentredString(badge_width / 2, badge_height - 75, full_name)
+    
+    c.setFont("Helvetica", 10)
+    c.setFillColor(HexColor("#8A8578"))
+    org_name = participant.get("organization_name", "")[:30]
+    c.drawCentredString(badge_width / 2, badge_height - 92, org_name)
+    
+    # Tier badge
+    tier_text = tier_names.get(tier, "PROFESSIONNEL")
+    c.setFillColor(tier_color)
+    c.rect(badge_width / 2 - 40, badge_height - 118, 80, 18, fill=1, stroke=0)
+    c.setFillColor(HexColor("#F4F1EA"))
+    c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(badge_width / 2, badge_height - 113, tier_text)
+    
+    # Profile type
+    profile_labels = {
+        "artist": "ARTISTE",
+        "label": "LABEL",
+        "booking_agency": "BOOKING",
+        "institution": "INSTITUTION",
+        "press": "PRESSE",
+        "other": "PROFESSIONNEL"
+    }
+    c.setFillColor(HexColor("#8A8578"))
+    c.setFont("Helvetica", 8)
+    profile_label = profile_labels.get(participant.get("profile_type"), "PROFESSIONNEL")
+    c.drawCentredString(badge_width / 2, badge_height - 135, profile_label)
+    
+    # QR Code
+    from reportlab.lib.utils import ImageReader
+    qr_buffer.seek(0)
+    qr_image = ImageReader(qr_buffer)
+    qr_size = 35 * mm
+    c.drawImage(qr_image, (badge_width - qr_size) / 2, 25, width=qr_size, height=qr_size)
+    
+    # ID below QR
+    c.setFillColor(HexColor("#8A8578"))
+    c.setFont("Helvetica", 7)
+    c.drawCentredString(badge_width / 2, 18, f"ID: {participant_id[:8].upper()}")
+    
+    # Stand indicator if applicable
+    if participant.get("stand_request"):
+        c.setFillColor(HexColor("#4A5D4E"))
+        c.setFont("Helvetica-Bold", 7)
+        stand_cat = participant.get("stand_category", "Stand")
+        c.drawCentredString(badge_width / 2, 8, f"STAND · {stand_cat.upper()}")
+    
+    c.save()
+    pdf_buffer.seek(0)
+    
+    filename = f"badge_{participant.get('full_name', 'participant').replace(' ', '_')}_{participant_id[:8]}.pdf"
+    
+    return Response(
+        content=pdf_buffer.getvalue(),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# ================== PARTNER MANAGEMENT ==================
+
+class PartnerUpdate(BaseModel):
+    company_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    tier: Optional[str] = None
+    website: Optional[str] = None
+    logo_url: Optional[str] = None
+    show_on_landing: Optional[bool] = None
+    sponsored_registrations: Optional[List[str]] = None
+
+class ManualPartner(BaseModel):
+    company_name: str
+    contact_name: str
+    contact_email: str
+    contact_phone: str = ""
+    tier: str = "bronze"
+    website: Optional[str] = None
+    logo_url: Optional[str] = None
+    show_on_landing: bool = True
+
+@api_router.get("/partners/admin")
+async def get_partners_admin():
+    """Get all partners with full details for admin"""
+    partners = await db.partners.find({}, {"_id": 0}).to_list(100)
+    
+    # Enrich with sponsored registrations info
+    for partner in partners:
+        partner_id = partner.get("id")
+        # Find registrations sponsored by this partner
+        sponsored = await db.registrations.find(
+            {"sponsored_by": partner_id},
+            {"_id": 0, "id": 1, "full_name": 1, "organization_name": 1, "status": 1}
+        ).to_list(50)
+        partner["sponsored_registrations"] = sponsored
+        partner["sponsored_count"] = len(sponsored)
+    
+    return {"partners": partners, "total": len(partners)}
+
+@api_router.post("/partners/manual")
+async def create_manual_partner(data: ManualPartner):
+    """Admin manual partner creation (without payment)"""
+    partner_id = str(uuid.uuid4())
+    
+    partner = {
+        "id": partner_id,
+        "company_name": data.company_name,
+        "contact_name": data.contact_name,
+        "contact_email": data.contact_email,
+        "contact_phone": data.contact_phone,
+        "tier": data.tier,
+        "website": data.website,
+        "logo_url": data.logo_url,
+        "vip_accreditations": [],
+        "show_on_landing": data.show_on_landing,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "source": "admin_manual"
+    }
+    
+    await db.partners.insert_one(partner)
+    
+    return {
+        "success": True,
+        "partner_id": partner_id,
+        "message": "Partner created successfully"
+    }
+
+@api_router.patch("/partners/{partner_id}")
+async def update_partner(partner_id: str, update: PartnerUpdate):
+    """Update partner details"""
+    partner = await db.partners.find_one({"id": partner_id})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    update_data = {k: v for k, v in update.dict().items() if v is not None}
+    
+    if update_data:
+        await db.partners.update_one(
+            {"id": partner_id},
+            {"$set": update_data}
+        )
+    
+    return {"success": True, "updated_fields": list(update_data.keys())}
+
+@api_router.delete("/partners/{partner_id}")
+async def delete_partner(partner_id: str):
+    """Delete a partner"""
+    result = await db.partners.delete_one({"id": partner_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Also unlink any sponsored registrations
+    await db.registrations.update_many(
+        {"sponsored_by": partner_id},
+        {"$unset": {"sponsored_by": ""}}
+    )
+    
+    return {"success": True, "message": "Partner deleted"}
+
+@api_router.post("/partners/{partner_id}/sponsor/{registration_id}")
+async def link_sponsor_to_registration(partner_id: str, registration_id: str):
+    """Link a partner as sponsor to a registration"""
+    # Verify partner exists
+    partner = await db.partners.find_one({"id": partner_id})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    # Verify registration exists
+    registration = await db.registrations.find_one({"id": registration_id})
+    if not registration:
+        raise HTTPException(status_code=404, detail="Registration not found")
+    
+    # Link them
+    await db.registrations.update_one(
+        {"id": registration_id},
+        {"$set": {"sponsored_by": partner_id, "sponsor_name": partner.get("company_name")}}
+    )
+    
+    return {
+        "success": True,
+        "message": f"Registration linked to partner {partner.get('company_name')}"
+    }
+
+@api_router.delete("/partners/{partner_id}/sponsor/{registration_id}")
+async def unlink_sponsor_from_registration(partner_id: str, registration_id: str):
+    """Unlink a partner from a registration"""
+    await db.registrations.update_one(
+        {"id": registration_id, "sponsored_by": partner_id},
+        {"$unset": {"sponsored_by": "", "sponsor_name": ""}}
+    )
+    
+    return {"success": True, "message": "Sponsor link removed"}
+
 # ================== API V1 - STATISTICS & INTELLIGENCE ==================
 
 @api_v1_router.get("/stats")
