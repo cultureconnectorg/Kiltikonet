@@ -44,7 +44,8 @@ export const RegistrationForm = () => {
     full_name: '', organization_name: '', country: '', email: '', phone: '',
     profile_type: '', stand_request: 'no', stand_category: '', bio: '',
     language_preference: language, how_heard: '', siret_number: '', website_url: '',
-    profile_image_url: '' // NEW: Store Cloudinary URL
+    profile_image_url: '', // Cloudinary URL
+    expertise_tags: [] // NEW: Array of selected expertise tags
   });
   const [logoPreview, setLogoPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -57,6 +58,19 @@ export const RegistrationForm = () => {
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
+  };
+  
+  // Toggle expertise tag selection
+  const toggleExpertiseTag = (tagValue) => {
+    setFormData(prev => {
+      const current = prev.expertise_tags || [];
+      if (current.includes(tagValue)) {
+        return { ...prev, expertise_tags: current.filter(t => t !== tagValue) };
+      } else if (current.length < 5) { // Max 5 tags
+        return { ...prev, expertise_tags: [...current, tagValue] };
+      }
+      return prev;
+    });
   };
   
   // NEW: Immediate upload to Cloudinary on file selection
