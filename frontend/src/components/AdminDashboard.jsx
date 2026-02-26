@@ -102,6 +102,9 @@ export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('registrations');
   const [exportFilters, setExportFilters] = useState({ expertiseTags: [], profileType: '' });
   const [showExportModal, setShowExportModal] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [showBatchActions, setShowBatchActions] = useState(false);
   const [newParticipant, setNewParticipant] = useState({
     full_name: '',
     organization_name: '',
