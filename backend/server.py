@@ -602,13 +602,15 @@ async def process_successful_payment(transaction: dict, metadata: dict):
             "stand_request": metadata.get("stand_request", "false").lower() == "true",
             "stand_category": metadata.get("stand_category") or None,
             "bio": metadata.get("bio", ""),
-            # NEW: Use profile_image_url from Cloudinary (uploaded before checkout)
+            # Use profile_image_url from Cloudinary (uploaded before checkout)
             "logo_url": metadata.get("profile_image_url") or None,
             "language_preference": metadata.get("language_preference", "fr"),
             "how_heard": metadata.get("how_heard", ""),
-            # NEW: Additional fields
+            # Additional fields
             "siret_number": metadata.get("siret_number") or None,
             "website_url": metadata.get("website_url") or None,
+            # Expertise tags stored as array
+            "expertise_tags": [t.strip() for t in (metadata.get("expertise_tags") or "").split(",") if t.strip()],
             "tier": tier,
             "status": "pending",
             "show_in_catalog": False,
