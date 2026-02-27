@@ -614,6 +614,25 @@ class CMSPage(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
+class AnnualIntention(BaseModel):
+    """Annual intention for intro sequence"""
+    id: Optional[str] = None
+    tenant_id: str = "culture-connect-2026"
+    annee: str = "2026"
+    mot_annee: str = "NOU."
+    mot_annee_note: Optional[str] = "2026 — Nous. La reconnexion."
+    image_annee_url: Optional[str] = None
+    phrase_ligne_1: str = "Pendant des siècles on nous a séparés."
+    phrase_ligne_2: str = "Le 22 Mai 2026 — nous nous retrouvons."
+    mot_cle_phrase_2: str = "nous"
+    couleur_annee: str = "#A65D47"
+    son_tambour_url: Optional[str] = None
+    sons_identites: Optional[dict] = None  # {artist: url, label: url, ...}
+    territoire_messages: Optional[dict] = None  # {Martinique: "Ou ka vini.", ...}
+    active: bool = True
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
 # ================== STRIPE ROUTES ==================
 @api_router.post("/create-checkout-session")
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
