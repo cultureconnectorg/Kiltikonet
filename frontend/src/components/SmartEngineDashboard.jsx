@@ -1,13 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { 
   Cpu, Users, MessageSquare, Plus, Search, Trash2, 
   Download, Copy, X, CheckCircle, AlertCircle, Loader2,
-  FileText, Sparkles, Globe, Tag, Building2
+  FileText, Sparkles, Globe, Tag, Building2, ArrowLeft, Home, RefreshCw
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 const SMART_API = `${API_URL}/api/v1/smart-recommendations`;
+
+// Toast notification helper
+const notify = {
+  success: (title, description) => toast.success(title, { 
+    description, 
+    duration: 4000,
+    style: { background: '#1A1A1A', color: '#F4F1EA', border: '1px solid #333' }
+  }),
+  error: (title, description) => toast.error(title, { 
+    description, 
+    duration: 5000,
+    style: { background: '#1A1A1A', color: '#F4F1EA', border: '1px solid #A65D47' }
+  }),
+  loading: (title) => toast.loading(title, {
+    style: { background: '#1A1A1A', color: '#F4F1EA', border: '1px solid #333' }
+  }),
+  dismiss: (id) => toast.dismiss(id)
+};
 
 // Profile types
 const PROFILE_TYPES = [
