@@ -732,6 +732,436 @@ const DesignSection = () => {
   );
 };
 
+// ================== PROGRAM EDITOR COMPONENT ==================
+const ProgramEditor = ({ content, setContent, saveSection, saving, loadContent }) => {
+  const [expandedDay, setExpandedDay] = useState('day3'); // Day 3 (Abolition) expanded by default
+  const [draggedSlot, setDraggedSlot] = useState(null);
+  
+  // Default program structure
+  const defaultDays = [
+    {
+      id: 'day1',
+      date: '2026-05-20',
+      label: 'DAY 1 — Mardi 20 Mai 2026',
+      site: 'Bibliothèque Schoelcher',
+      is_highlight: false,
+      highlight_color: null,
+      slots: []
+    },
+    {
+      id: 'day2',
+      date: '2026-05-21',
+      label: 'DAY 2 — Mercredi 21 Mai 2026',
+      site: 'Bibliothèque Schoelcher + Tropiques Atrium',
+      is_highlight: false,
+      highlight_color: null,
+      slots: []
+    },
+    {
+      id: 'day3',
+      date: '2026-05-22',
+      label: 'DAY 3 — Jeudi 22 Mai 2026 (JOURNÉE ABOLITION)',
+      site: 'Tropiques Atrium + La Savane',
+      is_highlight: true,
+      highlight_color: '#A65D47',
+      slots: []
+    },
+    {
+      id: 'day4',
+      date: '2026-05-23',
+      label: 'DAY 4 — Vendredi 23 Mai 2026',
+      site: 'Tropiques Atrium',
+      is_highlight: false,
+      highlight_color: null,
+      slots: []
+    }
+  ];
+
+  const programData = content.official_program?.days || defaultDays;
+
+  const updateProgramDay = (dayId, field, value) => {
+    const updatedDays = programData.map(day => 
+      day.id === dayId ? { ...day, [field]: value } : day
+    );
+    setContent({
+      ...content,
+      official_program: { days: updatedDays }
+    });
+  };
+
+  const addSlot = (dayId) => {
+    const newSlot = { time: '', title: '', description: '', speaker: '' };
+    const updatedDays = programData.map(day => {
+      if (day.id === dayId) {
+        return { ...day, slots: [...(day.slots || []), newSlot] };
+      }
+      return day;
+    });
+    setContent({
+      ...content,
+      official_program: { days: updatedDays }
+    });
+  };
+
+  const updateSlot = (dayId, slotIdx, field, value) => {
+    const updatedDays = programData.map(day => {
+      if (day.id === dayId) {
+        const newSlots = [...(day.slots || [])];
+        newSlots[slotIdx] = { ...newSlots[slotIdx], [field]: value };
+        return { ...day, slots: newSlots };
+      }
+      return day;
+    });
+    setContent({
+      ...content,
+      official_program: { days: updatedDays }
+    });
+  };
+
+  const deleteSlot = (dayId, slotIdx) => {
+    const updatedDays = programData.map(day => {
+      if (day.id === dayId) {
+        const newSlots = [...(day.slots || [])];
+        newSlots.splice(slotIdx, 1);
+        return { ...day, slots: newSlots };
+      }
+      return day;
+    });
+    setContent({
+      ...content,
+      official_program: { days: updatedDays }
+    });
+  };
+
+  const moveSlot = (dayId, fromIdx, toIdx) => {
+    if (fromIdx === toIdx) return;
+    const updatedDays = programData.map(day => {
+      if (day.id === dayId) {
+        const newSlots = [...(day.slots || [])];
+        const [movedSlot] = newSlots.splice(fromIdx, 1);
+        newSlots.splice(toIdx, 0, movedSlot);
+        return { ...day, slots: newSlots };
+      }
+      return day;
+    });
+    setContent({
+      ...content,
+      official_program: { days: updatedDays }
+    });
+  };
+
+  const saveProgramme = async () => {
+    await saveSection('official_program', { days: programData });
+  };
+
+  const initializeDefaults = async () => {
+    try {
+      await axios.post(`${API}/api/cms/content/init-defaults`);
+      toast.success('Programme par défaut initialisé');
+      loadContent();
+    } catch (error) {
+      toast.error('Erreur lors de l\'initialisation');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header with actions */}
+      <div className="flex items-center justify-between bg-paper border border-lightborder rounded-lg p-4">
+        <div>
+          <h3 className="text-lg font-bold text-charcoal flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-terracotta" />
+            Programme Officiel Culture Connect 2026
+          </h3>
+          <p className="text-sm text-charcoal/60 mt-1">
+            Gérez les 4 jours du programme • Ce contenu alimente la page /programme et l'assistant IA
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={initializeDefaults} variant="outline" size="sm" className="border-sage text-sage">
+            <RefreshCw className="w-4 h-4 mr-1" /> Réinitialiser
+          </Button>
+          <Button onClick={saveProgramme} disabled={saving} className="bg-terracotta text-white">
+            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            Publier le programme
+          </Button>
+        </div>
+      </div>
+
+      {/* Introduction */}
+      <div className="bg-paper border border-lightborder rounded-lg p-6">
+        <h4 className="font-semibold text-charcoal mb-4">Introduction de la page Programme</h4>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-charcoal/70 mb-1">Titre</label>
+            <Input
+              value={content.intro?.title || 'Programme Officiel Culture Connect 2026'}
+              onChange={(e) => setContent({ ...content, intro: { ...content.intro, title: e.target.value } })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-charcoal/70 mb-1">Description</label>
+            <Input
+              value={content.intro?.text || ''}
+              onChange={(e) => setContent({ ...content, intro: { ...content.intro, text: e.target.value } })}
+              placeholder="4 jours de rencontres professionnelles..."
+            />
+          </div>
+        </div>
+        <Button onClick={() => saveSection('intro', content.intro)} disabled={saving} size="sm" className="bg-sage text-white mt-4">
+          <Save className="w-4 h-4 mr-2" /> Sauvegarder intro
+        </Button>
+      </div>
+
+      {/* Days */}
+      {programData.map((day, dayIdx) => (
+        <div 
+          key={day.id} 
+          className={`border-2 rounded-xl overflow-hidden transition-all ${
+            day.is_highlight 
+              ? 'border-terracotta bg-terracotta/5' 
+              : 'border-lightborder bg-paper'
+          }`}
+        >
+          {/* Day Header */}
+          <div 
+            className={`p-4 cursor-pointer flex items-center justify-between ${
+              day.is_highlight ? 'bg-terracotta/10' : 'bg-cream/50'
+            }`}
+            onClick={() => setExpandedDay(expandedDay === day.id ? null : day.id)}
+          >
+            <div className="flex items-center gap-4">
+              <div 
+                className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-white ${
+                  day.is_highlight ? 'bg-terracotta' : 'bg-charcoal/70'
+                }`}
+              >
+                J{dayIdx + 1}
+              </div>
+              <div>
+                <h4 className={`font-bold ${day.is_highlight ? 'text-terracotta' : 'text-charcoal'}`}>
+                  {day.label}
+                </h4>
+                <div className="flex items-center gap-2 text-sm text-charcoal/60">
+                  <span>{day.site}</span>
+                  {day.is_highlight && (
+                    <span className="px-2 py-0.5 bg-terracotta text-white text-xs rounded-full">
+                      JOURNÉE SPÉCIALE
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-charcoal/50">
+                {(day.slots || []).length} créneaux
+              </span>
+              {expandedDay === day.id ? (
+                <ChevronUp className="w-5 h-5 text-charcoal/40" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-charcoal/40" />
+              )}
+            </div>
+          </div>
+
+          {/* Day Content - Expanded */}
+          {expandedDay === day.id && (
+            <div className="p-6 space-y-4">
+              {/* Day Settings */}
+              <div className="grid md:grid-cols-3 gap-4 pb-4 border-b border-lightborder">
+                <div>
+                  <label className="block text-sm font-medium text-charcoal/70 mb-1">Intitulé du jour</label>
+                  <Input
+                    value={day.label}
+                    onChange={(e) => updateProgramDay(day.id, 'label', e.target.value)}
+                    placeholder="DAY 1 — Mardi 20 Mai 2026"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-charcoal/70 mb-1">Site(s)</label>
+                  <Input
+                    value={day.site}
+                    onChange={(e) => updateProgramDay(day.id, 'site', e.target.value)}
+                    placeholder="Bibliothèque Schoelcher"
+                  />
+                </div>
+                <div className="flex items-end gap-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={day.is_highlight}
+                      onChange={(e) => {
+                        updateProgramDay(day.id, 'is_highlight', e.target.checked);
+                        if (e.target.checked) {
+                          updateProgramDay(day.id, 'highlight_color', '#A65D47');
+                        }
+                      }}
+                      className="rounded border-charcoal/30"
+                    />
+                    <span className="text-charcoal">Journée spéciale (terracotta)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Slots Header */}
+              <div className="flex items-center justify-between">
+                <h5 className="font-semibold text-charcoal">Créneaux horaires</h5>
+                <Button 
+                  onClick={() => addSlot(day.id)} 
+                  size="sm" 
+                  variant="outline" 
+                  className="border-sage text-sage hover:bg-sage/10"
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Ajouter un créneau
+                </Button>
+              </div>
+
+              {/* Slots List */}
+              <div className="space-y-3">
+                {(day.slots || []).length === 0 ? (
+                  <div className="py-8 text-center border-2 border-dashed border-charcoal/20 rounded-lg text-charcoal/40">
+                    Aucun créneau • Cliquez sur "Ajouter un créneau" pour commencer
+                  </div>
+                ) : (
+                  (day.slots || []).map((slot, slotIdx) => (
+                    <div 
+                      key={slotIdx} 
+                      className={`rounded-lg p-4 border transition-all ${
+                        day.is_highlight ? 'bg-white border-terracotta/30' : 'bg-cream/50 border-lightborder'
+                      }`}
+                    >
+                      {/* Slot reorder buttons */}
+                      <div className="flex items-start gap-3">
+                        <div className="flex flex-col gap-1 pt-2">
+                          <button
+                            onClick={() => moveSlot(day.id, slotIdx, slotIdx - 1)}
+                            disabled={slotIdx === 0}
+                            className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"
+                          >
+                            <ChevronUp className="w-4 h-4 text-charcoal/50" />
+                          </button>
+                          <GripVertical className="w-4 h-4 text-charcoal/30 mx-auto" />
+                          <button
+                            onClick={() => moveSlot(day.id, slotIdx, slotIdx + 1)}
+                            disabled={slotIdx === (day.slots || []).length - 1}
+                            className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"
+                          >
+                            <ChevronDown className="w-4 h-4 text-charcoal/50" />
+                          </button>
+                        </div>
+
+                        {/* Slot content */}
+                        <div className="flex-1 grid grid-cols-12 gap-3">
+                          <div className="col-span-2">
+                            <label className="block text-xs font-medium text-charcoal/50 mb-1">Heure</label>
+                            <Input
+                              value={slot.time}
+                              onChange={(e) => updateSlot(day.id, slotIdx, 'time', e.target.value)}
+                              placeholder="09:00"
+                              className="font-mono"
+                            />
+                          </div>
+                          <div className="col-span-4">
+                            <label className="block text-xs font-medium text-charcoal/50 mb-1">Titre</label>
+                            <Input
+                              value={slot.title}
+                              onChange={(e) => updateSlot(day.id, slotIdx, 'title', e.target.value)}
+                              placeholder="Titre de l'événement"
+                            />
+                          </div>
+                          <div className="col-span-3">
+                            <label className="block text-xs font-medium text-charcoal/50 mb-1">Description</label>
+                            <Input
+                              value={slot.description}
+                              onChange={(e) => updateSlot(day.id, slotIdx, 'description', e.target.value)}
+                              placeholder="Détails..."
+                            />
+                          </div>
+                          <div className="col-span-3">
+                            <label className="block text-xs font-medium text-charcoal/50 mb-1">Intervenant(s)</label>
+                            <Input
+                              value={slot.speaker}
+                              onChange={(e) => updateSlot(day.id, slotIdx, 'speaker', e.target.value)}
+                              placeholder="Nom(s)"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Delete button */}
+                        <button
+                          onClick={() => deleteSlot(day.id, slotIdx)}
+                          className="p-2 hover:bg-red-50 rounded mt-5"
+                          title="Supprimer ce créneau"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* Live Preview */}
+      <div className="bg-paper border border-lightborder rounded-lg p-6">
+        <h4 className="font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Eye className="w-4 h-4 text-terracotta" />
+          Prévisualisation du programme
+        </h4>
+        <div className="border-2 border-charcoal/10 rounded-lg p-6 bg-charcoal text-cream max-h-96 overflow-y-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            {content.intro?.title || 'Programme Officiel Culture Connect 2026'}
+          </h2>
+          {programData.map((day) => (
+            <div key={day.id} className={`mb-6 pb-6 border-b border-cream/20 last:border-0 ${
+              day.is_highlight ? 'bg-terracotta/20 -mx-4 px-4 py-4 rounded-lg' : ''
+            }`}>
+              <h3 className={`font-bold text-lg mb-1 ${day.is_highlight ? 'text-terracotta' : 'text-gold'}`}>
+                {day.label}
+              </h3>
+              <p className="text-cream/60 text-sm mb-3">{day.site}</p>
+              {(day.slots || []).length > 0 ? (
+                <div className="space-y-2">
+                  {(day.slots || []).map((slot, idx) => (
+                    <div key={idx} className="flex gap-4 text-sm">
+                      <span className="text-gold font-mono w-14">{slot.time || '--:--'}</span>
+                      <div>
+                        <span className="font-medium">{slot.title || 'Sans titre'}</span>
+                        {slot.speaker && <span className="text-cream/60 ml-2">— {slot.speaker}</span>}
+                        {slot.description && <p className="text-cream/50 text-xs mt-0.5">{slot.description}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-cream/40 text-sm italic">Aucun créneau défini</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Export info */}
+      <div className="bg-sage/10 border border-sage/30 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <FileText className="w-5 h-5 text-sage mt-0.5" />
+          <div className="text-sm text-charcoal/70">
+            <strong className="text-charcoal">Ce programme alimente :</strong>
+            <ul className="mt-1 ml-4 list-disc space-y-1">
+              <li>La page publique <strong>/programme</strong></li>
+              <li>L'export PDF du programme officiel</li>
+              <li>L'assistant IA (RAG) pour répondre aux questions sur le planning</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ================== CONTENT SECTION (NEW) ==================
 const ContentSection = () => {
   const [activePage, setActivePage] = useState('home');
