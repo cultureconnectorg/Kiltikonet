@@ -36,6 +36,8 @@ function App() {
             <Route path="/confirmation" element={<ConfirmationScreen />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/participant/:participantId" element={<ParticipantProfile />} />
+            {/* Smart Engine */}
+            <Route path="/smart-engine" element={<SmartEngineDashboard />} />
             {/* Legal pages */}
             <Route path="/mentions-legales" element={<MentionsLegales />} />
             <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
