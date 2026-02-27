@@ -17,6 +17,8 @@ import { Toaster } from "./components/ui/sonner";
 import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner } from "./components/legal";
 // Smart Engine
 import SmartEngineDashboard from "./components/SmartEngineDashboard";
+// CMS Admin
+import CMSAdmin from "./components/CMSAdmin";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
