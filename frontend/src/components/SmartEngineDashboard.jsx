@@ -799,6 +799,425 @@ const AIAssistantScreen = () => {
   );
 };
 
+// ==================== INTELLIGENCE STRATEGIQUE SCREEN ====================
+const IntelligenceScreen = () => {
+  const [stats, setStats] = useState(null);
+  const [flows, setFlows] = useState([]);
+  const [heatmap, setHeatmap] = useState(null);
+  const [conversionRates, setConversionRates] = useState([]);
+  const [emergingMarkets, setEmergingMarkets] = useState(null);
+  const [impact, setImpact] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activePanel, setActivePanel] = useState('overview');
+
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+      const [statsRes, flowsRes, heatmapRes, conversionRes, emergingRes, impactRes] = await Promise.all([
+        axios.get(`${SMART_API}/stats`),
+        axios.get(`${API_URL}/api/v1/intelligence/territorial-flows`),
+        axios.get(`${API_URL}/api/v1/intelligence/sector-heatmap`),
+        axios.get(`${API_URL}/api/v1/intelligence/conversion-rates`),
+        axios.get(`${API_URL}/api/v1/intelligence/emerging-markets`),
+        axios.get(`${API_URL}/api/v1/intelligence/impact`)
+      ]);
+      
+      setStats(statsRes.data);
+      setFlows(flowsRes.data.top_flows || []);
+      setHeatmap(heatmapRes.data);
+      setConversionRates(conversionRes.data.conversion_rates || []);
+      setEmergingMarkets(emergingRes.data);
+      setImpact(impactRes.data);
+    } catch (error) {
+      console.error('Error loading intelligence data:', error);
+      notify.error('Erreur', 'Impossible de charger les données d\'intelligence');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const panels = [
+    { id: 'overview', label: 'Vue d\'ensemble', icon: Home },
+    { id: 'flows', label: 'Flux Territoriaux', icon: Globe },
+    { id: 'sectors', label: 'Heatmap Secteurs', icon: Building2 },
+    { id: 'conversion', label: 'Taux Conversion', icon: CheckCircle },
+    { id: 'emerging', label: 'Marchés Émergents', icon: Sparkles }
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#A65D47' }} />
+        <span className="ml-3" style={{ color: '#F4F1EA' }}>Chargement des données d'intelligence...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Panel Navigation */}
+      <div className="flex flex-wrap gap-2">
+        {panels.map(panel => (
+          <button
+            key={panel.id}
+            onClick={() => setActivePanel(panel.id)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{ 
+              backgroundColor: activePanel === panel.id ? 'rgba(166, 93, 71, 0.3)' : 'rgba(255,255,255,0.05)',
+              color: activePanel === panel.id ? '#A65D47' : 'rgba(244, 241, 234, 0.7)',
+              border: activePanel === panel.id ? '1px solid #A65D47' : '1px solid transparent'
+            }}
+          >
+            <panel.icon className="w-4 h-4" />
+            {panel.label}
+          </button>
+        ))}
+        <button
+          onClick={loadAllData}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ml-auto"
+          style={{ backgroundColor: 'rgba(200, 146, 42, 0.2)', color: '#C8922A' }}
+        >
+          <RefreshCw className="w-4 h-4" />
+          Actualiser
+        </button>
+      </div>
+
+      {/* Overview Panel */}
+      {activePanel === 'overview' && impact && (
+        <div className="space-y-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+              <div className="text-3xl font-bold" style={{ color: '#A65D47' }}>{impact.summary.total_matching_events}</div>
+              <div className="text-sm mt-1" style={{ color: 'rgba(244, 241, 234, 0.6)' }}>Événements de matching</div>
+            </div>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+              <div className="text-3xl font-bold" style={{ color: '#C8922A' }}>{impact.summary.total_exports_generated}</div>
+              <div className="text-sm mt-1" style={{ color: 'rgba(244, 241, 234, 0.6)' }}>Attestations générées</div>
+            </div>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+              <div className="text-3xl font-bold" style={{ color: '#4A5D4E' }}>{impact.summary.total_rdv_scheduled}</div>
+              <div className="text-sm mt-1" style={{ color: 'rgba(244, 241, 234, 0.6)' }}>RDV planifiés</div>
+            </div>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+              <div className="text-3xl font-bold" style={{ color: '#F4F1EA' }}>{impact.summary.average_compatibility_score}%</div>
+              <div className="text-sm mt-1" style={{ color: 'rgba(244, 241, 234, 0.6)' }}>Score moyen</div>
+            </div>
+          </div>
+
+          {/* Territories Connected */}
+          <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>
+              {impact.summary.territories_connected} Territoires Connectés
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {impact.territories.map(territory => (
+                <span 
+                  key={territory}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium"
+                  style={{ backgroundColor: 'rgba(166, 93, 71, 0.2)', color: '#A65D47' }}
+                >
+                  {territory}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Distribution Stats */}
+          {stats && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+                <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>Par Territoire</h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.by_territory).map(([territory, count]) => (
+                    <div key={territory} className="flex items-center justify-between">
+                      <span style={{ color: 'rgba(244, 241, 234, 0.7)' }}>{territory}</span>
+                      <span className="font-semibold" style={{ color: '#C8922A' }}>{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+                <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>Par Type de Profil</h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.by_type).map(([type, count]) => (
+                    <div key={type} className="flex items-center justify-between">
+                      <span style={{ color: 'rgba(244, 241, 234, 0.7)' }}>{type}</span>
+                      <span className="font-semibold" style={{ color: '#4A5D4E' }}>{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Territorial Flows Panel */}
+      {activePanel === 'flows' && (
+        <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>
+            Top 10 Corridors Territoriaux
+          </h3>
+          <p className="text-sm mb-6" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+            Les connexions les plus fréquentes entre territoires
+          </p>
+          
+          <div className="space-y-4">
+            {flows.map((flow, idx) => (
+              <div 
+                key={idx} 
+                className="flex items-center gap-4 p-4 rounded-lg"
+                style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+              >
+                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'rgba(166, 93, 71, 0.3)', color: '#A65D47' }}>
+                  {idx + 1}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2" style={{ color: '#F4F1EA' }}>
+                    <span className="font-medium">{flow.from_territory}</span>
+                    <span style={{ color: '#C8922A' }}>→</span>
+                    <span className="font-medium">{flow.to_territory}</span>
+                  </div>
+                  <div className="text-sm mt-1" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+                    Secteur: {flow.sector} • Période: {flow.period}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold" style={{ color: '#C8922A' }}>{flow.flow_count}</div>
+                  <div className="text-xs" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>connexions</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold" style={{ color: '#4A5D4E' }}>{flow.avg_score}%</div>
+                  <div className="text-xs" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>score moy.</div>
+                </div>
+              </div>
+            ))}
+            {flows.length === 0 && (
+              <div className="text-center py-8" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+                Pas encore de données de flux territorial. Effectuez des recommandations pour générer des données.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sector Heatmap Panel */}
+      {activePanel === 'sectors' && heatmap && (
+        <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>
+            Densité de Connexions par Secteur
+          </h3>
+          <p className="text-sm mb-6" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+            Quels secteurs génèrent le plus de matchs
+          </p>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left p-2" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Secteur A / Secteur B</th>
+                  {heatmap.sectors?.slice(0, 6).map(sector => (
+                    <th key={sector} className="p-2 text-center" style={{ color: 'rgba(244, 241, 234, 0.5)', fontSize: '10px' }}>
+                      {sector.substring(0, 10)}...
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {heatmap.sectors?.slice(0, 6).map(sectorA => (
+                  <tr key={sectorA}>
+                    <td className="p-2" style={{ color: '#F4F1EA', fontSize: '11px' }}>{sectorA.substring(0, 15)}...</td>
+                    {heatmap.sectors?.slice(0, 6).map(sectorB => {
+                      const value = heatmap.heatmap?.[sectorA]?.[sectorB] || 0;
+                      const intensity = Math.min(value * 0.3, 1);
+                      return (
+                        <td 
+                          key={sectorB} 
+                          className="p-2 text-center font-medium"
+                          style={{ 
+                            backgroundColor: value > 0 ? `rgba(166, 93, 71, ${intensity})` : 'transparent',
+                            color: value > 0 ? '#F4F1EA' : 'rgba(244, 241, 234, 0.3)'
+                          }}
+                        >
+                          {value}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Raw data list */}
+          <div className="mt-6 pt-6" style={{ borderTop: '1px solid #333' }}>
+            <h4 className="font-medium mb-4" style={{ color: '#F4F1EA' }}>Détail des connexions</h4>
+            <div className="grid md:grid-cols-2 gap-2">
+              {heatmap.raw_data?.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+                  <span className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.7)' }}>
+                    {item.sector_a?.substring(0, 12)} ↔ {item.sector_b?.substring(0, 12)}
+                  </span>
+                  <span className="text-sm font-medium" style={{ color: '#C8922A' }}>
+                    {item.connection_count} ({item.avg_score}%)
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Conversion Rates Panel */}
+      {activePanel === 'conversion' && (
+        <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>
+            Taux de Conversion par Tranche de Score
+          </h3>
+          <p className="text-sm mb-6" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+            Corrélation entre score de compatibilité et actions réelles (export, RDV)
+          </p>
+          
+          <div className="space-y-4">
+            {conversionRates.map((bucket, idx) => (
+              <div key={idx} className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-lg" style={{ color: '#F4F1EA' }}>
+                    Score {bucket.score_range}%
+                  </span>
+                  <span className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+                    {bucket.total_matches} matchs
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <div className="text-xs mb-1" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Taux Export</div>
+                    <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${bucket.export_rate}%`, backgroundColor: '#A65D47' }}
+                      />
+                    </div>
+                    <div className="text-sm font-medium mt-1" style={{ color: '#A65D47' }}>{bucket.export_rate}%</div>
+                  </div>
+                  <div>
+                    <div className="text-xs mb-1" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Taux RDV</div>
+                    <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${bucket.rdv_rate}%`, backgroundColor: '#C8922A' }}
+                      />
+                    </div>
+                    <div className="text-sm font-medium mt-1" style={{ color: '#C8922A' }}>{bucket.rdv_rate}%</div>
+                  </div>
+                  <div>
+                    <div className="text-xs mb-1" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Taux Collaboration</div>
+                    <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${bucket.outcome_rate}%`, backgroundColor: '#4A5D4E' }}
+                      />
+                    </div>
+                    <div className="text-sm font-medium mt-1" style={{ color: '#4A5D4E' }}>{bucket.outcome_rate}%</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'rgba(200, 146, 42, 0.1)', border: '1px solid rgba(200, 146, 42, 0.3)' }}>
+            <p className="text-sm" style={{ color: '#C8922A' }}>
+              💡 <strong>Insight:</strong> Les scores élevés (80-100%) devraient générer des taux de conversion plus importants, prouvant la qualité du matching.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Emerging Markets Panel */}
+      {activePanel === 'emerging' && emergingMarkets && (
+        <div className="space-y-6">
+          <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>
+              Corridors Émergents
+            </h3>
+            <p className="text-sm mb-6" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+              Marchés avec fort potentiel (scores élevés) mais sous-exploités (peu de connexions)
+            </p>
+            
+            <div className="space-y-3">
+              {emergingMarkets.emerging_corridors?.map((corridor, idx) => (
+                <div 
+                  key={idx} 
+                  className="flex items-center gap-4 p-4 rounded-lg"
+                  style={{ backgroundColor: 'rgba(74, 93, 78, 0.2)', border: '1px solid rgba(74, 93, 78, 0.3)' }}
+                >
+                  <Sparkles className="w-5 h-5" style={{ color: '#4A5D4E' }} />
+                  <div className="flex-1">
+                    <div style={{ color: '#F4F1EA' }}>
+                      {corridor.from_territory} → {corridor.to_territory}
+                    </div>
+                    <div className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+                      {corridor.sector}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold" style={{ color: '#4A5D4E' }}>{corridor.avg_score}%</div>
+                    <div className="text-xs" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>score</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold" style={{ color: '#C8922A' }}>{corridor.opportunity_score}</div>
+                    <div className="text-xs" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>opportunité</div>
+                  </div>
+                </div>
+              ))}
+              {(!emergingMarkets.emerging_corridors || emergingMarkets.emerging_corridors.length === 0) && (
+                <div className="text-center py-8" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+                  Pas encore assez de données pour identifier des marchés émergents.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {emergingMarkets.underserved_territories && emergingMarkets.underserved_territories.length > 0 && (
+            <div className="p-6 rounded-xl" style={{ backgroundColor: '#242424', border: '1px solid #333' }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: '#F4F1EA' }}>
+                Territoires Sous-Représentés
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {emergingMarkets.underserved_territories.map((territory, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+                    <span style={{ color: '#F4F1EA' }}>{territory.territory}</span>
+                    <div className="flex gap-4">
+                      <span className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>
+                        {territory.match_count} matchs
+                      </span>
+                      <span className="font-medium" style={{ color: '#C8922A' }}>
+                        {territory.avg_score}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(166, 93, 71, 0.1)', border: '1px solid rgba(166, 93, 71, 0.3)' }}>
+            <p className="text-sm" style={{ color: '#A65D47' }}>
+              {emergingMarkets.insight}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ==================== MAIN COMPONENT ====================
 const SmartEngineDashboard = () => {
   const [activeTab, setActiveTab] = useState('index');
