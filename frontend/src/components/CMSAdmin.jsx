@@ -935,108 +935,13 @@ const ContentSection = () => {
 
       {/* Program Page Content */}
       {activePage === 'program' && (
-        <div className="space-y-6">
-          <div className="bg-paper border border-lightborder rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-charcoal mb-4">Introduction Programme</h3>
-            <div className="space-y-4">
-              <Input
-                value={content.intro?.title || ''}
-                onChange={(e) => updateContent('intro', 'title', e.target.value)}
-                placeholder="Programme Culture Connect 2026"
-              />
-              <textarea
-                value={content.intro?.text || ''}
-                onChange={(e) => updateContent('intro', 'text', e.target.value)}
-                placeholder="4 jours de rencontres..."
-                className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none"
-                rows={3}
-              />
-              <Button onClick={() => saveSection('intro', content.intro)} disabled={saving} size="sm" className="bg-sage text-white">
-                <Save className="w-4 h-4 mr-2" /> Sauvegarder
-              </Button>
-            </div>
-          </div>
-
-          {/* Days */}
-          {(content.days?.days || []).map((day, dayIdx) => (
-            <div key={dayIdx} className="bg-paper border border-lightborder rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-terracotta">{day.name}</h3>
-                <Button
-                  onClick={() => {
-                    const days = [...(content.days?.days || [])];
-                    days[dayIdx].events.push({ time: '', title: '', site: '', description: '' });
-                    updateContent('days', 'days', days);
-                  }}
-                  size="sm"
-                  variant="outline"
-                  className="border-sage text-sage"
-                >
-                  <Plus className="w-4 h-4 mr-1" /> Ajouter événement
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {(day.events || []).map((event, eventIdx) => (
-                  <div key={eventIdx} className="grid grid-cols-12 gap-2 items-start bg-cream/50 p-3 rounded-lg">
-                    <Input
-                      value={event.time}
-                      onChange={(e) => {
-                        const days = [...(content.days?.days || [])];
-                        days[dayIdx].events[eventIdx].time = e.target.value;
-                        updateContent('days', 'days', days);
-                      }}
-                      placeholder="09:00"
-                      className="col-span-2 text-sm"
-                    />
-                    <Input
-                      value={event.title}
-                      onChange={(e) => {
-                        const days = [...(content.days?.days || [])];
-                        days[dayIdx].events[eventIdx].title = e.target.value;
-                        updateContent('days', 'days', days);
-                      }}
-                      placeholder="Titre événement"
-                      className="col-span-3 text-sm"
-                    />
-                    <Input
-                      value={event.site}
-                      onChange={(e) => {
-                        const days = [...(content.days?.days || [])];
-                        days[dayIdx].events[eventIdx].site = e.target.value;
-                        updateContent('days', 'days', days);
-                      }}
-                      placeholder="La Savane"
-                      className="col-span-2 text-sm"
-                    />
-                    <Input
-                      value={event.description}
-                      onChange={(e) => {
-                        const days = [...(content.days?.days || [])];
-                        days[dayIdx].events[eventIdx].description = e.target.value;
-                        updateContent('days', 'days', days);
-                      }}
-                      placeholder="Description"
-                      className="col-span-4 text-sm"
-                    />
-                    <button
-                      onClick={() => {
-                        const days = [...(content.days?.days || [])];
-                        days[dayIdx].events.splice(eventIdx, 1);
-                        updateContent('days', 'days', days);
-                      }}
-                      className="col-span-1 p-2 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-          <Button onClick={() => saveSection('days', content.days)} disabled={saving} className="bg-sage text-white">
-            <Save className="w-4 h-4 mr-2" /> Sauvegarder Programme
-          </Button>
-        </div>
+        <ProgramEditor 
+          content={content} 
+          setContent={setContent} 
+          saveSection={saveSection} 
+          saving={saving} 
+          loadContent={loadContent}
+        />
       )}
 
       {/* About Page Content */}
