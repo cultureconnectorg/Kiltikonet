@@ -413,15 +413,11 @@ app.post('/api/v1/smart-recommendations/export', async (req, res) => {
     
     const prompt = `En 2-3 phrases professionnelles en français, explique pourquoi le profil "${profileA.name}" (type: ${profileA.type}, territoire: ${profileA.territory}, genres: ${(profileA.genres || []).join(', ')}) est compatible à ${score}% avec le profil "${profileB.name}" (type: ${profileB.type}, territoire: ${profileB.territory}) dans le cadre d'un développement culturel afro-caribéen. Formule comme une recommandation officielle pour un dossier de subvention.`;
     
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 300,
-      messages: [{ role: 'user', content: prompt }]
-    });
+    const recommendation = await callClaude(prompt);
     
     res.json({
       success: true,
-      recommendation: message.content[0].text,
+      recommendation,
       profileA: { name: profileA.name, type: profileA.type },
       profileB: { name: profileB.name, type: profileB.type },
       score
