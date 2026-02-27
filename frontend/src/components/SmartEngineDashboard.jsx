@@ -79,38 +79,51 @@ const IndexProfileScreen = () => {
   });
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(null);
-  const [error, setError] = useState(null);
+  const [loadingProfiles, setLoadingProfiles] = useState(false);
 
   useEffect(() => {
     loadProfiles();
   }, []);
 
   const loadProfiles = async () => {
+    setLoadingProfiles(true);
     try {
       const res = await axios.get(`${SMART_API}/profiles`);
       setProfiles(res.data.profiles || []);
     } catch (err) {
       console.error('Error loading profiles:', err);
+      notify.error('Erreur', 'Impossible de charger les profils');
+    } finally {
+      setLoadingProfiles(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-    setSuccess(null);
+    
+    const toastId = toast.loading('Indexation du profil en cours...', {
+      style: { background: '#1A1A1A', color: '#F4F1EA', border: '1px solid #333' }
+    });
 
     try {
       const res = await axios.post(`${SMART_API}/index`, formData);
-      setSuccess(`Profil "${res.data.profile.name}" indexé avec succès !`);
+      toast.dismiss(toastId);
+      notify.success(
+        '✅ Profil indexé avec succès',
+        `"${res.data.profile.name}" (${PROFILE_TYPES.find(t => t.value === res.data.profile.type)?.label}) a été ajouté à la base de données`
+      );
       setFormData({
         name: '', type: 'artist', sector: '', genres: [], tags: [],
         territory: '', description: '', seeking: '', offering: ''
       });
       loadProfiles();
     } catch (err) {
-      setError(err.response?.data?.error || 'Erreur lors de l\'indexation');
+      toast.dismiss(toastId);
+      notify.error(
+        '❌ Erreur d\'indexation',
+        err.response?.data?.error || 'Une erreur est survenue lors de l\'indexation du profil'
+      );
     } finally {
       setLoading(false);
     }
