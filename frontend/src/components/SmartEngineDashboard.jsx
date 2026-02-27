@@ -131,11 +131,19 @@ const IndexProfileScreen = () => {
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Supprimer le profil "${name}" ?`)) return;
+    
+    const toastId = toast.loading(`Suppression de "${name}"...`, {
+      style: { background: '#1A1A1A', color: '#F4F1EA', border: '1px solid #333' }
+    });
+    
     try {
       await axios.delete(`${SMART_API}/profiles/${id}`);
+      toast.dismiss(toastId);
+      notify.success('🗑️ Profil supprimé', `"${name}" a été retiré de la base de données`);
       loadProfiles();
     } catch (err) {
-      console.error('Delete error:', err);
+      toast.dismiss(toastId);
+      notify.error('❌ Erreur', 'Impossible de supprimer le profil');
     }
   };
 
