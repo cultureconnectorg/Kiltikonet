@@ -226,11 +226,15 @@ export const AdminDashboard = () => {
     
     try {
       await axios.delete(`${API}/registrations/${id}`);
-      toast.success(language === 'fr' ? 'Inscription supprimée' : 'Registration deleted');
+      toast.success(language === 'fr' ? '✓ Inscription supprimée avec succès' : '✓ Registration deleted successfully');
       setSelectedReg(null);
       fetchRegistrations();
     } catch (error) {
-      toast.error('Error');
+      toast.error(
+        language === 'fr' 
+          ? '✗ Impossible de supprimer l\'inscription. Veuillez réessayer.' 
+          : '✗ Failed to delete registration. Please try again.'
+      );
     }
   };
 
