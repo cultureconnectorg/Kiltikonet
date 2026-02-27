@@ -146,11 +146,15 @@ export const AdminDashboard = () => {
         in_catalog: inCatalog
       });
     } catch (error) {
-      toast.error('Error loading data');
+      toast.error(
+        language === 'fr' 
+          ? '✗ Impossible de charger les données. Vérifiez votre connexion.' 
+          : '✗ Failed to load data. Check your connection.'
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, language]);
   
   // Fetch statistics from API v1
   const fetchStats = useCallback(async () => {
