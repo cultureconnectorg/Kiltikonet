@@ -327,24 +327,40 @@ export const AdminDashboard = () => {
   // Batch approve handler
   const handleBatchApprove = async () => {
     if (selectedIds.length === 0) {
-      toast.error(language === 'fr' ? 'Aucun participant sélectionné' : 'No participants selected');
+      toast.error(language === 'fr' ? '⚠ Veuillez sélectionner au moins un participant' : '⚠ Please select at least one participant');
       return;
     }
     
     if (!window.confirm(t('confirmBatchApprove') || `${language === 'fr' ? 'Approuver' : 'Approve'} ${selectedIds.length} ${language === 'fr' ? 'participants ?' : 'participants?'}`)) return;
     
     setIsBatchProcessing(true);
+    toast.loading(
+      language === 'fr' 
+        ? `Approbation de ${selectedIds.length} participant(s)...` 
+        : `Approving ${selectedIds.length} participant(s)...`, 
+      { id: 'batch-approve' }
+    );
     try {
       const response = await axios.post(`${API}/registrations/batch/approve`, {
         registration_ids: selectedIds
       });
       
-      toast.success(`${response.data.approved_count} ${t('participantsApproved') || 'participants approved'}`);
+      toast.success(
+        language === 'fr' 
+          ? `✓ ${response.data.approved_count} participant(s) approuvé(s) avec succès` 
+          : `✓ ${response.data.approved_count} participant(s) approved successfully`, 
+        { id: 'batch-approve' }
+      );
       setSelectedIds([]);
       fetchRegistrations();
       fetchStats();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Error');
+      toast.error(
+        language === 'fr' 
+          ? `✗ Échec de l'approbation. ${error.response?.data?.detail || 'Veuillez réessayer.'}` 
+          : `✗ Approval failed. ${error.response?.data?.detail || 'Please try again.'}`, 
+        { id: 'batch-approve' }
+      );
     } finally {
       setIsBatchProcessing(false);
     }
