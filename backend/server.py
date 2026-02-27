@@ -580,6 +580,40 @@ class CMSPartnerBanner(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
+class CMSTheme(BaseModel):
+    """Theme configuration"""
+    tenant_id: str = "culture-connect-2026"
+    primary_color: str = "#A65D47"
+    secondary_color: str = "#C8922A"
+    accent_color: str = "#4A5D4E"
+    background_color: str = "#1A1A1A"
+    text_color: str = "#F4F1EA"
+    font_family: str = "Inter"
+    hero_image_url: Optional[str] = None
+    hero_title: Optional[str] = None
+    hero_subtitle: Optional[str] = None
+
+class CMSContent(BaseModel):
+    """Editorial content for pages"""
+    id: Optional[str] = None
+    tenant_id: str = "culture-connect-2026"
+    page: str  # home, program, about
+    section: str  # title, subtitle, intro, key_figures, etc.
+    content: dict  # JSON content
+    updated_at: Optional[str] = None
+
+class CMSPage(BaseModel):
+    """Custom dynamic page"""
+    id: Optional[str] = None
+    tenant_id: str = "culture-connect-2026"
+    title: str
+    slug: str
+    content: str  # HTML/rich text
+    meta_description: Optional[str] = None
+    published: bool = False
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
 # ================== STRIPE ROUTES ==================
 @api_router.post("/create-checkout-session")
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
