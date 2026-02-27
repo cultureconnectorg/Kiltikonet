@@ -1679,6 +1679,7 @@ const CMSAdmin = () => {
     { id: 'design', label: 'Design', icon: Palette },
     { id: 'content', label: 'Contenu', icon: FileText },
     { id: 'pages', label: 'Pages', icon: Layout },
+    { id: 'intention', label: 'Intention', icon: Sparkles },
     { id: 'preview', label: 'Aperçu', icon: Eye }
   ];
 
