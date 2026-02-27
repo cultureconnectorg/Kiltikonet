@@ -832,8 +832,13 @@ const SmartEngineDashboard = () => {
                 <Cpu className="w-6 h-6" style={{ color: '#A65D47' }} />
               </div>
               <div>
-              <h1 className="text-2xl font-bold" style={{ color: '#F4F1EA' }}>KiltiKonet Smart Engine</h1>
-              <p className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Matching intelligent pour Culture Connect 2026</p>
+                <h1 className="text-2xl font-bold" style={{ color: '#F4F1EA' }}>KiltiKonet Smart Engine</h1>
+                <p className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Matching intelligent pour Culture Connect 2026</p>
+              </div>
+            </div>
+            {/* Stats badge */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(200, 146, 42, 0.2)' }}>
+              <span className="text-xs font-medium" style={{ color: '#C8922A' }}>Powered by AI</span>
             </div>
           </div>
         </div>
