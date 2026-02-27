@@ -30,7 +30,13 @@ import {
   Globe,
   Link2,
   Copy,
-  Loader2
+  Loader2,
+  Sparkles,
+  Play,
+  Volume2,
+  VolumeX,
+  Music,
+  MapPin
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
