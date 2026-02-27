@@ -2473,9 +2473,11 @@ async def get_partner_suggestions(participant_id: str):
     }
 
 # ================== EMERGENT LLM SERVICES ==================
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from emergentintegrations.llm.chat import LlmChat, UserMessage, get_integration_proxy_url
+import litellm
 
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "sk-emergent-042E081B3D24541Dd4")
+EMERGENT_PROXY_URL = get_integration_proxy_url()
 
 class EmbeddingRequest(BaseModel):
     text: str
@@ -2488,16 +2490,16 @@ class ChatRequest(BaseModel):
 
 @api_v1_router.post("/llm/embedding")
 async def generate_embedding_endpoint(request: EmbeddingRequest):
-    """Generate embedding using OpenAI via Emergent"""
+    """Generate embedding using OpenAI via Emergent proxy"""
     try:
-        import openai
-        client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY", EMERGENT_LLM_KEY))
-        
-        response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=request.text
+        # Use litellm with Emergent proxy for embeddings
+        response = litellm.embedding(
+            model="openai/text-embedding-3-small",
+            input=[request.text],
+            api_key=EMERGENT_LLM_KEY,
+            api_base=EMERGENT_PROXY_URL
         )
-        return {"embedding": response.data[0].embedding}
+        return {"embedding": response.data[0]["embedding"]}
     except Exception as e:
         logger.error(f"Embedding error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Embedding generation failed: {str(e)}")
