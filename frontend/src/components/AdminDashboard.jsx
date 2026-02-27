@@ -205,15 +205,19 @@ export const AdminDashboard = () => {
     try {
       await axios.patch(`${API}/registrations/${id}/catalog`, { show_in_catalog: showInCatalog });
       toast.success(language === 'fr' 
-        ? (showInCatalog ? 'Ajouté au catalogue' : 'Retiré du catalogue')
-        : (showInCatalog ? 'Added to catalog' : 'Removed from catalog')
+        ? (showInCatalog ? '✓ Profil ajouté au catalogue public' : '✓ Profil retiré du catalogue')
+        : (showInCatalog ? '✓ Profile added to public catalog' : '✓ Profile removed from catalog')
       );
       fetchRegistrations();
       if (selectedReg?.id === id) {
         setSelectedReg(prev => ({ ...prev, show_in_catalog: showInCatalog }));
       }
     } catch (error) {
-      toast.error('Error');
+      toast.error(
+        language === 'fr' 
+          ? '✗ Impossible de modifier la visibilité catalogue. Veuillez réessayer.' 
+          : '✗ Failed to update catalog visibility. Please try again.'
+      );
     }
   };
 
