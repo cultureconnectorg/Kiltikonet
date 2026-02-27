@@ -1,14 +1,16 @@
-# KiltiKonet Smart Engine — PRD v2.0
+# KiltiKonet Smart Engine — PRD v3.0
 
 ## Vision 2026-2031
 Infrastructure de données stratégique pour les marchés culturels afro-diasporiques.
 
-## Architecture Implementée
+---
+
+## Ce qui a été implémenté
 
 ### Phase 1 — Foundation ✅
 - **Multi-tenant**: `tenant_id` ajouté à toutes les tables
 - **Tenant par défaut**: `culture-connect-2026`
-- **Nouvelles collections MongoDB**:
+- **Collections MongoDB**:
   - `matching_events` — Capture chaque recommandation
   - `territorial_flows` — Agrégation des flux entre territoires
   - `collaboration_outcomes` — Résultats business déclarés
@@ -16,88 +18,143 @@ Infrastructure de données stratégique pour les marchés culturels afro-diaspor
   - `tenant_config` — Configuration white-label
 
 ### Phase 2 — Intelligence API ✅
-- `GET /api/v1/intelligence/territorial-flows` — Top corridors territoriaux
-- `GET /api/v1/intelligence/sector-heatmap` — Matrice de connexions par secteur
-- `GET /api/v1/intelligence/conversion-rates` — Taux par tranche de score
-- `GET /api/v1/intelligence/emerging-markets` — Marchés sous-exploités
-- `GET /api/v1/intelligence/impact` — Résumé économique global
+- `GET /api/v1/intelligence/territorial-flows`
+- `GET /api/v1/intelligence/sector-heatmap`
+- `GET /api/v1/intelligence/conversion-rates`
+- `GET /api/v1/intelligence/emerging-markets`
+- `GET /api/v1/intelligence/impact`
 
 ### Phase 3 — Certification Engine ✅
 - Génération d'attestations avec UUID unique
 - QR code dans les PDFs avec lien de vérification
-- `GET /api/v1/verify/:attestationId` — Endpoint public de vérification
-- Signature numérique et horodatage
+- `GET /api/v1/verify/:attestationId`
 
 ### Phase 4 — Admin Dashboard Intelligence ✅
-- Nouvel onglet "Intelligence" dans Smart Engine
-- 5 panels interactifs:
-  - Vue d'ensemble (KPIs)
-  - Flux Territoriaux
-  - Heatmap Secteurs
-  - Taux de Conversion
-  - Marchés Émergents
+- Onglet "Intelligence" dans Smart Engine
+- 5 panels interactifs
 
-## Matching Engine — Claude-Based
-Au lieu d'embeddings vectoriels OpenAI, le système utilise **Claude** pour:
-- Comparer sémantiquement les profils
-- Générer des scores de compatibilité (0-100%)
-- Produire des `matchReason` riches en français
-- Identifier les genres communs et la complémentarité
+### Phase 5 — CMS Complet ✅ (Février 2026)
 
-**Caching**: Les résultats sont mis en cache 7 jours dans `matching_events`.
+#### Section Médias
+- Upload bannière hero, logo, photos sites, galerie
+- Cloudinary integration
 
-## Profils Indexés (10)
-1. Tropical Sound Records (label, Martinique)
-2. Afropicks Colombia (agent, Colombie)
-3. Gwo Ka Studio (artist, Guadeloupe)
-4. Llorona Records (label, Colombie)
-5. Trace Urban Caraibes (media, Martinique)
-6. Haitian Roots Foundation (institution, Haiti)
-7. ZZK Records (label, Argentine)
-8. Skillfor Campus Martinique (institution, Martinique)
-9. Grace Torres (artist, Colombie)
-10. Diaspora Prod Paris (producer, France)
+#### Section Exposants
+- Photos pour profils Smart Engine et participants
+- Initiales auto-générées
 
-## Statistiques Actuelles
-- **10 profils** indexés
-- **9 matching events** générés
-- **6 territoires** connectés
-- **83% score moyen** de compatibilité
+#### Section Intervenants
+- Nom, rôle, photo, bio
+- Drag & drop réordonnement
 
-## Stack Technique
-- **Backend Smart Engine**: Node.js/Express (port 8002)
-- **Backend Principal**: FastAPI Python (port 8001) — proxy vers Smart Engine
-- **Frontend**: React + Tailwind CSS
-- **Database**: MongoDB (multi-collection)
-- **LLM**: Claude via Emergent LLM Key
-- **PDF**: PDFKit + QRCode
+#### Section Partenaires
+- Logos avec URLs
+- Ordre d'affichage
 
-## URLs d'Accès
-- **Smart Engine**: `/smart-engine`
-- **Admin Dashboard**: `/admin` → boutons "Smart Engine" et "CMS"
-- **CMS Admin**: `/admin/cms`
-- **Vérification publique**: `/api/v1/verify/:attestationId`
+#### Section Design (NOUVEAU ✅)
+- **Couleurs du thème**: 5 color pickers
+  - Principale (#A65D47 Terracotta)
+  - Secondaire (#C8922A Or)
+  - Accent (#4A5D4E Sauge)
+  - Fond (#1A1A1A Charbon)
+  - Texte (#F4F1EA Crème)
+- **Typographie**: 5 polices (Inter, Poppins, DM Sans, Montserrat, Source Sans Pro)
+- **Section Hero**: Image de fond, titre, sous-titre
+- **Prévisualisation en direct**
 
-## CMS Admin (Février 2026)
-### Fonctionnalités Implémentées
-- **Section Médias**: Upload bannière hero, logo, photos sites, galerie
-- **Section Exposants**: Photos pour profils Smart Engine et participants
-- **Section Intervenants**: Nom, rôle, photo, bio + drag & drop réordonnement
-- **Section Partenaires**: Logos avec URLs + ordre d'affichage
-- **Prévisualisation**: Aperçu complet avant publication
-- **Publication**: Bouton pour publier toutes les modifications
+#### Section Contenu (NOUVEAU ✅)
+- **Page Accueil**: Hero, Introduction, Chiffres clés
+- **Page Programme**: Introduction + Programme Officiel structuré
+- **Page À propos**: Histoire, Mission, Vision
 
-### Collections MongoDB CMS
-- `cms_media` — Images et médias de l'événement
-- `cms_exhibitor_photos` — Photos des exposants
-- `cms_speakers` — Intervenants et leurs infos
-- `cms_partner_banners` — Logos partenaires
+#### Programme Officiel (NOUVEAU ✅)
+Structure exacte:
+```
+DAY 1 — Mardi 20 Mai 2026
+  Site: Bibliothèque Schoelcher
+  Slots: [time] [title] [description] [speaker]
 
-## Prochaines Étapes
-1. Déploiement en production
-2. Configuration DNS kiltikonet.fr
-3. Test avec utilisateurs réels lors de Culture Connect 2026
-4. Extension white-label pour autres événements (2027+)
+DAY 2 — Mercredi 21 Mai 2026
+  Site: Bibliothèque Schoelcher + Tropiques Atrium
+  Slots: [time] [title] [description] [speaker]
+
+DAY 3 — Jeudi 22 Mai 2026 (JOURNÉE ABOLITION)
+  Site: Tropiques Atrium + La Savane
+  → Mis en évidence en terracotta #A65D47
+  Slots: [time] [title] [description] [speaker]
+
+DAY 4 — Vendredi 23 Mai 2026
+  Site: Tropiques Atrium
+  Slots: [time] [title] [description] [speaker]
+```
+- Ajouter / éditer / supprimer / réordonner créneaux
+- Alimente: Page /programme, PDF, Assistant IA (RAG)
+
+#### Section Pages Dynamiques (NOUVEAU ✅)
+- Création de pages personnalisées
+- Accessible via `/p/{slug}`
+- Titre, Slug URL, Meta description SEO
+- Contenu HTML
+- Publication/dépublication
 
 ---
+
+## Architecture Technique
+
+### Stack
+- **Backend Principal**: FastAPI Python (port 8001)
+- **Smart Engine**: Node.js/Express (port 8002)
+- **Frontend**: React + Tailwind CSS
+- **Database**: MongoDB
+- **LLM**: Claude via Emergent LLM Key
+- **Media**: Cloudinary
+- **PDF**: pdf-lib + qrcode
+
+### Collections MongoDB CMS
+- `cms_media` — Images et médias
+- `cms_exhibitor_photos` — Photos exposants
+- `cms_speakers` — Intervenants
+- `cms_partner_banners` — Logos partenaires
+- `tenant_config` — Thème et configuration
+- `cms_content` — Contenu éditorial
+- `cms_pages` — Pages dynamiques
+
+### Routes Frontend
+- `/` — Page d'accueil
+- `/programme` — Programme officiel (depuis CMS)
+- `/inscription` — Formulaire d'inscription
+- `/admin` — Dashboard administrateur
+- `/admin/cms` — CMS Admin
+- `/smart-engine` — Intelligence Dashboard
+- `/p/:slug` — Pages dynamiques CMS
+
+---
+
+## Prochaines Étapes
+
+### P0 (Immédiat)
+- ✅ Section Contenu avec Programme Officiel
+- ✅ Section Pages dynamiques
+- ✅ Section Design
+- ✅ Connexion pages publiques au CMS
+
+### P1 (À venir)
+- Export PDF du programme officiel
+- Intégration RAG pour assistant IA
+- Page /programme avec mode impression
+
+### P2 (Futur)
+- Déploiement en production
+- Configuration DNS kiltikonet.fr
+- Extension white-label pour autres événements
+
+---
+
+## Accès Admin
+
+- **URL CMS**: `/admin/cms`
+- **Mot de passe**: `CC2026admin`
+
+---
+
 *Dernière mise à jour: 27 février 2026*
