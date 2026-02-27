@@ -2608,6 +2608,57 @@ async def smart_engine_proxy(request: Request, path: str):
             logger.error(f"Smart Engine proxy error: {str(e)}")
             raise HTTPException(status_code=500, detail="Internal proxy error")
 
+# Intelligence API Proxy
+@app.api_route("/api/v1/intelligence/{path:path}", methods=["GET", "POST"])
+async def intelligence_proxy(request: Request, path: str):
+    """Proxy requests to KiltiKonet Smart Engine Intelligence API"""
+    async with httpx.AsyncClient(timeout=60.0) as client_http:
+        url = f"{SMART_ENGINE_URL}/api/v1/intelligence/{path}"
+        
+        try:
+            if request.method == "GET":
+                response = await client_http.get(url, params=dict(request.query_params))
+            else:
+                body = await request.body()
+                response = await client_http.post(
+                    url, 
+                    content=body,
+                    headers={"Content-Type": request.headers.get("Content-Type", "application/json")}
+                )
+            
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.headers.get("content-type")
+            )
+        except httpx.ConnectError:
+            raise HTTPException(status_code=503, detail="Smart Engine service unavailable")
+        except Exception as e:
+            logger.error(f"Intelligence proxy error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Internal proxy error")
+
+# Verify API Proxy (Public endpoint)
+@app.get("/api/v1/verify/{attestation_id}")
+async def verify_proxy(attestation_id: str):
+    """Proxy requests to KiltiKonet Smart Engine Verification API"""
+    async with httpx.AsyncClient(timeout=30.0) as client_http:
+        url = f"{SMART_ENGINE_URL}/api/v1/verify/{attestation_id}"
+        
+        try:
+            response = await client_http.get(url)
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.headers.get("content-type")
+            )
+        except httpx.ConnectError:
+            raise HTTPException(status_code=503, detail="Smart Engine service unavailable")
+        except Exception as e:
+            logger.error(f"Verify proxy error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Internal proxy error")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
