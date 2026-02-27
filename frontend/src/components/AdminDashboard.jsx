@@ -242,7 +242,11 @@ export const AdminDashboard = () => {
     e.preventDefault();
     try {
       await axios.post(`${API}/registrations/manual`, newParticipant);
-      toast.success(language === 'fr' ? 'Participant ajouté' : 'Participant added');
+      toast.success(
+        language === 'fr' 
+          ? `✓ ${newParticipant.full_name} ajouté avec succès` 
+          : `✓ ${newParticipant.full_name} added successfully`
+      );
       setShowAddModal(false);
       setNewParticipant({
         full_name: '',
@@ -258,7 +262,11 @@ export const AdminDashboard = () => {
       });
       fetchRegistrations();
     } catch (error) {
-      toast.error(language === 'fr' ? 'Erreur lors de l\'ajout' : 'Error adding participant');
+      toast.error(
+        language === 'fr' 
+          ? `✗ Impossible d'ajouter le participant. ${error.response?.data?.detail || 'Veuillez réessayer.'}` 
+          : `✗ Failed to add participant. ${error.response?.data?.detail || 'Please try again.'}`
+      );
     }
   };
   
