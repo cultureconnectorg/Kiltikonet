@@ -543,6 +543,14 @@ export const AdminDashboard = () => {
                 <Button onClick={() => setShowAddModal(true)} className="h-10 bg-sage text-paper font-syne text-sm rounded-none" data-testid="add-participant-button">
                   <Plus className="w-4 h-4 mr-2" /> {language === 'fr' ? 'Ajouter' : 'Add'}
                 </Button>
+                <Button 
+                  onClick={() => navigate('/admin/cms')} 
+                  variant="outline"
+                  className="h-10 border-gold text-gold hover:bg-gold/10 font-syne text-sm rounded-none" 
+                  data-testid="cms-button"
+                >
+                  <Settings className="w-4 h-4 mr-2" /> CMS
+                </Button>
                 <Button onClick={fetchRegistrations} variant="outline" className="h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none">
                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>
