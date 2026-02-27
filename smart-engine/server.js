@@ -278,38 +278,6 @@ app.get('/api/v1/smart-recommendations/:profileId', async (req, res) => {
   }
 });
 
-// List all profiles
-app.get('/api/v1/smart-recommendations/profiles', async (req, res) => {
-  try {
-    const profiles = await db.collection('smart_profiles')
-      .find({}, { projection: { embedding: 0, _id: 0 } })
-      .sort({ created_at: -1 })
-      .toArray();
-    
-    res.json({ profiles, total: profiles.length });
-  } catch (error) {
-    console.error('List profiles error:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des profils' });
-  }
-});
-
-// Delete a profile
-app.delete('/api/v1/smart-recommendations/profiles/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await db.collection('smart_profiles').deleteOne({ id });
-    
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ error: 'Profil non trouvé' });
-    }
-    
-    res.json({ success: true, message: 'Profil supprimé' });
-  } catch (error) {
-    console.error('Delete error:', error);
-    res.status(500).json({ error: 'Erreur lors de la suppression' });
-  }
-});
-
 // ================== RAG ENDPOINTS ==================
 
 // Index a document for RAG
