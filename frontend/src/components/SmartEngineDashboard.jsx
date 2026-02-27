@@ -301,25 +301,12 @@ const IndexProfileScreen = () => {
             </div>
           </div>
 
-          {/* Alerts */}
-          {success && (
-            <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400">
-              <CheckCircle className="w-5 h-5" />
-              {success}
-            </div>
-          )}
-          {error && (
-            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
-              <AlertCircle className="w-5 h-5" />
-              {error}
-            </div>
-          )}
-
           {/* Submit */}
           <button
             type="submit"
             disabled={loading || !formData.name}
-            className="w-full py-3 bg-terracotta hover:bg-terracotta/90 disabled:bg-terracotta/50 text-paper font-medium rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-3 bg-terracotta hover:bg-terracotta/90 disabled:bg-terracotta/50 text-paper font-medium rounded-lg flex items-center justify-center gap-2 transition-all duration-200"
+            style={{ transform: loading ? 'scale(0.98)' : 'scale(1)' }}
           >
             {loading ? (
               <>
@@ -338,19 +325,38 @@ const IndexProfileScreen = () => {
 
       {/* Profiles List */}
       <div className="bg-dark-card rounded-xl p-6 border border-dark-border">
-        <h3 className="text-lg font-medium text-paper mb-4 flex items-center gap-2">
-          <Users className="w-5 h-5 text-gold" />
-          Profils indexés ({profiles.length})
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-paper flex items-center gap-2">
+            <Users className="w-5 h-5 text-gold" />
+            Profils indexés ({profiles.length})
+          </h3>
+          <button 
+            onClick={loadProfiles}
+            disabled={loadingProfiles}
+            className="p-2 text-paper/50 hover:text-paper transition-colors rounded-lg hover:bg-dark-bg"
+            title="Actualiser la liste"
+          >
+            <RefreshCw className={`w-4 h-4 ${loadingProfiles ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
 
-        {profiles.length === 0 ? (
+        {loadingProfiles ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-terracotta" />
+            <span className="ml-2 text-paper/50">Chargement...</span>
+          </div>
+        ) : profiles.length === 0 ? (
           <p className="text-paper/50 text-center py-8">Aucun profil indexé</p>
         ) : (
           <div className="space-y-3">
-            {profiles.map(p => (
+            {profiles.map((p, index) => (
               <div 
                 key={p.id} 
-                className="flex items-center justify-between p-4 bg-dark-bg rounded-lg border border-dark-border hover:border-terracotta/30 transition-colors"
+                className="flex items-center justify-between p-4 bg-dark-bg rounded-lg border border-dark-border hover:border-terracotta/30 transition-all duration-200"
+                style={{ 
+                  animationDelay: `${index * 50}ms`,
+                  animation: 'fadeIn 0.3s ease-out forwards'
+                }}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-terracotta/20 flex items-center justify-center">
