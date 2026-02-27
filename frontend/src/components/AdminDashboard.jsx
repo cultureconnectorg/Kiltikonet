@@ -284,6 +284,7 @@ export const AdminDashboard = () => {
   
   const handleExportCSV = async () => {
     try {
+      toast.loading(language === 'fr' ? 'Génération de l\'export CSV...' : 'Generating CSV export...', { id: 'export' });
       const response = await axios.get(`${API}/registrations/export`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -292,9 +293,19 @@ export const AdminDashboard = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success('Export successful');
+      toast.success(
+        language === 'fr' 
+          ? '✓ Export CSV téléchargé avec succès' 
+          : '✓ CSV export downloaded successfully', 
+        { id: 'export' }
+      );
     } catch (error) {
-      toast.error('Export error');
+      toast.error(
+        language === 'fr' 
+          ? '✗ Échec de l\'export. Veuillez réessayer.' 
+          : '✗ Export failed. Please try again.', 
+        { id: 'export' }
+      );
     }
   };
 
