@@ -371,7 +371,7 @@ export const AdminDashboard = () => {
     const idsToSend = sendToAll ? [] : selectedIds;
     
     if (!sendToAll && idsToSend.length === 0) {
-      toast.error(language === 'fr' ? 'Aucun participant sélectionné' : 'No participants selected');
+      toast.error(language === 'fr' ? '⚠ Veuillez sélectionner au moins un participant' : '⚠ Please select at least one participant');
       return;
     }
     
@@ -413,7 +413,14 @@ export const AdminDashboard = () => {
           if (progress.status !== 'completed') {
             setTimeout(pollProgress, 1000);
           } else {
-            toast.success(`${progress.sent} ${t('badgesSent') || 'badges sent'}`);
+            const failedMsg = progress.failed > 0 
+              ? (language === 'fr' ? ` (${progress.failed} échec(s))` : ` (${progress.failed} failed)`) 
+              : '';
+            toast.success(
+              language === 'fr' 
+                ? `✓ ${progress.sent} badge(s) envoyé(s) avec succès${failedMsg}` 
+                : `✓ ${progress.sent} badge(s) sent successfully${failedMsg}`
+            );
             setSelectedIds([]);
             setIsBatchProcessing(false);
             fetchEmailLogs();
@@ -422,6 +429,11 @@ export const AdminDashboard = () => {
           }
         } catch (e) {
           console.error('Progress poll error:', e);
+          toast.error(
+            language === 'fr' 
+              ? '✗ Erreur lors du suivi de la progression' 
+              : '✗ Error tracking progress'
+          );
           setIsBatchProcessing(false);
           setBatchProgress(null);
         }
