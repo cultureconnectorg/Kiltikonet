@@ -2609,6 +2609,290 @@ async def llm_chat_endpoint(request: ChatRequest):
 app.include_router(api_router)
 app.include_router(api_v1_router)
 
+# ================== CMS ROUTES ==================
+
+DEFAULT_TENANT = "culture-connect-2026"
+
+# --- CMS Media ---
+@app.get("/api/cms/media")
+async def get_cms_media(category: Optional[str] = None, tenant_id: str = DEFAULT_TENANT):
+    """Get all media items, optionally filtered by category"""
+    query = {"tenant_id": tenant_id}
+    if category:
+        query["category"] = category
+    
+    media = await db.cms_media.find(query, {"_id": 0}).sort("order", 1).to_list(100)
+    return {"media": media, "total": len(media)}
+
+@app.post("/api/cms/media")
+async def create_cms_media(item: CMSMediaItem):
+    """Create a new media item"""
+    item_dict = item.model_dump()
+    item_dict["id"] = str(uuid.uuid4())
+    item_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    item_dict["updated_at"] = item_dict["created_at"]
+    
+    await db.cms_media.insert_one(item_dict)
+    return {"success": True, "media": {k: v for k, v in item_dict.items() if k != "_id"}}
+
+@app.put("/api/cms/media/{media_id}")
+async def update_cms_media(media_id: str, item: CMSMediaItem):
+    """Update a media item"""
+    item_dict = item.model_dump(exclude_unset=True)
+    item_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.cms_media.update_one(
+        {"id": media_id, "tenant_id": item.tenant_id},
+        {"$set": item_dict}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    return {"success": True}
+
+@app.delete("/api/cms/media/{media_id}")
+async def delete_cms_media(media_id: str, tenant_id: str = DEFAULT_TENANT):
+    """Delete a media item"""
+    result = await db.cms_media.delete_one({"id": media_id, "tenant_id": tenant_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    return {"success": True}
+
+@app.post("/api/cms/media/{media_id}/upload")
+async def upload_cms_media_image(media_id: str, file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
+    """Upload image for a media item"""
+    image_url = await upload_to_cloudinary(file, f"culture-connect/cms/{media_id}")
+    
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Failed to upload image")
+    
+    await db.cms_media.update_one(
+        {"id": media_id, "tenant_id": tenant_id},
+        {"$set": {"image_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "image_url": image_url}
+
+# --- CMS Exhibitor Photos ---
+@app.get("/api/cms/exhibitors")
+async def get_cms_exhibitors(tenant_id: str = DEFAULT_TENANT):
+    """Get all exhibitor photos"""
+    photos = await db.cms_exhibitor_photos.find(
+        {"tenant_id": tenant_id}, 
+        {"_id": 0}
+    ).to_list(200)
+    return {"exhibitors": photos, "total": len(photos)}
+
+@app.post("/api/cms/exhibitors/{profile_id}/upload")
+async def upload_exhibitor_photo(
+    profile_id: str, 
+    profile_type: str = "smart_engine",
+    file: UploadFile = File(...), 
+    tenant_id: str = DEFAULT_TENANT
+):
+    """Upload photo for an exhibitor profile"""
+    image_url = await upload_to_cloudinary(file, f"culture-connect/exhibitors/{profile_id}")
+    
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Failed to upload image")
+    
+    await db.cms_exhibitor_photos.update_one(
+        {"profile_id": profile_id, "tenant_id": tenant_id},
+        {
+            "$set": {
+                "profile_id": profile_id,
+                "profile_type": profile_type,
+                "photo_url": image_url,
+                "tenant_id": tenant_id,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    return {"success": True, "photo_url": image_url}
+
+@app.delete("/api/cms/exhibitors/{profile_id}")
+async def delete_exhibitor_photo(profile_id: str, tenant_id: str = DEFAULT_TENANT):
+    """Delete exhibitor photo"""
+    result = await db.cms_exhibitor_photos.delete_one({"profile_id": profile_id, "tenant_id": tenant_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- CMS Speakers ---
+@app.get("/api/cms/speakers")
+async def get_cms_speakers(tenant_id: str = DEFAULT_TENANT):
+    """Get all speakers/intervenants"""
+    speakers = await db.cms_speakers.find(
+        {"tenant_id": tenant_id}, 
+        {"_id": 0}
+    ).sort("order", 1).to_list(100)
+    return {"speakers": speakers, "total": len(speakers)}
+
+@app.post("/api/cms/speakers")
+async def create_cms_speaker(speaker: CMSSpeaker):
+    """Create a new speaker"""
+    speaker_dict = speaker.model_dump()
+    speaker_dict["id"] = str(uuid.uuid4())
+    speaker_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    speaker_dict["updated_at"] = speaker_dict["created_at"]
+    
+    await db.cms_speakers.insert_one(speaker_dict)
+    return {"success": True, "speaker": {k: v for k, v in speaker_dict.items() if k != "_id"}}
+
+@app.put("/api/cms/speakers/{speaker_id}")
+async def update_cms_speaker(speaker_id: str, speaker: CMSSpeaker):
+    """Update a speaker"""
+    speaker_dict = speaker.model_dump(exclude_unset=True)
+    speaker_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.cms_speakers.update_one(
+        {"id": speaker_id, "tenant_id": speaker.tenant_id},
+        {"$set": speaker_dict}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Speaker not found")
+    
+    return {"success": True}
+
+@app.delete("/api/cms/speakers/{speaker_id}")
+async def delete_cms_speaker(speaker_id: str, tenant_id: str = DEFAULT_TENANT):
+    """Delete a speaker"""
+    result = await db.cms_speakers.delete_one({"id": speaker_id, "tenant_id": tenant_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Speaker not found")
+    
+    return {"success": True}
+
+@app.post("/api/cms/speakers/{speaker_id}/upload")
+async def upload_speaker_photo(speaker_id: str, file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
+    """Upload photo for a speaker"""
+    image_url = await upload_to_cloudinary(file, f"culture-connect/speakers/{speaker_id}")
+    
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Failed to upload image")
+    
+    await db.cms_speakers.update_one(
+        {"id": speaker_id, "tenant_id": tenant_id},
+        {"$set": {"photo_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "photo_url": image_url}
+
+@app.put("/api/cms/speakers/reorder")
+async def reorder_speakers(orders: List[dict], tenant_id: str = DEFAULT_TENANT):
+    """Reorder speakers via drag & drop"""
+    for item in orders:
+        await db.cms_speakers.update_one(
+            {"id": item["id"], "tenant_id": tenant_id},
+            {"$set": {"order": item["order"]}}
+        )
+    return {"success": True}
+
+# --- CMS Partner Banners ---
+@app.get("/api/cms/partners")
+async def get_cms_partners(tenant_id: str = DEFAULT_TENANT):
+    """Get all partner banners"""
+    partners = await db.cms_partner_banners.find(
+        {"tenant_id": tenant_id}, 
+        {"_id": 0}
+    ).sort("order", 1).to_list(100)
+    return {"partners": partners, "total": len(partners)}
+
+@app.post("/api/cms/partners")
+async def create_cms_partner(partner: CMSPartnerBanner):
+    """Create a new partner banner"""
+    partner_dict = partner.model_dump()
+    partner_dict["id"] = str(uuid.uuid4())
+    partner_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    partner_dict["updated_at"] = partner_dict["created_at"]
+    
+    await db.cms_partner_banners.insert_one(partner_dict)
+    return {"success": True, "partner": {k: v for k, v in partner_dict.items() if k != "_id"}}
+
+@app.put("/api/cms/partners/{partner_id}")
+async def update_cms_partner(partner_id: str, partner: CMSPartnerBanner):
+    """Update a partner banner"""
+    partner_dict = partner.model_dump(exclude_unset=True)
+    partner_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.cms_partner_banners.update_one(
+        {"id": partner_id, "tenant_id": partner.tenant_id},
+        {"$set": partner_dict}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    return {"success": True}
+
+@app.delete("/api/cms/partners/{partner_id}")
+async def delete_cms_partner(partner_id: str, tenant_id: str = DEFAULT_TENANT):
+    """Delete a partner banner"""
+    result = await db.cms_partner_banners.delete_one({"id": partner_id, "tenant_id": tenant_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    return {"success": True}
+
+@app.post("/api/cms/partners/{partner_id}/upload")
+async def upload_partner_logo(partner_id: str, file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
+    """Upload logo for a partner"""
+    image_url = await upload_to_cloudinary(file, f"culture-connect/partners/{partner_id}")
+    
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Failed to upload image")
+    
+    await db.cms_partner_banners.update_one(
+        {"id": partner_id, "tenant_id": tenant_id},
+        {"$set": {"logo_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "logo_url": image_url}
+
+@app.put("/api/cms/partners/reorder")
+async def reorder_partners(orders: List[dict], tenant_id: str = DEFAULT_TENANT):
+    """Reorder partner banners"""
+    for item in orders:
+        await db.cms_partner_banners.update_one(
+            {"id": item["id"], "tenant_id": tenant_id},
+            {"$set": {"order": item["order"]}}
+        )
+    return {"success": True}
+
+# --- CMS Publish/Preview ---
+@app.post("/api/cms/publish")
+async def publish_cms_changes(tenant_id: str = DEFAULT_TENANT):
+    """Publish all draft changes"""
+    # Mark all items as published
+    await db.cms_media.update_many(
+        {"tenant_id": tenant_id, "published": False},
+        {"$set": {"published": True, "published_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "message": "Toutes les modifications ont été publiées"}
+
+@app.get("/api/cms/preview")
+async def get_cms_preview(tenant_id: str = DEFAULT_TENANT):
+    """Get preview of all CMS content"""
+    media = await db.cms_media.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+    speakers = await db.cms_speakers.find({"tenant_id": tenant_id}, {"_id": 0}).sort("order", 1).to_list(100)
+    partners = await db.cms_partner_banners.find({"tenant_id": tenant_id}, {"_id": 0}).sort("order", 1).to_list(100)
+    exhibitors = await db.cms_exhibitor_photos.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(200)
+    
+    return {
+        "media": media,
+        "speakers": speakers,
+        "partners": partners,
+        "exhibitors": exhibitors,
+        "tenant_id": tenant_id
+    }
+
 # ================== SMART ENGINE PROXY ==================
 import httpx
 
