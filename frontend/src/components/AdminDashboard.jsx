@@ -176,15 +176,28 @@ export const AdminDashboard = () => {
   }, [isAuthenticated, fetchRegistrations, fetchStats]);
   
   const handleStatusChange = async (id, status) => {
+    const statusLabels = {
+      pending: language === 'fr' ? 'en attente' : 'pending',
+      approved: language === 'fr' ? 'approuvé' : 'approved',
+      rejected: language === 'fr' ? 'refusé' : 'rejected'
+    };
     try {
       await axios.patch(`${API}/registrations/${id}/status`, { status });
-      toast.success(language === 'fr' ? 'Statut mis à jour' : 'Status updated');
+      toast.success(
+        language === 'fr' 
+          ? `✓ Participant marqué comme ${statusLabels[status]}` 
+          : `✓ Participant marked as ${statusLabels[status]}`
+      );
       fetchRegistrations();
       if (selectedReg?.id === id) {
         setSelectedReg(prev => ({ ...prev, status }));
       }
     } catch (error) {
-      toast.error('Error');
+      toast.error(
+        language === 'fr' 
+          ? '✗ Impossible de modifier le statut. Veuillez réessayer.' 
+          : '✗ Failed to update status. Please try again.'
+      );
     }
   };
 
