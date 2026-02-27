@@ -15,6 +15,8 @@ import { ParticipantProfile } from "./components/ParticipantProfile";
 import { Toaster } from "./components/ui/sonner";
 // Legal pages
 import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner } from "./components/legal";
+// Smart Engine
+import SmartEngineDashboard from "./components/SmartEngineDashboard";
 
 function App() {
   return (
