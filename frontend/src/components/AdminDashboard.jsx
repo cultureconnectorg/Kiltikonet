@@ -533,6 +533,13 @@ export const AdminDashboard = () => {
                 <p className="text-sm text-charcoal/50 mt-1">Culture Connect 2026</p>
               </div>
               <div className="flex items-center gap-3">
+                <Button 
+                  onClick={() => navigate('/smart-engine')} 
+                  className="h-10 bg-terracotta text-paper font-syne text-sm rounded-none" 
+                  data-testid="smart-engine-button"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" /> Smart Engine
+                </Button>
                 <Button onClick={() => setShowAddModal(true)} className="h-10 bg-sage text-paper font-syne text-sm rounded-none" data-testid="add-participant-button">
                   <Plus className="w-4 h-4 mr-2" /> {language === 'fr' ? 'Ajouter' : 'Add'}
                 </Button>
