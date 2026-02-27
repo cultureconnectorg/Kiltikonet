@@ -21,6 +21,8 @@ import SmartEngineDashboard from "./components/SmartEngineDashboard";
 import CMSAdmin from "./components/CMSAdmin";
 // Dynamic Pages
 import DynamicPage from "./components/DynamicPage";
+// Program Page
+import ProgramPage from "./components/ProgramPage";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
@@ -52,6 +54,7 @@ function App() {
               <Route path="/catalog" element={<CatalogPage />} />
               <Route path="/register" element={<RegistrationForm />} />
               <Route path="/inscription" element={<RegistrationForm />} />
+              <Route path="/programme" element={<ProgramPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/cms" element={<CMSAdmin />} />
