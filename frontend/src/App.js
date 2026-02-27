@@ -23,6 +23,8 @@ import CMSAdmin from "./components/CMSAdmin";
 import DynamicPage from "./components/DynamicPage";
 // Program Page
 import ProgramPage from "./components/ProgramPage";
+// Intro Sequence
+import IntroSequence, { ReturnWelcome } from "./components/IntroSequence";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
