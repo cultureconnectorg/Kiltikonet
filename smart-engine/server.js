@@ -822,6 +822,21 @@ app.post('/api/v1/smart-recommendations/export/pdf', async (req, res) => {
     const primaryColor = tenantConfig?.primary_color || '#A65D47';
     const secondaryColor = tenantConfig?.secondary_color || '#C8922A';
     
+    // Generate QR code if attestation_id exists
+    let qrCodeBuffer = null;
+    const verifyUrl = attestation_id ? `https://${domain}/verify/${attestation_id}` : null;
+    if (verifyUrl) {
+      try {
+        qrCodeBuffer = await QRCode.toBuffer(verifyUrl, {
+          width: 100,
+          margin: 1,
+          color: { dark: '#1A1A1A', light: '#FFFFFF' }
+        });
+      } catch (qrErr) {
+        console.error('QR generation error:', qrErr);
+      }
+    }
+    
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     const chunks = [];
     
@@ -840,15 +855,28 @@ app.post('/api/v1/smart-recommendations/export/pdf', async (req, res) => {
     doc.moveDown(0.3);
     doc.fontSize(10).fillColor('#666666').text('Attestation de Compatibilité Professionnelle', { align: 'center' });
     
-    // Attestation ID
+    // QR Code and Attestation ID (side by side)
     if (attestation_id) {
-      doc.moveDown(0.5);
-      doc.fontSize(8).fillColor('#999999').text(`Attestation N° ${attestation_id}`, { align: 'center' });
-      doc.text(`Vérifiable sur: https://${domain}/verify/${attestation_id}`, { align: 'center' });
+      doc.moveDown(1);
+      const qrY = doc.y;
+      
+      // QR Code on the right
+      if (qrCodeBuffer) {
+        doc.image(qrCodeBuffer, 450, qrY, { width: 80, height: 80 });
+      }
+      
+      // Attestation info on the left
+      doc.fontSize(9).fillColor('#666666');
+      doc.text(`Attestation N° ${attestation_id.substring(0, 8)}...`, 50, qrY + 10);
+      doc.fontSize(8).fillColor('#999999');
+      doc.text(`Vérifiable sur:`, 50, qrY + 25);
+      doc.fillColor(primaryColor).text(verifyUrl, 50, qrY + 38, { link: verifyUrl });
+      
+      doc.y = qrY + 90;
     }
     
     // Date
-    doc.moveDown(1.5);
+    doc.moveDown(0.5);
     const date = new Date().toLocaleDateString('fr-FR', { 
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
     });
@@ -865,34 +893,62 @@ app.post('/api/v1/smart-recommendations/export/pdf', async (req, res) => {
     doc.fontSize(11).fillColor('#333333');
     doc.text(`• ${profileA.name} (${profileA.type})`, { continued: false });
     doc.text(`  Territoire: ${profileA.territory || 'Non spécifié'}`);
+    if (profileA.genres && profileA.genres.length > 0) {
+      doc.text(`  Genres: ${profileA.genres.join(', ')}`);
+    }
     doc.moveDown(0.5);
     doc.text(`• ${profileB.name} (${profileB.type})`, { continued: false });
     doc.text(`  Territoire: ${profileB.territory || 'Non spécifié'}`);
+    if (profileB.genres && profileB.genres.length > 0) {
+      doc.text(`  Genres: ${profileB.genres.join(', ')}`);
+    }
     
-    // Score
+    // Score with visual bar
     doc.moveDown(1);
     doc.fontSize(14).fillColor(primaryColor).text(`Score de Compatibilité: ${score}%`, { align: 'center' });
     
+    // Score bar
+    doc.moveDown(0.5);
+    const barY = doc.y;
+    const barWidth = 300;
+    const barHeight = 15;
+    const barX = (595 - barWidth) / 2;
+    
+    // Background bar
+    doc.rect(barX, barY, barWidth, barHeight).fillColor('#E5E5E5').fill();
+    // Score bar
+    doc.rect(barX, barY, barWidth * (score / 100), barHeight).fillColor(primaryColor).fill();
+    
+    doc.y = barY + barHeight + 20;
+    
     // Recommendation
-    doc.moveDown(1);
     doc.fontSize(12).fillColor('#1A1A1A').text('RECOMMANDATION OFFICIELLE', { underline: true });
     doc.moveDown(0.5);
     doc.fontSize(11).fillColor('#333333').text(recommendation, { align: 'justify', lineGap: 4 });
     
-    // Footer
-    doc.moveDown(2);
+    // Digital Signature Section
+    doc.moveDown(1.5);
     doc.strokeColor('#CCCCCC').lineWidth(1).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
     doc.moveDown(0.5);
-    doc.fontSize(9).fillColor('#888888').text(
-      `Généré par KiltiKonet Smart Engine — ${domain}`,
+    
+    doc.fontSize(9).fillColor('#666666').text('SIGNATURE NUMÉRIQUE', { underline: true });
+    doc.moveDown(0.3);
+    doc.fontSize(8).fillColor('#888888');
+    doc.text(`Document généré automatiquement par KiltiKonet Smart Engine`);
+    doc.text(`Organisme certificateur: ${eventName} — ${domain}`);
+    doc.text(`Horodatage: ${new Date().toISOString()}`);
+    if (attestation_id) {
+      doc.text(`Identifiant unique: ${attestation_id}`);
+    }
+    
+    // Footer
+    doc.moveDown(1);
+    doc.fontSize(8).fillColor('#AAAAAA').text(
+      'Ce document certifie une analyse de compatibilité professionnelle générée par intelligence artificielle.',
       { align: 'center' }
     );
     doc.text(
-      'Ce document certifie une analyse de compatibilité professionnelle.',
-      { align: 'center' }
-    );
-    doc.text(
-      'Attestation vérifiable en ligne via le QR code ou l\'URL ci-dessus.',
+      'Pour vérifier l\'authenticité de cette attestation, scannez le QR code ou visitez l\'URL indiquée.',
       { align: 'center' }
     );
     
