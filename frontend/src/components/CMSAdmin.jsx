@@ -1670,6 +1670,479 @@ const PreviewSection = () => {
   );
 };
 
+// ================== INTENTION SECTION (Annual Experience) ==================
+const IntentionSection = () => {
+  const [intention, setIntention] = useState({
+    annee: '2026',
+    mot_annee: 'NOU.',
+    mot_annee_note: '2026 — Nous. La reconnexion.',
+    image_annee_url: null,
+    phrase_ligne_1: 'Pendant des siècles on nous a séparés.',
+    phrase_ligne_2: 'Le 22 Mai 2026 — nous nous retrouvons.',
+    mot_cle_phrase_2: 'nous',
+    couleur_annee: '#A65D47',
+    son_tambour_url: null,
+    sons_identites: {},
+    territoire_messages: {
+      'Martinique': 'Ou ka vini.',
+      'Guadeloupe': 'An nou.',
+      'Haiti': 'Nou la.',
+      'Colombia': 'Aquí estamos.',
+      'Senegal': 'Dëkk bi.',
+      'France': 'La diaspora rentre.',
+      'Afrique': 'Les racines appellent.'
+    }
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewStep, setPreviewStep] = useState(0);
+
+  useEffect(() => {
+    loadIntention();
+  }, []);
+
+  const loadIntention = async () => {
+    try {
+      const res = await axios.get(`${API}/api/annual-intention`);
+      if (res.data) {
+        setIntention(prev => ({ ...prev, ...res.data }));
+      }
+    } catch (error) {
+      console.log('Using default intention');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveIntention = async () => {
+    setSaving(true);
+    try {
+      await axios.post(`${API}/api/annual-intention`, intention);
+      toast.success('Intention de l\'année publiée');
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const uploadFile = async (type, file) => {
+    setUploading(type);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    
+    try {
+      const res = await axios.post(`${API}/api/cms/upload`, formData);
+      if (type === 'image') {
+        setIntention(prev => ({ ...prev, image_annee_url: res.data.url }));
+      } else if (type === 'audio') {
+        setIntention(prev => ({ ...prev, son_tambour_url: res.data.url }));
+      }
+      toast.success('Fichier uploadé');
+    } catch (error) {
+      toast.error('Erreur lors de l\'upload');
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const updateTerritoireMessage = (territoire, message) => {
+    setIntention(prev => ({
+      ...prev,
+      territoire_messages: {
+        ...prev.territoire_messages,
+        [territoire]: message
+      }
+    }));
+  };
+
+  const addTerritoire = () => {
+    const newTerr = prompt('Nom du territoire:');
+    if (newTerr) {
+      updateTerritoireMessage(newTerr, '');
+    }
+  };
+
+  const removeTerritoire = (territoire) => {
+    const { [territoire]: _, ...rest } = intention.territoire_messages;
+    setIntention(prev => ({ ...prev, territoire_messages: rest }));
+  };
+
+  // Preview animation
+  useEffect(() => {
+    if (showPreview) {
+      setPreviewStep(0);
+      const steps = [0, 1, 2, 3, 4, 5, 6];
+      const timings = [0, 1000, 1800, 4800, 10300, 11800];
+      
+      steps.forEach((step, idx) => {
+        if (idx > 0 && timings[idx]) {
+          setTimeout(() => setPreviewStep(step), timings[idx]);
+        }
+      });
+    }
+  }, [showPreview]);
+
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="bg-charcoal text-cream rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: intention.couleur_annee }}>
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Intention de l'année {intention.annee}</h2>
+              <p className="text-cream/60 text-sm">Séquence d'introduction pour les nouveaux visiteurs</p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button onClick={() => setShowPreview(true)} variant="outline" className="border-cream/30 text-cream hover:bg-white/10">
+              <Play className="w-4 h-4 mr-2" /> Prévisualiser
+            </Button>
+            <Button onClick={saveIntention} disabled={saving} className="bg-terracotta text-white">
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Publier l'intention
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mot d'ouverture */}
+      <div className="bg-paper border border-lightborder rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Type className="w-5 h-5 text-terracotta" />
+          Mot d'ouverture (créole)
+        </h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-charcoal/70 mb-2">Mot affiché</label>
+            <Input
+              value={intention.mot_annee}
+              onChange={(e) => setIntention(prev => ({ ...prev, mot_annee: e.target.value }))}
+              placeholder="NOU."
+              className="text-2xl font-bold"
+            />
+            <p className="text-xs text-charcoal/50 mt-1">Ce mot apparaît seul, plein écran, avant toute image.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-charcoal/70 mb-2">Note interne (non affichée)</label>
+            <Input
+              value={intention.mot_annee_note || ''}
+              onChange={(e) => setIntention(prev => ({ ...prev, mot_annee_note: e.target.value }))}
+              placeholder="2026 — Nous. La reconnexion."
+            />
+            <p className="text-xs text-charcoal/50 mt-1">Pour votre mémoire éditoriale.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Image d'ouverture */}
+      <div className="bg-paper border border-lightborder rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Image className="w-5 h-5 text-terracotta" />
+          Image d'ouverture
+        </h3>
+        <div className="flex gap-6">
+          <div className="flex-1">
+            <div 
+              className="aspect-video rounded-lg border-2 border-dashed border-charcoal/20 flex items-center justify-center overflow-hidden bg-charcoal/5"
+              style={{ backgroundImage: intention.image_annee_url ? `url(${intention.image_annee_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}
+            >
+              {!intention.image_annee_url && (
+                <div className="text-center p-6">
+                  <Image className="w-12 h-12 text-charcoal/30 mx-auto mb-2" />
+                  <p className="text-sm text-charcoal/50">Privilégier les détails — mains, textures, lumière. Pas de visages.</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="w-48">
+            <label className="block">
+              <span className="sr-only">Upload image</span>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && uploadFile('image', e.target.files[0])}
+                className="hidden"
+                id="image-upload"
+              />
+              <Button 
+                onClick={() => document.getElementById('image-upload')?.click()}
+                disabled={uploading === 'image'}
+                className="w-full bg-charcoal/10 text-charcoal hover:bg-charcoal/20"
+              >
+                {uploading === 'image' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                {uploading === 'image' ? 'Upload...' : 'Choisir image'}
+              </Button>
+            </label>
+            {intention.image_annee_url && (
+              <Button 
+                onClick={() => setIntention(prev => ({ ...prev, image_annee_url: null }))}
+                variant="outline"
+                size="sm"
+                className="w-full mt-2 text-red-500 border-red-200"
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Phrases */}
+      <div className="bg-paper border border-lightborder rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <FileText className="w-5 h-5 text-terracotta" />
+          Les phrases de vérité
+        </h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-charcoal/70 mb-2">Ligne 1</label>
+            <Input
+              value={intention.phrase_ligne_1}
+              onChange={(e) => setIntention(prev => ({ ...prev, phrase_ligne_1: e.target.value }))}
+              placeholder="Pendant des siècles on nous a séparés."
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-charcoal/70 mb-2">Ligne 2</label>
+            <Input
+              value={intention.phrase_ligne_2}
+              onChange={(e) => setIntention(prev => ({ ...prev, phrase_ligne_2: e.target.value }))}
+              placeholder="Le 22 Mai 2026 — nous nous retrouvons."
+            />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-charcoal/70 mb-2">Mot à coloriser dans ligne 2</label>
+              <Input
+                value={intention.mot_cle_phrase_2}
+                onChange={(e) => setIntention(prev => ({ ...prev, mot_cle_phrase_2: e.target.value }))}
+                placeholder="nous"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-charcoal/70 mb-2">Couleur accent de l'année</label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={intention.couleur_annee}
+                  onChange={(e) => setIntention(prev => ({ ...prev, couleur_annee: e.target.value }))}
+                  className="w-12 h-10 rounded cursor-pointer border border-charcoal/20"
+                />
+                <Input
+                  value={intention.couleur_annee}
+                  onChange={(e) => setIntention(prev => ({ ...prev, couleur_annee: e.target.value }))}
+                  className="flex-1 font-mono"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Son tambour */}
+      <div className="bg-paper border border-lightborder rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Music className="w-5 h-5 text-terracotta" />
+          Son d'ouverture
+        </h3>
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            {intention.son_tambour_url ? (
+              <div className="flex items-center gap-4 p-4 bg-charcoal/5 rounded-lg">
+                <Volume2 className="w-6 h-6 text-terracotta" />
+                <audio src={intention.son_tambour_url} controls className="flex-1" />
+                <Button onClick={() => setIntention(prev => ({ ...prev, son_tambour_url: null }))} size="sm" variant="outline" className="text-red-500">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="p-4 bg-charcoal/5 rounded-lg text-center">
+                <VolumeX className="w-8 h-8 text-charcoal/30 mx-auto mb-2" />
+                <p className="text-sm text-charcoal/50">Max 3 secondes. Grave et résonnant (battement de tambour bèlè).</p>
+              </div>
+            )}
+          </div>
+          <input 
+            type="file" 
+            accept="audio/*"
+            onChange={(e) => e.target.files?.[0] && uploadFile('audio', e.target.files[0])}
+            className="hidden"
+            id="audio-upload"
+          />
+          <Button 
+            onClick={() => document.getElementById('audio-upload')?.click()}
+            disabled={uploading === 'audio'}
+            className="bg-charcoal/10 text-charcoal hover:bg-charcoal/20"
+          >
+            {uploading === 'audio' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+            Upload son
+          </Button>
+        </div>
+      </div>
+
+      {/* Messages territoriaux */}
+      <div className="bg-paper border border-lightborder rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-terracotta" />
+          Messages territoriaux
+        </h3>
+        <p className="text-sm text-charcoal/60 mb-4">Message affiché sous le mot d'ouverture selon le territoire du visiteur.</p>
+        
+        <div className="space-y-3">
+          {Object.entries(intention.territoire_messages || {}).map(([territoire, message]) => (
+            <div key={territoire} className="flex items-center gap-3">
+              <div className="w-32 text-sm font-medium text-charcoal">{territoire}</div>
+              <Input
+                value={message}
+                onChange={(e) => updateTerritoireMessage(territoire, e.target.value)}
+                placeholder="Message en créole ou français..."
+                className="flex-1"
+              />
+              <Button 
+                onClick={() => removeTerritoire(territoire)} 
+                size="sm" 
+                variant="outline"
+                className="text-red-500 border-red-200"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        
+        <Button onClick={addTerritoire} variant="outline" size="sm" className="mt-4 border-sage text-sage">
+          <Plus className="w-4 h-4 mr-2" /> Ajouter un territoire
+        </Button>
+      </div>
+
+      {/* Info box */}
+      <div className="bg-terracotta/10 border border-terracotta/30 rounded-xl p-6">
+        <h4 className="font-semibold text-charcoal mb-3">Comment fonctionne cette séquence ?</h4>
+        <ul className="space-y-2 text-sm text-charcoal/70">
+          <li className="flex items-start gap-2">
+            <span className="text-terracotta font-bold">1.</span>
+            <span>La séquence ne se joue qu'une seule fois par visiteur (stocké en localStorage)</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-terracotta font-bold">2.</span>
+            <span>Elle inclut : souffle → tambour → mot créole → image + vérité → silence → choix d'identité</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-terracotta font-bold">3.</span>
+            <span>Le visiteur choisit son identité (artiste, label, agent...) qui personnalise son retour</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-terracotta font-bold">4.</span>
+            <span>Chaque année : changez le mot (2027: SONJE, 2028: MOVÉ, 2029: FÒS, 2030: ERITAJ)</span>
+          </li>
+        </ul>
+      </div>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 bg-[#1A1A1A] flex items-center justify-center">
+          <button 
+            onClick={() => setShowPreview(false)}
+            className="absolute top-4 right-4 text-white/50 hover:text-white"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          
+          {/* Step indicators */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+            {[1, 2, 3, 4, 5, 6].map(s => (
+              <div 
+                key={s} 
+                className={`w-2 h-2 rounded-full transition-all ${previewStep >= s ? 'bg-white' : 'bg-white/30'}`} 
+              />
+            ))}
+          </div>
+
+          {/* Preview content */}
+          {previewStep === 0 && (
+            <div className="text-white/50 text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+              <p>Chargement de la séquence...</p>
+            </div>
+          )}
+          
+          {previewStep === 1 && (
+            <div 
+              className="w-32 h-32 rounded-full animate-pulse"
+              style={{ backgroundColor: intention.couleur_annee, opacity: 0.6 }}
+            />
+          )}
+          
+          {previewStep === 2 && (
+            <div 
+              className="w-40 h-40 rounded-full"
+              style={{ backgroundColor: intention.couleur_annee, animation: 'ping 0.8s ease-out' }}
+            />
+          )}
+          
+          {previewStep === 3 && (
+            <div className="text-center">
+              <h1 className="text-white text-7xl md:text-9xl font-bold">{intention.mot_annee}</h1>
+              <p className="text-white/50 mt-4">Ou ka vini.</p>
+            </div>
+          )}
+          
+          {previewStep === 4 && (
+            <div className="text-center max-w-2xl px-6">
+              <p className="text-white text-2xl mb-8">{intention.phrase_ligne_1}</p>
+              <p className="text-white text-2xl">
+                {intention.phrase_ligne_2.split(intention.mot_cle_phrase_2).map((part, i, arr) => (
+                  <React.Fragment key={i}>
+                    {part}
+                    {i < arr.length - 1 && <span style={{ color: intention.couleur_annee }}>{intention.mot_cle_phrase_2}</span>}
+                  </React.Fragment>
+                ))}
+              </p>
+            </div>
+          )}
+          
+          {previewStep === 5 && (
+            <div className="text-center text-white/30">
+              <p>[ silence sacré ]</p>
+            </div>
+          )}
+          
+          {previewStep === 6 && (
+            <div className="text-center">
+              <h2 className="text-white text-2xl mb-8">Qu'est-ce que vous portez ?</h2>
+              <div className="space-y-3">
+                {['🎤 Une voix', '📀 Un catalogue', '🌐 Un réseau', '📖 Une histoire', '🔭 Une vision'].map((opt, i) => (
+                  <div 
+                    key={i}
+                    className="px-6 py-3 text-white/80 hover:text-white transition-all cursor-pointer"
+                    style={{ borderLeft: `3px solid transparent` }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderLeftColor = intention.couleur_annee}
+                    onMouseLeave={(e) => e.currentTarget.style.borderLeftColor = 'transparent'}
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setShowPreview(false)} className="mt-8 text-white/30 text-sm">
+                Passer →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ================== MAIN CMS COMPONENT ==================
 const CMSAdmin = () => {
   const navigate = useNavigate();
