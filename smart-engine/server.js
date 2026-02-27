@@ -40,13 +40,15 @@ async function connectDB() {
   }
 }
 
-// Initialize AI clients with Emergent LLM Key
+// Initialize AI clients with Emergent base URL
 const openai = new OpenAI({
   apiKey: process.env.EMERGENT_LLM_KEY,
+  baseURL: 'https://api.emergentmethods.ai/v1'  // Emergent proxy URL
 });
 
 const anthropic = new Anthropic({
   apiKey: process.env.EMERGENT_LLM_KEY,
+  baseURL: 'https://api.emergentmethods.ai'  // Emergent proxy URL
 });
 
 // ================== UTILITY FUNCTIONS ==================
