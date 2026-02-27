@@ -1,6 +1,6 @@
 import React from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
 import { Header } from "./components/Header";
 import { LandingPage } from "./components/LandingPage";
@@ -18,33 +18,48 @@ import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner }
 // Smart Engine
 import SmartEngineDashboard from "./components/SmartEngineDashboard";
 
+// Layout wrapper that conditionally shows Header
+const AppLayout = ({ children }) => {
+  const location = useLocation();
+  const hideHeaderRoutes = ['/smart-engine', '/admin'];
+  const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
+  
+  return (
+    <>
+      {showHeader && <Header />}
+      {children}
+      <CookieBanner />
+    </>
+  );
+};
+
 function App() {
   return (
     <LanguageProvider>
       <div className="App">
         <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/partnership" element={<PartnershipPage />} />
-            <Route path="/partenaires" element={<PartnershipPage />} />
-            <Route path="/partenaire/confirmation" element={<PartnerConfirmation />} />
-            <Route path="/catalog" element={<CatalogPage />} />
-            <Route path="/register" element={<RegistrationForm />} />
-            <Route path="/inscription" element={<RegistrationForm />} />
-            <Route path="/confirmation" element={<ConfirmationScreen />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/participant/:participantId" element={<ParticipantProfile />} />
-            {/* Smart Engine */}
-            <Route path="/smart-engine" element={<SmartEngineDashboard />} />
-            {/* Legal pages */}
-            <Route path="/mentions-legales" element={<MentionsLegales />} />
-            <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
-            <Route path="/cgu" element={<CGU />} />
-            <Route path="/cookies" element={<Cookies />} />
-          </Routes>
-          <CookieBanner />
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/partnership" element={<PartnershipPage />} />
+              <Route path="/partenaires" element={<PartnershipPage />} />
+              <Route path="/partenaire/confirmation" element={<PartnerConfirmation />} />
+              <Route path="/catalog" element={<CatalogPage />} />
+              <Route path="/register" element={<RegistrationForm />} />
+              <Route path="/inscription" element={<RegistrationForm />} />
+              <Route path="/confirmation" element={<ConfirmationScreen />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/participant/:participantId" element={<ParticipantProfile />} />
+              {/* Smart Engine */}
+              <Route path="/smart-engine" element={<SmartEngineDashboard />} />
+              {/* Legal pages */}
+              <Route path="/mentions-legales" element={<MentionsLegales />} />
+              <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
+              <Route path="/cgu" element={<CGU />} />
+              <Route path="/cookies" element={<Cookies />} />
+            </Routes>
+          </AppLayout>
         </BrowserRouter>
         <Toaster 
           position="top-right"
