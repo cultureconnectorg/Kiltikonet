@@ -331,17 +331,12 @@ app.post('/api/v1/smart-recommendations/rag/ask', async (req, res) => {
     
     if (documents.length === 0) {
       // No documents, use general knowledge
-      const message = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: `Tu es un assistant expert en industries culturelles afro-caribéennes pour Culture Connect 2026 en Martinique. Réponds en français de manière professionnelle et utile.\n\nQuestion: ${question}`
-        }]
-      });
+      const answer = await callClaude(
+        `Tu es un assistant expert en industries culturelles afro-caribéennes pour Culture Connect 2026 en Martinique. Réponds en français de manière professionnelle et utile.\n\nQuestion: ${question}`
+      );
       
       return res.json({
-        answer: message.content[0].text,
+        answer,
         sources: [],
         note: 'Réponse basée sur les connaissances générales (aucun document indexé)'
       });
@@ -362,12 +357,8 @@ app.post('/api/v1/smart-recommendations/rag/ask', async (req, res) => {
     ).join('\n\n---\n\n');
     
     // Call Claude with context
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      messages: [{
-        role: 'user',
-        content: `Tu es un assistant expert en industries culturelles afro-caribéennes pour Culture Connect 2026 en Martinique.
+    const answer = await callClaude(
+      `Tu es un assistant expert en industries culturelles afro-caribéennes pour Culture Connect 2026 en Martinique.
 
 Voici des documents de référence:
 
@@ -378,11 +369,10 @@ ${context}
 En te basant sur ces documents, réponds à la question suivante en français. Cite les sources utilisées entre crochets [Source X].
 
 Question: ${question}`
-      }]
-    });
+    );
     
     res.json({
-      answer: message.content[0].text,
+      answer,
       sources: relevantDocs.map(item => ({
         title: item.doc.title,
         category: item.doc.category,
