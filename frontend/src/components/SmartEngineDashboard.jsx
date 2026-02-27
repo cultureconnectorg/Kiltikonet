@@ -1225,7 +1225,8 @@ const SmartEngineDashboard = () => {
   const tabs = [
     { id: 'index', label: 'Indexer un Profil', icon: Plus },
     { id: 'recommendations', label: 'Recommandations', icon: Users },
-    { id: 'assistant', label: 'Assistant IA', icon: MessageSquare }
+    { id: 'assistant', label: 'Assistant IA', icon: MessageSquare },
+    { id: 'intelligence', label: 'Intelligence', icon: Sparkles }
   ];
 
   return (
@@ -1257,7 +1258,7 @@ const SmartEngineDashboard = () => {
             </div>
             {/* Stats badge */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(200, 146, 42, 0.2)' }}>
-              <span className="text-xs font-medium" style={{ color: '#C8922A' }}>Powered by AI</span>
+              <span className="text-xs font-medium" style={{ color: '#C8922A' }}>v2.0 Multi-Tenant</span>
             </div>
           </div>
         </div>
@@ -1266,12 +1267,12 @@ const SmartEngineDashboard = () => {
       {/* Tabs */}
       <div style={{ backgroundColor: '#242424', borderBottom: '1px solid #333333' }} className="sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1">
+          <div className="flex gap-1 overflow-x-auto">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex items-center gap-2 px-5 py-4 text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-5 py-4 text-sm font-medium transition-colors whitespace-nowrap"
                 style={{ 
                   borderBottom: activeTab === tab.id ? '2px solid #A65D47' : '2px solid transparent',
                   color: activeTab === tab.id ? '#A65D47' : 'rgba(244, 241, 234, 0.5)'
@@ -1290,11 +1291,12 @@ const SmartEngineDashboard = () => {
         {activeTab === 'index' && <IndexProfileScreen />}
         {activeTab === 'recommendations' && <RecommendationsScreen />}
         {activeTab === 'assistant' && <AIAssistantScreen />}
+        {activeTab === 'intelligence' && <IntelligenceScreen />}
       </div>
 
       {/* Footer */}
       <div className="text-center py-6 text-sm" style={{ color: 'rgba(244, 241, 234, 0.3)' }}>
-        KiltiKonet Smart Engine — kiltikonet.fr — Culture Connect 2026
+        KiltiKonet Smart Engine v2.0 — kiltikonet.fr — Culture Connect 2026
       </div>
     </div>
   );
