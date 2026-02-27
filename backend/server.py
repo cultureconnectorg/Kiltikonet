@@ -2515,27 +2515,24 @@ def generate_simple_embedding(text: str, dim: int = 1536) -> list:
 
 @api_v1_router.post("/llm/embedding")
 async def generate_embedding_endpoint(request: EmbeddingRequest):
-    """Generate embedding using OpenAI via Emergent LLM Key"""
+    """Generate embedding using OpenAI via Emergent LLM Key and LiteLLM"""
     try:
-        import openai
+        from litellm import embedding
         
-        # Use Emergent LLM Key with proxy URL for OpenAI embeddings
-        proxy_url = get_integration_proxy_url()
-        client = openai.OpenAI(
+        # Use LiteLLM with Emergent key
+        response = embedding(
+            model="openai/text-embedding-3-small",
+            input=[request.text],
             api_key=EMERGENT_LLM_KEY,
-            base_url=proxy_url
+            api_base=get_integration_proxy_url()
         )
         
-        response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=request.text
-        )
-        return {"embedding": response.data[0].embedding, "method": "openai-emergent"}
+        return {"embedding": response.data[0]["embedding"], "method": "openai-litellm"}
     except Exception as e:
         logger.error(f"Embedding error: {str(e)}")
         # Fallback to hash-based on any error
-        embedding = generate_simple_embedding(request.text)
-        return {"embedding": embedding, "method": "hash-fallback", "error": str(e)}
+        embedding_vec = generate_simple_embedding(request.text)
+        return {"embedding": embedding_vec, "method": "hash-fallback", "error": str(e)}
 
 @api_v1_router.post("/llm/chat")
 async def llm_chat_endpoint(request: ChatRequest):
