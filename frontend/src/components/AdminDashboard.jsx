@@ -442,7 +442,11 @@ export const AdminDashboard = () => {
       setTimeout(pollProgress, 500);
       
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Error sending badges');
+      toast.error(
+        language === 'fr' 
+          ? `✗ Échec de l'envoi des badges. ${error.response?.data?.detail || 'Veuillez réessayer.'}` 
+          : `✗ Failed to send badges. ${error.response?.data?.detail || 'Please try again.'}`
+      );
       setIsBatchProcessing(false);
       setBatchProgress(null);
     }
