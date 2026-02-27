@@ -16,6 +16,7 @@ const { v4: uuidv4 } = require('uuid');
 const PDFDocument = require('pdfkit');
 const { MongoClient } = require('mongodb');
 const axios = require('axios');
+const QRCode = require('qrcode');
 
 const app = express();
 const PORT = process.env.PORT || 8002;
