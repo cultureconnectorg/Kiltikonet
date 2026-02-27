@@ -2729,6 +2729,29 @@ async def upload_cms_media_image(media_id: str, file: UploadFile = File(...), te
     
     return {"success": True, "image_url": image_url}
 
+@app.post("/api/cms/upload")
+async def upload_cms_file(file: UploadFile = File(...), type: str = "image"):
+    """Generic CMS file upload (images, audio)"""
+    # Generate unique folder based on file type
+    folder = f"culture-connect/cms/{type}/{uuid.uuid4().hex[:8]}"
+    
+    if type == "audio":
+        # For audio, upload to Cloudinary with resource_type=auto
+        import cloudinary.uploader
+        file_content = await file.read()
+        result = cloudinary.uploader.upload(
+            file_content,
+            folder=folder,
+            resource_type="auto"
+        )
+        return {"success": True, "url": result.get("secure_url")}
+    else:
+        # For images, use existing function
+        image_url = await upload_to_cloudinary(file, folder)
+        if not image_url:
+            raise HTTPException(status_code=500, detail="Failed to upload file")
+        return {"success": True, "url": image_url}
+
 # --- CMS Exhibitor Photos ---
 @app.get("/api/cms/exhibitors")
 async def get_cms_exhibitors(tenant_id: str = DEFAULT_TENANT):
