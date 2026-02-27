@@ -813,12 +813,25 @@ const SmartEngineDashboard = () => {
     <div className="min-h-screen" style={{ backgroundColor: '#1A1A1A' }}>
       {/* Header */}
       <div style={{ backgroundColor: '#242424', borderBottom: '1px solid #333333' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(166, 93, 71, 0.2)' }}>
-              <Cpu className="w-6 h-6" style={{ color: '#A65D47' }} />
-            </div>
-            <div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Back link */}
+          <a 
+            href="/" 
+            className="inline-flex items-center gap-2 text-sm mb-4 transition-colors"
+            style={{ color: 'rgba(244, 241, 234, 0.5)' }}
+            onMouseOver={e => e.currentTarget.style.color = '#A65D47'}
+            onMouseOut={e => e.currentTarget.style.color = 'rgba(244, 241, 234, 0.5)'}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Retour à Culture Connect
+          </a>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(166, 93, 71, 0.2)' }}>
+                <Cpu className="w-6 h-6" style={{ color: '#A65D47' }} />
+              </div>
+              <div>
               <h1 className="text-2xl font-bold" style={{ color: '#F4F1EA' }}>KiltiKonet Smart Engine</h1>
               <p className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Matching intelligent pour Culture Connect 2026</p>
             </div>
