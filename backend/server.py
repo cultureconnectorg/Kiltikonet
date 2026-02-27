@@ -533,6 +533,53 @@ class PartnerResponse(BaseModel):
     vip_accreditations: List[str] = []
     created_at: str
 
+# ================== CMS MODELS ==================
+
+class CMSMediaItem(BaseModel):
+    """Media item for CMS"""
+    id: Optional[str] = None
+    tenant_id: str = "culture-connect-2026"
+    category: str  # hero, logo, venue, gallery
+    title: str
+    image_url: Optional[str] = None
+    description: Optional[str] = None
+    order: int = 0
+    published: bool = False
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+class CMSExhibitorPhoto(BaseModel):
+    """Photo for Smart Engine profile or participant"""
+    profile_id: str
+    profile_type: str  # smart_engine or participant
+    photo_url: Optional[str] = None
+    tenant_id: str = "culture-connect-2026"
+
+class CMSSpeaker(BaseModel):
+    """Speaker/Intervenant for CMS"""
+    id: Optional[str] = None
+    tenant_id: str = "culture-connect-2026"
+    name: str
+    role: str
+    photo_url: Optional[str] = None
+    bio: Optional[str] = None
+    order: int = 0
+    published: bool = True
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+class CMSPartnerBanner(BaseModel):
+    """Partner banner/logo for CMS"""
+    id: Optional[str] = None
+    tenant_id: str = "culture-connect-2026"
+    name: str
+    logo_url: Optional[str] = None
+    website_url: Optional[str] = None
+    order: int = 0
+    published: bool = True
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
 # ================== STRIPE ROUTES ==================
 @api_router.post("/create-checkout-session")
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
