@@ -3045,29 +3045,69 @@ async def init_default_content(tenant_id: str = DEFAULT_TENANT):
                 {"value": "4", "label": "Jours", "description": "De rencontres B2B"}
             ]
         }},
-        # Program
+        # Program - Structure officielle Culture Connect 2026
         {"page": "program", "section": "intro", "content": {
-            "title": "Programme Culture Connect 2026",
-            "text": "4 jours de rencontres, conférences et showcases au cœur de Fort-de-France."
+            "title": "Programme Officiel Culture Connect 2026",
+            "text": "4 jours de rencontres professionnelles, conférences et showcases au cœur de Fort-de-France, Martinique."
         }},
-        {"page": "program", "section": "days", "content": {
+        {"page": "program", "section": "official_program", "content": {
             "days": [
-                {"date": "2026-05-20", "name": "Mardi 20 Mai", "events": [
-                    {"time": "09:00", "title": "Ouverture officielle", "site": "La Savane", "description": "Discours d'ouverture et présentation du programme"},
-                    {"time": "14:00", "title": "Tables rondes B2B", "site": "Schoelcher", "description": "Sessions de networking thématiques"}
-                ]},
-                {"date": "2026-05-21", "name": "Mercredi 21 Mai", "events": [
-                    {"time": "10:00", "title": "Ateliers professionnels", "site": "Atrium", "description": "Formation et workshops"},
-                    {"time": "20:00", "title": "Showcases artistes", "site": "La Savane", "description": "Concerts et performances"}
-                ]},
-                {"date": "2026-05-22", "name": "Jeudi 22 Mai", "events": [
-                    {"time": "09:00", "title": "Rendez-vous B2B", "site": "Schoelcher", "description": "Rencontres planifiées entre professionnels"},
-                    {"time": "18:00", "title": "Networking cocktail", "site": "La Savane", "description": "Soirée de networking"}
-                ]},
-                {"date": "2026-05-23", "name": "Vendredi 23 Mai", "events": [
-                    {"time": "10:00", "title": "Bilan et perspectives", "site": "Atrium", "description": "Clôture et annonces"},
-                    {"time": "21:00", "title": "Soirée de clôture", "site": "La Savane", "description": "Concert de clôture"}
-                ]}
+                {
+                    "id": "day1",
+                    "date": "2026-05-20",
+                    "label": "DAY 1 — Mardi 20 Mai 2026",
+                    "site": "Bibliothèque Schoelcher",
+                    "is_highlight": False,
+                    "highlight_color": None,
+                    "slots": [
+                        {"time": "09:00", "title": "Accueil & Enregistrement", "description": "Retrait des badges et documentation", "speaker": ""},
+                        {"time": "10:00", "title": "Cérémonie d'ouverture", "description": "Discours officiels et présentation du programme", "speaker": "Équipe Culture Connect"},
+                        {"time": "14:00", "title": "Table ronde : L'industrie musicale caribéenne en 2026", "description": "État des lieux et perspectives", "speaker": "Panel d'experts"},
+                        {"time": "16:30", "title": "Sessions de networking B2B", "description": "Rencontres planifiées entre professionnels", "speaker": ""}
+                    ]
+                },
+                {
+                    "id": "day2",
+                    "date": "2026-05-21",
+                    "label": "DAY 2 — Mercredi 21 Mai 2026",
+                    "site": "Bibliothèque Schoelcher + Tropiques Atrium",
+                    "is_highlight": False,
+                    "highlight_color": None,
+                    "slots": [
+                        {"time": "09:30", "title": "Workshop : Distribution digitale", "description": "Stratégies de distribution pour artistes caribéens", "speaker": "Experts streaming"},
+                        {"time": "11:00", "title": "Masterclass : Production musicale", "description": "Techniques et tendances actuelles", "speaker": ""},
+                        {"time": "14:30", "title": "Rencontres B2B", "description": "Sessions de speed-meeting", "speaker": ""},
+                        {"time": "20:00", "title": "Showcase Artistes Émergents", "description": "Performances live @ Tropiques Atrium", "speaker": "Artistes sélectionnés"}
+                    ]
+                },
+                {
+                    "id": "day3",
+                    "date": "2026-05-22",
+                    "label": "DAY 3 — Jeudi 22 Mai 2026 (JOURNÉE ABOLITION)",
+                    "site": "Tropiques Atrium + La Savane",
+                    "is_highlight": True,
+                    "highlight_color": "#A65D47",
+                    "slots": [
+                        {"time": "09:00", "title": "Commémoration de l'Abolition", "description": "Cérémonie officielle et hommage", "speaker": ""},
+                        {"time": "11:00", "title": "Conférence : Musiques de la diaspora", "description": "Héritage et créativité contemporaine", "speaker": "Historiens & artistes"},
+                        {"time": "15:00", "title": "Marché Culturel @ La Savane", "description": "Stands exposants, démos, rencontres", "speaker": ""},
+                        {"time": "19:00", "title": "Concert Abolition", "description": "Grande scène La Savane", "speaker": "Têtes d'affiche"}
+                    ]
+                },
+                {
+                    "id": "day4",
+                    "date": "2026-05-23",
+                    "label": "DAY 4 — Vendredi 23 Mai 2026",
+                    "site": "Tropiques Atrium",
+                    "is_highlight": False,
+                    "highlight_color": None,
+                    "slots": [
+                        {"time": "09:30", "title": "Bilan & Retours d'expérience", "description": "Ce que nous avons appris", "speaker": "Participants"},
+                        {"time": "11:00", "title": "Signature de partenariats", "description": "Officialisation des collaborations", "speaker": ""},
+                        {"time": "14:00", "title": "Table ronde de clôture", "description": "Perspectives 2027 et annonces", "speaker": "Organisateurs"},
+                        {"time": "17:00", "title": "Cérémonie de clôture", "description": "Remise des prix et remerciements", "speaker": "Équipe Culture Connect"}
+                    ]
+                }
             ]
         }},
         # About
