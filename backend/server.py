@@ -2515,26 +2515,27 @@ def generate_simple_embedding(text: str, dim: int = 1536) -> list:
 
 @api_v1_router.post("/llm/embedding")
 async def generate_embedding_endpoint(request: EmbeddingRequest):
-    """Generate embedding - uses OpenAI if key available, else fallback to hash-based"""
+    """Generate embedding using OpenAI via Emergent LLM Key"""
     try:
-        if OPENAI_API_KEY and OPENAI_API_KEY.startswith("sk-"):
-            # Use real OpenAI embeddings
-            import openai
-            client = openai.OpenAI(api_key=OPENAI_API_KEY)
-            response = client.embeddings.create(
-                model="text-embedding-3-small",
-                input=request.text
-            )
-            return {"embedding": response.data[0].embedding, "method": "openai"}
-        else:
-            # Fallback to hash-based embedding (works for similarity matching)
-            embedding = generate_simple_embedding(request.text)
-            return {"embedding": embedding, "method": "hash-based"}
+        import openai
+        
+        # Use Emergent LLM Key with proxy URL for OpenAI embeddings
+        proxy_url = get_integration_proxy_url()
+        client = openai.OpenAI(
+            api_key=EMERGENT_LLM_KEY,
+            base_url=proxy_url
+        )
+        
+        response = client.embeddings.create(
+            model="text-embedding-3-small",
+            input=request.text
+        )
+        return {"embedding": response.data[0].embedding, "method": "openai-emergent"}
     except Exception as e:
         logger.error(f"Embedding error: {str(e)}")
         # Fallback to hash-based on any error
         embedding = generate_simple_embedding(request.text)
-        return {"embedding": embedding, "method": "hash-fallback"}
+        return {"embedding": embedding, "method": "hash-fallback", "error": str(e)}
 
 @api_v1_router.post("/llm/chat")
 async def llm_chat_endpoint(request: ChatRequest):
