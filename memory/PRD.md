@@ -1,252 +1,87 @@
-# Culture Connect 2026 - PRD Final
+# KiltiKonet Smart Engine — PRD v2.0
 
-## Original Problem Statement
-Build a bilingual (French/English) accreditation platform and landing website for "Culture Connect 2026", a professional cultural market event dedicated to Afro-descendant creative industries, taking place in Fort-de-France, Martinique from May 20-23, 2026.
+## Vision 2026-2031
+Infrastructure de données stratégique pour les marchés culturels afro-diasporiques.
 
-## Architecture
+## Architecture Implementée
 
-### Tech Stack
-- **Frontend**: React 19, Tailwind CSS, Shadcn/UI, react-qr-code, jspdf
-- **Backend**: FastAPI (Python), Motor (async MongoDB), reportlab, qrcode, resend
-- **Database**: MongoDB (collections: registrations, partners, email_logs, payment_transactions)
-- **Payments**: Stripe Checkout
-- **Images**: Cloudinary
-- **Emails**: Resend (with PDF attachments)
+### Phase 1 — Foundation ✅
+- **Multi-tenant**: `tenant_id` ajouté à toutes les tables
+- **Tenant par défaut**: `culture-connect-2026`
+- **Nouvelles collections MongoDB**:
+  - `matching_events` — Capture chaque recommandation
+  - `territorial_flows` — Agrégation des flux entre territoires
+  - `collaboration_outcomes` — Résultats business déclarés
+  - `attestations` — Certifications générées
+  - `tenant_config` — Configuration white-label
 
-### Routes
-- `/` - Landing page (bilingual)
-- `/pricing` - Accreditation pricing (50€, 150€, 300€)
-- `/register` or `/inscription` - Multi-step registration form
-- `/confirmation` - Payment success confirmation
-- `/partenaires` - Partnership packages (2500€, 5000€, 10000€)
-- `/partenaire/confirmation` - Partnership payment success
-- `/catalog` - Public participant directory with expertise filters
-- `/participant/:participantId` - Public participant profile (QR code destination)
-- `/admin` - Admin dashboard (password: CC2026admin)
+### Phase 2 — Intelligence API ✅
+- `GET /api/v1/intelligence/territorial-flows` — Top corridors territoriaux
+- `GET /api/v1/intelligence/sector-heatmap` — Matrice de connexions par secteur
+- `GET /api/v1/intelligence/conversion-rates` — Taux par tranche de score
+- `GET /api/v1/intelligence/emerging-markets` — Marchés sous-exploités
+- `GET /api/v1/intelligence/impact` — Résumé économique global
 
-## PHASE COMPLETE - All Features Implemented ✅
+### Phase 3 — Certification Engine ✅
+- Génération d'attestations avec UUID unique
+- QR code dans les PDFs avec lien de vérification
+- `GET /api/v1/verify/:attestationId` — Endpoint public de vérification
+- Signature numérique et horodatage
 
-### Final Phase (Feb 26, 2026) ✅
+### Phase 4 — Admin Dashboard Intelligence ✅
+- Nouvel onglet "Intelligence" dans Smart Engine
+- 5 panels interactifs:
+  - Vue d'ensemble (KPIs)
+  - Flux Territoriaux
+  - Heatmap Secteurs
+  - Taux de Conversion
+  - Marchés Émergents
 
-#### 1. Real-time Progress Bar (P3) ✅
-- Batch job tracking with job_id
-- `POST /api/registrations/batch/send-badges` returns job_id
-- `GET /api/registrations/batch/progress/{job_id}` for polling
-- Black progress bar with X/Y counter ("Envoi des badges en cours... 2/5 envoyé(s)")
-- Visual feedback with Loader2 spinner
+## Matching Engine — Claude-Based
+Au lieu d'embeddings vectoriels OpenAI, le système utilise **Claude** pour:
+- Comparer sémantiquement les profils
+- Générer des scores de compatibilité (0-100%)
+- Produire des `matchReason` riches en français
+- Identifier les genres communs et la complémentarité
 
-#### 2. Email History & Logs (P3) ✅
-- `GET /api/email-logs` with filters (email_type, status, limit)
-- MongoDB collection `email_logs` persists all sends
-- Admin modal "Historique des envois" with:
-  - Recipient name and email
-  - Email type badge (badge, approval, rejection)
-  - Status icon (✓ sent, ✗ failed)
-  - Timestamp
+**Caching**: Les résultats sont mis en cache 7 jours dans `matching_events`.
 
-#### 3. Advanced Dashboard Analytics (P3) ✅
-- `GET /api/v1/stats/advanced` - Full analytics for partner reports
-  - KPIs: total_registrations, approval_rate, total_revenue_estimate, badges_sent
-  - tier_analysis with revenue per tier
-  - partner_analysis with partner revenue
-  - expertise_engagement with all tags
-  - marche_culturel stats (stand_requests, categories)
-- `GET /api/v1/report/summary` - Executive summary for presentations
-- Frontend "RAPPORT PARTENAIRES" section with:
-  - Revenus estimés (€)
-  - Badges envoyés
-  - Taux délivrabilité (%)
-  - Demandes stand
-  - "Voir rapport complet" JSON link
+## Profils Indexés (10)
+1. Tropical Sound Records (label, Martinique)
+2. Afropicks Colombia (agent, Colombie)
+3. Gwo Ka Studio (artist, Guadeloupe)
+4. Llorona Records (label, Colombie)
+5. Trace Urban Caraibes (media, Martinique)
+6. Haitian Roots Foundation (institution, Haiti)
+7. ZZK Records (label, Argentine)
+8. Skillfor Campus Martinique (institution, Martinique)
+9. Grace Torres (artist, Colombie)
+10. Diaspora Prod Paris (producer, France)
 
-### Previous Features ✅
-- Partner Notifications (auto email when sponsored participant approved)
-- Bulk Email with Badges (PDF attachments via Resend)
-- Batch Actions (checkboxes, batch approve, batch send badges)
-- Multilingual Admin (FR/EN complete translations)
-- Export Ciblé (filtered CSV by profile/expertise)
-- Badges PDF avec QR (public profile + PDF generation)
-- Gestion Partenaires (CRUD + sponsor linking)
-- Networking & Intelligence (12 expertise tags, smart matching)
-- Stripe Payments (accreditation + partnership flows)
-- Cloudinary Images
-- Resend Emails
+## Statistiques Actuelles
+- **10 profils** indexés
+- **9 matching events** générés
+- **6 territoires** connectés
+- **83% score moyen** de compatibilité
 
-## API Reference
+## Stack Technique
+- **Backend Smart Engine**: Node.js/Express (port 8002)
+- **Backend Principal**: FastAPI Python (port 8001) — proxy vers Smart Engine
+- **Frontend**: React + Tailwind CSS
+- **Database**: MongoDB (multi-collection)
+- **LLM**: Claude via Emergent LLM Key
+- **PDF**: PDFKit + QRCode
 
-### Batch Operations
-- `POST /api/registrations/batch/approve` - Batch approve (max 50)
-- `POST /api/registrations/batch/send-badges` - Batch send badges, returns job_id
-- `GET /api/registrations/batch/progress/{job_id}` - Poll batch progress
+## URLs d'Accès
+- **Smart Engine**: `/smart-engine`
+- **Admin Dashboard**: `/admin` → bouton "Smart Engine"
+- **Vérification publique**: `/api/v1/verify/:attestationId`
 
-### Analytics & Reports
-- `GET /api/v1/stats` - Basic statistics
-- `GET /api/v1/stats/advanced` - Full analytics with revenue estimates
-- `GET /api/v1/stats/territories` - Territory breakdown
-- `GET /api/v1/report/summary` - Executive summary JSON
-- `GET /api/email-logs` - Email send history
-
-### Export
-- `GET /api/registrations/export` - Full CSV export
-- `GET /api/registrations/export/filtered` - Filtered CSV export
-
-### Profiles & Badges
-- `GET /api/participant/{id}` - Public profile
-- `GET /api/participant/{id}/badge` - Generate PDF badge
-
-### Partners
-- `GET /api/partners/admin` - Full partner list
-- `POST /api/partners/manual` - Create partner
-- `PATCH /api/partners/{id}` - Update partner
-- `DELETE /api/partners/{id}` - Delete partner
-- `POST /api/partners/{id}/sponsor/{reg_id}` - Link sponsor
-
-## Test Results Summary
-All features passed comprehensive testing:
-- Backend: 14/14 API tests (100%)
-- Frontend: 6/6 feature verifications (100%)
-- Previous iterations: 100% pass rate maintained
-
-## Production Notes
-
-### Security
-- Admin password: CC2026admin (CHANGE FOR PRODUCTION)
-- Stripe webhook signature verified
-- Public profiles exclude sensitive PII
-- Batch operations limited to 50 per request
-
-### Scalability Consideration
-Batch jobs are stored in-memory for progress tracking. For production with long-running jobs (200+ participants), consider persisting batch job state to MongoDB.
-
-### Revenue Tracking
-Estimated revenue is calculated from:
-- Accreditations: Émergent (50€), Professionnel (150€), Institutionnel (300€)
-- Partnerships: Bronze (2500€), Silver (5000€), Gold (10000€)
-
-### Legal Compliance (Feb 26, 2026) ✅
-
-#### Pages Légales Statiques HTML
-- `/legal/mentions-legales.html` - Mentions légales complètes
-- `/legal/politique-confidentialite.html` - Politique de confidentialité RGPD
-- `/legal/cgu.html` - Conditions générales d'utilisation
-- `/legal/cookies.html` - Politique de cookies
-
-#### Bannière Cookies
-- Script vanilla JS isolé (`/public/legal/legal-compliance.js`)
-- Stockage consentement via localStorage (clé: `cc_cookie_consent`)
-- Boutons Accepter/Refuser avec tracking conditionnel
-- Style CSS isolé (`/public/legal/legal-compliance.css`)
-
-#### Footer Légal
-- Composant React `LegalFooter` intégré
-- Liens vers toutes les pages légales
-- Bouton "Gérer les cookies" pour reset consentement
-
-#### Checkbox RGPD
-- Composant `RGPDCheckbox` obligatoire sur formulaire inscription (étape 3)
-- Validation empêche soumission sans consentement
-- Liens vers politique de confidentialité et CGU
-
-## Smart Engine Module (Feb 27, 2026) ✅
-
-### NEW: KiltiKonet Smart Engine
-Standalone AI-powered matching module for Culture Connect 2026.
-
-**Backend (Node.js/Express - Port 8002):**
-- `/api/v1/smart-recommendations/index` - Index profiles with embeddings
-- `/api/v1/smart-recommendations/:profileId` - Get top 5 recommendations
-- `/api/v1/smart-recommendations/profiles` - List all indexed profiles
-- `/api/v1/smart-recommendations/rag/ask` - RAG-based Q&A with Claude
-- `/api/v1/smart-recommendations/export` - Generate partnership recommendations
-- `/api/v1/smart-recommendations/export/pdf` - Download PDF recommendations
-
-**Database Schema:**
-- `smart_profiles`: id, name, type, sector, genres[], tags[], territory, description, seeking, offering, embedding[1536]
-- `smart_documents`: id, title, content, category, embedding[1536] (for RAG)
-
-**Frontend (/smart-engine):**
-- Dark theme (#1A1A1A) with terracotta accents (#A65D47)
-- Screen 1: Index Profile - Full form with genres/tags selection
-- Screen 2: Smart Recommendations - Profile matching with export feature
-- Screen 3: AI Assistant - Chat interface with RAG support
-
-**Integrations:**
-- Embeddings: Hash-based fallback (or OpenAI with OPENAI_API_KEY)
-- Claude (claude-4-sonnet): Via Emergent LLM Key for chat/recommendations
-
-**Export Feature:**
-- "Exporter pour mon dossier" button on each recommendation
-- Generates official partnership recommendation text via Claude
-- Copy to clipboard & PDF download with Culture Connect branding
+## Prochaines Étapes
+1. Déploiement en production
+2. Configuration DNS kiltikonet.fr
+3. Test avec utilisateurs réels lors de Culture Connect 2026
+4. Extension white-label pour autres événements (2027+)
 
 ---
-
-## Mode: MAINTENANCE & EXPLOITATION
-
-Platform is now feature-complete and legally compliant, ready for:
-1. Data entry and registration management
-2. Partner report generation
-3. Badge distribution
-4. Event accreditation validation via QR codes
-5. Legal compliance for GDPR/RGPD regulations
-
----
-
-## Audit Report (Feb 26, 2026)
-
-### Security Fix Applied ✅
-- **CRITICAL**: Fixed `/api/catalog` endpoint exposing sensitive data (email, phone)
-- Now properly excludes: `email`, `phone`, `payment_session_id`, `siret_number`
-
-### P1: Batch Jobs Persistence ✅ (Feb 26, 2026)
-- Migrated `batch_jobs` from in-memory storage to MongoDB collection
-- New functions: `create_batch_job()`, `update_batch_job_progress()`, `complete_batch_job()`, `get_batch_job()`
-- New endpoint: `GET /api/registrations/batch/history` - View batch job history
-- Benefits: Jobs persist across server restarts, full audit trail
-
-### P2: MongoDB Indexes ✅ (Feb 26, 2026)
-Created indexes on startup for optimal query performance:
-- **registrations**: `status`, `show_in_catalog`, `profile_type`, `country`, `tier`, `email`, `expertise_tags`
-- **partners**: `tier`, `show_on_landing`
-- **batch_jobs**: `status`, `started_at`
-- **email_logs**: `email_type`, `status`, `sent_at`, `participant_id`
-- **payment_transactions**: `session_id` (unique), `payment_status`
-
-### Full Audit Available
-See `/app/AUDIT_REPORT.md` for complete technical audit including:
-- Architecture review
-- Security assessment
-- Performance metrics
-- Functional testing
-- Legal compliance validation
-
----
-
-## Latest Updates (Feb 27, 2026)
-
-### Bug Fixes ✅
-- **FIXED**: Scrollbar missing in Admin Dashboard "Insights Management" section
-  - Wrapped tab content in scrollable container
-  - Users can now scroll to see all dashboard content (Insights, Filters, Table)
-
-### UX Improvements ✅
-- **Enhanced Toast Notifications** across Admin Dashboard:
-  - More descriptive success messages with ✓ icons
-  - Clear error messages with ✗ icons and actionable hints
-  - Loading states with progress indicators for batch operations
-  - French/English translations for all messages
-  
-- **Affected Actions**:
-  - Status changes (approved/pending/rejected)
-  - Catalog visibility toggles
-  - Participant deletion
-  - Manual participant addition
-  - CSV export with loading state
-  - Batch approve with progress feedback
-  - Batch send badges with detailed status
-
-### LLM Integration Status ✅
-- **Emergent LLM Key**: Budget recharged and functional
-- **AI Assistant**: Responds correctly with RAG-sourced answers
-- **Claude Integration**: Working for chat and recommendations
-
+*Dernière mise à jour: 27 février 2026*
