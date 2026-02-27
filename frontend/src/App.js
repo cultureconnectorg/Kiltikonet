@@ -52,6 +52,7 @@ function App() {
               <Route path="/inscription" element={<RegistrationForm />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/cms" element={<CMSAdmin />} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />
               {/* Smart Engine */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
