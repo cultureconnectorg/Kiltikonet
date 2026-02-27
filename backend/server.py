@@ -2927,6 +2927,312 @@ async def get_cms_preview(tenant_id: str = DEFAULT_TENANT):
         "tenant_id": tenant_id
     }
 
+# ================== CMS THEME (Design Visuel) ==================
+
+@app.get("/api/cms/theme")
+async def get_cms_theme(tenant_id: str = DEFAULT_TENANT):
+    """Get theme configuration"""
+    # Get from tenant_config
+    config = await db.tenant_config.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not config:
+        # Return defaults
+        return {
+            "tenant_id": tenant_id,
+            "primary_color": "#A65D47",
+            "secondary_color": "#C8922A",
+            "accent_color": "#4A5D4E",
+            "background_color": "#1A1A1A",
+            "text_color": "#F4F1EA",
+            "font_family": "Inter",
+            "hero_image_url": None,
+            "hero_title": "Culture Connect 2026",
+            "hero_subtitle": "Le premier marché professionnel des industries culturelles afro-caribéennes"
+        }
+    return config
+
+@app.put("/api/cms/theme")
+async def update_cms_theme(theme: CMSTheme):
+    """Update theme configuration"""
+    theme_dict = theme.model_dump()
+    theme_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.tenant_config.update_one(
+        {"tenant_id": theme.tenant_id},
+        {"$set": theme_dict},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Thème mis à jour"}
+
+@app.post("/api/cms/theme/hero-upload")
+async def upload_hero_image(file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
+    """Upload hero image"""
+    image_url = await upload_to_cloudinary(file, f"culture-connect/theme/hero-{tenant_id}")
+    
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Failed to upload image")
+    
+    await db.tenant_config.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {"hero_image_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    
+    return {"success": True, "image_url": image_url}
+
+# ================== CMS CONTENT (Contenu Éditorial) ==================
+
+@app.get("/api/cms/content")
+async def get_cms_content(page: Optional[str] = None, tenant_id: str = DEFAULT_TENANT):
+    """Get editorial content, optionally filtered by page"""
+    query = {"tenant_id": tenant_id}
+    if page:
+        query["page"] = page
+    
+    content = await db.cms_content.find(query, {"_id": 0}).to_list(100)
+    return {"content": content, "total": len(content)}
+
+@app.get("/api/cms/content/{page}/{section}")
+async def get_cms_content_section(page: str, section: str, tenant_id: str = DEFAULT_TENANT):
+    """Get specific content section"""
+    content = await db.cms_content.find_one(
+        {"tenant_id": tenant_id, "page": page, "section": section},
+        {"_id": 0}
+    )
+    return content or {"page": page, "section": section, "content": {}}
+
+@app.put("/api/cms/content/{page}/{section}")
+async def update_cms_content_section(page: str, section: str, data: dict, tenant_id: str = DEFAULT_TENANT):
+    """Update specific content section"""
+    content_id = f"{tenant_id}_{page}_{section}"
+    
+    await db.cms_content.update_one(
+        {"tenant_id": tenant_id, "page": page, "section": section},
+        {
+            "$set": {
+                "id": content_id,
+                "tenant_id": tenant_id,
+                "page": page,
+                "section": section,
+                "content": data.get("content", {}),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    return {"success": True}
+
+@app.post("/api/cms/content/init-defaults")
+async def init_default_content(tenant_id: str = DEFAULT_TENANT):
+    """Initialize default content for all pages"""
+    defaults = [
+        # Homepage
+        {"page": "home", "section": "hero", "content": {
+            "title": "Culture Connect 2026",
+            "subtitle": "Le premier marché professionnel des industries culturelles afro-caribéennes",
+            "cta_text": "Découvrir le programme"
+        }},
+        {"page": "home", "section": "intro", "content": {
+            "title": "Bienvenue à Culture Connect",
+            "text": "Du 20 au 23 mai 2026, Fort-de-France accueille le premier marché professionnel dédié aux industries culturelles afro-caribéennes. Un événement unique réunissant labels, artistes, agents, médias et institutions de toute la diaspora."
+        }},
+        {"page": "home", "section": "key_figures", "content": {
+            "figures": [
+                {"value": "50+", "label": "Exposants", "description": "Labels, agents, institutions"},
+                {"value": "500", "label": "Participants", "description": "Professionnels attendus"},
+                {"value": "12", "label": "Territoires", "description": "Caraïbe, Afrique, Europe"},
+                {"value": "4", "label": "Jours", "description": "De rencontres B2B"}
+            ]
+        }},
+        # Program
+        {"page": "program", "section": "intro", "content": {
+            "title": "Programme Culture Connect 2026",
+            "text": "4 jours de rencontres, conférences et showcases au cœur de Fort-de-France."
+        }},
+        {"page": "program", "section": "days", "content": {
+            "days": [
+                {"date": "2026-05-20", "name": "Mardi 20 Mai", "events": [
+                    {"time": "09:00", "title": "Ouverture officielle", "site": "La Savane", "description": "Discours d'ouverture et présentation du programme"},
+                    {"time": "14:00", "title": "Tables rondes B2B", "site": "Schoelcher", "description": "Sessions de networking thématiques"}
+                ]},
+                {"date": "2026-05-21", "name": "Mercredi 21 Mai", "events": [
+                    {"time": "10:00", "title": "Ateliers professionnels", "site": "Atrium", "description": "Formation et workshops"},
+                    {"time": "20:00", "title": "Showcases artistes", "site": "La Savane", "description": "Concerts et performances"}
+                ]},
+                {"date": "2026-05-22", "name": "Jeudi 22 Mai", "events": [
+                    {"time": "09:00", "title": "Rendez-vous B2B", "site": "Schoelcher", "description": "Rencontres planifiées entre professionnels"},
+                    {"time": "18:00", "title": "Networking cocktail", "site": "La Savane", "description": "Soirée de networking"}
+                ]},
+                {"date": "2026-05-23", "name": "Vendredi 23 Mai", "events": [
+                    {"time": "10:00", "title": "Bilan et perspectives", "site": "Atrium", "description": "Clôture et annonces"},
+                    {"time": "21:00", "title": "Soirée de clôture", "site": "La Savane", "description": "Concert de clôture"}
+                ]}
+            ]
+        }},
+        # About
+        {"page": "about", "section": "history", "content": {
+            "title": "Notre Histoire",
+            "text": "Culture Connect est né de la volonté de créer un espace de rencontre dédié aux professionnels des industries culturelles afro-caribéennes. Initié par Factory Maker Studio, ce projet ambitionne de devenir le rendez-vous incontournable du secteur."
+        }},
+        {"page": "about", "section": "mission", "content": {
+            "title": "Notre Mission",
+            "text": "Faciliter les échanges et collaborations entre les acteurs des industries culturelles de la Caraïbe, de l'Afrique et de la diaspora. Créer des opportunités business concrètes et durables."
+        }},
+        {"page": "about", "section": "vision", "content": {
+            "title": "Notre Vision",
+            "text": "Faire de Fort-de-France la capitale des industries culturelles afro-caribéennes. Positionner Culture Connect comme la référence mondiale du secteur d'ici 2030."
+        }}
+    ]
+    
+    for item in defaults:
+        existing = await db.cms_content.find_one({
+            "tenant_id": tenant_id, 
+            "page": item["page"], 
+            "section": item["section"]
+        })
+        if not existing:
+            item["tenant_id"] = tenant_id
+            item["id"] = f"{tenant_id}_{item['page']}_{item['section']}"
+            item["updated_at"] = datetime.now(timezone.utc).isoformat()
+            await db.cms_content.insert_one(item)
+    
+    return {"success": True, "message": "Contenu par défaut initialisé"}
+
+# ================== CMS PAGES (Pages Dynamiques) ==================
+
+@app.get("/api/cms/pages")
+async def get_cms_pages(tenant_id: str = DEFAULT_TENANT):
+    """Get all custom pages"""
+    pages = await db.cms_pages.find({"tenant_id": tenant_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"pages": pages, "total": len(pages)}
+
+@app.get("/api/cms/pages/{page_id}")
+async def get_cms_page(page_id: str, tenant_id: str = DEFAULT_TENANT):
+    """Get a specific page by ID"""
+    page = await db.cms_pages.find_one({"id": page_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return page
+
+@app.get("/api/cms/pages/slug/{slug}")
+async def get_cms_page_by_slug(slug: str, tenant_id: str = DEFAULT_TENANT):
+    """Get a page by slug (for public rendering)"""
+    page = await db.cms_pages.find_one(
+        {"slug": slug, "tenant_id": tenant_id, "published": True}, 
+        {"_id": 0}
+    )
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return page
+
+@app.post("/api/cms/pages")
+async def create_cms_page(page: CMSPage):
+    """Create a new custom page"""
+    # Validate slug
+    slug = page.slug.lower().strip().replace(" ", "-")
+    slug = ''.join(c for c in slug if c.isalnum() or c == '-')
+    
+    # Check if slug exists
+    existing = await db.cms_pages.find_one({"slug": slug, "tenant_id": page.tenant_id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Ce slug existe déjà")
+    
+    page_dict = page.model_dump()
+    page_dict["id"] = str(uuid.uuid4())
+    page_dict["slug"] = slug
+    page_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    page_dict["updated_at"] = page_dict["created_at"]
+    
+    await db.cms_pages.insert_one(page_dict)
+    return {"success": True, "page": {k: v for k, v in page_dict.items() if k != "_id"}}
+
+@app.put("/api/cms/pages/{page_id}")
+async def update_cms_page(page_id: str, page: CMSPage):
+    """Update a custom page"""
+    # Validate slug
+    slug = page.slug.lower().strip().replace(" ", "-")
+    slug = ''.join(c for c in slug if c.isalnum() or c == '-')
+    
+    # Check if slug exists for another page
+    existing = await db.cms_pages.find_one({
+        "slug": slug, 
+        "tenant_id": page.tenant_id,
+        "id": {"$ne": page_id}
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Ce slug existe déjà")
+    
+    page_dict = page.model_dump(exclude_unset=True)
+    page_dict["slug"] = slug
+    page_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.cms_pages.update_one(
+        {"id": page_id, "tenant_id": page.tenant_id},
+        {"$set": page_dict}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    return {"success": True}
+
+@app.delete("/api/cms/pages/{page_id}")
+async def delete_cms_page(page_id: str, tenant_id: str = DEFAULT_TENANT):
+    """Delete a custom page"""
+    result = await db.cms_pages.delete_one({"id": page_id, "tenant_id": tenant_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    return {"success": True}
+
+# ================== PUBLIC CMS ENDPOINTS ==================
+
+@app.get("/api/public/theme")
+async def get_public_theme(tenant_id: str = DEFAULT_TENANT):
+    """Get theme for public site (no auth required)"""
+    config = await db.tenant_config.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not config:
+        return {
+            "primary_color": "#A65D47",
+            "secondary_color": "#C8922A",
+            "accent_color": "#4A5D4E",
+            "background_color": "#1A1A1A",
+            "text_color": "#F4F1EA",
+            "font_family": "Inter",
+            "hero_image_url": None,
+            "hero_title": "Culture Connect 2026",
+            "hero_subtitle": "Le premier marché professionnel des industries culturelles afro-caribéennes"
+        }
+    return config
+
+@app.get("/api/public/content/{page}")
+async def get_public_content(page: str, tenant_id: str = DEFAULT_TENANT):
+    """Get content for a specific page (no auth required)"""
+    content = await db.cms_content.find(
+        {"tenant_id": tenant_id, "page": page}, 
+        {"_id": 0}
+    ).to_list(50)
+    
+    # Convert to dict by section
+    result = {}
+    for item in content:
+        result[item["section"]] = item.get("content", {})
+    
+    return result
+
+@app.get("/api/public/page/{slug}")
+async def get_public_page(slug: str, tenant_id: str = DEFAULT_TENANT):
+    """Get a custom page by slug (no auth required)"""
+    page = await db.cms_pages.find_one(
+        {"slug": slug, "tenant_id": tenant_id, "published": True}, 
+        {"_id": 0}
+    )
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return page
+
 # ================== SMART ENGINE PROXY ==================
 import httpx
 
