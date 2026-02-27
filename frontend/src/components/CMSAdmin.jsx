@@ -19,14 +19,25 @@ import {
   Check,
   ExternalLink,
   RefreshCw,
-  Settings
+  Settings,
+  Palette,
+  FileText,
+  Layout,
+  Calendar,
+  Type,
+  ChevronDown,
+  ChevronUp,
+  Globe,
+  Link2,
+  Copy,
+  Loader2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
-// ================== MEDIA SECTION ==================
+// ================== MEDIA SECTION (Existing) ==================
 const MediaSection = () => {
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,9 +52,7 @@ const MediaSection = () => {
     { id: 'gallery', label: 'Galerie Ambiance', desc: 'Photos de l\'événement' }
   ];
 
-  useEffect(() => {
-    loadMedia();
-  }, []);
+  useEffect(() => { loadMedia(); }, []);
 
   const loadMedia = async () => {
     try {
@@ -110,9 +119,7 @@ const MediaSection = () => {
 
   const getMediaByCategory = (categoryId) => media.filter(m => m.category === categoryId);
 
-  if (loading) {
-    return <div className="flex justify-center py-8"><RefreshCw className="w-6 h-6 animate-spin text-terracotta" /></div>;
-  }
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
 
   return (
     <div className="space-y-8">
@@ -123,96 +130,45 @@ const MediaSection = () => {
               <h3 className="text-lg font-semibold text-charcoal">{category.label}</h3>
               <p className="text-sm text-charcoal/60">{category.desc}</p>
             </div>
-            <Button
-              onClick={() => createMedia(category.id)}
-              variant="outline"
-              size="sm"
-              className="border-sage text-sage hover:bg-sage/10"
-            >
+            <Button onClick={() => createMedia(category.id)} variant="outline" size="sm" className="border-sage text-sage hover:bg-sage/10">
               <Plus className="w-4 h-4 mr-1" /> Ajouter
             </Button>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {getMediaByCategory(category.id).map(item => (
               <div key={item.id} className="border border-lightborder rounded-lg overflow-hidden bg-cream/50">
-                {/* Image Preview */}
                 <div className="relative aspect-video bg-charcoal/5 flex items-center justify-center">
                   {item.image_url ? (
                     <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
                   ) : (
                     <Image className="w-12 h-12 text-charcoal/20" />
                   )}
-                  
-                  {/* Upload overlay */}
                   <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => e.target.files?.[0] && uploadImage(item.id, e.target.files[0])}
-                    />
-                    {uploading === item.id ? (
-                      <RefreshCw className="w-8 h-8 text-white animate-spin" />
-                    ) : (
-                      <Upload className="w-8 h-8 text-white" />
-                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadImage(item.id, e.target.files[0])} />
+                    {uploading === item.id ? <Loader2 className="w-8 h-8 text-white animate-spin" /> : <Upload className="w-8 h-8 text-white" />}
                   </label>
                 </div>
-
-                {/* Info */}
                 <div className="p-3">
                   {editingId === item.id ? (
                     <div className="space-y-2">
-                      <Input
-                        value={editForm.title || ''}
-                        onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                        placeholder="Titre"
-                        className="text-sm"
-                      />
-                      <Input
-                        value={editForm.description || ''}
-                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                        placeholder="Description"
-                        className="text-sm"
-                      />
+                      <Input value={editForm.title || ''} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} placeholder="Titre" className="text-sm" />
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => updateMedia(item.id)} className="flex-1 bg-sage">
-                          <Check className="w-3 h-3 mr-1" /> Sauver
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
-                          <X className="w-3 h-3" />
-                        </Button>
+                        <Button size="sm" onClick={() => updateMedia(item.id)} className="flex-1 bg-sage"><Check className="w-3 h-3 mr-1" /> Sauver</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}><X className="w-3 h-3" /></Button>
                       </div>
                     </div>
                   ) : (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-charcoal text-sm truncate">{item.title}</span>
-                        <div className="flex gap-1">
-                          <button 
-                            onClick={() => { setEditingId(item.id); setEditForm(item); }}
-                            className="p-1 hover:bg-charcoal/10 rounded"
-                          >
-                            <Edit2 className="w-4 h-4 text-charcoal/60" />
-                          </button>
-                          <button 
-                            onClick={() => deleteMedia(item.id)}
-                            className="p-1 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-charcoal text-sm truncate">{item.title}</span>
+                      <div className="flex gap-1">
+                        <button onClick={() => { setEditingId(item.id); setEditForm(item); }} className="p-1 hover:bg-charcoal/10 rounded"><Edit2 className="w-4 h-4 text-charcoal/60" /></button>
+                        <button onClick={() => deleteMedia(item.id)} className="p-1 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4 text-red-500" /></button>
                       </div>
-                      {item.description && (
-                        <p className="text-xs text-charcoal/50 mt-1 truncate">{item.description}</p>
-                      )}
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
             ))}
-
             {getMediaByCategory(category.id).length === 0 && (
               <div className="col-span-full py-8 text-center text-charcoal/40 border border-dashed border-charcoal/20 rounded-lg">
                 Aucun média dans cette catégorie
@@ -234,9 +190,7 @@ const ExhibitorsSection = () => {
   const [uploading, setUploading] = useState(null);
   const [activeTab, setActiveTab] = useState('smart_engine');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
@@ -245,15 +199,10 @@ const ExhibitorsSection = () => {
         axios.get(`${API}/api/registrations?status=approved`),
         axios.get(`${API}/api/cms/exhibitors`)
       ]);
-
       setProfiles(profilesRes.data.profiles || []);
       setParticipants(participantsRes.data.registrations || []);
-      
-      // Create a map of profile_id -> photo_url
       const photosMap = {};
-      (photosRes.data.exhibitors || []).forEach(ex => {
-        photosMap[ex.profile_id] = ex.photo_url;
-      });
+      (photosRes.data.exhibitors || []).forEach(ex => { photosMap[ex.profile_id] = ex.photo_url; });
       setExhibitorPhotos(photosMap);
     } catch (error) {
       toast.error('Erreur lors du chargement');
@@ -266,12 +215,8 @@ const ExhibitorsSection = () => {
     setUploading(profileId);
     const formData = new FormData();
     formData.append('file', file);
-
     try {
-      const res = await axios.post(
-        `${API}/api/cms/exhibitors/${profileId}/upload?profile_type=${profileType}`,
-        formData
-      );
+      const res = await axios.post(`${API}/api/cms/exhibitors/${profileId}/upload?profile_type=${profileType}`, formData);
       setExhibitorPhotos({ ...exhibitorPhotos, [profileId]: res.data.photo_url });
       toast.success('Photo uploadée');
     } catch (error) {
@@ -281,84 +226,36 @@ const ExhibitorsSection = () => {
     }
   };
 
-  const deletePhoto = async (profileId) => {
-    try {
-      await axios.delete(`${API}/api/cms/exhibitors/${profileId}`);
-      const newPhotos = { ...exhibitorPhotos };
-      delete newPhotos[profileId];
-      setExhibitorPhotos(newPhotos);
-      toast.success('Photo supprimée');
-    } catch (error) {
-      toast.error('Erreur lors de la suppression');
-    }
-  };
-
-  const getInitials = (name) => {
-    return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??';
-  };
-
+  const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??';
   const getInitialsColor = (name) => {
     const colors = ['#A65D47', '#C8922A', '#4A5D4E', '#1A1A1A', '#6B4423'];
-    const index = name?.charCodeAt(0) % colors.length || 0;
-    return colors[index];
+    return colors[name?.charCodeAt(0) % colors.length || 0];
   };
 
-  if (loading) {
-    return <div className="flex justify-center py-8"><RefreshCw className="w-6 h-6 animate-spin text-terracotta" /></div>;
-  }
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
 
   const renderProfileCard = (profile, type) => {
     const id = profile.id;
     const name = type === 'smart_engine' ? profile.name : profile.full_name;
     const photoUrl = exhibitorPhotos[id];
-
     return (
       <div key={id} className="border border-lightborder rounded-lg overflow-hidden bg-paper">
-        {/* Photo */}
         <div className="relative aspect-square bg-charcoal/5 flex items-center justify-center">
           {photoUrl ? (
             <img src={photoUrl} alt={name} className="w-full h-full object-cover" />
           ) : (
-            <div 
-              className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
-              style={{ backgroundColor: getInitialsColor(name) }}
-            >
+            <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white" style={{ backgroundColor: getInitialsColor(name) }}>
               {getInitials(name)}
             </div>
           )}
-          
-          {/* Upload overlay */}
           <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => e.target.files?.[0] && uploadPhoto(id, type, e.target.files[0])}
-            />
-            {uploading === id ? (
-              <RefreshCw className="w-8 h-8 text-white animate-spin" />
-            ) : (
-              <Upload className="w-8 h-8 text-white" />
-            )}
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(id, type, e.target.files[0])} />
+            {uploading === id ? <Loader2 className="w-8 h-8 text-white animate-spin" /> : <Upload className="w-8 h-8 text-white" />}
           </label>
-
-          {/* Delete button */}
-          {photoUrl && (
-            <button
-              onClick={() => deletePhoto(id)}
-              className="absolute top-2 right-2 p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
         </div>
-
-        {/* Info */}
         <div className="p-3">
           <div className="font-medium text-charcoal text-sm truncate">{name}</div>
-          <div className="text-xs text-charcoal/50 mt-0.5">
-            {type === 'smart_engine' ? profile.type : profile.profile_type} • {profile.territory || profile.country}
-          </div>
+          <div className="text-xs text-charcoal/50 mt-0.5">{type === 'smart_engine' ? profile.type : profile.profile_type} • {profile.territory || profile.country}</div>
         </div>
       </div>
     );
@@ -366,42 +263,18 @@ const ExhibitorsSection = () => {
 
   return (
     <div className="space-y-6">
-      {/* Tabs */}
       <div className="flex gap-2 border-b border-lightborder pb-2">
-        <button
-          onClick={() => setActiveTab('smart_engine')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-            activeTab === 'smart_engine' 
-              ? 'bg-terracotta text-white' 
-              : 'text-charcoal/60 hover:text-charcoal'
-          }`}
-        >
+        <button onClick={() => setActiveTab('smart_engine')} className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'smart_engine' ? 'bg-terracotta text-white' : 'text-charcoal/60 hover:text-charcoal'}`}>
           Profils Smart Engine ({profiles.length})
         </button>
-        <button
-          onClick={() => setActiveTab('participants')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-            activeTab === 'participants' 
-              ? 'bg-terracotta text-white' 
-              : 'text-charcoal/60 hover:text-charcoal'
-          }`}
-        >
-          Participants Approuvés ({participants.length})
+        <button onClick={() => setActiveTab('participants')} className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'participants' ? 'bg-terracotta text-white' : 'text-charcoal/60 hover:text-charcoal'}`}>
+          Participants ({participants.length})
         </button>
       </div>
-
-      {/* Content */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {activeTab === 'smart_engine' && profiles.map(p => renderProfileCard(p, 'smart_engine'))}
         {activeTab === 'participants' && participants.map(p => renderProfileCard(p, 'participant'))}
       </div>
-
-      {((activeTab === 'smart_engine' && profiles.length === 0) || 
-        (activeTab === 'participants' && participants.length === 0)) && (
-        <div className="py-12 text-center text-charcoal/40 border border-dashed border-charcoal/20 rounded-lg">
-          Aucun profil dans cette catégorie
-        </div>
-      )}
     </div>
   );
 };
@@ -415,9 +288,7 @@ const SpeakersSection = () => {
   const [uploading, setUploading] = useState(null);
   const [form, setForm] = useState({ name: '', role: '', bio: '' });
 
-  useEffect(() => {
-    loadSpeakers();
-  }, []);
+  useEffect(() => { loadSpeakers(); }, []);
 
   const loadSpeakers = async () => {
     try {
@@ -431,11 +302,7 @@ const SpeakersSection = () => {
   };
 
   const saveSpeaker = async () => {
-    if (!form.name || !form.role) {
-      toast.error('Nom et rôle requis');
-      return;
-    }
-
+    if (!form.name || !form.role) { toast.error('Nom et rôle requis'); return; }
     try {
       if (editingSpeaker) {
         await axios.put(`${API}/api/cms/speakers/${editingSpeaker.id}`, form);
@@ -446,9 +313,7 @@ const SpeakersSection = () => {
         setSpeakers([...speakers, res.data.speaker]);
         toast.success('Intervenant ajouté');
       }
-      setShowForm(false);
-      setEditingSpeaker(null);
-      setForm({ name: '', role: '', bio: '' });
+      setShowForm(false); setEditingSpeaker(null); setForm({ name: '', role: '', bio: '' });
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde');
     }
@@ -469,7 +334,6 @@ const SpeakersSection = () => {
     setUploading(speakerId);
     const formData = new FormData();
     formData.append('file', file);
-
     try {
       const res = await axios.post(`${API}/api/cms/speakers/${speakerId}/upload`, formData);
       setSpeakers(speakers.map(s => s.id === speakerId ? { ...s, photo_url: res.data.photo_url } : s));
@@ -484,13 +348,9 @@ const SpeakersSection = () => {
   const moveSpeaker = async (index, direction) => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= speakers.length) return;
-
     const newSpeakers = [...speakers];
     [newSpeakers[index], newSpeakers[newIndex]] = [newSpeakers[newIndex], newSpeakers[index]];
-    
-    // Update orders
     const orders = newSpeakers.map((s, i) => ({ id: s.id, order: i }));
-    
     try {
       await axios.put(`${API}/api/cms/speakers/reorder`, orders);
       setSpeakers(newSpeakers);
@@ -499,147 +359,57 @@ const SpeakersSection = () => {
     }
   };
 
-  if (loading) {
-    return <div className="flex justify-center py-8"><RefreshCw className="w-6 h-6 animate-spin text-terracotta" /></div>;
-  }
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
 
   return (
     <div className="space-y-6">
-      {/* Add button */}
       <div className="flex justify-end">
-        <Button 
-          onClick={() => { setShowForm(true); setEditingSpeaker(null); setForm({ name: '', role: '', bio: '' }); }}
-          className="bg-sage text-white"
-        >
+        <Button onClick={() => { setShowForm(true); setEditingSpeaker(null); setForm({ name: '', role: '', bio: '' }); }} className="bg-sage text-white">
           <Plus className="w-4 h-4 mr-2" /> Ajouter un intervenant
         </Button>
       </div>
-
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-paper rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-charcoal mb-4">
-              {editingSpeaker ? 'Modifier l\'intervenant' : 'Nouvel intervenant'}
-            </h3>
+            <h3 className="text-lg font-semibold text-charcoal mb-4">{editingSpeaker ? 'Modifier' : 'Nouvel'} intervenant</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-charcoal/70 mb-1">Nom *</label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Ex: Jean-Pierre Dupont"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-charcoal/70 mb-1">Rôle *</label>
-                <Input
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  placeholder="Ex: Directeur CTM Culture"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-charcoal/70 mb-1">Bio (3-4 lignes)</label>
-                <textarea
-                  value={form.bio}
-                  onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                  placeholder="Courte biographie..."
-                  className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none"
-                  rows={4}
-                />
-              </div>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nom *" />
+              <Input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Rôle *" />
+              <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio (3-4 lignes)" className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none" rows={4} />
             </div>
             <div className="flex gap-3 mt-6">
-              <Button onClick={saveSpeaker} className="flex-1 bg-terracotta text-white">
-                <Check className="w-4 h-4 mr-2" /> {editingSpeaker ? 'Mettre à jour' : 'Ajouter'}
-              </Button>
-              <Button onClick={() => setShowForm(false)} variant="outline" className="flex-1">
-                Annuler
-              </Button>
+              <Button onClick={saveSpeaker} className="flex-1 bg-terracotta text-white"><Check className="w-4 h-4 mr-2" /> {editingSpeaker ? 'Mettre à jour' : 'Ajouter'}</Button>
+              <Button onClick={() => setShowForm(false)} variant="outline" className="flex-1">Annuler</Button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Speakers List */}
       <div className="space-y-3">
         {speakers.map((speaker, index) => (
           <div key={speaker.id} className="flex items-center gap-4 bg-paper border border-lightborder rounded-lg p-4">
-            {/* Drag handle */}
             <div className="flex flex-col gap-1">
-              <button 
-                onClick={() => moveSpeaker(index, 'up')} 
-                disabled={index === 0}
-                className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"
-              >
-                <GripVertical className="w-4 h-4 text-charcoal/40 rotate-180" />
-              </button>
-              <button 
-                onClick={() => moveSpeaker(index, 'down')} 
-                disabled={index === speakers.length - 1}
-                className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"
-              >
-                <GripVertical className="w-4 h-4 text-charcoal/40" />
-              </button>
+              <button onClick={() => moveSpeaker(index, 'up')} disabled={index === 0} className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"><ChevronUp className="w-4 h-4 text-charcoal/40" /></button>
+              <button onClick={() => moveSpeaker(index, 'down')} disabled={index === speakers.length - 1} className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"><ChevronDown className="w-4 h-4 text-charcoal/40" /></button>
             </div>
-
-            {/* Photo */}
             <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-charcoal/5 flex-shrink-0">
-              {speaker.photo_url ? (
-                <img src={speaker.photo_url} alt={speaker.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Mic2 className="w-8 h-8 text-charcoal/20" />
-                </div>
-              )}
+              {speaker.photo_url ? <img src={speaker.photo_url} alt={speaker.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Mic2 className="w-8 h-8 text-charcoal/20" /></div>}
               <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && uploadPhoto(speaker.id, e.target.files[0])}
-                />
-                {uploading === speaker.id ? (
-                  <RefreshCw className="w-6 h-6 text-white animate-spin" />
-                ) : (
-                  <Upload className="w-6 h-6 text-white" />
-                )}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(speaker.id, e.target.files[0])} />
+                {uploading === speaker.id ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Upload className="w-6 h-6 text-white" />}
               </label>
             </div>
-
-            {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-charcoal">{speaker.name}</div>
               <div className="text-sm text-terracotta">{speaker.role}</div>
-              {speaker.bio && (
-                <p className="text-xs text-charcoal/60 mt-1 line-clamp-2">{speaker.bio}</p>
-              )}
+              {speaker.bio && <p className="text-xs text-charcoal/60 mt-1 line-clamp-2">{speaker.bio}</p>}
             </div>
-
-            {/* Actions */}
             <div className="flex gap-2">
-              <button
-                onClick={() => { setEditingSpeaker(speaker); setForm(speaker); setShowForm(true); }}
-                className="p-2 hover:bg-charcoal/10 rounded"
-              >
-                <Edit2 className="w-4 h-4 text-charcoal/60" />
-              </button>
-              <button
-                onClick={() => deleteSpeaker(speaker.id)}
-                className="p-2 hover:bg-red-50 rounded"
-              >
-                <Trash2 className="w-4 h-4 text-red-500" />
-              </button>
+              <button onClick={() => { setEditingSpeaker(speaker); setForm(speaker); setShowForm(true); }} className="p-2 hover:bg-charcoal/10 rounded"><Edit2 className="w-4 h-4 text-charcoal/60" /></button>
+              <button onClick={() => deleteSpeaker(speaker.id)} className="p-2 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4 text-red-500" /></button>
             </div>
           </div>
         ))}
-
-        {speakers.length === 0 && (
-          <div className="py-12 text-center text-charcoal/40 border border-dashed border-charcoal/20 rounded-lg">
-            Aucun intervenant ajouté
-          </div>
-        )}
+        {speakers.length === 0 && <div className="py-12 text-center text-charcoal/40 border border-dashed border-charcoal/20 rounded-lg">Aucun intervenant ajouté</div>}
       </div>
     </div>
   );
@@ -654,9 +424,7 @@ const PartnersSection = () => {
   const [uploading, setUploading] = useState(null);
   const [form, setForm] = useState({ name: '', website_url: '' });
 
-  useEffect(() => {
-    loadPartners();
-  }, []);
+  useEffect(() => { loadPartners(); }, []);
 
   const loadPartners = async () => {
     try {
@@ -670,11 +438,7 @@ const PartnersSection = () => {
   };
 
   const savePartner = async () => {
-    if (!form.name) {
-      toast.error('Nom requis');
-      return;
-    }
-
+    if (!form.name) { toast.error('Nom requis'); return; }
     try {
       if (editingPartner) {
         await axios.put(`${API}/api/cms/partners/${editingPartner.id}`, form);
@@ -685,9 +449,7 @@ const PartnersSection = () => {
         setPartners([...partners, res.data.partner]);
         toast.success('Partenaire ajouté');
       }
-      setShowForm(false);
-      setEditingPartner(null);
-      setForm({ name: '', website_url: '' });
+      setShowForm(false); setEditingPartner(null); setForm({ name: '', website_url: '' });
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde');
     }
@@ -708,7 +470,6 @@ const PartnersSection = () => {
     setUploading(partnerId);
     const formData = new FormData();
     formData.append('file', file);
-
     try {
       const res = await axios.post(`${API}/api/cms/partners/${partnerId}/upload`, formData);
       setPartners(partners.map(p => p.id === partnerId ? { ...p, logo_url: res.data.logo_url } : p));
@@ -720,167 +481,764 @@ const PartnersSection = () => {
     }
   };
 
-  const movePartner = async (index, direction) => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= partners.length) return;
-
-    const newPartners = [...partners];
-    [newPartners[index], newPartners[newIndex]] = [newPartners[newIndex], newPartners[index]];
-    
-    const orders = newPartners.map((p, i) => ({ id: p.id, order: i }));
-    
-    try {
-      await axios.put(`${API}/api/cms/partners/reorder`, orders);
-      setPartners(newPartners);
-    } catch (error) {
-      toast.error('Erreur lors du réordonnement');
-    }
-  };
-
-  if (loading) {
-    return <div className="flex justify-center py-8"><RefreshCw className="w-6 h-6 animate-spin text-terracotta" /></div>;
-  }
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
 
   return (
     <div className="space-y-6">
-      {/* Add button */}
       <div className="flex justify-end">
-        <Button 
-          onClick={() => { setShowForm(true); setEditingPartner(null); setForm({ name: '', website_url: '' }); }}
-          className="bg-sage text-white"
-        >
+        <Button onClick={() => { setShowForm(true); setEditingPartner(null); setForm({ name: '', website_url: '' }); }} className="bg-sage text-white">
           <Plus className="w-4 h-4 mr-2" /> Ajouter un partenaire
         </Button>
       </div>
-
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-paper rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-charcoal mb-4">
-              {editingPartner ? 'Modifier le partenaire' : 'Nouveau partenaire'}
-            </h3>
+            <h3 className="text-lg font-semibold text-charcoal mb-4">{editingPartner ? 'Modifier' : 'Nouveau'} partenaire</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-charcoal/70 mb-1">Nom *</label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Ex: CTM, DAC, Air Caraïbes..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-charcoal/70 mb-1">Site web</label>
-                <Input
-                  value={form.website_url}
-                  onChange={(e) => setForm({ ...form, website_url: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nom *" />
+              <Input value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="Site web (https://...)" />
             </div>
             <div className="flex gap-3 mt-6">
-              <Button onClick={savePartner} className="flex-1 bg-terracotta text-white">
-                <Check className="w-4 h-4 mr-2" /> {editingPartner ? 'Mettre à jour' : 'Ajouter'}
-              </Button>
-              <Button onClick={() => setShowForm(false)} variant="outline" className="flex-1">
-                Annuler
-              </Button>
+              <Button onClick={savePartner} className="flex-1 bg-terracotta text-white"><Check className="w-4 h-4 mr-2" /> {editingPartner ? 'Mettre à jour' : 'Ajouter'}</Button>
+              <Button onClick={() => setShowForm(false)} variant="outline" className="flex-1">Annuler</Button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Partners Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {partners.map((partner, index) => (
+        {partners.map((partner) => (
           <div key={partner.id} className="bg-paper border border-lightborder rounded-lg overflow-hidden">
-            {/* Logo */}
             <div className="relative aspect-video bg-white flex items-center justify-center p-4">
-              {partner.logo_url ? (
-                <img src={partner.logo_url} alt={partner.name} className="max-w-full max-h-full object-contain" />
-              ) : (
-                <Building2 className="w-12 h-12 text-charcoal/20" />
-              )}
-              
+              {partner.logo_url ? <img src={partner.logo_url} alt={partner.name} className="max-w-full max-h-full object-contain" /> : <Building2 className="w-12 h-12 text-charcoal/20" />}
               <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && uploadLogo(partner.id, e.target.files[0])}
-                />
-                {uploading === partner.id ? (
-                  <RefreshCw className="w-6 h-6 text-white animate-spin" />
-                ) : (
-                  <Upload className="w-6 h-6 text-white" />
-                )}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadLogo(partner.id, e.target.files[0])} />
+                {uploading === partner.id ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Upload className="w-6 h-6 text-white" />}
               </label>
             </div>
-
-            {/* Info */}
             <div className="p-3 border-t border-lightborder">
               <div className="font-medium text-charcoal text-sm truncate">{partner.name}</div>
-              {partner.website_url && (
-                <a 
-                  href={partner.website_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-terracotta flex items-center gap-1 mt-1 hover:underline"
-                >
-                  <ExternalLink className="w-3 h-3" /> Site
-                </a>
-              )}
-              
-              {/* Actions */}
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-lightborder">
-                <div className="flex gap-1">
-                  <button 
-                    onClick={() => movePartner(index, 'up')} 
-                    disabled={index === 0}
-                    className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"
-                    title="Déplacer vers la gauche"
-                  >
-                    <ArrowLeft className="w-3 h-3 text-charcoal/40" />
-                  </button>
-                  <button 
-                    onClick={() => movePartner(index, 'down')} 
-                    disabled={index === partners.length - 1}
-                    className="p-1 hover:bg-charcoal/10 rounded disabled:opacity-30"
-                    title="Déplacer vers la droite"
-                  >
-                    <ArrowLeft className="w-3 h-3 text-charcoal/40 rotate-180" />
-                  </button>
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => { setEditingPartner(partner); setForm(partner); setShowForm(true); }}
-                    className="p-1 hover:bg-charcoal/10 rounded"
-                  >
-                    <Edit2 className="w-3 h-3 text-charcoal/60" />
-                  </button>
-                  <button
-                    onClick={() => deletePartner(partner.id)}
-                    className="p-1 hover:bg-red-50 rounded"
-                  >
-                    <Trash2 className="w-3 h-3 text-red-500" />
-                  </button>
-                </div>
+                <button onClick={() => { setEditingPartner(partner); setForm(partner); setShowForm(true); }} className="p-1 hover:bg-charcoal/10 rounded"><Edit2 className="w-3 h-3 text-charcoal/60" /></button>
+                <button onClick={() => deletePartner(partner.id)} className="p-1 hover:bg-red-50 rounded"><Trash2 className="w-3 h-3 text-red-500" /></button>
               </div>
             </div>
           </div>
         ))}
       </div>
+      {partners.length === 0 && <div className="py-12 text-center text-charcoal/40 border border-dashed border-charcoal/20 rounded-lg">Aucun partenaire ajouté</div>}
+    </div>
+  );
+};
 
-      {partners.length === 0 && (
-        <div className="py-12 text-center text-charcoal/40 border border-dashed border-charcoal/20 rounded-lg">
-          Aucun partenaire ajouté
+// ================== DESIGN SECTION (NEW) ==================
+const DesignSection = () => {
+  const [theme, setTheme] = useState({
+    primary_color: '#A65D47',
+    secondary_color: '#C8922A',
+    accent_color: '#4A5D4E',
+    background_color: '#1A1A1A',
+    text_color: '#F4F1EA',
+    font_family: 'Inter',
+    hero_image_url: null,
+    hero_title: 'Culture Connect 2026',
+    hero_subtitle: 'Le premier marché professionnel des industries culturelles afro-caribéennes'
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const fonts = ['Inter', 'Poppins', 'DM Sans', 'Montserrat', 'Source Sans Pro'];
+
+  useEffect(() => { loadTheme(); }, []);
+
+  const loadTheme = async () => {
+    try {
+      const res = await axios.get(`${API}/api/cms/theme`);
+      setTheme(res.data);
+    } catch (error) {
+      console.error('Error loading theme:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveTheme = async () => {
+    setSaving(true);
+    try {
+      await axios.put(`${API}/api/cms/theme`, theme);
+      toast.success('Thème publié avec succès');
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const uploadHeroImage = async (file) => {
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await axios.post(`${API}/api/cms/theme/hero-upload`, formData);
+      setTheme({ ...theme, hero_image_url: res.data.image_url });
+      toast.success('Image hero uploadée');
+    } catch (error) {
+      toast.error('Erreur lors de l\'upload');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
+
+  return (
+    <div className="space-y-8">
+      {/* Color Pickers */}
+      <div className="bg-paper border border-lightborder rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Palette className="w-5 h-5 text-terracotta" /> Couleurs du thème
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {[
+            { key: 'primary_color', label: 'Couleur principale', desc: 'Terracotta' },
+            { key: 'secondary_color', label: 'Couleur secondaire', desc: 'Or' },
+            { key: 'accent_color', label: 'Accent', desc: 'Sauge' },
+            { key: 'background_color', label: 'Fond', desc: 'Charbon' },
+            { key: 'text_color', label: 'Texte', desc: 'Crème' }
+          ].map(color => (
+            <div key={color.key} className="space-y-2">
+              <label className="block text-sm font-medium text-charcoal">{color.label}</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={theme[color.key]}
+                  onChange={(e) => setTheme({ ...theme, [color.key]: e.target.value })}
+                  className="w-12 h-12 rounded-lg cursor-pointer border-2 border-lightborder"
+                />
+                <div>
+                  <div className="font-mono text-sm text-charcoal">{theme[color.key]}</div>
+                  <div className="text-xs text-charcoal/50">{color.desc}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Font Selector */}
+      <div className="bg-paper border border-lightborder rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Type className="w-5 h-5 text-terracotta" /> Typographie
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {fonts.map(font => (
+            <button
+              key={font}
+              onClick={() => setTheme({ ...theme, font_family: font })}
+              className={`p-4 rounded-lg border-2 transition-all ${theme.font_family === font ? 'border-terracotta bg-terracotta/10' : 'border-lightborder hover:border-charcoal/30'}`}
+              style={{ fontFamily: font }}
+            >
+              <div className="text-lg font-semibold text-charcoal">{font}</div>
+              <div className="text-sm text-charcoal/60">Aa Bb Cc 123</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Hero Section Editor */}
+      <div className="bg-paper border border-lightborder rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Image className="w-5 h-5 text-terracotta" /> Section Hero
+        </h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Hero Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-charcoal mb-2">Image de fond</label>
+            <div className="relative aspect-video bg-charcoal/5 rounded-lg overflow-hidden border border-lightborder">
+              {theme.hero_image_url ? (
+                <img src={theme.hero_image_url} alt="Hero" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-charcoal/30">
+                  <Image className="w-16 h-16" />
+                </div>
+              )}
+              <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadHeroImage(e.target.files[0])} />
+                {uploading ? <Loader2 className="w-8 h-8 text-white animate-spin" /> : <Upload className="w-8 h-8 text-white" />}
+              </label>
+            </div>
+          </div>
+          {/* Hero Text */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-charcoal mb-2">Titre principal</label>
+              <Input
+                value={theme.hero_title || ''}
+                onChange={(e) => setTheme({ ...theme, hero_title: e.target.value })}
+                placeholder="Culture Connect 2026"
+                className="text-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-charcoal mb-2">Sous-titre / Tagline</label>
+              <textarea
+                value={theme.hero_subtitle || ''}
+                onChange={(e) => setTheme({ ...theme, hero_subtitle: e.target.value })}
+                placeholder="Le premier marché professionnel..."
+                className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none"
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Live Preview */}
+      <div className="bg-paper border border-lightborder rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+          <Eye className="w-5 h-5 text-terracotta" /> Prévisualisation en direct
+        </h3>
+        <div className="rounded-lg overflow-hidden border-2 border-charcoal/20" style={{ backgroundColor: theme.background_color, fontFamily: theme.font_family }}>
+          {/* Header Preview */}
+          <div className="p-4 flex items-center gap-4" style={{ backgroundColor: theme.background_color, borderBottom: `1px solid ${theme.primary_color}33` }}>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: theme.primary_color }}>CC</div>
+            <span className="font-bold" style={{ color: theme.text_color }}>Culture Connect 2026</span>
+            <div className="ml-auto flex gap-2">
+              <span className="px-3 py-1 rounded text-sm" style={{ backgroundColor: theme.secondary_color, color: theme.background_color }}>Inscription</span>
+            </div>
+          </div>
+          {/* Hero Preview */}
+          <div className="relative h-48" style={{ backgroundColor: theme.background_color }}>
+            {theme.hero_image_url && <img src={theme.hero_image_url} alt="Hero Preview" className="absolute inset-0 w-full h-full object-cover opacity-50" />}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4" style={{ background: `linear-gradient(to top, ${theme.background_color}, transparent)` }}>
+              <h1 className="text-2xl font-bold mb-2" style={{ color: theme.text_color }}>{theme.hero_title || 'Titre'}</h1>
+              <p className="text-sm opacity-80 max-w-md" style={{ color: theme.text_color }}>{theme.hero_subtitle || 'Sous-titre'}</p>
+              <button className="mt-4 px-4 py-2 rounded font-medium" style={{ backgroundColor: theme.primary_color, color: theme.text_color }}>En savoir plus</button>
+            </div>
+          </div>
+          {/* Accent Bar */}
+          <div className="h-1" style={{ background: `linear-gradient(to right, ${theme.primary_color}, ${theme.secondary_color}, ${theme.accent_color})` }}></div>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button onClick={saveTheme} disabled={saving} className="bg-terracotta text-white px-8">
+          {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+          Publier le thème
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// ================== CONTENT SECTION (NEW) ==================
+const ContentSection = () => {
+  const [activePage, setActivePage] = useState('home');
+  const [content, setContent] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const pages = [
+    { id: 'home', label: 'Accueil', icon: Layout },
+    { id: 'program', label: 'Programme', icon: Calendar },
+    { id: 'about', label: 'À propos', icon: FileText }
+  ];
+
+  useEffect(() => { loadContent(); }, [activePage]);
+
+  const loadContent = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/api/cms/content?page=${activePage}`);
+      const contentMap = {};
+      (res.data.content || []).forEach(item => {
+        contentMap[item.section] = item.content;
+      });
+      setContent(contentMap);
+    } catch (error) {
+      toast.error('Erreur lors du chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const initDefaults = async () => {
+    try {
+      await axios.post(`${API}/api/cms/content/init-defaults`);
+      toast.success('Contenu par défaut initialisé');
+      loadContent();
+    } catch (error) {
+      toast.error('Erreur lors de l\'initialisation');
+    }
+  };
+
+  const saveSection = async (section, data) => {
+    setSaving(true);
+    try {
+      await axios.put(`${API}/api/cms/content/${activePage}/${section}`, { content: data });
+      setContent({ ...content, [section]: data });
+      toast.success('Section sauvegardée');
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateContent = (section, key, value) => {
+    const sectionContent = content[section] || {};
+    setContent({
+      ...content,
+      [section]: { ...sectionContent, [key]: value }
+    });
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
+
+  return (
+    <div className="space-y-6">
+      {/* Page Tabs */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          {pages.map(page => (
+            <button
+              key={page.id}
+              onClick={() => setActivePage(page.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activePage === page.id ? 'bg-terracotta text-white' : 'bg-cream text-charcoal/60 hover:text-charcoal'}`}
+            >
+              <page.icon className="w-4 h-4" />
+              {page.label}
+            </button>
+          ))}
+        </div>
+        <Button onClick={initDefaults} variant="outline" size="sm" className="border-sage text-sage">
+          <RefreshCw className="w-4 h-4 mr-2" /> Initialiser contenu par défaut
+        </Button>
+      </div>
+
+      {/* Home Page Content */}
+      {activePage === 'home' && (
+        <div className="space-y-6">
+          {/* Hero Section */}
+          <div className="bg-paper border border-lightborder rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-charcoal mb-4">Section Hero</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-charcoal/70 mb-1">Titre principal</label>
+                <Input
+                  value={content.hero?.title || ''}
+                  onChange={(e) => updateContent('hero', 'title', e.target.value)}
+                  placeholder="Culture Connect 2026"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-charcoal/70 mb-1">Sous-titre</label>
+                <Input
+                  value={content.hero?.subtitle || ''}
+                  onChange={(e) => updateContent('hero', 'subtitle', e.target.value)}
+                  placeholder="Le premier marché professionnel..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-charcoal/70 mb-1">Texte bouton CTA</label>
+                <Input
+                  value={content.hero?.cta_text || ''}
+                  onChange={(e) => updateContent('hero', 'cta_text', e.target.value)}
+                  placeholder="Découvrir le programme"
+                />
+              </div>
+              <Button onClick={() => saveSection('hero', content.hero)} disabled={saving} size="sm" className="bg-sage text-white">
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />} Sauvegarder Hero
+              </Button>
+            </div>
+          </div>
+
+          {/* Intro Section */}
+          <div className="bg-paper border border-lightborder rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-charcoal mb-4">Introduction</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-charcoal/70 mb-1">Titre</label>
+                <Input
+                  value={content.intro?.title || ''}
+                  onChange={(e) => updateContent('intro', 'title', e.target.value)}
+                  placeholder="Bienvenue à Culture Connect"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-charcoal/70 mb-1">Texte de présentation</label>
+                <textarea
+                  value={content.intro?.text || ''}
+                  onChange={(e) => updateContent('intro', 'text', e.target.value)}
+                  placeholder="Du 20 au 23 mai 2026, Fort-de-France accueille..."
+                  className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none"
+                  rows={5}
+                />
+              </div>
+              <Button onClick={() => saveSection('intro', content.intro)} disabled={saving} size="sm" className="bg-sage text-white">
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />} Sauvegarder Introduction
+              </Button>
+            </div>
+          </div>
+
+          {/* Key Figures */}
+          <div className="bg-paper border border-lightborder rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-charcoal mb-4">Chiffres clés</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {(content.key_figures?.figures || [
+                { value: '50+', label: 'Exposants', description: 'Labels, agents, institutions' },
+                { value: '500', label: 'Participants', description: 'Professionnels attendus' },
+                { value: '12', label: 'Territoires', description: 'Caraïbe, Afrique, Europe' },
+                { value: '4', label: 'Jours', description: 'De rencontres B2B' }
+              ]).map((fig, idx) => (
+                <div key={idx} className="border border-lightborder rounded-lg p-4 bg-cream/50">
+                  <Input
+                    value={fig.value}
+                    onChange={(e) => {
+                      const figures = [...(content.key_figures?.figures || [])];
+                      figures[idx] = { ...figures[idx], value: e.target.value };
+                      updateContent('key_figures', 'figures', figures);
+                    }}
+                    placeholder="50+"
+                    className="text-2xl font-bold text-center mb-2"
+                  />
+                  <Input
+                    value={fig.label}
+                    onChange={(e) => {
+                      const figures = [...(content.key_figures?.figures || [])];
+                      figures[idx] = { ...figures[idx], label: e.target.value };
+                      updateContent('key_figures', 'figures', figures);
+                    }}
+                    placeholder="Exposants"
+                    className="text-sm text-center mb-1"
+                  />
+                  <Input
+                    value={fig.description}
+                    onChange={(e) => {
+                      const figures = [...(content.key_figures?.figures || [])];
+                      figures[idx] = { ...figures[idx], description: e.target.value };
+                      updateContent('key_figures', 'figures', figures);
+                    }}
+                    placeholder="Labels, agents..."
+                    className="text-xs text-center text-charcoal/60"
+                  />
+                </div>
+              ))}
+            </div>
+            <Button onClick={() => saveSection('key_figures', content.key_figures)} disabled={saving} size="sm" className="bg-sage text-white mt-4">
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />} Sauvegarder Chiffres
+            </Button>
+          </div>
         </div>
       )}
 
-      {/* Suggested partners */}
+      {/* Program Page Content */}
+      {activePage === 'program' && (
+        <div className="space-y-6">
+          <div className="bg-paper border border-lightborder rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-charcoal mb-4">Introduction Programme</h3>
+            <div className="space-y-4">
+              <Input
+                value={content.intro?.title || ''}
+                onChange={(e) => updateContent('intro', 'title', e.target.value)}
+                placeholder="Programme Culture Connect 2026"
+              />
+              <textarea
+                value={content.intro?.text || ''}
+                onChange={(e) => updateContent('intro', 'text', e.target.value)}
+                placeholder="4 jours de rencontres..."
+                className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none"
+                rows={3}
+              />
+              <Button onClick={() => saveSection('intro', content.intro)} disabled={saving} size="sm" className="bg-sage text-white">
+                <Save className="w-4 h-4 mr-2" /> Sauvegarder
+              </Button>
+            </div>
+          </div>
+
+          {/* Days */}
+          {(content.days?.days || []).map((day, dayIdx) => (
+            <div key={dayIdx} className="bg-paper border border-lightborder rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-terracotta">{day.name}</h3>
+                <Button
+                  onClick={() => {
+                    const days = [...(content.days?.days || [])];
+                    days[dayIdx].events.push({ time: '', title: '', site: '', description: '' });
+                    updateContent('days', 'days', days);
+                  }}
+                  size="sm"
+                  variant="outline"
+                  className="border-sage text-sage"
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Ajouter événement
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {(day.events || []).map((event, eventIdx) => (
+                  <div key={eventIdx} className="grid grid-cols-12 gap-2 items-start bg-cream/50 p-3 rounded-lg">
+                    <Input
+                      value={event.time}
+                      onChange={(e) => {
+                        const days = [...(content.days?.days || [])];
+                        days[dayIdx].events[eventIdx].time = e.target.value;
+                        updateContent('days', 'days', days);
+                      }}
+                      placeholder="09:00"
+                      className="col-span-2 text-sm"
+                    />
+                    <Input
+                      value={event.title}
+                      onChange={(e) => {
+                        const days = [...(content.days?.days || [])];
+                        days[dayIdx].events[eventIdx].title = e.target.value;
+                        updateContent('days', 'days', days);
+                      }}
+                      placeholder="Titre événement"
+                      className="col-span-3 text-sm"
+                    />
+                    <Input
+                      value={event.site}
+                      onChange={(e) => {
+                        const days = [...(content.days?.days || [])];
+                        days[dayIdx].events[eventIdx].site = e.target.value;
+                        updateContent('days', 'days', days);
+                      }}
+                      placeholder="La Savane"
+                      className="col-span-2 text-sm"
+                    />
+                    <Input
+                      value={event.description}
+                      onChange={(e) => {
+                        const days = [...(content.days?.days || [])];
+                        days[dayIdx].events[eventIdx].description = e.target.value;
+                        updateContent('days', 'days', days);
+                      }}
+                      placeholder="Description"
+                      className="col-span-4 text-sm"
+                    />
+                    <button
+                      onClick={() => {
+                        const days = [...(content.days?.days || [])];
+                        days[dayIdx].events.splice(eventIdx, 1);
+                        updateContent('days', 'days', days);
+                      }}
+                      className="col-span-1 p-2 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <Button onClick={() => saveSection('days', content.days)} disabled={saving} className="bg-sage text-white">
+            <Save className="w-4 h-4 mr-2" /> Sauvegarder Programme
+          </Button>
+        </div>
+      )}
+
+      {/* About Page Content */}
+      {activePage === 'about' && (
+        <div className="space-y-6">
+          {['history', 'mission', 'vision'].map(section => (
+            <div key={section} className="bg-paper border border-lightborder rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-charcoal mb-4 capitalize">
+                {section === 'history' ? 'Notre Histoire' : section === 'mission' ? 'Notre Mission' : 'Notre Vision'}
+              </h3>
+              <div className="space-y-4">
+                <Input
+                  value={content[section]?.title || ''}
+                  onChange={(e) => updateContent(section, 'title', e.target.value)}
+                  placeholder="Titre de la section"
+                />
+                <textarea
+                  value={content[section]?.text || ''}
+                  onChange={(e) => updateContent(section, 'text', e.target.value)}
+                  placeholder="Contenu..."
+                  className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none"
+                  rows={5}
+                />
+                <Button onClick={() => saveSection(section, content[section])} disabled={saving} size="sm" className="bg-sage text-white">
+                  <Save className="w-4 h-4 mr-2" /> Sauvegarder
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ================== PAGES SECTION (NEW) ==================
+const PagesSection = () => {
+  const [pages, setPages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingPage, setEditingPage] = useState(null);
+  const [form, setForm] = useState({ title: '', slug: '', content: '', meta_description: '', published: false });
+
+  useEffect(() => { loadPages(); }, []);
+
+  const loadPages = async () => {
+    try {
+      const res = await axios.get(`${API}/api/cms/pages`);
+      setPages(res.data.pages || []);
+    } catch (error) {
+      toast.error('Erreur lors du chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const savePage = async () => {
+    if (!form.title || !form.slug) { toast.error('Titre et slug requis'); return; }
+    try {
+      if (editingPage) {
+        await axios.put(`${API}/api/cms/pages/${editingPage.id}`, form);
+        setPages(pages.map(p => p.id === editingPage.id ? { ...p, ...form } : p));
+        toast.success('Page mise à jour');
+      } else {
+        const res = await axios.post(`${API}/api/cms/pages`, form);
+        setPages([res.data.page, ...pages]);
+        toast.success('Page créée');
+      }
+      setShowForm(false);
+      setEditingPage(null);
+      setForm({ title: '', slug: '', content: '', meta_description: '', published: false });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la sauvegarde');
+    }
+  };
+
+  const deletePage = async (id) => {
+    if (!window.confirm('Supprimer cette page ?')) return;
+    try {
+      await axios.delete(`${API}/api/cms/pages/${id}`);
+      setPages(pages.filter(p => p.id !== id));
+      toast.success('Page supprimée');
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const togglePublish = async (page) => {
+    try {
+      await axios.put(`${API}/api/cms/pages/${page.id}`, { ...page, published: !page.published });
+      setPages(pages.map(p => p.id === page.id ? { ...p, published: !p.published } : p));
+      toast.success(page.published ? 'Page dépubliée' : 'Page publiée');
+    } catch (error) {
+      toast.error('Erreur');
+    }
+  };
+
+  const copyUrl = (slug) => {
+    navigator.clipboard.writeText(`${window.location.origin}/p/${slug}`);
+    toast.success('URL copiée');
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-charcoal">Pages dynamiques</h3>
+          <p className="text-sm text-charcoal/60">Créez des pages personnalisées accessibles via /p/[slug]</p>
+        </div>
+        <Button onClick={() => { setShowForm(true); setEditingPage(null); setForm({ title: '', slug: '', content: '', meta_description: '', published: false }); }} className="bg-sage text-white">
+          <Plus className="w-4 h-4 mr-2" /> Nouvelle page
+        </Button>
+      </div>
+
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-paper rounded-lg p-6 w-full max-w-2xl my-8">
+            <h3 className="text-lg font-semibold text-charcoal mb-4">{editingPage ? 'Modifier' : 'Nouvelle'} page</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-charcoal/70 mb-1">Titre *</label>
+                  <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Actualités" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-charcoal/70 mb-1">Slug URL *</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-charcoal/50 text-sm">/p/</span>
+                    <Input
+                      value={form.slug}
+                      onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })}
+                      placeholder="actualites"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-charcoal/70 mb-1">Meta description (SEO)</label>
+                <Input value={form.meta_description} onChange={(e) => setForm({ ...form, meta_description: e.target.value })} placeholder="Description pour les moteurs de recherche" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-charcoal/70 mb-1">Contenu (HTML)</label>
+                <textarea
+                  value={form.content}
+                  onChange={(e) => setForm({ ...form, content: e.target.value })}
+                  placeholder="<h2>Titre</h2><p>Contenu de la page...</p>"
+                  className="w-full px-3 py-2 border border-lightborder rounded-md text-sm font-mono resize-none"
+                  rows={12}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="published" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="rounded border-lightborder" />
+                <label htmlFor="published" className="text-sm text-charcoal">Publier immédiatement</label>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <Button onClick={savePage} className="flex-1 bg-terracotta text-white"><Check className="w-4 h-4 mr-2" /> {editingPage ? 'Mettre à jour' : 'Créer'}</Button>
+              <Button onClick={() => setShowForm(false)} variant="outline" className="flex-1">Annuler</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pages List */}
+      <div className="space-y-3">
+        {pages.map(page => (
+          <div key={page.id} className="bg-paper border border-lightborder rounded-lg p-4 flex items-center gap-4">
+            <div className={`w-3 h-3 rounded-full ${page.published ? 'bg-green-500' : 'bg-charcoal/30'}`} title={page.published ? 'Publiée' : 'Brouillon'}></div>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-charcoal">{page.title}</div>
+              <div className="flex items-center gap-2 text-sm text-charcoal/50">
+                <Globe className="w-3 h-3" />
+                <span>/p/{page.slug}</span>
+                <button onClick={() => copyUrl(page.slug)} className="p-1 hover:bg-charcoal/10 rounded"><Copy className="w-3 h-3" /></button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => togglePublish(page)} className={`px-3 py-1 rounded text-sm font-medium ${page.published ? 'bg-green-100 text-green-700' : 'bg-charcoal/10 text-charcoal/60'}`}>
+                {page.published ? 'Publiée' : 'Brouillon'}
+              </button>
+              <a href={`/p/${page.slug}`} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-charcoal/10 rounded"><ExternalLink className="w-4 h-4 text-charcoal/60" /></a>
+              <button onClick={() => { setEditingPage(page); setForm(page); setShowForm(true); }} className="p-2 hover:bg-charcoal/10 rounded"><Edit2 className="w-4 h-4 text-charcoal/60" /></button>
+              <button onClick={() => deletePage(page.id)} className="p-2 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4 text-red-500" /></button>
+            </div>
+          </div>
+        ))}
+        {pages.length === 0 && (
+          <div className="py-12 text-center text-charcoal/40 border border-dashed border-charcoal/20 rounded-lg">
+            <FileText className="w-12 h-12 mx-auto mb-3 text-charcoal/20" />
+            <p>Aucune page créée</p>
+            <p className="text-sm">Créez des pages pour Actualités, Presse, Règlement...</p>
+          </div>
+        )}
+      </div>
+
+      {/* Suggestions */}
       <div className="bg-cream/50 border border-lightborder rounded-lg p-4">
         <p className="text-sm text-charcoal/70">
-          <strong>Partenaires suggérés:</strong> CTM, DAC, Express des Îles, Karibea, Air Caraïbes, Université des Antilles
+          <strong>Pages suggérées:</strong> Actualités, Presse, Partenaires, Programme détaillé, Règlement exposants, FAQ
         </p>
       </div>
     </div>
@@ -890,18 +1248,21 @@ const PartnersSection = () => {
 // ================== PREVIEW SECTION ==================
 const PreviewSection = () => {
   const [preview, setPreview] = useState(null);
+  const [theme, setTheme] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPreview();
-  }, []);
+  useEffect(() => { loadPreview(); }, []);
 
   const loadPreview = async () => {
     try {
-      const res = await axios.get(`${API}/api/cms/preview`);
-      setPreview(res.data);
+      const [previewRes, themeRes] = await Promise.all([
+        axios.get(`${API}/api/cms/preview`),
+        axios.get(`${API}/api/cms/theme`)
+      ]);
+      setPreview(previewRes.data);
+      setTheme(themeRes.data);
     } catch (error) {
-      toast.error('Erreur lors du chargement de la prévisualisation');
+      toast.error('Erreur lors du chargement');
     } finally {
       setLoading(false);
     }
@@ -918,120 +1279,51 @@ const PreviewSection = () => {
     }
   };
 
-  if (loading) {
-    return <div className="flex justify-center py-8"><RefreshCw className="w-6 h-6 animate-spin text-terracotta" /></div>;
-  }
-
-  const heroMedia = preview?.media?.find(m => m.category === 'hero');
-  const logoMedia = preview?.media?.find(m => m.category === 'logo');
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
 
   return (
     <div className="space-y-6">
-      {/* Publish button */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-charcoal">Prévisualisation</h3>
+          <h3 className="text-lg font-semibold text-charcoal">Prévisualisation globale</h3>
           <p className="text-sm text-charcoal/60">Vérifiez vos modifications avant publication</p>
         </div>
         <Button onClick={publishChanges} className="bg-sage text-white">
-          <Save className="w-4 h-4 mr-2" /> Publier les modifications
+          <Save className="w-4 h-4 mr-2" /> Publier toutes les modifications
         </Button>
       </div>
 
-      {/* Preview frame */}
-      <div className="border-2 border-terracotta/30 rounded-lg overflow-hidden">
-        {/* Header Preview */}
-        <div className="bg-charcoal text-paper p-4">
-          <div className="flex items-center gap-4">
-            {logoMedia?.image_url ? (
-              <img src={logoMedia.image_url} alt="Logo" className="h-10 w-auto" />
-            ) : (
-              <div className="w-10 h-10 bg-terracotta/30 rounded flex items-center justify-center text-xs">Logo</div>
-            )}
-            <span className="font-bold">Culture Connect 2026</span>
+      {/* Preview Frame */}
+      <div className="border-2 border-terracotta/30 rounded-lg overflow-hidden" style={{ backgroundColor: theme?.background_color || '#1A1A1A', fontFamily: theme?.font_family || 'Inter' }}>
+        {/* Header */}
+        <div className="p-4 flex items-center gap-4" style={{ borderBottom: `1px solid ${theme?.primary_color || '#A65D47'}33` }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: theme?.primary_color || '#A65D47' }}>CC</div>
+          <span className="font-bold" style={{ color: theme?.text_color || '#F4F1EA' }}>Culture Connect 2026</span>
+        </div>
+
+        {/* Hero */}
+        <div className="relative h-48">
+          {theme?.hero_image_url && <img src={theme.hero_image_url} alt="Hero" className="absolute inset-0 w-full h-full object-cover opacity-50" />}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4" style={{ background: `linear-gradient(to top, ${theme?.background_color || '#1A1A1A'}, transparent)` }}>
+            <h1 className="text-2xl font-bold mb-2" style={{ color: theme?.text_color || '#F4F1EA' }}>{theme?.hero_title || 'Culture Connect 2026'}</h1>
+            <p className="text-sm opacity-80 max-w-md" style={{ color: theme?.text_color || '#F4F1EA' }}>{theme?.hero_subtitle || 'Le premier marché professionnel...'}</p>
           </div>
         </div>
 
-        {/* Hero Preview */}
-        <div className="relative h-64 bg-charcoal/10">
-          {heroMedia?.image_url ? (
-            <img src={heroMedia.image_url} alt="Hero" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-charcoal/30">
-              <Image className="w-16 h-16" />
+        {/* Stats */}
+        <div className="grid grid-cols-4 gap-4 p-6">
+          {['Médias', 'Exposants', 'Intervenants', 'Partenaires'].map((label, idx) => (
+            <div key={idx} className="text-center p-4 rounded-lg" style={{ backgroundColor: `${theme?.primary_color || '#A65D47'}20` }}>
+              <div className="text-2xl font-bold" style={{ color: theme?.secondary_color || '#C8922A' }}>
+                {idx === 0 ? preview?.media?.length || 0 : idx === 1 ? preview?.exhibitors?.length || 0 : idx === 2 ? preview?.speakers?.length || 0 : preview?.partners?.length || 0}
+              </div>
+              <div className="text-sm" style={{ color: theme?.text_color || '#F4F1EA', opacity: 0.7 }}>{label}</div>
             </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-6">
-            <div className="text-white">
-              <h1 className="text-2xl font-bold">{heroMedia?.title || 'Bannière Principale'}</h1>
-              <p className="text-sm opacity-80">{heroMedia?.description || 'Description de la bannière'}</p>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Speakers Preview */}
-        {preview?.speakers?.length > 0 && (
-          <div className="p-6 border-t border-lightborder">
-            <h4 className="font-semibold text-charcoal mb-4">Intervenants ({preview.speakers.length})</h4>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {preview.speakers.slice(0, 5).map(speaker => (
-                <div key={speaker.id} className="flex-shrink-0 text-center w-24">
-                  <div className="w-16 h-16 mx-auto rounded-full bg-charcoal/10 overflow-hidden">
-                    {speaker.photo_url ? (
-                      <img src={speaker.photo_url} alt={speaker.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Mic2 className="w-6 h-6 text-charcoal/30" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-2 text-xs font-medium text-charcoal truncate">{speaker.name}</div>
-                  <div className="text-xs text-charcoal/50 truncate">{speaker.role}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Partners Preview */}
-        {preview?.partners?.length > 0 && (
-          <div className="p-6 border-t border-lightborder bg-charcoal/5">
-            <h4 className="font-semibold text-charcoal mb-4">Partenaires ({preview.partners.length})</h4>
-            <div className="flex gap-6 items-center justify-center flex-wrap">
-              {preview.partners.map(partner => (
-                <div key={partner.id} className="h-10">
-                  {partner.logo_url ? (
-                    <img src={partner.logo_url} alt={partner.name} className="h-full w-auto object-contain" />
-                  ) : (
-                    <div className="h-full px-4 bg-white rounded flex items-center text-xs text-charcoal/50">
-                      {partner.name}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-paper border border-lightborder rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-terracotta">{preview?.media?.length || 0}</div>
-          <div className="text-sm text-charcoal/60">Médias</div>
-        </div>
-        <div className="bg-paper border border-lightborder rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-gold">{preview?.exhibitors?.length || 0}</div>
-          <div className="text-sm text-charcoal/60">Photos Exposants</div>
-        </div>
-        <div className="bg-paper border border-lightborder rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-sage">{preview?.speakers?.length || 0}</div>
-          <div className="text-sm text-charcoal/60">Intervenants</div>
-        </div>
-        <div className="bg-paper border border-lightborder rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-charcoal">{preview?.partners?.length || 0}</div>
-          <div className="text-sm text-charcoal/60">Partenaires</div>
-        </div>
+        {/* Color Bar */}
+        <div className="h-1" style={{ background: `linear-gradient(to right, ${theme?.primary_color || '#A65D47'}, ${theme?.secondary_color || '#C8922A'}, ${theme?.accent_color || '#4A5D4E'})` }}></div>
       </div>
     </div>
   );
@@ -1046,10 +1338,13 @@ const CMSAdmin = () => {
 
   const sections = [
     { id: 'media', label: 'Médias', icon: Image },
-    { id: 'exhibitors', label: 'Exposants', icon: Users },
+    { id: 'exhibitors', label: 'Profils', icon: Users },
     { id: 'speakers', label: 'Intervenants', icon: Mic2 },
     { id: 'partners', label: 'Partenaires', icon: Building2 },
-    { id: 'preview', label: 'Prévisualisation', icon: Eye }
+    { id: 'design', label: 'Design', icon: Palette },
+    { id: 'content', label: 'Contenu', icon: FileText },
+    { id: 'pages', label: 'Pages', icon: Layout },
+    { id: 'preview', label: 'Aperçu', icon: Eye }
   ];
 
   const handleLogin = (e) => {
@@ -1061,7 +1356,6 @@ const CMSAdmin = () => {
     }
   };
 
-  // Login screen
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center p-4">
@@ -1072,16 +1366,8 @@ const CMSAdmin = () => {
             <p className="text-charcoal/60 text-sm">Culture Connect 2026</p>
           </div>
           <form onSubmit={handleLogin}>
-            <Input
-              type="password"
-              placeholder="Mot de passe administrateur"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mb-4"
-            />
-            <Button type="submit" className="w-full bg-terracotta text-white">
-              Connexion
-            </Button>
+            <Input type="password" placeholder="Mot de passe administrateur" value={password} onChange={(e) => setPassword(e.target.value)} className="mb-4" />
+            <Button type="submit" className="w-full bg-terracotta text-white">Connexion</Button>
           </form>
         </div>
       </div>
@@ -1095,23 +1381,15 @@ const CMSAdmin = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/admin')}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
+              <button onClick={() => navigate('/admin')} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
                 <h1 className="text-xl font-bold">CMS Admin</h1>
-                <p className="text-sm text-paper/60">Gestion du contenu Culture Connect 2026</p>
+                <p className="text-sm text-paper/60">Gestion complète du contenu</p>
               </div>
             </div>
-            <Button
-              onClick={() => setIsAuthenticated(false)}
-              variant="outline"
-              size="sm"
-              className="border-paper/30 text-paper hover:bg-white/10"
-            >
+            <Button onClick={() => setIsAuthenticated(false)} variant="outline" size="sm" className="border-paper/30 text-paper hover:bg-white/10">
               Déconnexion
             </Button>
           </div>
@@ -1126,10 +1404,8 @@ const CMSAdmin = () => {
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className={`flex items-center gap-2 px-5 py-4 text-sm font-medium transition-colors whitespace-nowrap border-b-2 ${
-                  activeSection === section.id
-                    ? 'border-terracotta text-terracotta'
-                    : 'border-transparent text-charcoal/60 hover:text-charcoal'
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap border-b-2 ${
+                  activeSection === section.id ? 'border-terracotta text-terracotta' : 'border-transparent text-charcoal/60 hover:text-charcoal'
                 }`}
               >
                 <section.icon className="w-4 h-4" />
@@ -1146,6 +1422,9 @@ const CMSAdmin = () => {
         {activeSection === 'exhibitors' && <ExhibitorsSection />}
         {activeSection === 'speakers' && <SpeakersSection />}
         {activeSection === 'partners' && <PartnersSection />}
+        {activeSection === 'design' && <DesignSection />}
+        {activeSection === 'content' && <ContentSection />}
+        {activeSection === 'pages' && <PagesSection />}
         {activeSection === 'preview' && <PreviewSection />}
       </div>
     </div>
