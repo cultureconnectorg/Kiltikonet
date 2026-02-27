@@ -74,8 +74,24 @@ Au lieu d'embeddings vectoriels OpenAI, le système utilise **Claude** pour:
 
 ## URLs d'Accès
 - **Smart Engine**: `/smart-engine`
-- **Admin Dashboard**: `/admin` → bouton "Smart Engine"
+- **Admin Dashboard**: `/admin` → boutons "Smart Engine" et "CMS"
+- **CMS Admin**: `/admin/cms`
 - **Vérification publique**: `/api/v1/verify/:attestationId`
+
+## CMS Admin (Février 2026)
+### Fonctionnalités Implémentées
+- **Section Médias**: Upload bannière hero, logo, photos sites, galerie
+- **Section Exposants**: Photos pour profils Smart Engine et participants
+- **Section Intervenants**: Nom, rôle, photo, bio + drag & drop réordonnement
+- **Section Partenaires**: Logos avec URLs + ordre d'affichage
+- **Prévisualisation**: Aperçu complet avant publication
+- **Publication**: Bouton pour publier toutes les modifications
+
+### Collections MongoDB CMS
+- `cms_media` — Images et médias de l'événement
+- `cms_exhibitor_photos` — Photos des exposants
+- `cms_speakers` — Intervenants et leurs infos
+- `cms_partner_banners` — Logos partenaires
 
 ## Prochaines Étapes
 1. Déploiement en production
