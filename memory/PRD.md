@@ -219,3 +219,34 @@ See `/app/AUDIT_REPORT.md` for complete technical audit including:
 - Performance metrics
 - Functional testing
 - Legal compliance validation
+
+---
+
+## Latest Updates (Feb 27, 2026)
+
+### Bug Fixes ✅
+- **FIXED**: Scrollbar missing in Admin Dashboard "Insights Management" section
+  - Wrapped tab content in scrollable container
+  - Users can now scroll to see all dashboard content (Insights, Filters, Table)
+
+### UX Improvements ✅
+- **Enhanced Toast Notifications** across Admin Dashboard:
+  - More descriptive success messages with ✓ icons
+  - Clear error messages with ✗ icons and actionable hints
+  - Loading states with progress indicators for batch operations
+  - French/English translations for all messages
+  
+- **Affected Actions**:
+  - Status changes (approved/pending/rejected)
+  - Catalog visibility toggles
+  - Participant deletion
+  - Manual participant addition
+  - CSV export with loading state
+  - Batch approve with progress feedback
+  - Batch send badges with detailed status
+
+### LLM Integration Status ✅
+- **Emergent LLM Key**: Budget recharged and functional
+- **AI Assistant**: Responds correctly with RAG-sourced answers
+- **Claude Integration**: Working for chat and recommendations
+
