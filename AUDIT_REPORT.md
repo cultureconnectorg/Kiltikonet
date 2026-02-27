@@ -1,6 +1,6 @@
 # Audit Complet - Culture Connect 2026
 **Date :** 26 Février 2026  
-**Plateforme :** https://smart-engine-3.preview.emergentagent.com
+**Plateforme :** https://afro-data-hub.preview.emergentagent.com
 
 ---
 
