@@ -3292,6 +3292,95 @@ async def get_public_page(slug: str, tenant_id: str = DEFAULT_TENANT):
         raise HTTPException(status_code=404, detail="Page not found")
     return page
 
+# ================== ANNUAL INTENTION API ==================
+DEFAULT_TERRITORY_MESSAGES = {
+    "Martinique": "Ou ka vini.",
+    "MQ": "Ou ka vini.",
+    "Guadeloupe": "An nou.",
+    "GP": "An nou.",
+    "Haiti": "Nou la.",
+    "HT": "Nou la.",
+    "Colombia": "Aquí estamos.",
+    "CO": "Aquí estamos.",
+    "Senegal": "Dëkk bi.",
+    "SN": "Dëkk bi.",
+    "France": "La diaspora rentre.",
+    "FR": "La diaspora rentre.",
+}
+
+@app.get("/api/annual-intention")
+async def get_annual_intention(tenant_id: str = DEFAULT_TENANT):
+    """Get the active annual intention for intro sequence"""
+    intention = await db.annual_intention.find_one(
+        {"tenant_id": tenant_id, "active": True},
+        {"_id": 0}
+    )
+    
+    if not intention:
+        # Return default intention
+        return {
+            "tenant_id": tenant_id,
+            "annee": "2026",
+            "mot_annee": "NOU.",
+            "mot_annee_note": "2026 — Nous. La reconnexion.",
+            "image_annee_url": None,
+            "phrase_ligne_1": "Pendant des siècles on nous a séparés.",
+            "phrase_ligne_2": "Le 22 Mai 2026 — nous nous retrouvons.",
+            "mot_cle_phrase_2": "nous",
+            "couleur_annee": "#A65D47",
+            "son_tambour_url": None,
+            "sons_identites": None,
+            "territoire_messages": DEFAULT_TERRITORY_MESSAGES,
+            "active": True
+        }
+    
+    # Add default territory messages if not set
+    if not intention.get("territoire_messages"):
+        intention["territoire_messages"] = DEFAULT_TERRITORY_MESSAGES
+    
+    return intention
+
+@app.post("/api/annual-intention")
+async def save_annual_intention(intention: AnnualIntention):
+    """Save or update the annual intention"""
+    intention_dict = intention.model_dump()
+    intention_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Deactivate other intentions for this tenant
+    await db.annual_intention.update_many(
+        {"tenant_id": intention.tenant_id},
+        {"$set": {"active": False}}
+    )
+    
+    # Upsert the new intention
+    existing = await db.annual_intention.find_one({
+        "tenant_id": intention.tenant_id,
+        "annee": intention.annee
+    })
+    
+    if existing:
+        await db.annual_intention.update_one(
+            {"tenant_id": intention.tenant_id, "annee": intention.annee},
+            {"$set": {**intention_dict, "active": True}}
+        )
+    else:
+        intention_dict["id"] = str(uuid.uuid4())
+        intention_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+        intention_dict["active"] = True
+        await db.annual_intention.insert_one(intention_dict)
+    
+    return {"success": True, "message": "Intention de l'année sauvegardée"}
+
+@app.get("/api/annual-intention/all")
+async def get_all_intentions(tenant_id: str = DEFAULT_TENANT):
+    """Get all annual intentions for CMS management"""
+    intentions = await db.annual_intention.find(
+        {"tenant_id": tenant_id},
+        {"_id": 0}
+    ).sort("annee", -1).to_list(100)
+    
+    return {"intentions": intentions}
+
 # ================== SMART ENGINE PROXY ==================
 import httpx
 
