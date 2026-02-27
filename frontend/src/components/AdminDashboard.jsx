@@ -833,7 +833,7 @@ export const AdminDashboard = () => {
           </div>
           
           {/* Table */}
-          <div className="flex-1 overflow-auto">
+          <div>
             {/* Batch Progress Bar */}
             {batchProgress && (
               <div className="sticky top-0 z-20 bg-charcoal text-paper px-6 py-4">
