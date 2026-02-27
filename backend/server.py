@@ -2576,61 +2576,6 @@ async def smart_engine_proxy(request: Request, path: str):
             logger.error(f"Smart Engine proxy error: {str(e)}")
             raise HTTPException(status_code=500, detail="Internal proxy error")
 
-# ================== EMERGENT LLM SERVICES ==================
-from emergentintegrations.llm.chat import LlmChat, UserMessage
-
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "sk-emergent-042E081B3D24541Dd4")
-
-class EmbeddingRequest(BaseModel):
-    text: str
-
-class ChatRequest(BaseModel):
-    message: str
-    system_prompt: Optional[str] = None
-    model: Optional[str] = "claude-4-sonnet-20250514"
-    provider: Optional[str] = "anthropic"
-
-@api_v1_router.post("/llm/embedding")
-async def generate_embedding(request: EmbeddingRequest):
-    """Generate embedding using OpenAI via Emergent"""
-    try:
-        # Use OpenAI directly for embeddings with proper key handling
-        import openai
-        client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY", EMERGENT_LLM_KEY))
-        
-        response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=request.text
-        )
-        return {"embedding": response.data[0].embedding}
-    except Exception as e:
-        logger.error(f"Embedding error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Embedding generation failed: {str(e)}")
-
-@api_v1_router.post("/llm/chat")
-async def llm_chat(request: ChatRequest):
-    """Chat completion using Emergent LLM"""
-    try:
-        session_id = str(uuid.uuid4())
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=session_id,
-            system_message=request.system_prompt or "Tu es un assistant expert en industries culturelles afro-caribéennes."
-        )
-        
-        if request.provider == "anthropic":
-            chat.with_model("anthropic", request.model or "claude-4-sonnet-20250514")
-        else:
-            chat.with_model("openai", request.model or "gpt-5.2")
-        
-        user_message = UserMessage(text=request.message)
-        response = await chat.send_message(user_message)
-        
-        return {"response": response}
-    except Exception as e:
-        logger.error(f"Chat error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
-
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
