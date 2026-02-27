@@ -147,6 +147,40 @@ Estimated revenue is calculated from:
 - Validation empêche soumission sans consentement
 - Liens vers politique de confidentialité et CGU
 
+## Smart Engine Module (Feb 27, 2026) ✅
+
+### NEW: KiltiKonet Smart Engine
+Standalone AI-powered matching module for Culture Connect 2026.
+
+**Backend (Node.js/Express - Port 8002):**
+- `/api/v1/smart-recommendations/index` - Index profiles with embeddings
+- `/api/v1/smart-recommendations/:profileId` - Get top 5 recommendations
+- `/api/v1/smart-recommendations/profiles` - List all indexed profiles
+- `/api/v1/smart-recommendations/rag/ask` - RAG-based Q&A with Claude
+- `/api/v1/smart-recommendations/export` - Generate partnership recommendations
+- `/api/v1/smart-recommendations/export/pdf` - Download PDF recommendations
+
+**Database Schema:**
+- `smart_profiles`: id, name, type, sector, genres[], tags[], territory, description, seeking, offering, embedding[1536]
+- `smart_documents`: id, title, content, category, embedding[1536] (for RAG)
+
+**Frontend (/smart-engine):**
+- Dark theme (#1A1A1A) with terracotta accents (#A65D47)
+- Screen 1: Index Profile - Full form with genres/tags selection
+- Screen 2: Smart Recommendations - Profile matching with export feature
+- Screen 3: AI Assistant - Chat interface with RAG support
+
+**Integrations:**
+- Embeddings: Hash-based fallback (or OpenAI with OPENAI_API_KEY)
+- Claude (claude-4-sonnet): Via Emergent LLM Key for chat/recommendations
+
+**Export Feature:**
+- "Exporter pour mon dossier" button on each recommendation
+- Generates official partnership recommendation text via Claude
+- Copy to clipboard & PDF download with Culture Connect branding
+
+---
+
 ## Mode: MAINTENANCE & EXPLOITATION
 
 Platform is now feature-complete and legally compliant, ready for:
