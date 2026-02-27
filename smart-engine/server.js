@@ -45,18 +45,33 @@ async function connectDB() {
 // ================== UTILITY FUNCTIONS ==================
 
 /**
- * Generate embedding using OpenAI text-embedding-3-small
+ * Generate embedding using Python backend
  */
 async function generateEmbedding(text) {
   try {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: text,
-    });
-    return response.data[0].embedding;
+    const response = await axios.post(`${BACKEND_API}/llm/embedding`, { text });
+    return response.data.embedding;
   } catch (error) {
-    console.error('Embedding error:', error);
+    console.error('Embedding error:', error.response?.data || error.message);
     throw new Error('Failed to generate embedding');
+  }
+}
+
+/**
+ * Call Claude via Python backend
+ */
+async function callClaude(message, systemPrompt = null) {
+  try {
+    const response = await axios.post(`${BACKEND_API}/llm/chat`, {
+      message,
+      system_prompt: systemPrompt,
+      model: 'claude-4-sonnet-20250514',
+      provider: 'anthropic'
+    });
+    return response.data.response;
+  } catch (error) {
+    console.error('Claude error:', error.response?.data || error.message);
+    throw new Error('Failed to call Claude');
   }
 }
 
@@ -85,17 +100,10 @@ function cosineSimilarity(vecA, vecB) {
  */
 async function generateMatchReason(profileA, profileB, score) {
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 150,
-      messages: [{
-        role: 'user',
-        content: `En une phrase courte en français, explique pourquoi "${profileA.name}" (${profileA.type}, ${profileA.territory}) est compatible à ${score}% avec "${profileB.name}" (${profileB.type}, ${profileB.territory}) dans le contexte culturel afro-caribéen. Sois concis et professionnel.`
-      }]
-    });
-    return message.content[0].text;
+    const message = `En une phrase courte en français, explique pourquoi "${profileA.name}" (${profileA.type}, ${profileA.territory}) est compatible à ${score}% avec "${profileB.name}" (${profileB.type}, ${profileB.territory}) dans le contexte culturel afro-caribéen. Sois concis et professionnel.`;
+    return await callClaude(message);
   } catch (error) {
-    console.error('Claude error:', error);
+    console.error('Match reason error:', error);
     return `Compatibilité basée sur les secteurs et territoires communs.`;
   }
 }
