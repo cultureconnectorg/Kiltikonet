@@ -14,6 +14,12 @@ module.exports = {
         warmgray: "#8A8578",
         lightborder: "#E5E0D8",
         
+        // Smart Engine dark theme
+        gold: "#C8922A",
+        'dark-bg': "#1A1A1A",
+        'dark-card': "#242424",
+        'dark-border': "#333333",
+        
         // Shadcn compatibility
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
