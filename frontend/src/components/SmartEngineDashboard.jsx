@@ -750,35 +750,35 @@ const SmartEngineDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-dark-bg">
+    <div className="min-h-screen" style={{ backgroundColor: '#1A1A1A' }}>
       {/* Header */}
-      <div className="bg-dark-card border-b border-dark-border">
+      <div style={{ backgroundColor: '#242424', borderBottom: '1px solid #333333' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-terracotta/20 flex items-center justify-center">
-              <Cpu className="w-6 h-6 text-terracotta" />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(166, 93, 71, 0.2)' }}>
+              <Cpu className="w-6 h-6" style={{ color: '#A65D47' }} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-paper">KiltiKonet Smart Engine</h1>
-              <p className="text-paper/50 text-sm">Matching intelligent pour Culture Connect 2026</p>
+              <h1 className="text-2xl font-bold" style={{ color: '#F4F1EA' }}>KiltiKonet Smart Engine</h1>
+              <p className="text-sm" style={{ color: 'rgba(244, 241, 234, 0.5)' }}>Matching intelligent pour Culture Connect 2026</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-dark-card border-b border-dark-border sticky top-0 z-10">
+      <div style={{ backgroundColor: '#242424', borderBottom: '1px solid #333333' }} className="sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-terracotta text-terracotta'
-                    : 'border-transparent text-paper/50 hover:text-paper'
-                }`}
+                className="flex items-center gap-2 px-5 py-4 text-sm font-medium transition-colors"
+                style={{ 
+                  borderBottom: activeTab === tab.id ? '2px solid #A65D47' : '2px solid transparent',
+                  color: activeTab === tab.id ? '#A65D47' : 'rgba(244, 241, 234, 0.5)'
+                }}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -796,7 +796,7 @@ const SmartEngineDashboard = () => {
       </div>
 
       {/* Footer */}
-      <div className="text-center py-6 text-paper/30 text-sm">
+      <div className="text-center py-6 text-sm" style={{ color: 'rgba(244, 241, 234, 0.3)' }}>
         KiltiKonet Smart Engine — kiltikonet.fr — Culture Connect 2026
       </div>
     </div>
