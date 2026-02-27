@@ -549,7 +549,7 @@ export const AdminDashboard = () => {
               <PartnerManagement />
             </div>
           ) : (
-            <>
+            <div className="flex-1 overflow-auto">
           {/* Insights Section - Business Intelligence */}
           {stats && showInsights && (
             <div className="border-b border-lightborder bg-cream px-6 py-4">
