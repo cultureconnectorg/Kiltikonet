@@ -7,13 +7,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
-const OpenAI = require('openai');
-const Anthropic = require('@anthropic-ai/sdk');
 const PDFDocument = require('pdfkit');
 const { MongoClient } = require('mongodb');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 8002;
+
+// Backend API URL for LLM services
+const BACKEND_API = 'http://localhost:8001/api/v1';
 
 // Middleware
 app.use(cors());
@@ -39,17 +41,6 @@ async function connectDB() {
     process.exit(1);
   }
 }
-
-// Initialize AI clients with Emergent base URL
-const openai = new OpenAI({
-  apiKey: process.env.EMERGENT_LLM_KEY,
-  baseURL: 'https://api.emergentmethods.ai/v1'  // Emergent proxy URL
-});
-
-const anthropic = new Anthropic({
-  apiKey: process.env.EMERGENT_LLM_KEY,
-  baseURL: 'https://api.emergentmethods.ai'  // Emergent proxy URL
-});
 
 // ================== UTILITY FUNCTIONS ==================
 
