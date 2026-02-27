@@ -2476,6 +2476,52 @@ async def get_partner_suggestions(participant_id: str):
 app.include_router(api_router)
 app.include_router(api_v1_router)
 
+# ================== SMART ENGINE PROXY ==================
+import httpx
+
+SMART_ENGINE_URL = "http://localhost:8002"
+
+@app.api_route("/api/v1/smart-recommendations/{path:path}", methods=["GET", "POST", "DELETE", "PUT", "PATCH"])
+async def smart_engine_proxy(request: Request, path: str):
+    """Proxy requests to KiltiKonet Smart Engine service"""
+    async with httpx.AsyncClient(timeout=60.0) as client_http:
+        url = f"{SMART_ENGINE_URL}/api/v1/smart-recommendations/{path}"
+        
+        # Forward the request
+        try:
+            if request.method == "GET":
+                response = await client_http.get(url, params=dict(request.query_params))
+            elif request.method == "POST":
+                body = await request.body()
+                response = await client_http.post(
+                    url, 
+                    content=body,
+                    headers={"Content-Type": request.headers.get("Content-Type", "application/json")}
+                )
+            elif request.method == "DELETE":
+                response = await client_http.delete(url)
+            else:
+                body = await request.body()
+                response = await client_http.request(
+                    request.method,
+                    url,
+                    content=body,
+                    headers={"Content-Type": request.headers.get("Content-Type", "application/json")}
+                )
+            
+            # Return the response
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.headers.get("content-type")
+            )
+        except httpx.ConnectError:
+            raise HTTPException(status_code=503, detail="Smart Engine service unavailable")
+        except Exception as e:
+            logger.error(f"Smart Engine proxy error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Internal proxy error")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
