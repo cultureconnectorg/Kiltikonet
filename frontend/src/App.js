@@ -19,6 +19,8 @@ import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner }
 import SmartEngineDashboard from "./components/SmartEngineDashboard";
 // CMS Admin
 import CMSAdmin from "./components/CMSAdmin";
+// Dynamic Pages
+import DynamicPage from "./components/DynamicPage";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
@@ -61,6 +63,8 @@ function App() {
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
               <Route path="/cgu" element={<CGU />} />
               <Route path="/cookies" element={<Cookies />} />
+              {/* Dynamic CMS Pages */}
+              <Route path="/p/:slug" element={<DynamicPage />} />
             </Routes>
           </AppLayout>
         </BrowserRouter>
