@@ -41,21 +41,33 @@ const AppLayout = ({ children }) => {
   );
 };
 
-function App() {
+// Intro wrapper that checks URL
+const IntroWrapper = () => {
+  const location = window.location.pathname;
   const [showIntro, setShowIntro] = React.useState(() => {
+    // Skip intro on admin pages
+    if (location.startsWith('/admin') || location.startsWith('/smart-engine')) {
+      return false;
+    }
     // Only show intro on first visit
     return typeof window !== 'undefined' && !localStorage.getItem('kk_visited');
   });
 
+  if (!showIntro) return null;
+  
+  return <IntroSequence onComplete={() => setShowIntro(false)} />;
+};
+
+function App() {
   return (
     <LanguageProvider>
       <div className="App">
-        {/* Intro Sequence - only on first visit */}
-        {showIntro && <IntroSequence onComplete={() => setShowIntro(false)} />}
+        {/* Intro Sequence - only on first visit, not on admin pages */}
+        <IntroWrapper />
         
         <BrowserRouter>
           {/* Return welcome message for returning visitors */}
-          {!showIntro && <ReturnWelcome />}
+          <ReturnWelcome />
           
           <AppLayout>
             <Routes>
