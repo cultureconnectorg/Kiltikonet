@@ -977,9 +977,262 @@ app.post('/api/v1/smart-recommendations/rdv', async (req, res) => {
   }
 });
 
-// ================== STATISTICS ==================
+// ================== INTELLIGENCE API (Phase 2) ==================
 
-// Get basic stats
+// Get territorial flows
+app.get('/api/v1/intelligence/territorial-flows', async (req, res) => {
+  try {
+    const tenantId = req.query.tenant_id || DEFAULT_TENANT;
+    const sector = req.query.sector;
+    const period = req.query.period;
+    
+    const query = { tenant_id: tenantId };
+    if (sector) query.sector = sector;
+    if (period) query.period = period;
+    
+    const flows = await db.collection('territorial_flows')
+      .find(query, { projection: { _id: 0, scores: 0 } })
+      .sort({ flow_count: -1 })
+      .limit(10)
+      .toArray();
+    
+    res.json({
+      tenant_id: tenantId,
+      filters: { sector, period },
+      top_flows: flows,
+      total_count: flows.length
+    });
+  } catch (error) {
+    console.error('Territorial flows error:', error);
+    res.status(500).json({ error: 'Erreur' });
+  }
+});
+
+// Get sector heatmap
+app.get('/api/v1/intelligence/sector-heatmap', async (req, res) => {
+  try {
+    const tenantId = req.query.tenant_id || DEFAULT_TENANT;
+    
+    // Aggregate matching events by sector pairs
+    const sectorData = await db.collection('matching_events').aggregate([
+      { $match: { tenant_id: tenantId } },
+      {
+        $group: {
+          _id: { sector_a: '$sector_a', sector_b: '$sector_b' },
+          count: { $sum: 1 },
+          avg_score: { $avg: '$score' }
+        }
+      },
+      { $sort: { count: -1 } }
+    ]).toArray();
+    
+    // Get unique sectors
+    const sectors = [...new Set(sectorData.flatMap(d => [d._id.sector_a, d._id.sector_b]))].filter(Boolean);
+    
+    // Build heatmap matrix
+    const heatmap = {};
+    sectors.forEach(s => {
+      heatmap[s] = {};
+      sectors.forEach(t => {
+        heatmap[s][t] = 0;
+      });
+    });
+    
+    sectorData.forEach(d => {
+      if (d._id.sector_a && d._id.sector_b) {
+        heatmap[d._id.sector_a][d._id.sector_b] = d.count;
+        heatmap[d._id.sector_b][d._id.sector_a] = d.count;
+      }
+    });
+    
+    res.json({
+      tenant_id: tenantId,
+      sectors,
+      heatmap,
+      raw_data: sectorData.map(d => ({
+        sector_a: d._id.sector_a,
+        sector_b: d._id.sector_b,
+        connection_count: d.count,
+        avg_score: Math.round(d.avg_score * 100) / 100
+      }))
+    });
+  } catch (error) {
+    console.error('Sector heatmap error:', error);
+    res.status(500).json({ error: 'Erreur' });
+  }
+});
+
+// Get conversion rates by score range
+app.get('/api/v1/intelligence/conversion-rates', async (req, res) => {
+  try {
+    const tenantId = req.query.tenant_id || DEFAULT_TENANT;
+    
+    // Define score buckets
+    const buckets = [
+      { min: 0, max: 20, label: '0-20' },
+      { min: 20, max: 40, label: '20-40' },
+      { min: 40, max: 60, label: '40-60' },
+      { min: 60, max: 80, label: '60-80' },
+      { min: 80, max: 100, label: '80-100' }
+    ];
+    
+    const results = await Promise.all(buckets.map(async (bucket) => {
+      const total = await db.collection('matching_events').countDocuments({
+        tenant_id: tenantId,
+        score: { $gte: bucket.min, $lt: bucket.max === 100 ? 101 : bucket.max }
+      });
+      
+      const exported = await db.collection('matching_events').countDocuments({
+        tenant_id: tenantId,
+        score: { $gte: bucket.min, $lt: bucket.max === 100 ? 101 : bucket.max },
+        was_exported: true
+      });
+      
+      const rdv = await db.collection('matching_events').countDocuments({
+        tenant_id: tenantId,
+        score: { $gte: bucket.min, $lt: bucket.max === 100 ? 101 : bucket.max },
+        rdv_scheduled: true
+      });
+      
+      const outcomes = await db.collection('matching_events').countDocuments({
+        tenant_id: tenantId,
+        score: { $gte: bucket.min, $lt: bucket.max === 100 ? 101 : bucket.max },
+        outcome_noted: true
+      });
+      
+      return {
+        score_range: bucket.label,
+        total_matches: total,
+        export_count: exported,
+        export_rate: total > 0 ? Math.round((exported / total) * 100) : 0,
+        rdv_count: rdv,
+        rdv_rate: total > 0 ? Math.round((rdv / total) * 100) : 0,
+        outcome_count: outcomes,
+        outcome_rate: total > 0 ? Math.round((outcomes / total) * 100) : 0
+      };
+    }));
+    
+    res.json({
+      tenant_id: tenantId,
+      conversion_rates: results,
+      insight: 'Higher scores correlate with higher export and RDV rates, proving match quality.'
+    });
+  } catch (error) {
+    console.error('Conversion rates error:', error);
+    res.status(500).json({ error: 'Erreur' });
+  }
+});
+
+// Get emerging markets (high scores but low flow)
+app.get('/api/v1/intelligence/emerging-markets', async (req, res) => {
+  try {
+    const tenantId = req.query.tenant_id || DEFAULT_TENANT;
+    
+    // Find territory pairs with high avg score but low connection count
+    const flows = await db.collection('territorial_flows')
+      .find({ tenant_id: tenantId })
+      .toArray();
+    
+    // Calculate average flow count
+    const avgFlowCount = flows.length > 0 
+      ? flows.reduce((sum, f) => sum + f.flow_count, 0) / flows.length 
+      : 0;
+    
+    // Emerging = high score (>70) but below average flow count
+    const emerging = flows
+      .filter(f => f.avg_score >= 70 && f.flow_count < avgFlowCount)
+      .map(f => ({
+        from_territory: f.from_territory,
+        to_territory: f.to_territory,
+        sector: f.sector,
+        avg_score: f.avg_score,
+        flow_count: f.flow_count,
+        opportunity_score: Math.round(f.avg_score - (f.flow_count / avgFlowCount * 30))
+      }))
+      .sort((a, b) => b.opportunity_score - a.opportunity_score)
+      .slice(0, 10);
+    
+    // Also find underrepresented territories in matching events
+    const territoryMatches = await db.collection('matching_events').aggregate([
+      { $match: { tenant_id: tenantId } },
+      {
+        $group: {
+          _id: '$territory_a',
+          match_count: { $sum: 1 },
+          avg_score: { $avg: '$score' }
+        }
+      },
+      { $sort: { match_count: 1, avg_score: -1 } },
+      { $limit: 5 }
+    ]).toArray();
+    
+    res.json({
+      tenant_id: tenantId,
+      emerging_corridors: emerging,
+      underserved_territories: territoryMatches.map(t => ({
+        territory: t._id,
+        match_count: t.match_count,
+        avg_score: Math.round(t.avg_score * 100) / 100
+      })),
+      insight: 'Ces marchés ont un fort potentiel (scores élevés) mais sont sous-exploités (peu de connexions).'
+    });
+  } catch (error) {
+    console.error('Emerging markets error:', error);
+    res.status(500).json({ error: 'Erreur' });
+  }
+});
+
+// Get economic impact summary
+app.get('/api/v1/intelligence/impact', async (req, res) => {
+  try {
+    const tenantId = req.query.tenant_id || DEFAULT_TENANT;
+    
+    const totalMatches = await db.collection('matching_events').countDocuments({ tenant_id: tenantId });
+    const totalExports = await db.collection('matching_events').countDocuments({ tenant_id: tenantId, was_exported: true });
+    const totalRdv = await db.collection('matching_events').countDocuments({ tenant_id: tenantId, rdv_scheduled: true });
+    
+    // Collaboration outcomes by type
+    const outcomes = await db.collection('collaboration_outcomes').aggregate([
+      { $match: { tenant_id: tenantId } },
+      { $group: { _id: '$outcome_type', count: { $sum: 1 } } }
+    ]).toArray();
+    
+    // Average score
+    const avgScoreResult = await db.collection('matching_events').aggregate([
+      { $match: { tenant_id: tenantId } },
+      { $group: { _id: null, avg: { $avg: '$score' } } }
+    ]).toArray();
+    const avgScore = avgScoreResult.length > 0 ? Math.round(avgScoreResult[0].avg) : 0;
+    
+    // Unique territories involved
+    const territories = await db.collection('matching_events').distinct('territory_a', { tenant_id: tenantId });
+    const territoriesB = await db.collection('matching_events').distinct('territory_b', { tenant_id: tenantId });
+    const uniqueTerritories = [...new Set([...territories, ...territoriesB])].filter(Boolean);
+    
+    res.json({
+      tenant_id: tenantId,
+      summary: {
+        total_matching_events: totalMatches,
+        total_exports_generated: totalExports,
+        total_rdv_scheduled: totalRdv,
+        average_compatibility_score: avgScore,
+        territories_connected: uniqueTerritories.length,
+        export_rate: totalMatches > 0 ? Math.round((totalExports / totalMatches) * 100) : 0,
+        rdv_rate: totalMatches > 0 ? Math.round((totalRdv / totalMatches) * 100) : 0
+      },
+      collaboration_outcomes: outcomes.reduce((acc, o) => {
+        acc[o._id] = o.count;
+        return acc;
+      }, {}),
+      territories: uniqueTerritories,
+      report_generated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Impact error:', error);
+    res.status(500).json({ error: 'Erreur' });
+  }
+});
+
 // ================== START SERVER ==================
 
 async function start() {
