@@ -416,8 +416,13 @@ const RecommendationsScreen = () => {
       const res = await axios.get(`${SMART_API}/${profileId}`);
       setSourceProfile(res.data.source);
       setRecommendations(res.data.recommendations || []);
+      notify.success(
+        '🎯 Analyse terminée',
+        `${res.data.recommendations?.length || 0} profils compatibles trouvés`
+      );
     } catch (err) {
       console.error('Error getting recommendations:', err);
+      notify.error('❌ Erreur', 'Impossible de générer les recommandations');
     } finally {
       setLoading(false);
     }
@@ -436,7 +441,8 @@ const RecommendationsScreen = () => {
       });
       setExportText(res.data.recommendation);
     } catch (err) {
-      setExportText('Erreur lors de la génération de la recommandation.');
+      setExportText('Erreur lors de la génération de la recommandation. Veuillez réessayer.');
+      notify.error('❌ Erreur IA', 'Budget épuisé ou erreur de génération. Vérifiez votre crédit Emergent LLM.');
     } finally {
       setExportLoading(false);
     }
@@ -444,10 +450,14 @@ const RecommendationsScreen = () => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(exportText);
-    alert('Texte copié !');
+    notify.success('📋 Copié !', 'Le texte a été copié dans le presse-papiers');
   };
 
   const downloadPDF = async () => {
+    const toastId = toast.loading('Génération du PDF...', {
+      style: { background: '#1A1A1A', color: '#F4F1EA', border: '1px solid #333' }
+    });
+    
     try {
       const res = await axios.post(`${SMART_API}/export/pdf`, {
         profileA: sourceProfile,
@@ -463,8 +473,12 @@ const RecommendationsScreen = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      
+      toast.dismiss(toastId);
+      notify.success('📄 PDF téléchargé', 'Le document est prêt pour votre dossier de subvention');
     } catch (err) {
-      console.error('PDF download error:', err);
+      toast.dismiss(toastId);
+      notify.error('❌ Erreur PDF', 'Impossible de générer le PDF');
     }
   };
 
