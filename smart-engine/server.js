@@ -462,6 +462,49 @@ app.delete('/api/v1/smart-recommendations/profiles/:id', async (req, res) => {
   }
 });
 
+// Get stats (MUST be before :profileId route)
+app.get('/api/v1/smart-recommendations/stats', async (req, res) => {
+  try {
+    const tenantId = req.query.tenant_id || DEFAULT_TENANT;
+    
+    const profileCount = await db.collection('smart_profiles').countDocuments({ tenant_id: tenantId });
+    const documentCount = await db.collection('smart_documents').countDocuments({ tenant_id: tenantId });
+    const matchingEventCount = await db.collection('matching_events').countDocuments({ tenant_id: tenantId });
+    const exportedCount = await db.collection('matching_events').countDocuments({ tenant_id: tenantId, was_exported: true });
+    const rdvCount = await db.collection('matching_events').countDocuments({ tenant_id: tenantId, rdv_scheduled: true });
+    const outcomeCount = await db.collection('collaboration_outcomes').countDocuments({ tenant_id: tenantId });
+    
+    // Territory distribution
+    const territories = await db.collection('smart_profiles').aggregate([
+      { $match: { tenant_id: tenantId } },
+      { $group: { _id: '$territory', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]).toArray();
+    
+    // Type distribution
+    const types = await db.collection('smart_profiles').aggregate([
+      { $match: { tenant_id: tenantId } },
+      { $group: { _id: '$type', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]).toArray();
+    
+    res.json({
+      tenant_id: tenantId,
+      profiles: profileCount,
+      documents: documentCount,
+      matching_events: matchingEventCount,
+      exports: exportedCount,
+      rdv_scheduled: rdvCount,
+      collaboration_outcomes: outcomeCount,
+      by_territory: territories.reduce((acc, t) => { acc[t._id || 'Non spécifié'] = t.count; return acc; }, {}),
+      by_type: types.reduce((acc, t) => { acc[t._id || 'Non spécifié'] = t.count; return acc; }, {})
+    });
+  } catch (error) {
+    console.error('Stats error:', error);
+    res.status(500).json({ error: 'Erreur stats' });
+  }
+});
+
 // Get recommendations for a profile (MAIN MATCHING ENDPOINT)
 app.get('/api/v1/smart-recommendations/:profileId', async (req, res) => {
   try {
