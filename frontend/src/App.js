@@ -42,10 +42,21 @@ const AppLayout = ({ children }) => {
 };
 
 function App() {
+  const [showIntro, setShowIntro] = React.useState(() => {
+    // Only show intro on first visit
+    return typeof window !== 'undefined' && !localStorage.getItem('kk_visited');
+  });
+
   return (
     <LanguageProvider>
       <div className="App">
+        {/* Intro Sequence - only on first visit */}
+        {showIntro && <IntroSequence onComplete={() => setShowIntro(false)} />}
+        
         <BrowserRouter>
+          {/* Return welcome message for returning visitors */}
+          {!showIntro && <ReturnWelcome />}
+          
           <AppLayout>
             <Routes>
               <Route path="/" element={<LandingPage />} />
