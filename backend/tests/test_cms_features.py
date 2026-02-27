@@ -14,7 +14,17 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+# Load BASE_URL from frontend .env
+def get_base_url():
+    env_file = '/app/frontend/.env'
+    if os.path.exists(env_file):
+        with open(env_file) as f:
+            for line in f:
+                if line.startswith('REACT_APP_BACKEND_URL='):
+                    return line.split('=', 1)[1].strip().rstrip('/')
+    return os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+
+BASE_URL = get_base_url()
 
 class TestCMSTheme:
     """Theme configuration tests"""
