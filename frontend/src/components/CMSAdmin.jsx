@@ -2158,6 +2158,7 @@ const CMSAdmin = () => {
     { id: 'design', label: 'Design', icon: Palette },
     { id: 'content', label: 'Contenu', icon: FileText },
     { id: 'pages', label: 'Pages', icon: Layout },
+    { id: 'mapfonds', label: 'Carte & Fonds', icon: Globe },
     { id: 'intention', label: 'Intention', icon: Sparkles },
     { id: 'preview', label: 'Aperçu', icon: Eye }
   ];
