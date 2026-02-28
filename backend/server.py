@@ -1103,6 +1103,9 @@ async def create_registration(
     
     await db.registrations.insert_one(registration)
     
+    # 🔄 Broadcast real-time update
+    await broadcast_event("registration_created", {"id": registration_id, "name": full_name, "tier": tier})
+    
     asyncio.create_task(send_email_async(
         email,
         "Votre demande d'accréditation Culture Connect 2026 a été reçue",
