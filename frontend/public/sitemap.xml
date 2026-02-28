@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     
     <!-- Pages principales -->
     <url>
@@ -75,5 +72,103 @@
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
     </url>
-
+    
+    <!-- Profils participants (16 profils actifs) -->
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/83b0c5d9-e310-4e91-b846-ee6de2d283b0</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/65b50ba4-fb99-4ae9-9c43-9ea9eadac9c6</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/2c96b9e9-6ba5-4823-bc14-832439ff9d49</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/42d947e4-14e1-46f6-a774-408ab048f6db</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/9e99f40c-b54e-475a-8b49-2c9c54fe260f</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/57059af0-7fe1-4870-982b-e4cb07a1eade</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/c3cf995c-6a52-4e58-8498-3619f6fec820</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/3586a9a6-4e14-49dc-a013-009bc074436a</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/ee645ff4-3251-430e-b640-f7d4cf51d709</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/a24ce475-10be-45d6-8cbb-3df82681dd61</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/42fe5bd4-9bd9-4231-9860-32cb37f7ded7</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/927f000a-7f79-4e76-93f6-46e1dde0067c</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/8e357c17-b747-41e4-b3e6-471c11ee5608</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/ed39a44a-f60a-4deb-be7a-a3732e20ab7b</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/4e093d73-f2e0-4016-8e43-fd790a6ed6ff</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://cultureconnect2026.fr/participant/a423d265-f87b-42d8-822e-947cdb7ef4e3</loc>
+        <lastmod>2026-02-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    
 </urlset>
