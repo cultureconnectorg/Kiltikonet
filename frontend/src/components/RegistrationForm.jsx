@@ -55,6 +55,16 @@ export const RegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [rgpdConsent, setRgpdConsent] = useState(false); // RGPD consent state
+  const [headerVisible, setHeaderVisible] = useState(false);
+
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+  // Header animation trigger
+  useEffect(() => {
+    const timer = setTimeout(() => setHeaderVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
   
   React.useEffect(() => { window.scrollTo(0, 0); }, [currentStep]);
   
