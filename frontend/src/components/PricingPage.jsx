@@ -1,12 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, Star } from 'lucide-react';
+import { useIntersectionObserver } from '../hooks/useAnimations';
+
+// Animated pricing card component
+const PricingCard = ({ tier, index, language, onSelect }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.15 });
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const colorClasses = {
+    sage: 'border-sage hover:border-sage',
+    terracotta: 'border-terracotta hover:border-terracotta',
+    charcoal: 'border-charcoal hover:border-charcoal'
+  };
+
+  const buttonClasses = {
+    sage: 'bg-sage hover:bg-sage/90',
+    terracotta: 'bg-terracotta hover:bg-terracotta/90',
+    charcoal: 'bg-charcoal hover:bg-charcoal/90'
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={`relative bg-paper border-2 rounded-lg p-6 sm:p-8 transition-all duration-500 ${
+        colorClasses[tier.color]
+      } ${tier.popular ? 'shadow-xl scale-105' : ''} ${
+        isHovered ? 'shadow-lg -translate-y-1' : ''
+      }`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible 
+          ? (isHovered ? 'translateY(-4px)' : 'translateY(0)') 
+          : 'translateY(40px)',
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out' 
+          : `opacity 0.6s ease-out ${index * 0.15}s, transform 0.6s ease-out ${index * 0.15}s`,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      data-testid={`pricing-card-${tier.id}`}
+    >
+      {tier.popular && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-terracotta text-paper text-xs font-medium rounded-full flex items-center gap-1">
+          <Star className="w-3 h-3" />
+          {language === 'fr' ? 'Populaire' : 'Popular'}
+        </div>
+      )}
+
+      <h3 className="font-serif text-2xl text-charcoal mb-2">{tier.name}</h3>
+      <p className="text-charcoal/60 text-sm mb-6">{tier.description}</p>
+
+      <div className="mb-6">
+        <span className="font-serif text-4xl text-charcoal">{tier.price}€</span>
+        <span className="text-charcoal/50 text-sm ml-2">
+          {language === 'fr' ? '/ personne' : '/ person'}
+        </span>
+      </div>
+
+      <ul className="space-y-3 mb-8">
+        {tier.features.map((feature, i) => (
+          <li 
+            key={i} 
+            className="flex items-start gap-3 text-sm text-charcoal/70"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateX(0)' : 'translateX(-10px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.2s' 
+                : `opacity 0.4s ease-out ${(index * 0.15) + (i * 0.05)}s, transform 0.4s ease-out ${(index * 0.15) + (i * 0.05)}s`,
+            }}
+          >
+            <Check className={`w-4 h-4 mt-0.5 text-${tier.color} flex-shrink-0`} />
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      <Button
+        onClick={() => onSelect(tier)}
+        className={`w-full h-12 ${buttonClasses[tier.color]} text-paper font-syne text-sm tracking-wide rounded-none transition-all duration-300 group`}
+      >
+        {language === 'fr' ? "S'inscrire" : 'Register'}
+        <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+      </Button>
+    </div>
+  );
+};
 
 export const PricingPage = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const [heroVisible, setHeroVisible] = useState(false);
+  
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setHeroVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const tiers = [
     {
@@ -78,8 +176,7 @@ export const PricingPage = () => {
         'Logo sur supports officiels',
         'Invitations VIP illimitées',
         'Accès zone presse',
-        'Rapport post-événement exclusif',
-        'Partenariat média privilégié'
+        'Partenariat média'
       ] : [
         'All Professional benefits',
         'Dedicated Cultural Market stand',
@@ -87,111 +184,107 @@ export const PricingPage = () => {
         'Data & analytics access',
         'Logo on official materials',
         'Unlimited VIP invitations',
-        'Press zone access',
-        'Exclusive post-event report',
-        'Priority media partnership'
+        'Press area access',
+        'Media partnership'
       ]
     }
   ];
 
+  const handleSelectTier = (tier) => {
+    navigate('/inscription', { state: { selectedTier: tier.id, price: tier.price } });
+  };
+
   return (
-    <div className="min-h-screen bg-paper pt-24 sm:pt-32">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
-            {language === 'fr' ? 'Tarifs 2026' : 'Pricing 2026'}
-          </p>
-          <h1 className="font-serif text-4xl sm:text-5xl text-charcoal mb-6">
-            {language === 'fr' ? 'Choisissez votre accréditation' : 'Choose your accreditation'}
+    <div className="min-h-screen bg-paper overflow-hidden">
+      {/* Hero Section */}
+      <section className="py-20 sm:py-28 bg-charcoal text-cream overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Badge */}
+          <div 
+            className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta/20 rounded-full mb-6"
+            style={{
+              opacity: heroVisible ? 1 : 0,
+              transform: heroVisible ? 'translateY(0)' : 'translateY(-20px)',
+              transition: prefersReducedMotion ? 'opacity 0.3s' : 'opacity 0.5s ease-out, transform 0.5s ease-out',
+            }}
+          >
+            <span className="text-terracotta text-sm font-medium">
+              20-23 Mai 2026 · Fort-de-France
+            </span>
+          </div>
+
+          {/* Title */}
+          <h1 
+            className="font-serif text-4xl sm:text-5xl lg:text-6xl mb-6"
+            style={{
+              opacity: heroVisible ? 1 : 0,
+              transform: heroVisible ? 'translateY(0)' : 'translateY(-30px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.3s ease-out' 
+                : 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s',
+            }}
+          >
+            {language === 'fr' ? 'Tarifs & Accréditations' : 'Pricing & Accreditations'}
           </h1>
-          <p className="text-charcoal/70 font-body text-lg max-w-2xl mx-auto">
+
+          {/* Subtitle */}
+          <p 
+            className="text-lg text-cream/70 max-w-2xl mx-auto"
+            style={{
+              opacity: heroVisible ? 1 : 0,
+              transform: heroVisible ? 'translateY(0)' : 'translateY(20px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.3s ease-out' 
+                : 'opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s',
+            }}
+          >
             {language === 'fr'
-              ? 'Accédez au plus grand marché culturel afro-descendant de la Caraïbe.'
-              : 'Access the largest Afro-descendant cultural market in the Caribbean.'
+              ? 'Choisissez le pass qui correspond à votre profil et rejoignez Culture Connect 2026.'
+              : 'Choose the pass that fits your profile and join Culture Connect 2026.'
             }
           </p>
         </div>
+      </section>
 
-        {/* Pricing Cards */}
-        <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {tiers.map((tier) => (
-            <div
-              key={tier.id}
-              className={`relative border bg-cream ${
-                tier.popular ? 'border-terracotta' : 'border-lightborder'
-              }`}
-              data-testid={`pricing-card-${tier.id}`}
-            >
-              {tier.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="bg-terracotta text-paper px-4 py-1 text-xs font-syne tracking-wider uppercase">
-                    {language === 'fr' ? 'Recommandé' : 'Recommended'}
-                  </span>
-                </div>
-              )}
-
-              <div className="p-8">
-                <h3 className="font-serif text-2xl text-charcoal mb-2">
-                  {tier.name}
-                </h3>
-                <p className="text-charcoal/60 text-sm mb-6">
-                  {tier.description}
-                </p>
-
-                <div className="mb-8">
-                  <span className="font-serif text-5xl text-charcoal">{tier.price}</span>
-                  <span className="text-charcoal/60 ml-1">€</span>
-                  <p className="text-charcoal/50 text-sm mt-1">
-                    {language === 'fr' ? 'par participant' : 'per participant'}
-                  </p>
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {tier.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <Check className={`w-4 h-4 mt-1 flex-shrink-0 ${
-                        tier.color === 'terracotta' ? 'text-terracotta' : 
-                        tier.color === 'sage' ? 'text-sage' : 'text-charcoal'
-                      }`} />
-                      <span className="text-charcoal/70 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  onClick={() => navigate('/register', { state: { selectedTier: tier.id } })}
-                  className={`w-full h-12 font-syne text-sm tracking-wide rounded-none ${
-                    tier.popular 
-                      ? 'bg-terracotta text-paper hover:bg-terracotta/90' 
-                      : 'bg-charcoal text-paper hover:bg-charcoal/90'
-                  }`}
-                  data-testid={`select-${tier.id}-btn`}
-                >
-                  {language === 'fr' ? 'Sélectionner' : 'Select'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom info */}
-        <div className="mt-16 text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-charcoal/50">
-            <span>✓ {language === 'fr' ? 'Paiement sécurisé' : 'Secure payment'}</span>
-            <span>✓ {language === 'fr' ? 'Confirmation immédiate' : 'Instant confirmation'}</span>
-            <span>✓ {language === 'fr' ? 'Remboursable jusqu\'au 1er Mai' : 'Refundable until May 1st'}</span>
+      {/* Pricing Cards */}
+      <section className="py-20 sm:py-28 -mt-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8 items-start">
+            {tiers.map((tier, index) => (
+              <PricingCard
+                key={tier.id}
+                tier={tier}
+                index={index}
+                language={language}
+                onSelect={handleSelectTier}
+              />
+            ))}
           </div>
-          
-          <p className="mt-8 text-charcoal/50 text-sm">
-            {language === 'fr' ? 'Besoin d\'une solution sur mesure ? ' : 'Need a custom solution? '}
-            <a href="mailto:cultureconnectorg@gmail.com" className="text-terracotta hover:underline">
-              {language === 'fr' ? 'Contactez-nous' : 'Contact us'}
-            </a>
-          </p>
         </div>
-      </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 bg-cream">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-serif text-2xl text-charcoal mb-4">
+            {language === 'fr' ? 'Des questions ?' : 'Questions?'}
+          </h2>
+          <p className="text-charcoal/60 mb-6">
+            {language === 'fr'
+              ? 'Contactez-nous pour plus d\'informations sur les accréditations.'
+              : 'Contact us for more information about accreditations.'
+            }
+          </p>
+          <a 
+            href="mailto:cultureconnectorg@gmail.com"
+            className="text-terracotta hover:text-terracotta/80 underline underline-offset-4 transition-colors"
+          >
+            cultureconnectorg@gmail.com
+          </a>
+        </div>
+      </section>
     </div>
   );
 };
+
+export default PricingPage;
