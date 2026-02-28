@@ -74,7 +74,7 @@ export const LandingPage = () => {
   ];
   
   const partners = [
-    'CTM - Collectivité Territoriale de Martinique', 'France Travail', 'ISCA Business School', 'SACEM', 'Direction des Affaires Culturelles - Martinique'
+    'CTM', 'France Travail', 'ISCA Business School', 'SACEM', 'DAC Martinique', 'Factory Maker', 'Skillfor', 'JTV Digital', 'Labo des histoires', 'CFA Audiovisuel'
   ];
 
   // Stats data with animation directions
@@ -591,6 +591,11 @@ const PartnersCarousel = ({ language }) => {
     { id: 3, name: 'ISCA Business School', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/yxac0hgc_Design%20sans%20titre.png' },
     { id: 4, name: 'SACEM', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/420p3fna_logosacem.webp' },
     { id: 5, name: 'Direction des Affaires Culturelles - Martinique', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/zj0l5jv3_logo%20DAC%20HD%20%281%29%20-%20Modifie%CC%81.png' },
+    { id: 6, name: 'Factory Maker', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/mwtuuqva_AB6E1437-7F2F-4BA2-8213-4B04929B2465_L0_001-09_02_2026%2017_20_17.png' },
+    { id: 7, name: 'Skillfor - Centre d\'Etude de Langues', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/zdas8vpg_Skillfor%20-%20CEL%20-%20Bleu%20-%20Modifie%CC%81.png' },
+    { id: 8, name: 'JTV Digital by Trace', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/o2a782m0_481984724_9427778390612290_4240110814266624264_n.jpg' },
+    { id: 9, name: 'Labo des histoires', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/wk4o9uan_channels4_profile.jpg' },
+    { id: 10, name: 'CFA - Métiers de l\'Audiovisuel', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/hasqcy3q_Logo-CFA-V2.webp' },
   ];
 
   useEffect(() => {
