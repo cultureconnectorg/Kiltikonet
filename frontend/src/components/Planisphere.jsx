@@ -194,8 +194,8 @@ export const Planisphere = () => {
             {/* Background */}
             <rect x="0" y="0" width={svgWidth} height={svgHeight} fill="#1A1A1A" />
             
-            {/* World map outlines */}
-            <WorldMapSVG />
+            {/* World map outlines - temporarily commented out for debugging */}
+            {/* <WorldMapSVG /> */}
 
             {/* Gradient definitions for lines */}
             <defs>
