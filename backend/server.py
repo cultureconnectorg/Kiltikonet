@@ -3915,6 +3915,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ================== SECURITY HEADERS MIDDLEWARE ==================
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers to all responses for browser trust and SEO"""
+    
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        
+        # Security Headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        
+        # Content Security Policy (relaxed for external resources)
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://assets.emergent.sh https://cdn.tailwindcss.com https://us.i.posthog.com https://*.posthog.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: blob: https: http:; "
+            "connect-src 'self' https: wss:; "
+            "frame-ancestors 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self' https://checkout.stripe.com;"
+        )
+        response.headers["Content-Security-Policy"] = csp
+        
+        # HSTS (HTTP Strict Transport Security)
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+
 # ================== DATABASE INDEXES ==================
 
 @app.on_event("startup")
