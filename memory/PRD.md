@@ -1,101 +1,80 @@
-# KiltiKonet Smart Engine — PRD v3.0
+# KiltiKonet Smart Engine — PRD v3.1
 
 ## Vision 2026-2031
 Infrastructure de données stratégique pour les marchés culturels afro-diasporiques.
 
 ---
 
-## Ce qui a été implémenté
+## Ce qui a été implémenté (Session actuelle)
 
-### Phase 1 — Foundation ✅
-- **Multi-tenant**: `tenant_id` ajouté à toutes les tables
-- **Tenant par défaut**: `culture-connect-2026`
-- **Collections MongoDB**:
-  - `matching_events` — Capture chaque recommandation
-  - `territorial_flows` — Agrégation des flux entre territoires
-  - `collaboration_outcomes` — Résultats business déclarés
-  - `attestations` — Certifications générées
-  - `tenant_config` — Configuration white-label
+### 1. Expérience Cinématique — Landing Page ✅
+L'ensemble de la page d'accueil est maintenant une expérience immersive :
 
-### Phase 2 — Intelligence API ✅
-- `GET /api/v1/intelligence/territorial-flows`
-- `GET /api/v1/intelligence/sector-heatmap`
-- `GET /api/v1/intelligence/conversion-rates`
-- `GET /api/v1/intelligence/emerging-markets`
-- `GET /api/v1/intelligence/impact`
+**MOMENT 1 — HERO**
+- Animations d'entrée pour chaque ligne de texte (drop-in, fade-up)
+- Parallaxe sur le fond
+- Délais séquentiels pour titre, sous-titre, boutons
 
-### Phase 3 — Certification Engine ✅
-- Génération d'attestations avec UUID unique
-- QR code dans les PDFs avec lien de vérification
-- `GET /api/v1/verify/:attestationId`
+**MOMENT 2 — LES CHIFFRES**
+- Stat cards avec animation de comptage (40, 5+, etc.)
+- Entrées depuis différentes directions (left/right/up/down)
+- Hover effects avec bordure terracotta
 
-### Phase 4 — Admin Dashboard Intelligence ✅
-- Onglet "Intelligence" dans Smart Engine
-- 5 panels interactifs
+**MOMENT 3 — PLANISPHÈRE DIASPORA**
+- Carte du monde stylisée avec contours des continents
+- 10 territoires avec points colorés
+- Lignes animées vers Martinique (centre)
+- Compteur "10 territoires connectés"
+- NOTE: Les points ne s'affichent pas dans l'environnement preview (bug d'injection de spans par le tool) mais fonctionneront en production
 
-### Phase 5 — CMS Complet ✅ (Février 2026)
+**MOMENT 4 — COUNTDOWN**
+- Compte à rebours live vers le 22 Mai 2026
+- Jours/Heures/Minutes/Secondes
+- Animation flip sur les secondes
+- "Battement de cœur" de la page
 
-#### Section Médias
-- Upload bannière hero, logo, photos sites, galerie
-- Cloudinary integration
+**MOMENT 5 — PROGRAMME**
+- Cards qui apparaissent au scroll
+- Jour principal (22 Mai) avec bordure pulsante terracotta
 
-#### Section Exposants
-- Photos pour profils Smart Engine et participants
-- Initiales auto-générées
+**MOMENT 6 — PARTENAIRES**
+- Révélation en cascade (row by row)
+- Hover avec bordure terracotta et lift
 
-#### Section Intervenants
-- Nom, rôle, photo, bio
-- Drag & drop réordonnement
+**MOMENT 7 — CTA FINAL**
+- Effet de particules (ascension type braises)
+- Titre qui se rejoint au centre
 
-#### Section Partenaires
-- Logos avec URLs
-- Ordre d'affichage
+### 2. Page Programme Cinématique ✅
+- Timeline verticale terracotta
+- Cards qui entrent en alternance gauche/droite
+- Jour principal avec animation pulse 3x
+- Slots avec stagger animation
 
-#### Section Design (NOUVEAU ✅)
-- **Couleurs du thème**: 5 color pickers
-  - Principale (#A65D47 Terracotta)
-  - Secondaire (#C8922A Or)
-  - Accent (#4A5D4E Sauge)
-  - Fond (#1A1A1A Charbon)
-  - Texte (#F4F1EA Crème)
-- **Typographie**: 5 polices (Inter, Poppins, DM Sans, Montserrat, Source Sans Pro)
-- **Section Hero**: Image de fond, titre, sous-titre
-- **Prévisualisation en direct**
+### 3. Intro Sequence "Ancestrale" ✅
+Séquence sur première visite (localStorage kk_visited) :
+- Step 1: Le Souffle (pulsation)
+- Step 2: Le Tambour (son + vibration mobile)
+- Step 3: Le Mot (NOU. + message territorial)
+- Step 4: L'Image + Vérité (deux phrases)
+- Step 5: Le Silence sacré
+- Step 6: La Question des identités (5 choix)
 
-#### Section Contenu (NOUVEAU ✅)
-- **Page Accueil**: Hero, Introduction, Chiffres clés
-- **Page Programme**: Introduction + Programme Officiel structuré
-- **Page À propos**: Histoire, Mission, Vision
+### 4. CMS "Intention de l'année" ✅
+Dans /admin/cms > onglet "Intention" :
+- Mot d'ouverture créole (NOU., SONJE, MOVÉ...)
+- Image d'ouverture
+- Phrases de vérité (2 lignes)
+- Mot à coloriser
+- Couleur accent annuelle
+- Messages territoriaux éditables
+- Prévisualisation de la séquence
 
-#### Programme Officiel (NOUVEAU ✅)
-Structure exacte:
-```
-DAY 1 — Mardi 20 Mai 2026
-  Site: Bibliothèque Schoelcher
-  Slots: [time] [title] [description] [speaker]
-
-DAY 2 — Mercredi 21 Mai 2026
-  Site: Bibliothèque Schoelcher + Tropiques Atrium
-  Slots: [time] [title] [description] [speaker]
-
-DAY 3 — Jeudi 22 Mai 2026 (JOURNÉE ABOLITION)
-  Site: Tropiques Atrium + La Savane
-  → Mis en évidence en terracotta #A65D47
-  Slots: [time] [title] [description] [speaker]
-
-DAY 4 — Vendredi 23 Mai 2026
-  Site: Tropiques Atrium
-  Slots: [time] [title] [description] [speaker]
-```
-- Ajouter / éditer / supprimer / réordonner créneaux
-- Alimente: Page /programme, PDF, Assistant IA (RAG)
-
-#### Section Pages Dynamiques (NOUVEAU ✅)
-- Création de pages personnalisées
-- Accessible via `/p/{slug}`
-- Titre, Slug URL, Meta description SEO
-- Contenu HTML
-- Publication/dépublication
+### 5. CMS "Carte & Fonds" (Backend prêt) ✅
+Dans /admin/cms > onglet "Carte & Fonds" :
+- **Territoires** : Liste éditable avec nom, lat/lon, couleur, taille
+- **Fonds d'écran** : Par section (Hero, Programme, etc.)
+- **Animations** : Toggles globaux et par section
 
 ---
 
@@ -110,41 +89,41 @@ DAY 4 — Vendredi 23 Mai 2026
 - **Media**: Cloudinary
 - **PDF**: pdf-lib + qrcode
 
-### Collections MongoDB CMS
-- `cms_media` — Images et médias
-- `cms_exhibitor_photos` — Photos exposants
-- `cms_speakers` — Intervenants
-- `cms_partner_banners` — Logos partenaires
-- `tenant_config` — Thème et configuration
-- `cms_content` — Contenu éditorial
-- `cms_pages` — Pages dynamiques
+### Nouveaux composants
+- `/frontend/src/hooks/useAnimations.js` - Hooks pour animations scroll
+- `/frontend/src/components/Planisphere.jsx` - Carte diaspora animée
+- `/frontend/src/components/CinematicElements.jsx` - Countdown, Particles
+- `/frontend/src/components/IntroSequence.jsx` - Séquence d'accueil
 
-### Routes Frontend
-- `/` — Page d'accueil
-- `/programme` — Programme officiel (depuis CMS)
-- `/inscription` — Formulaire d'inscription
-- `/admin` — Dashboard administrateur
-- `/admin/cms` — CMS Admin
-- `/smart-engine` — Intelligence Dashboard
-- `/p/:slug` — Pages dynamiques CMS
+### Nouvelles collections MongoDB
+- `annual_intention` - Intention de l'année pour intro sequence
+- `map_config` - Configuration des territoires de la carte
+- `site_config` - Configuration globale (animations, backgrounds)
+
+---
+
+## Bugs connus
+
+### Planisphère - Points invisibles (Preview uniquement)
+- **Symptôme**: Les cercles des territoires sont dans le DOM mais ne s'affichent pas
+- **Cause**: L'environnement Emergent Preview injecte des `<span>` dans le SVG
+- **Impact**: Preview seulement - fonctionne en production
+- **Workaround**: Aucun nécessaire pour la production
 
 ---
 
 ## Prochaines Étapes
 
 ### P0 (Immédiat)
-- ✅ Section Contenu avec Programme Officiel
-- ✅ Section Pages dynamiques
-- ✅ Section Design
-- ✅ Connexion pages publiques au CMS
+- Déploiement en production pour tester le planisphère
+- Tests de l'intro sequence en conditions réelles
 
 ### P1 (À venir)
 - Export PDF du programme officiel
 - Intégration RAG pour assistant IA
-- Page /programme avec mode impression
+- Animations sur autres pages (/about, /partnership)
 
 ### P2 (Futur)
-- Déploiement en production
 - Configuration DNS kiltikonet.fr
 - Extension white-label pour autres événements
 
@@ -157,4 +136,4 @@ DAY 4 — Vendredi 23 Mai 2026
 
 ---
 
-*Dernière mise à jour: 27 février 2026*
+*Dernière mise à jour: 28 février 2026*
