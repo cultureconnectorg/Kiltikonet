@@ -3134,6 +3134,9 @@ async def update_cms_content_section(page: str, section: str, data: dict, tenant
         upsert=True
     )
     
+    # 🔄 Broadcast real-time update
+    await broadcast_event("cms_content_updated", {"page": page, "section": section})
+    
     return {"success": True}
 
 @app.post("/api/cms/content/init-defaults")
