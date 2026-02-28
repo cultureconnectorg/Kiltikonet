@@ -3144,6 +3144,47 @@ async def publish_cms_changes(tenant_id: str = DEFAULT_TENANT):
     
     return {"success": True, "message": "Toutes les modifications ont été publiées"}
 
+# ================== VISUAL EDITOR ENDPOINTS ==================
+
+class VisualEditorChange(BaseModel):
+    page: str
+    changes: dict
+
+@app.post("/api/cms/visual-editor/save")
+async def save_visual_editor_changes(data: VisualEditorChange):
+    """Save changes made in the visual editor"""
+    try:
+        # Store changes in visual_editor_changes collection
+        change_doc = {
+            "page": data.page,
+            "changes": data.changes,
+            "saved_at": datetime.now(timezone.utc).isoformat(),
+            "tenant_id": DEFAULT_TENANT
+        }
+        
+        await db.visual_editor_changes.insert_one(change_doc)
+        
+        # Broadcast real-time update
+        await broadcast_event("visual_editor_updated", {
+            "page": data.page,
+            "changes_count": len(data.changes)
+        })
+        
+        return {"success": True, "message": "Modifications sauvegardees"}
+    except Exception as e:
+        logger.error(f"Error saving visual editor changes: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/cms/visual-editor/changes/{page}")
+async def get_visual_editor_changes(page: str):
+    """Get saved changes for a specific page"""
+    changes = await db.visual_editor_changes.find(
+        {"page": page, "tenant_id": DEFAULT_TENANT},
+        {"_id": 0}
+    ).sort("saved_at", -1).limit(1).to_list(1)
+    
+    return {"changes": changes[0] if changes else None}
+
 @app.get("/api/cms/preview")
 async def get_cms_preview(tenant_id: str = DEFAULT_TENANT):
     """Get preview of all CMS content"""
