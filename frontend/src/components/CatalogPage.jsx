@@ -547,134 +547,35 @@ export const CatalogPage = () => {
         {isLoading ? (
           <div className="text-center py-20 text-charcoal/50">Loading...</div>
         ) : filteredParticipants.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 border-2 border-lightborder mx-auto mb-4 flex items-center justify-center">
-              <Users className="w-8 h-8 text-charcoal/30" />
+          <Reveal>
+            <div className="text-center py-20">
+              <div className="w-16 h-16 border-2 border-lightborder mx-auto mb-4 flex items-center justify-center">
+                <Users className="w-8 h-8 text-charcoal/30" />
+              </div>
+              <p className="text-charcoal/50 mb-2">
+                {language === 'fr' ? 'Aucun participant dans le catalogue' : 'No participants in the catalog'}
+              </p>
+              <p className="text-sm text-charcoal/40">
+                {language === 'fr' 
+                  ? 'Les participants approuvés apparaîtront ici avec leur photo.'
+                  : 'Approved participants will appear here with their photo.'
+                }
+              </p>
             </div>
-            <p className="text-charcoal/50 mb-2">
-              {language === 'fr' ? 'Aucun participant dans le catalogue' : 'No participants in the catalog'}
-            </p>
-            <p className="text-sm text-charcoal/40">
-              {language === 'fr' 
-                ? 'Les participants approuvés apparaîtront ici avec leur photo.'
-                : 'Approved participants will appear here with their photo.'
-              }
-            </p>
-          </div>
+          </Reveal>
         ) : (
           <div className={viewMode === 'grid' ? 'grid sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-            {filteredParticipants.map((p) => {
-              const tier = tierConfig[p.tier] || tierConfig.professional;
-              const Icon = profileIcons[p.profile_type] || Users;
-              const sharedCount = getSharedInterestsCount(p.expertise_tags, filters.expertiseTags);
-              const pTags = p.expertise_tags || [];
-              
-              return viewMode === 'grid' ? (
-                <div key={p.id} className="border border-lightborder bg-cream group hover:border-terracotta transition-colors">
-                  <div className="relative h-48 overflow-hidden">
-                    <img src={p.image} alt={p.full_name} className="w-full h-full object-cover" />
-                    <div className="absolute top-3 right-3 px-3 py-1 text-xs font-syne" style={{ backgroundColor: tier.color, color: '#F4F1EA' }}>
-                      {language === 'fr' ? tier.name : tier.nameEn}
-                    </div>
-                    {p.stand_request && (
-                      <div className="absolute top-3 left-3 px-2 py-1 bg-sage text-paper text-xs">Stand</div>
-                    )}
-                    {/* Similarity score badge */}
-                    {sharedCount > 0 && (
-                      <div className="absolute bottom-3 left-3 px-2 py-1 bg-terracotta/90 text-paper text-xs flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        {sharedCount} {language === 'fr' ? 'intérêt(s) commun(s)' : 'shared interest(s)'}
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Icon className="w-4 h-4 text-charcoal/40" />
-                      <span className="text-xs text-charcoal/50">{getProfileLabel(p.profile_type)}</span>
-                    </div>
-                    <h3 className="font-serif text-lg text-charcoal mb-1">{p.full_name}</h3>
-                    <p className="text-sm text-charcoal/60 mb-3">{p.organization_name}</p>
-                    
-                    {/* Expertise Tags Pills */}
-                    {pTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {pTags.slice(0, 3).map((tagValue) => {
-                          const tagInfo = expertiseTags.find(t => t.value === tagValue);
-                          const isShared = filters.expertiseTags?.includes(tagValue);
-                          return tagInfo && (
-                            <span 
-                              key={tagValue} 
-                              className={`px-2 py-0.5 text-xs ${isShared ? 'bg-sage text-paper' : 'bg-charcoal/10 text-charcoal/60'}`}
-                            >
-                              {language === 'fr' ? tagInfo.labelFr : tagInfo.labelEn}
-                            </span>
-                          );
-                        })}
-                        {pTags.length > 3 && (
-                          <span className="px-2 py-0.5 text-xs bg-lightborder text-charcoal/50">
-                            +{pTags.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    
-                    <div className="flex gap-2 mb-4">
-                      <span className="px-2 py-1 border border-lightborder text-xs text-charcoal/60">{getCountryLabel(p.country)}</span>
-                      <span className="px-2 py-1 border border-lightborder text-xs text-charcoal/60">B2B</span>
-                    </div>
-                    <p className="text-sm text-charcoal/50 line-clamp-2 mb-4">{p.bio}</p>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => setSelectedParticipant(p)}
-                        className="flex-1 py-2 border border-charcoal text-charcoal text-sm font-syne hover:bg-charcoal hover:text-paper transition-colors"
-                      >
-                        Badge
-                      </button>
-                      <button 
-                        onClick={() => fetchSuggestionsFor(p.id)}
-                        className="flex-1 py-2 bg-sage text-paper text-sm font-syne hover:bg-sage/90 flex items-center justify-center gap-1"
-                        title={language === 'fr' ? 'Trouver des partenaires similaires' : 'Find similar partners'}
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        Smart
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div key={p.id} className="flex items-center gap-4 p-4 border border-lightborder bg-cream hover:border-terracotta transition-colors">
-                  <img src={p.image} alt={p.full_name} className="w-16 h-16 object-cover" />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-serif text-charcoal truncate">{p.full_name}</h3>
-                    <p className="text-sm text-charcoal/60 truncate">{p.organization_name}</p>
-                    {/* Tags in list view */}
-                    {pTags.length > 0 && (
-                      <div className="flex gap-1 mt-1">
-                        {pTags.slice(0, 2).map((tagValue) => {
-                          const tagInfo = expertiseTags.find(t => t.value === tagValue);
-                          return tagInfo && (
-                            <span key={tagValue} className="px-1.5 py-0.5 text-xs bg-charcoal/10 text-charcoal/60">
-                              {language === 'fr' ? tagInfo.labelFr : tagInfo.labelEn}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  {sharedCount > 0 && (
-                    <span className="hidden sm:flex items-center gap-1 px-2 py-1 bg-terracotta/10 text-terracotta text-xs">
-                      <Sparkles className="w-3 h-3" /> {sharedCount}
-                    </span>
-                  )}
-                  <span className="hidden sm:block px-3 py-1 text-xs font-syne" style={{ backgroundColor: tier.color, color: '#F4F1EA' }}>
-                    {language === 'fr' ? tier.name : tier.nameEn}
-                  </span>
-                  <button onClick={() => setSelectedParticipant(p)} className="px-4 py-2 border border-charcoal text-charcoal text-sm hover:bg-charcoal hover:text-paper">
-                    Badge
-                  </button>
-                </div>
-              );
-            })}
+            {filteredParticipants.map((p) => (
+              <ParticipantCard 
+                key={p.id}
+                participant={p}
+                language={language}
+                filters={filters}
+                onBadgeClick={setSelectedParticipant}
+                onSmartClick={fetchSuggestionsFor}
+                viewMode={viewMode}
+              />
+            ))}
           </div>
         )}
       </div>
