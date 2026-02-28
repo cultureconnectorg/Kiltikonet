@@ -4267,12 +4267,6 @@ async def purge_smart_engine():
         logger.error(f"Purge error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-    except:
-        parsed_data = {"raw": data}
-    
-    await broadcast_event(event_type, parsed_data)
-    return {"success": True, "event_type": event_type, "recipients": len(ws_manager.active_connections) + len(sse_connections)}
-
 
 
 # ================== DYNAMIC SITEMAP & SEO ==================
