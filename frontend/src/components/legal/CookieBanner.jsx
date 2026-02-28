@@ -38,7 +38,13 @@ export const CookieBanner = () => {
   };
   
   const handleClose = () => {
-    // Close without saving = will show again on next visit
+    // Close with minimal cookies (same as reject) so it doesn't show again
+    localStorage.setItem(CONSENT_KEY, JSON.stringify({ 
+      essential: true, 
+      analytics: false,
+      dismissed: true,
+      timestamp: new Date().toISOString()
+    }));
     setIsVisible(false);
   };
   
