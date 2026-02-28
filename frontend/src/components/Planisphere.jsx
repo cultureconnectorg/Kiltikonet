@@ -4,6 +4,20 @@ import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
+// Size mapping from string to pixel values
+const SIZE_MAP = {
+  primary: 14,
+  large: 9,
+  medium: 8,
+  small: 7,
+};
+
+// Helper to get numeric size
+const getSize = (size) => {
+  if (typeof size === 'number') return size;
+  return SIZE_MAP[size] || 8;
+};
+
 // Default territories with fixed SVG positions (not geographic)
 const DEFAULT_TERRITORIES = [
   { id: 'martinique', name: 'Fort-de-France', x: 280, y: 180, color: '#A65D47', size: 14, label: 'Martinique', isCenter: true, active: true },
