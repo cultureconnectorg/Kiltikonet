@@ -315,6 +315,22 @@ export const LandingPage = () => {
               />
             ))}
           </div>
+          
+          {/* Bouton vers le programme complet */}
+          <Reveal>
+            <div className="text-center mt-12">
+              <button
+                onClick={() => navigate('/programme')}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-charcoal text-paper font-syne text-sm tracking-wider uppercase rounded-full hover:bg-terracotta transition-all duration-300 group"
+                data-testid="view-full-programme-btn"
+              >
+                {language === 'fr' ? 'Découvrir le programme complet' : 'View full programme'}
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </button>
+            </div>
+          </Reveal>
         </div>
       </section>
 
