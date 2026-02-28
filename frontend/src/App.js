@@ -83,7 +83,9 @@ function App() {
               <Route path="/partnership" element={<PartnershipPage />} />
               <Route path="/partenaires" element={<PartnershipPage />} />
               <Route path="/partenaire/confirmation" element={<PartnerConfirmation />} />
+              <Route path="/catalogue" element={<CatalogPage />} />
               <Route path="/catalog" element={<CatalogPage />} />
+              <Route path="/tarifs" element={<PricingPage />} />
               <Route path="/register" element={<RegistrationForm />} />
               <Route path="/inscription" element={<RegistrationForm />} />
               <Route path="/programme" element={<ProgramPage />} />
