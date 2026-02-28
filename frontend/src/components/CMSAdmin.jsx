@@ -2143,6 +2143,550 @@ const IntentionSection = () => {
   );
 };
 
+// ================== MAP & FONDS SECTION ==================
+const MapFondsSection = () => {
+  const [territories, setTerritories] = useState([]);
+  const [siteConfig, setSiteConfig] = useState({
+    animations_enabled: true,
+    countdown_enabled: true,
+    particles_enabled: true,
+    map_lines_enabled: true,
+    section_backgrounds: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(null);
+  const [activeTab, setActiveTab] = useState('territories');
+  const [editingTerritory, setEditingTerritory] = useState(null);
+  const [newTerritory, setNewTerritory] = useState({
+    id: '',
+    name: '',
+    lat: 0,
+    lon: 0,
+    color: '#A65D47',
+    size: 'medium',
+    label: '',
+    isCenter: false,
+    active: true
+  });
+
+  const SIZE_OPTIONS = [
+    { value: 'primary', label: 'Principale (12px)', desc: 'Point central' },
+    { value: 'large', label: 'Grande (8px)', desc: 'Points importants' },
+    { value: 'medium', label: 'Moyenne (7px)', desc: 'Points standards' },
+    { value: 'small', label: 'Petite (6px)', desc: 'Points secondaires' },
+  ];
+
+  const SECTION_BACKGROUNDS = [
+    { id: 'hero', label: 'Hero (Accueil)' },
+    { id: 'vision', label: 'Notre Vision' },
+    { id: 'diaspora', label: 'La Diaspora (Carte)' },
+    { id: 'programme', label: 'Programme' },
+    { id: 'partenaires', label: 'Partenaires' },
+    { id: 'cta', label: 'Rejoignez (CTA)' },
+  ];
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [mapRes, configRes] = await Promise.all([
+        axios.get(`${API}/api/cms/map-territories`),
+        axios.get(`${API}/api/cms/site-config`)
+      ]);
+      setTerritories(mapRes.data?.territories || []);
+      setSiteConfig(configRes.data || siteConfig);
+    } catch (error) {
+      console.log('Loading default config');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveTerritories = async () => {
+    setSaving(true);
+    try {
+      await axios.post(`${API}/api/cms/map-territories`, {
+        tenant_id: 'culture-connect-2026',
+        territories,
+        counter_text: 'territoires connectés',
+        animations_enabled: siteConfig.map_lines_enabled,
+        lines_enabled: siteConfig.map_lines_enabled
+      });
+      toast.success('Carte sauvegardée');
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveSiteConfig = async () => {
+    setSaving(true);
+    try {
+      await axios.post(`${API}/api/cms/site-config`, siteConfig);
+      toast.success('Configuration sauvegardée');
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addTerritory = () => {
+    if (!newTerritory.id || !newTerritory.name) {
+      toast.error('ID et nom requis');
+      return;
+    }
+    setTerritories([...territories, { ...newTerritory, opacity: 1.0 }]);
+    setNewTerritory({
+      id: '',
+      name: '',
+      lat: 0,
+      lon: 0,
+      color: '#A65D47',
+      size: 'medium',
+      label: '',
+      isCenter: false,
+      active: true
+    });
+    toast.success('Territoire ajouté');
+  };
+
+  const updateTerritory = (id, field, value) => {
+    setTerritories(territories.map(t => 
+      t.id === id ? { ...t, [field]: value } : t
+    ));
+  };
+
+  const deleteTerritory = (id) => {
+    if (confirm('Supprimer ce territoire ?')) {
+      setTerritories(territories.filter(t => t.id !== id));
+      toast.success('Territoire supprimé');
+    }
+  };
+
+  const uploadSectionBackground = async (sectionId, file) => {
+    setUploading(sectionId);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'image');
+    
+    try {
+      const res = await axios.post(`${API}/api/cms/upload`, formData);
+      const backgrounds = [...(siteConfig.section_backgrounds || [])];
+      const idx = backgrounds.findIndex(b => b.section_id === sectionId);
+      
+      if (idx >= 0) {
+        backgrounds[idx] = { ...backgrounds[idx], image_url: res.data.url, background_type: 'image' };
+      } else {
+        backgrounds.push({ section_id: sectionId, background_type: 'image', image_url: res.data.url, active: true });
+      }
+      
+      setSiteConfig({ ...siteConfig, section_backgrounds: backgrounds });
+      toast.success('Image uploadée');
+    } catch (error) {
+      toast.error('Erreur lors de l\'upload');
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-terracotta" /></div>;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-charcoal text-cream rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-terracotta flex items-center justify-center">
+              <Globe className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Carte & Fonds</h2>
+              <p className="text-cream/60 text-sm">Gérez la carte diaspora et les arrière-plans</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-lightborder pb-2">
+        {[
+          { id: 'territories', label: 'Territoires' },
+          { id: 'backgrounds', label: 'Fonds d\'écran' },
+          { id: 'animations', label: 'Animations' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 rounded-t-lg transition-colors ${
+              activeTab === tab.id 
+                ? 'bg-terracotta text-white' 
+                : 'bg-cream text-charcoal hover:bg-charcoal/10'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Territories Tab */}
+      {activeTab === 'territories' && (
+        <div className="space-y-6">
+          {/* Territory List */}
+          <div className="bg-paper border border-lightborder rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-charcoal">Points sur la carte ({territories.filter(t => t.active).length} actifs)</h3>
+              <Button onClick={saveTerritories} disabled={saving} className="bg-terracotta text-white">
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Sauvegarder
+              </Button>
+            </div>
+
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {territories.map((territory) => (
+                <div 
+                  key={territory.id}
+                  className={`p-4 rounded-lg border transition-colors ${
+                    territory.isCenter 
+                      ? 'bg-terracotta/10 border-terracotta' 
+                      : territory.active 
+                        ? 'bg-cream border-lightborder' 
+                        : 'bg-charcoal/5 border-charcoal/20 opacity-60'
+                  }`}
+                >
+                  <div className="grid grid-cols-12 gap-3 items-center">
+                    {/* Color */}
+                    <div className="col-span-1">
+                      <input
+                        type="color"
+                        value={territory.color}
+                        onChange={(e) => updateTerritory(territory.id, 'color', e.target.value)}
+                        className="w-8 h-8 rounded cursor-pointer border-0"
+                      />
+                    </div>
+                    {/* Name */}
+                    <div className="col-span-2">
+                      <Input
+                        value={territory.name}
+                        onChange={(e) => updateTerritory(territory.id, 'name', e.target.value)}
+                        placeholder="Nom"
+                        className="text-sm"
+                      />
+                    </div>
+                    {/* Lat */}
+                    <div className="col-span-2">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={territory.lat}
+                        onChange={(e) => updateTerritory(territory.id, 'lat', parseFloat(e.target.value))}
+                        placeholder="Lat"
+                        className="text-sm font-mono"
+                      />
+                    </div>
+                    {/* Lon */}
+                    <div className="col-span-2">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={territory.lon}
+                        onChange={(e) => updateTerritory(territory.id, 'lon', parseFloat(e.target.value))}
+                        placeholder="Lon"
+                        className="text-sm font-mono"
+                      />
+                    </div>
+                    {/* Size */}
+                    <div className="col-span-2">
+                      <select
+                        value={territory.size}
+                        onChange={(e) => updateTerritory(territory.id, 'size', e.target.value)}
+                        className="w-full px-2 py-1.5 border border-lightborder rounded text-sm"
+                      >
+                        {SIZE_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Active */}
+                    <div className="col-span-2 flex items-center gap-2">
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={territory.active}
+                          onChange={(e) => updateTerritory(territory.id, 'active', e.target.checked)}
+                          className="rounded"
+                        />
+                        Actif
+                      </label>
+                      {territory.isCenter && (
+                        <span className="text-xs text-terracotta font-medium">CENTRE</span>
+                      )}
+                    </div>
+                    {/* Delete */}
+                    <div className="col-span-1 text-right">
+                      {!territory.isCenter && (
+                        <button
+                          onClick={() => deleteTerritory(territory.id)}
+                          className="p-1 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Add New Territory */}
+          <div className="bg-sage/10 border border-sage/30 rounded-xl p-6">
+            <h4 className="font-semibold text-charcoal mb-4 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-sage" />
+              Ajouter un territoire
+            </h4>
+            <div className="grid grid-cols-6 gap-3">
+              <Input
+                value={newTerritory.id}
+                onChange={(e) => setNewTerritory({ ...newTerritory, id: e.target.value.toLowerCase().replace(/\s/g, '-') })}
+                placeholder="ID (ex: brasil)"
+                className="col-span-1"
+              />
+              <Input
+                value={newTerritory.name}
+                onChange={(e) => setNewTerritory({ ...newTerritory, name: e.target.value })}
+                placeholder="Nom affiché (ex: Brasília)"
+                className="col-span-1"
+              />
+              <Input
+                type="number"
+                step="0.1"
+                value={newTerritory.lat || ''}
+                onChange={(e) => setNewTerritory({ ...newTerritory, lat: parseFloat(e.target.value) || 0 })}
+                placeholder="Latitude"
+                className="col-span-1 font-mono"
+              />
+              <Input
+                type="number"
+                step="0.1"
+                value={newTerritory.lon || ''}
+                onChange={(e) => setNewTerritory({ ...newTerritory, lon: parseFloat(e.target.value) || 0 })}
+                placeholder="Longitude"
+                className="col-span-1 font-mono"
+              />
+              <input
+                type="color"
+                value={newTerritory.color}
+                onChange={(e) => setNewTerritory({ ...newTerritory, color: e.target.value })}
+                className="w-full h-10 rounded cursor-pointer"
+              />
+              <Button onClick={addTerritory} className="bg-sage text-white">
+                <Plus className="w-4 h-4 mr-1" /> Ajouter
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Backgrounds Tab */}
+      {activeTab === 'backgrounds' && (
+        <div className="space-y-6">
+          <div className="flex justify-end">
+            <Button onClick={saveSiteConfig} disabled={saving} className="bg-terracotta text-white">
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Sauvegarder
+            </Button>
+          </div>
+
+          {SECTION_BACKGROUNDS.map((section) => {
+            const bg = siteConfig.section_backgrounds?.find(b => b.section_id === section.id) || {};
+            
+            return (
+              <div key={section.id} className="bg-paper border border-lightborder rounded-xl p-6">
+                <h4 className="font-semibold text-charcoal mb-4">{section.label}</h4>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {/* Type selector */}
+                  <div>
+                    <label className="block text-sm font-medium text-charcoal/70 mb-2">Type de fond</label>
+                    <select
+                      value={bg.background_type || 'color'}
+                      onChange={(e) => {
+                        const backgrounds = [...(siteConfig.section_backgrounds || [])];
+                        const idx = backgrounds.findIndex(b => b.section_id === section.id);
+                        if (idx >= 0) {
+                          backgrounds[idx] = { ...backgrounds[idx], background_type: e.target.value };
+                        } else {
+                          backgrounds.push({ section_id: section.id, background_type: e.target.value, active: true });
+                        }
+                        setSiteConfig({ ...siteConfig, section_backgrounds: backgrounds });
+                      }}
+                      className="w-full px-3 py-2 border border-lightborder rounded"
+                    >
+                      <option value="color">Couleur</option>
+                      <option value="image">Image</option>
+                      <option value="gradient">Dégradé</option>
+                    </select>
+                  </div>
+
+                  {/* Color picker */}
+                  {(bg.background_type || 'color') === 'color' && (
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal/70 mb-2">Couleur</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={bg.color || '#F4F1EA'}
+                          onChange={(e) => {
+                            const backgrounds = [...(siteConfig.section_backgrounds || [])];
+                            const idx = backgrounds.findIndex(b => b.section_id === section.id);
+                            if (idx >= 0) {
+                              backgrounds[idx] = { ...backgrounds[idx], color: e.target.value };
+                            } else {
+                              backgrounds.push({ section_id: section.id, background_type: 'color', color: e.target.value, active: true });
+                            }
+                            setSiteConfig({ ...siteConfig, section_backgrounds: backgrounds });
+                          }}
+                          className="w-12 h-10 rounded cursor-pointer border-0"
+                        />
+                        <Input value={bg.color || '#F4F1EA'} readOnly className="font-mono" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Image upload */}
+                  {bg.background_type === 'image' && (
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal/70 mb-2">Image</label>
+                      {bg.image_url ? (
+                        <div className="flex items-center gap-2">
+                          <img src={bg.image_url} alt="" className="w-16 h-10 object-cover rounded" />
+                          <span className="text-xs text-charcoal/50 truncate flex-1">{bg.image_url.split('/').pop()}</span>
+                        </div>
+                      ) : (
+                        <div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => e.target.files?.[0] && uploadSectionBackground(section.id, e.target.files[0])}
+                            className="hidden"
+                            id={`bg-upload-${section.id}`}
+                          />
+                          <Button
+                            onClick={() => document.getElementById(`bg-upload-${section.id}`)?.click()}
+                            disabled={uploading === section.id}
+                            size="sm"
+                            variant="outline"
+                          >
+                            {uploading === section.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+                            Upload
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Overlay opacity */}
+                  <div>
+                    <label className="block text-sm font-medium text-charcoal/70 mb-2">
+                      Overlay: {bg.overlay_opacity || 0}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={bg.overlay_opacity || 0}
+                      onChange={(e) => {
+                        const backgrounds = [...(siteConfig.section_backgrounds || [])];
+                        const idx = backgrounds.findIndex(b => b.section_id === section.id);
+                        if (idx >= 0) {
+                          backgrounds[idx] = { ...backgrounds[idx], overlay_opacity: parseInt(e.target.value) };
+                        }
+                        setSiteConfig({ ...siteConfig, section_backgrounds: backgrounds });
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Animations Tab */}
+      {activeTab === 'animations' && (
+        <div className="space-y-6">
+          <div className="flex justify-end">
+            <Button onClick={saveSiteConfig} disabled={saving} className="bg-terracotta text-white">
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Sauvegarder
+            </Button>
+          </div>
+
+          {/* Global toggle */}
+          <div className="bg-terracotta/10 border border-terracotta/30 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-semibold text-charcoal">Animations actives</h4>
+                <p className="text-sm text-charcoal/60">Activer ou désactiver toutes les animations du site</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={siteConfig.animations_enabled}
+                  onChange={(e) => setSiteConfig({ ...siteConfig, animations_enabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-14 h-8 bg-charcoal/20 rounded-full peer peer-checked:bg-terracotta peer-focus:ring-2 peer-focus:ring-terracotta/50 after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-6"></div>
+              </label>
+            </div>
+          </div>
+
+          {/* Individual toggles */}
+          <div className="bg-paper border border-lightborder rounded-xl p-6 space-y-4">
+            <h4 className="font-semibold text-charcoal mb-4">Animations par section</h4>
+            
+            {[
+              { key: 'countdown_enabled', label: 'Compte à rebours', desc: 'Secondes qui défilent en temps réel' },
+              { key: 'particles_enabled', label: 'Particules (CTA)', desc: 'Effet de particules dans la section Rejoignez' },
+              { key: 'map_lines_enabled', label: 'Lignes de la carte', desc: 'Animation des connexions sur le planisphère' },
+            ].map(item => (
+              <div key={item.key} className="flex items-center justify-between py-3 border-b border-lightborder last:border-0">
+                <div>
+                  <span className="font-medium text-charcoal">{item.label}</span>
+                  <p className="text-sm text-charcoal/50">{item.desc}</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={siteConfig[item.key]}
+                    onChange={(e) => setSiteConfig({ ...siteConfig, [item.key]: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-charcoal/20 rounded-full peer peer-checked:bg-sage peer-focus:ring-2 peer-focus:ring-sage/50 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                </label>
+              </div>
+            ))}
+          </div>
+
+          {/* Info */}
+          <div className="bg-sage/10 border border-sage/30 rounded-xl p-4">
+            <p className="text-sm text-charcoal/70">
+              <strong>Note:</strong> Les utilisateurs avec <code className="bg-charcoal/10 px-1 rounded">prefers-reduced-motion</code> activé 
+              verront automatiquement une version sans animations, indépendamment de ces réglages.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ================== MAIN CMS COMPONENT ==================
 const CMSAdmin = () => {
   const navigate = useNavigate();
