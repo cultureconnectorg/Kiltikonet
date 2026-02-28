@@ -1,4 +1,4 @@
-# KiltiKonet Smart Engine — PRD v3.3
+# KiltiKonet Smart Engine — PRD v3.4
 
 ## Vision 2026-2031
 Infrastructure de données stratégique pour les marchés culturels afro-diasporiques.
@@ -7,7 +7,7 @@ Infrastructure de données stratégique pour les marchés culturels afro-diaspor
 
 ## Ce qui a été implémenté (Sessions précédentes + actuelle)
 
-### 1. Expérience Cinématique — TOUTES LES PAGES PUBLIQUES ✅ (28/02/2026)
+### 1. Expérience Cinématique — TOUTES LES PAGES PUBLIQUES ✅
 L'ensemble des pages publiques utilise maintenant les animations de scroll :
 
 **Pages avec expérience cinématique complète :**
@@ -18,92 +18,71 @@ L'ensemble des pages publiques utilise maintenant les animations de scroll :
 - **Catalog (/catalog)** : Header animé, participant cards avec hover
 - **Registration (/inscription)** : Header, stepper, formulaire multi-étapes
 
-### 2. Globe 3D Interactif ✅ (28/02/2026) - NOUVEAU
-Remplacement du planisphère 2D par un globe 3D immersif :
-
-**Caractéristiques :**
-- Globe terrestre avec texture réaliste (earth-dark.jpg)
-- 10 territoires avec points colorés et labels au survol
-- Arcs animés reliant chaque territoire à la Martinique (centre)
-- Effet pulse circulaire autour de Fort-de-France
-- Atmosphère avec halo terracotta
-- Compteur animé "10 territoires connectés"
+### 2. Globe 3D Interactif ✅
+- Globe terrestre avec texture réaliste
+- 10 territoires avec arcs animés vers Martinique
 - Interaction utilisateur : rotation, zoom, survol
-- Bibliothèque : react-globe.gl v2.37.0
+- Bibliothèque : react-globe.gl
 
-**Territoires affichés :**
-- Martinique (centre - terracotta)
-- Paris, Londres, New York (diaspora - blanc/doré)
-- Haïti, Guadeloupe (Caraïbes - terracotta)
-- Sénégal, Nigeria, Brésil, Colombie (Afrique/Amérique du Sud - doré)
+### 3. 🔄 Synchronisation Temps Réel ✅ (28/02/2026) - NOUVEAU
+**Toute modification se propage automatiquement en temps réel !**
 
-### 3. Intro Sequence "Ancestrale" ✅
-Séquence sur première visite (localStorage kk_visited) :
-- Step 1: Le Souffle (pulsation)
-- Step 2: Le Tambour (son + vibration mobile)
-- Step 3: Le Mot (NOU. + message territorial)
-- Step 4: L'Image + Vérité (deux phrases)
-- Step 5: Le Silence sacré
-- Step 6: La Question des identités (5 choix)
+**Architecture SSE (Server-Sent Events) :**
+- Endpoint `/api/realtime/events` - connexion persistante
+- Endpoint `/api/realtime/status` - monitoring
+- Hook React `useRealtime()` - écoute des événements
+
+**Événements propagés :**
+| Événement | Déclencheur | Résultat |
+|-----------|-------------|----------|
+| `territories_updated` | Modification CMS globe | Globe se rafraîchit auto |
+| `cms_content_updated` | Modification contenu | Pages mises à jour |
+| `theme_updated` | Modification design | Thème appliqué |
+| `intention_updated` | Modification intro | Intro mise à jour |
+| `registration_created` | Nouvelle inscription | Dashboard notifié |
+
+**Indicateur visuel :** Pastille verte "Live" sur le globe
 
 ### 4. CMS Complet ✅
-Dans /admin/cms :
+- **Carte & Fonds** : Gestion territoires globe (lat/lon, couleur, taille)
 - **Design** : Thème, couleurs, typographie
-- **Contenu** : Programme avec éditeur structuré
-- **Pages** : Gestion des pages dynamiques
-- **Intention** : Mot de l'année, images, messages territoriaux
-- **Carte & Fonds** : ✅ Interface complète pour gérer le globe 3D
-  - Gestion des territoires (nom, label, lat/lon, couleur, taille)
-  - Présets de couleurs (Terracotta, Doré, Blanc, Sage)
-  - Activation/désactivation des points
-  - Bouton "Voir le globe" pour prévisualiser
+- **Contenu** : Programme structuré
+- **Intention** : Intro sequence (NOU.)
+
+### 5. Intro Sequence "Ancestrale" ✅
+Séquence première visite avec 6 étapes immersives
 
 ---
 
 ## Architecture Technique
 
 ### Stack
-- **Backend Principal**: FastAPI Python (port 8001)
-- **Smart Engine**: Node.js/Express (port 8002)
+- **Backend**: FastAPI Python + SSE temps réel
 - **Frontend**: React + Tailwind CSS
 - **Database**: MongoDB
-- **LLM**: Claude via Emergent LLM Key
+- **3D**: react-globe.gl (Three.js/WebGL)
 - **Media**: Cloudinary
-- **3D Globe**: react-globe.gl (Three.js/WebGL)
-- **PDF**: pdf-lib + qrcode
 
-### Composants clés
-- `/frontend/src/hooks/useAnimations.js` - Hooks pour animations scroll
-- `/frontend/src/components/Globe3D.jsx` - Globe 3D interactif (NOUVEAU)
-- `/frontend/src/components/CinematicElements.jsx` - Countdown, Particles
-- `/frontend/src/components/IntroSequence.jsx` - Séquence d'accueil
-- `/frontend/src/components/PartnershipPage.jsx` - Page partenariat cinématique
-- `/frontend/src/components/CatalogPage.jsx` - Catalogue avec animations
-- `/frontend/src/components/RegistrationForm.jsx` - Formulaire animé
-
-### Collections MongoDB
-- `annual_intention` - Intention de l'année pour intro sequence
-- `cms_territories` - Configuration des territoires du globe
-- `cms_backgrounds` - Arrière-plans par section
-- `cms_animations` - Configuration des animations
+### Nouveaux composants
+- `/frontend/src/hooks/useRealtime.js` - Hook SSE temps réel
+- `/frontend/src/components/Globe3D.jsx` - Globe avec sync live
 
 ---
 
 ## Prochaines Étapes
 
-### P0 (Immédiat)
-- ✅ Animations cinématiques sur toutes les pages - COMPLÉTÉ
-- ✅ Globe 3D interactif - COMPLÉTÉ
-- ✅ Interface CMS "Carte & Fonds" - COMPLÉTÉ
-- 🚀 **Déploiement en production**
+### ✅ COMPLÉTÉ
+- Animations cinématiques toutes pages
+- Globe 3D interactif
+- Interface CMS "Carte & Fonds"
+- **Synchronisation temps réel**
 
-### P1 (À venir)
+### 🚀 Déploiement
+Prêt pour la production !
+
+### P1 (Après déploiement)
 - Configuration DNS kiltikonet.fr
-- Export PDF du programme officiel
-
-### P2 (Futur)
-- Extension white-label pour autres événements
-- Refactoring CMSAdmin.jsx (fichier > 2000 lignes)
+- Export PDF programme
 
 ---
 
