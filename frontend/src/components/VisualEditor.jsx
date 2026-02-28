@@ -526,7 +526,6 @@ const VisualEditor = () => {
                 className="w-full h-full border-0"
                 onLoad={handleIframeLoad}
                 title="Apercu du site"
-                sandbox="allow-same-origin allow-scripts allow-forms"
               />
             </div>
           </div>
