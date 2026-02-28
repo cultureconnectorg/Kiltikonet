@@ -633,6 +633,48 @@ class AnnualIntention(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
+class MapTerritory(BaseModel):
+    """Territory point for diaspora map"""
+    id: str
+    name: str
+    lat: float
+    lon: float
+    color: str = "#A65D47"
+    size: str = "medium"  # primary, large, medium, small
+    label: str = ""
+    isCenter: bool = False
+    opacity: float = 1.0
+    active: bool = True
+
+class MapConfig(BaseModel):
+    """Map configuration"""
+    tenant_id: str = "culture-connect-2026"
+    territories: list[dict] = []
+    counter_text: str = "territoires connectés"
+    animations_enabled: bool = True
+    lines_enabled: bool = True
+
+class SectionBackground(BaseModel):
+    """Background configuration for a section"""
+    section_id: str
+    background_type: str = "color"  # color, image, gradient
+    color: Optional[str] = None
+    image_url: Optional[str] = None
+    gradient_start: Optional[str] = None
+    gradient_end: Optional[str] = None
+    gradient_direction: str = "to-b"
+    overlay_opacity: int = 0
+    active: bool = True
+
+class SiteConfig(BaseModel):
+    """Global site configuration"""
+    tenant_id: str = "culture-connect-2026"
+    animations_enabled: bool = True
+    countdown_enabled: bool = True
+    particles_enabled: bool = True
+    map_lines_enabled: bool = True
+    section_backgrounds: list[dict] = []
+
 # ================== STRIPE ROUTES ==================
 @api_router.post("/create-checkout-session")
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
