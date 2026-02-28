@@ -254,48 +254,52 @@ export const Planisphere = () => {
                 >
                   {/* Pulsing rings for center */}
                   {isCenter && (
-                    <>
-                      <circle
-                        cx={territory.x}
-                        cy={territory.y}
-                        r={size + 6}
-                        fill="none"
-                        stroke="#FF0000"
-                        strokeWidth="3"
-                      >
-                        <animate 
-                          attributeName="r" 
-                          values={`${size + 6};${size + 30};${size + 6}`}
-                          dur="2.5s" 
-                          repeatCount="indefinite"
-                        />
-                        <animate 
-                          attributeName="opacity" 
-                          values="0.6;0;0.6"
-                          dur="2.5s" 
-                          repeatCount="indefinite"
-                        />
-                      </circle>
-                    </>
+                    <circle
+                      cx={territory.x}
+                      cy={territory.y}
+                      r={size + 6}
+                      fill="none"
+                      stroke={territory.color}
+                      strokeWidth="2"
+                      opacity="0.5"
+                    >
+                      <animate 
+                        attributeName="r" 
+                        values={`${size + 6};${size + 30};${size + 6}`}
+                        dur="2.5s" 
+                        repeatCount="indefinite"
+                      />
+                      <animate 
+                        attributeName="opacity" 
+                        values="0.5;0;0.5"
+                        dur="2.5s" 
+                        repeatCount="indefinite"
+                      />
+                    </circle>
                   )}
                   
-                  {/* Main dot - BRIGHT COLOR FOR DEBUGGING */}
+                  {/* Main dot with glow */}
                   <circle
                     cx={territory.x}
                     cy={territory.y}
-                    r={isCenter ? 18 : 12}
-                    fill={isCenter ? "#FF0000" : "#00FF00"}
+                    r={isHovered ? size * 1.4 : size}
+                    fill={territory.color}
+                    style={{ 
+                      filter: `drop-shadow(0 0 ${isCenter ? '12px' : '6px'} ${territory.color})`
+                    }}
                   />
 
                   {/* Territory label */}
                   <text
                     x={territory.x}
-                    y={territory.y + (isCenter ? 18 : 12) + 16}
+                    y={territory.y + size + 14}
                     textAnchor="middle"
-                    fill="#FFFFFF"
-                    fontSize="12"
-                    fontWeight="bold"
+                    fill={isCenter ? '#F4F1EA' : '#F4F1EA'}
+                    fontSize={isCenter ? '12' : '10'}
+                    fontWeight={isCenter ? 'bold' : 'normal'}
+                    opacity={isHovered || isCenter ? 1 : 0.65}
                     className="pointer-events-none select-none"
+                    style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
                   >
                     {territory.name}
                   </text>
