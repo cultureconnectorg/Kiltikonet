@@ -187,8 +187,8 @@ export const Planisphere = () => {
             className="w-full h-auto"
             style={{ minHeight: '280px', border: '2px solid red' }}
           >
-            {/* Background */}
-            <rect x="0" y="0" width={svgWidth} height={svgHeight} fill="#1A1A1A" />
+            {/* Background - DEBUG: blue to see it */}
+            <rect x="0" y="0" width={svgWidth} height={svgHeight} fill="#0000FF" />
             
             {/* World map outlines - temporarily commented out for debugging */}
             {/* <WorldMapSVG /> */}
