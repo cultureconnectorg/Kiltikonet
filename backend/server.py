@@ -4164,3 +4164,84 @@ async def manual_broadcast(event_type: str = Form(...), data: str = Form("{}")):
     await broadcast_event(event_type, parsed_data)
     return {"success": True, "event_type": event_type, "recipients": len(ws_manager.active_connections) + len(sse_connections)}
 
+
+
+# ================== DYNAMIC SITEMAP & SEO ==================
+
+@app.get("/sitemap.xml")
+async def dynamic_sitemap():
+    """Generate dynamic sitemap including all catalog participants"""
+    from datetime import datetime
+    
+    base_url = "https://cultureconnect2026.fr"
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    # Static pages
+    static_pages = [
+        {"loc": "/", "priority": "1.0", "changefreq": "weekly"},
+        {"loc": "/inscription", "priority": "0.9", "changefreq": "weekly"},
+        {"loc": "/catalogue", "priority": "0.8", "changefreq": "daily"},
+        {"loc": "/partenaires", "priority": "0.7", "changefreq": "monthly"},
+        {"loc": "/programme", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "/tarifs", "priority": "0.7", "changefreq": "monthly"},
+        {"loc": "/legal/mentions-legales.html", "priority": "0.3", "changefreq": "yearly"},
+        {"loc": "/legal/politique-confidentialite.html", "priority": "0.3", "changefreq": "yearly"},
+        {"loc": "/legal/cgu.html", "priority": "0.3", "changefreq": "yearly"},
+        {"loc": "/legal/cookies.html", "priority": "0.3", "changefreq": "yearly"},
+    ]
+    
+    # Get catalog participants for dynamic URLs
+    participants = await db.registrations.find(
+        {"show_in_catalog": True, "status": "approved"},
+        {"_id": 0, "id": 1, "full_name": 1}
+    ).to_list(500)
+    
+    # Build XML
+    xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    # Add static pages
+    for page in static_pages:
+        xml_content += f'''    <url>
+        <loc>{base_url}{page["loc"]}</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>{page["changefreq"]}</changefreq>
+        <priority>{page["priority"]}</priority>
+    </url>\n'''
+    
+    # Add dynamic participant pages (if you have individual profile pages)
+    for participant in participants:
+        xml_content += f'''    <url>
+        <loc>{base_url}/catalogue?profile={participant.get("id", "")}</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>\n'''
+    
+    xml_content += '</urlset>'
+    
+    return Response(content=xml_content, media_type="application/xml")
+
+@app.get("/robots.txt")
+async def robots_txt():
+    """Serve robots.txt"""
+    content = """# Culture Connect 2026 - Robots.txt
+User-agent: *
+Allow: /
+
+Crawl-delay: 1
+Sitemap: https://cultureconnect2026.fr/sitemap.xml
+
+# Protected areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Allow important public content
+Allow: /catalogue
+Allow: /inscription
+Allow: /partenaires
+Allow: /programme
+"""
+    return Response(content=content, media_type="text/plain")
