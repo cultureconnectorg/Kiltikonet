@@ -13,9 +13,11 @@ export const Header = () => {
 
   const navLinks = [
     { path: '/', label: language === 'fr' ? 'Accueil' : 'Home' },
-    { path: '/pricing', label: language === 'fr' ? 'Accréditation' : 'Accreditation' },
-    { path: '/catalog', label: language === 'fr' ? 'Catalogue' : 'Catalog' },
-    { path: '/partnership', label: language === 'fr' ? 'Partenaires' : 'Partners' },
+    { path: '/programme', label: 'Programme' },
+    { path: '/pricing', label: language === 'fr' ? 'Tarifs' : 'Pricing' },
+    { path: '/inscription', label: language === 'fr' ? 'Inscription' : 'Register' },
+    { path: '/partnership', label: language === 'fr' ? 'Partenariat' : 'Partnership' },
+    { path: '/catalogue', label: 'Catalogue' },
   ];
 
   return (
