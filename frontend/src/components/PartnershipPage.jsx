@@ -361,136 +361,140 @@ export const PartnershipPage = () => {
 
       {/* Payment Form */}
       {showPaymentForm && selectedTier && (
-        <section id="payment-form" className="py-16 sm:py-24 bg-cream">
-          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="border border-lightborder bg-paper p-8">
-              <div className="text-center mb-8">
-                <h2 className="font-serif text-2xl text-charcoal mb-2">
-                  {language === 'fr' ? 'Finaliser votre partenariat' : 'Complete your partnership'}
-                </h2>
-                <div className="inline-flex items-center gap-3 px-4 py-2 border border-sage/30 bg-sage/5">
-                  <span className="text-sage font-syne text-sm">
-                    {language === 'fr' ? partnerTiersData[selectedTier].nameFr : partnerTiersData[selectedTier].nameEn}
-                  </span>
-                  <span className="text-charcoal/40">—</span>
-                  <span className="text-charcoal font-medium">{partnerTiersData[selectedTier].price.toLocaleString('fr-FR')}€</span>
+        <Reveal>
+          <section id="payment-form" className="py-16 sm:py-24 bg-cream">
+            <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="border border-lightborder bg-paper p-8">
+                <div className="text-center mb-8">
+                  <h2 className="font-serif text-2xl text-charcoal mb-2">
+                    {language === 'fr' ? 'Finaliser votre partenariat' : 'Complete your partnership'}
+                  </h2>
+                  <div className="inline-flex items-center gap-3 px-4 py-2 border border-sage/30 bg-sage/5">
+                    <span className="text-sage font-syne text-sm">
+                      {language === 'fr' ? partnerTiersData[selectedTier].nameFr : partnerTiersData[selectedTier].nameEn}
+                    </span>
+                    <span className="text-charcoal/40">—</span>
+                    <span className="text-charcoal font-medium">{partnerTiersData[selectedTier].price.toLocaleString('fr-FR')}€</span>
+                  </div>
                 </div>
+
+                <form onSubmit={handleSubmitPartnership} className="space-y-5">
+                  <div>
+                    <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                      {language === 'fr' ? 'Nom de l\'entreprise' : 'Company name'} *
+                    </label>
+                    <Input
+                      required
+                      value={formData.company_name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
+                      className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
+                    />
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                        {language === 'fr' ? 'Nom du contact' : 'Contact name'} *
+                      </label>
+                      <Input
+                        required
+                        value={formData.contact_name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, contact_name: e.target.value }))}
+                        className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                        Email *
+                      </label>
+                      <Input
+                        type="email"
+                        required
+                        value={formData.contact_email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, contact_email: e.target.value }))}
+                        className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                        {language === 'fr' ? 'Téléphone' : 'Phone'}
+                      </label>
+                      <Input
+                        value={formData.contact_phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, contact_phone: e.target.value }))}
+                        className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
+                        {language === 'fr' ? 'Site web' : 'Website'}
+                      </label>
+                      <Input
+                        value={formData.website}
+                        onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                        placeholder="https://"
+                        className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full h-14 bg-sage text-paper font-syne text-base rounded-none"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          {language === 'fr' ? 'Procéder au paiement' : 'Proceed to payment'}
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-charcoal/50 text-center mt-3">
+                      {language === 'fr' 
+                        ? 'Paiement sécurisé par Stripe. Vous serez redirigé vers la page de paiement.'
+                        : 'Secure payment by Stripe. You will be redirected to the payment page.'
+                      }
+                    </p>
+                  </div>
+                </form>
               </div>
-
-              <form onSubmit={handleSubmitPartnership} className="space-y-5">
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                    {language === 'fr' ? 'Nom de l\'entreprise' : 'Company name'} *
-                  </label>
-                  <Input
-                    required
-                    value={formData.company_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                    className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                      {language === 'fr' ? 'Nom du contact' : 'Contact name'} *
-                    </label>
-                    <Input
-                      required
-                      value={formData.contact_name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contact_name: e.target.value }))}
-                      className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                      Email *
-                    </label>
-                    <Input
-                      type="email"
-                      required
-                      value={formData.contact_email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contact_email: e.target.value }))}
-                      className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                      {language === 'fr' ? 'Téléphone' : 'Phone'}
-                    </label>
-                    <Input
-                      value={formData.contact_phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contact_phone: e.target.value }))}
-                      className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                      {language === 'fr' ? 'Site web' : 'Website'}
-                    </label>
-                    <Input
-                      value={formData.website}
-                      onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                      placeholder="https://"
-                      className="h-12 bg-cream border-lightborder text-charcoal rounded-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-14 bg-sage text-paper font-syne text-base rounded-none"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5 mr-2" />
-                        {language === 'fr' ? 'Procéder au paiement' : 'Proceed to payment'}
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-xs text-charcoal/50 text-center mt-3">
-                    {language === 'fr' 
-                      ? 'Paiement sécurisé par Stripe. Vous serez redirigé vers la page de paiement.'
-                      : 'Secure payment by Stripe. You will be redirected to the payment page.'
-                    }
-                  </p>
-                </div>
-              </form>
             </div>
-          </div>
-        </section>
+          </section>
+        </Reveal>
       )}
 
       {/* Contact Info */}
-      <section className="py-16 sm:py-24 bg-paper">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-serif text-2xl text-charcoal mb-6">
-            {language === 'fr' ? 'Des questions ?' : 'Questions?'}
-          </h2>
-          <p className="text-charcoal/70 mb-8">
-            {language === 'fr'
-              ? 'Notre équipe est disponible pour discuter de vos besoins spécifiques.'
-              : 'Our team is available to discuss your specific needs.'
-            }
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-charcoal/60">
-            <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Fort-de-France, Martinique</p>
-            <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> 20-23 Mai 2026</p>
+      <Reveal>
+        <section className="py-16 sm:py-24 bg-paper">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="font-serif text-2xl text-charcoal mb-6">
+              {language === 'fr' ? 'Des questions ?' : 'Questions?'}
+            </h2>
+            <p className="text-charcoal/70 mb-8">
+              {language === 'fr'
+                ? 'Notre équipe est disponible pour discuter de vos besoins spécifiques.'
+                : 'Our team is available to discuss your specific needs.'
+              }
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-charcoal/60">
+              <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Fort-de-France, Martinique</p>
+              <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> 20-23 Mai 2026</p>
+            </div>
+            <p className="mt-6">
+              <a href="mailto:cultureconnectorg@gmail.com" className="text-terracotta hover:underline font-syne">
+                cultureconnectorg@gmail.com
+              </a>
+            </p>
           </div>
-          <p className="mt-6">
-            <a href="mailto:cultureconnectorg@gmail.com" className="text-terracotta hover:underline font-syne">
-              cultureconnectorg@gmail.com
-            </a>
-          </p>
-        </div>
-      </section>
+        </section>
+      </Reveal>
     </div>
   );
 };
