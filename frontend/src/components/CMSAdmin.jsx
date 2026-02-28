@@ -2805,6 +2805,9 @@ const CMSAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [activeSection, setActiveSection] = useState('media');
+  
+  // 🔄 Bidirectional Real-time Sync
+  const { isConnected, connectionCount, sendUpdate } = useBidirectionalSync();
 
   const sections = [
     { id: 'media', label: 'Médias', icon: Image },
@@ -2861,9 +2864,22 @@ const CMSAdmin = () => {
                 <p className="text-sm text-paper/60">Gestion complète du contenu</p>
               </div>
             </div>
-            <Button onClick={() => setIsAuthenticated(false)} variant="outline" size="sm" className="border-paper/30 text-paper hover:bg-white/10">
-              Déconnexion
-            </Button>
+            <div className="flex items-center gap-4">
+              {/* Real-time Status Indicator */}
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs ${
+                isConnected ? 'bg-sage/20 text-sage' : 'bg-red-500/20 text-red-400'
+              }`}>
+                <Radio className={`w-3 h-3 ${isConnected ? 'animate-pulse' : ''}`} />
+                {isConnected ? (
+                  <>Live Sync {connectionCount > 1 && <span className="font-bold">({connectionCount})</span>}</>
+                ) : (
+                  'Déconnecté'
+                )}
+              </div>
+              <Button onClick={() => setIsAuthenticated(false)} variant="outline" size="sm" className="border-paper/30 text-paper hover:bg-white/10">
+                Déconnexion
+              </Button>
+            </div>
           </div>
         </div>
       </div>
