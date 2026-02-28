@@ -577,17 +577,100 @@ const ProgramCard = ({ day, index, isLast, language, prefersReducedMotion }) => 
 };
 
 // ═══════════ PARTNERS GRID COMPONENT ═══════════
+// ═══════════ PARTNERS CAROUSEL COMPONENT ═══════════
+const PartnersCarousel = ({ language }) => {
+  const [partners, setPartners] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const containerRef = useRef(null);
+
+  // Default partners with placeholder logos
+  const defaultPartners = [
+    { id: 1, name: 'CTM', logo_url: null },
+    { id: 2, name: 'Skillfor Campus', logo_url: null },
+    { id: 3, name: 'ISCA Business School', logo_url: null },
+    { id: 4, name: 'France Travail', logo_url: null },
+    { id: 5, name: 'SACEM', logo_url: null },
+    { id: 6, name: 'Factory Maker Studio', logo_url: null },
+    { id: 7, name: 'Direction des Affaires Culturelles', logo_url: null },
+  ];
+
+  useEffect(() => {
+    const loadPartners = async () => {
+      try {
+        const res = await axios.get(`${API}/api/cms/partners`);
+        if (res.data?.partners?.length > 0) {
+          setPartners(res.data.partners.filter(p => p.published));
+        } else {
+          setPartners(defaultPartners);
+        }
+      } catch (err) {
+        setPartners(defaultPartners);
+      }
+      setIsLoading(false);
+    };
+    loadPartners();
+  }, []);
+
+  // Duplicate partners for seamless infinite scroll
+  const displayPartners = [...partners, ...partners, ...partners];
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-pulse flex gap-8">
+          {[1,2,3,4,5].map(i => (
+            <div key={i} className="w-32 h-16 bg-lightborder rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative overflow-hidden" ref={containerRef}>
+      {/* Gradient masks */}
+      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-paper to-transparent z-10 pointer-events-none"></div>
+      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-paper to-transparent z-10 pointer-events-none"></div>
+      
+      {/* Scrolling container */}
+      <div 
+        className="flex gap-12 py-8 animate-scroll-left"
+        style={{
+          width: 'max-content',
+        }}
+      >
+        {displayPartners.map((partner, index) => (
+          <div
+            key={`${partner.id}-${index}`}
+            className="flex-shrink-0 group"
+          >
+            <div className="w-40 h-20 flex items-center justify-center px-4 border border-lightborder bg-paper rounded-lg transition-all duration-300 group-hover:border-terracotta group-hover:bg-terracotta/5 group-hover:-translate-y-1 group-hover:shadow-lg">
+              {partner.logo_url ? (
+                <img 
+                  src={partner.logo_url} 
+                  alt={partner.name}
+                  className="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                />
+              ) : (
+                <span className="text-charcoal/50 text-sm font-syne text-center group-hover:text-charcoal transition-colors">
+                  {partner.name}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const PartnersGrid = ({ partners, navigate, language }) => {
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-12">
-        {partners.map((partner, i) => (
-          <PartnerCard key={partner} partner={partner} index={i} />
-        ))}
-      </div>
+      <PartnersCarousel language={language} />
       
       <Reveal>
-        <div className="text-center">
+        <div className="text-center mt-8">
           <button 
             onClick={() => {
               navigate('/partnership');
@@ -597,7 +680,7 @@ const PartnersGrid = ({ partners, navigate, language }) => {
             }}
             className="text-terracotta hover:text-terracotta/80 font-syne text-sm tracking-wide underline underline-offset-4 transition-colors"
           >
-            {language === 'fr' ? 'Devenir partenaire →' : 'Become a partner →'}
+            {language === 'fr' ? 'Devenir partenaire' : 'Become a partner'}
           </button>
         </div>
       </Reveal>
