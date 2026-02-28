@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useBidirectionalSync } from '../hooks/useRealtime';
 import {
   ArrowLeft,
   Image,
@@ -36,7 +37,8 @@ import {
   Volume2,
   VolumeX,
   Music,
-  MapPin
+  MapPin,
+  Radio
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
