@@ -73,7 +73,12 @@ export const Planisphere = () => {
       try {
         const res = await axios.get(`${API}/api/cms/map-territories`);
         if (res.data?.territories?.length > 0) {
-          setTerritories(res.data.territories);
+          // Convert size strings to numbers if needed
+          const converted = res.data.territories.map(t => ({
+            ...t,
+            size: getSize(t.size)
+          }));
+          setTerritories(converted);
         }
       } catch (err) {
         // Keep defaults
