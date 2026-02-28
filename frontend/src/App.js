@@ -51,6 +51,11 @@ const IntroWrapper = () => {
     if (location.startsWith('/admin') || location.startsWith('/smart-engine')) {
       return false;
     }
+    // Skip intro if visual editor mode
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('ve') === '1' || urlParams.get('skip_intro') === '1') {
+      return false;
+    }
     // Only show intro on first visit
     return typeof window !== 'undefined' && !localStorage.getItem('kk_visited');
   });
