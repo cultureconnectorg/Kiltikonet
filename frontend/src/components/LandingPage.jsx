@@ -584,15 +584,13 @@ const PartnersCarousel = ({ language }) => {
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef(null);
 
-  // Default partners with real logos
+  // Default partners with official logos
   const defaultPartners = [
-    { id: 1, name: 'CTM', logo_url: 'https://static.prod-images.emergentagent.com/jobs/423904e9-2fec-4eab-9db4-6011ed6faa97/images/f6d936b3c1abb42651a9392a71f820b7e3b0875c2aa1e845e0d699a46507159a.png' },
-    { id: 2, name: 'Skillfor Campus', logo_url: 'https://static.prod-images.emergentagent.com/jobs/423904e9-2fec-4eab-9db4-6011ed6faa97/images/4177473dfd6371fa426fe893c7b5d9cab2e91911ff0d85ebb9c972697971f3a6.png' },
-    { id: 3, name: 'ISCA Business School', logo_url: null },
-    { id: 4, name: 'France Travail', logo_url: 'https://static.prod-images.emergentagent.com/jobs/423904e9-2fec-4eab-9db4-6011ed6faa97/images/3514203b479563f10d0b1e5a11041017524ccf1078dae1945c1b67c63c670170.png' },
-    { id: 5, name: 'SACEM', logo_url: 'https://static.prod-images.emergentagent.com/jobs/423904e9-2fec-4eab-9db4-6011ed6faa97/images/22aba0e6e85ab04eaea33921f378c61bb6e66b7471b754a50d6b0760d6d62a3c.png' },
-    { id: 6, name: 'Factory Maker Studio', logo_url: null },
-    { id: 7, name: 'Direction des Affaires Culturelles', logo_url: null },
+    { id: 1, name: 'CTM - Collectivité Territoriale de Martinique', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/2et0vzvg_kit_officiel_logo_ctm%20-%20Modifie%CC%81.png' },
+    { id: 2, name: 'France Travail', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/3djbduvs_689c5f5694b80b98e3038504_logo-france-travail-removebg-preview.webp' },
+    { id: 3, name: 'ISCA Business School', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/yxac0hgc_Design%20sans%20titre.png' },
+    { id: 4, name: 'SACEM', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/420p3fna_logosacem.webp' },
+    { id: 5, name: 'Direction des Affaires Culturelles - Martinique', logo_url: 'https://customer-assets.emergentagent.com/job_2222c9b5-06b5-4a3e-bc20-92d5461f4150/artifacts/zj0l5jv3_logo%20DAC%20HD%20%281%29%20-%20Modifie%CC%81.png' },
   ];
 
   useEffect(() => {
