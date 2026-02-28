@@ -329,9 +329,9 @@ export const Globe3D = () => {
           </span>
           {/* Real-time indicator */}
           {isConnected && (
-            <span className="ml-4 inline-flex items-center gap-1.5 text-xs text-sage/70" title="Synchronisation temps réel active">
+            <span className="ml-4 inline-flex items-center gap-1.5 text-xs text-sage/70" title={`Synchronisation bidirectionnelle active - ${connectionCount} connectés`}>
               <span className="w-2 h-2 bg-sage rounded-full animate-pulse"></span>
-              Live
+              Live {connectionCount > 1 && `(${connectionCount})`}
             </span>
           )}
         </div>
