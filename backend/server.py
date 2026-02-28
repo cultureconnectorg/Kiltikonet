@@ -4165,6 +4165,11 @@ async def manual_broadcast(event_type: str = Form(...), data: str = Form("{}")):
     """Manual broadcast endpoint for testing or external triggers"""
     try:
         parsed_data = json.loads(data)
+    except:
+        parsed_data = {"raw": data}
+    
+    await broadcast_event(event_type, parsed_data)
+    return {"success": True, "event_type": event_type, "recipients": len(ws_manager.active_connections) + len(sse_connections)}
 
 # ================== SMART ENGINE INDEXATION ==================
 
