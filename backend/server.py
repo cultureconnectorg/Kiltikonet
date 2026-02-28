@@ -3634,6 +3634,9 @@ async def save_annual_intention(intention: AnnualIntention):
         intention_dict["active"] = True
         await db.annual_intention.insert_one(intention_dict)
     
+    # 🔄 Broadcast real-time update
+    await broadcast_event("intention_updated", {"annee": intention.annee, "mot": intention.mot_annee})
+    
     return {"success": True, "message": "Intention de l'année sauvegardée"}
 
 @app.get("/api/annual-intention/all")
