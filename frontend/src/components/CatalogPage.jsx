@@ -7,6 +7,7 @@ import { Search, MapPin, Briefcase, Users, Globe, Building2, Mic2, Newspaper, Mo
 import { profileTypes, countryList, expertiseTags } from '../lib/translations';
 import { BadgeGenerator } from './BadgeGenerator';
 import axios from 'axios';
+import { Reveal, useIntersectionObserver } from '../hooks/useAnimations';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

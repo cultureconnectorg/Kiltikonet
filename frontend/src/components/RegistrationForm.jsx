@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
@@ -12,6 +12,7 @@ import { countryList, profileTypes, standCategories, howHeardOptions, expertiseT
 import axios from 'axios';
 import { toast } from 'sonner';
 import { RGPDCheckbox } from './legal';
+import { Reveal } from '../hooks/useAnimations';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
