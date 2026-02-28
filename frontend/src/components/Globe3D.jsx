@@ -327,6 +327,13 @@ export const Globe3D = () => {
           <span className="text-cream/60 text-lg ml-3">
             territoires connectés
           </span>
+          {/* Real-time indicator */}
+          {isConnected && (
+            <span className="ml-4 inline-flex items-center gap-1.5 text-xs text-sage/70" title="Synchronisation temps réel active">
+              <span className="w-2 h-2 bg-sage rounded-full animate-pulse"></span>
+              Live
+            </span>
+          )}
         </div>
       </div>
     </section>
