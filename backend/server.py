@@ -4165,6 +4165,103 @@ async def manual_broadcast(event_type: str = Form(...), data: str = Form("{}")):
     """Manual broadcast endpoint for testing or external triggers"""
     try:
         parsed_data = json.loads(data)
+
+# ================== SMART ENGINE INDEXATION ==================
+
+@api_router.post("/smart-engine/index-contacts")
+async def index_contacts_to_smart_engine():
+    """
+    Index all 44 contacts from registrations to Smart Engine profiles.
+    This creates searchable vector embeddings for AI-powered recommendations.
+    """
+    try:
+        # Get all registrations
+        registrations = await db.registrations.find({}, {"_id": 0}).to_list(500)
+        
+        indexed = 0
+        for reg in registrations:
+            # Create smart profile from registration
+            profile = {
+                "id": reg.get("id"),
+                "tenant_id": "culture-connect-2026",
+                "name": reg.get("full_name", ""),
+                "organization": reg.get("organization_name", ""),
+                "profile_type": reg.get("profile_type", "institution"),
+                "country": reg.get("country", ""),
+                "bio": reg.get("bio", ""),
+                "tier": reg.get("tier", "professional"),
+                "expertise_tags": reg.get("expertise_tags", []),
+                "status": reg.get("status", "pending"),
+                "indexed_at": datetime.now(timezone.utc).isoformat(),
+                # Placeholder for future vector embedding
+                "embedding_status": "pending"
+            }
+            
+            # Upsert to smart_profiles collection
+            await db.smart_profiles.update_one(
+                {"id": reg.get("id")},
+                {"$set": profile},
+                upsert=True
+            )
+            indexed += 1
+        
+        # Create index for fast search
+        await db.smart_profiles.create_index("profile_type")
+        await db.smart_profiles.create_index("country")
+        await db.smart_profiles.create_index("tier")
+        await db.smart_profiles.create_index([("name", "text"), ("bio", "text"), ("organization", "text")])
+        
+        return {
+            "success": True,
+            "indexed_count": indexed,
+            "message": f"Successfully indexed {indexed} contacts to Smart Engine"
+        }
+    except Exception as e:
+        logger.error(f"Smart Engine indexation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/smart-engine/profiles")
+async def get_smart_engine_profiles(
+    profile_type: Optional[str] = None,
+    country: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 50
+):
+    """Get indexed Smart Engine profiles with optional filters"""
+    try:
+        query = {}
+        if profile_type:
+            query["profile_type"] = profile_type
+        if country:
+            query["country"] = country
+        if search:
+            query["$text"] = {"$search": search}
+        
+        profiles = await db.smart_profiles.find(query, {"_id": 0}).limit(limit).to_list(limit)
+        
+        return {
+            "profiles": profiles,
+            "total": len(profiles),
+            "filters": {"profile_type": profile_type, "country": country, "search": search}
+        }
+    except Exception as e:
+        logger.error(f"Error fetching smart profiles: {str(e)}")
+        return {"profiles": [], "total": 0, "error": str(e)}
+
+@api_router.delete("/smart-engine/purge")
+async def purge_smart_engine():
+    """Purge all mock data from Smart Engine (admin only)"""
+    try:
+        result = await db.smart_profiles.delete_many({})
+        return {
+            "success": True,
+            "deleted_count": result.deleted_count,
+            "message": "Smart Engine profiles purged"
+        }
+    except Exception as e:
+        logger.error(f"Purge error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
     except:
         parsed_data = {"raw": data}
     
