@@ -282,8 +282,8 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* ═══════════ MOMENT 3 — LA DIASPORA SE RASSEMBLE ═══════════ */}
-      <Planisphere />
+      {/* ═══════════ MOMENT 3 — LA DIASPORA SE RASSEMBLE (GLOBE 3D) ═══════════ */}
+      <Globe3D />
 
       {/* ═══════════ MOMENT 4 — LE COMPTE À REBOURS ═══════════ */}
       <Countdown targetDate="2026-05-22T00:00:00" />
