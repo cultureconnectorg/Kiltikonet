@@ -4,7 +4,7 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
     
-    <!-- Page d'accueil -->
+    <!-- Pages principales -->
     <url>
         <loc>https://cultureconnect2026.fr/</loc>
         <lastmod>2026-02-28</lastmod>
@@ -12,7 +12,6 @@
         <priority>1.0</priority>
     </url>
     
-    <!-- Inscription / Accréditation -->
     <url>
         <loc>https://cultureconnect2026.fr/inscription</loc>
         <lastmod>2026-02-28</lastmod>
@@ -20,7 +19,6 @@
         <priority>0.9</priority>
     </url>
     
-    <!-- Catalogue des participants -->
     <url>
         <loc>https://cultureconnect2026.fr/catalogue</loc>
         <lastmod>2026-02-28</lastmod>
@@ -28,7 +26,6 @@
         <priority>0.8</priority>
     </url>
     
-    <!-- Partenaires -->
     <url>
         <loc>https://cultureconnect2026.fr/partenaires</loc>
         <lastmod>2026-02-28</lastmod>
@@ -36,7 +33,6 @@
         <priority>0.7</priority>
     </url>
     
-    <!-- Programme -->
     <url>
         <loc>https://cultureconnect2026.fr/programme</loc>
         <lastmod>2026-02-28</lastmod>
@@ -44,7 +40,6 @@
         <priority>0.8</priority>
     </url>
     
-    <!-- Tarifs -->
     <url>
         <loc>https://cultureconnect2026.fr/tarifs</loc>
         <lastmod>2026-02-28</lastmod>
@@ -80,5 +75,5 @@
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
     </url>
-    
+
 </urlset>
