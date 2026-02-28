@@ -52,7 +52,11 @@ Dans /admin/cms :
 - **Contenu** : Programme avec éditeur structuré
 - **Pages** : Gestion des pages dynamiques
 - **Intention** : Mot de l'année, images, messages territoriaux
-- **Carte & Fonds** : Territoires, arrière-plans, animations (backend prêt)
+- **Carte & Fonds** : ✅ Interface complète pour gérer le globe 3D
+  - Gestion des territoires (nom, label, lat/lon, couleur, taille)
+  - Présets de couleurs (Terracotta, Doré, Blanc, Sage)
+  - Activation/désactivation des points
+  - Bouton "Voir le globe" pour prévisualiser
 
 ---
 
