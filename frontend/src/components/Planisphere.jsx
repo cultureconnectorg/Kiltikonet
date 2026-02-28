@@ -242,7 +242,7 @@ export const Planisphere = () => {
               );
             })}
 
-            {/* Territory dots */}
+            {/* Territory dots - rendered last to appear on top */}
             {visibleTerritories.map((territory) => {
               const size = getSize(territory.size);
               const isHovered = hoveredTerritory === territory.id;
@@ -262,104 +262,47 @@ export const Planisphere = () => {
                       <circle
                         cx={territory.x}
                         cy={territory.y}
-                        r={size + 4}
+                        r={size + 6}
                         fill="none"
-                        stroke={territory.color}
-                        strokeWidth="2"
-                        opacity="0.5"
+                        stroke="#FF0000"
+                        strokeWidth="3"
                       >
                         <animate 
                           attributeName="r" 
-                          values={`${size + 4};${size + 25};${size + 4}`}
+                          values={`${size + 6};${size + 30};${size + 6}`}
                           dur="2.5s" 
                           repeatCount="indefinite"
                         />
                         <animate 
                           attributeName="opacity" 
-                          values="0.5;0;0.5"
+                          values="0.6;0;0.6"
                           dur="2.5s" 
-                          repeatCount="indefinite"
-                        />
-                      </circle>
-                      <circle
-                        cx={territory.x}
-                        cy={territory.y}
-                        r={size + 10}
-                        fill="none"
-                        stroke={territory.color}
-                        strokeWidth="1"
-                        opacity="0.3"
-                      >
-                        <animate 
-                          attributeName="r" 
-                          values={`${size + 10};${size + 35};${size + 10}`}
-                          dur="3s" 
-                          repeatCount="indefinite"
-                        />
-                        <animate 
-                          attributeName="opacity" 
-                          values="0.3;0;0.3"
-                          dur="3s" 
                           repeatCount="indefinite"
                         />
                       </circle>
                     </>
                   )}
                   
-                  {/* Main dot with glow */}
+                  {/* Main dot - BRIGHT COLOR FOR DEBUGGING */}
                   <circle
                     cx={territory.x}
                     cy={territory.y}
-                    r={isHovered ? size * 1.4 : size}
-                    fill={territory.color}
-                    style={{ 
-                      filter: `drop-shadow(0 0 ${isCenter ? '12px' : '6px'} ${territory.color})`,
-                      transition: 'r 0.2s ease-out'
-                    }}
+                    r={isCenter ? 18 : 12}
+                    fill={isCenter ? "#FF0000" : "#00FF00"}
                   />
 
                   {/* Territory label */}
                   <text
                     x={territory.x}
-                    y={territory.y + size + 14}
+                    y={territory.y + (isCenter ? 18 : 12) + 16}
                     textAnchor="middle"
-                    fill={isCenter ? '#F4F1EA' : '#F4F1EA'}
-                    fontSize={isCenter ? '12' : '10'}
-                    fontWeight={isCenter ? 'bold' : 'normal'}
-                    opacity={isHovered || isCenter ? 1 : 0.65}
+                    fill="#FFFFFF"
+                    fontSize="12"
+                    fontWeight="bold"
                     className="pointer-events-none select-none"
-                    style={{ 
-                      textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-                      transition: 'opacity 0.2s ease-out'
-                    }}
                   >
                     {territory.name}
                   </text>
-
-                  {/* Hover tooltip */}
-                  {isHovered && !isCenter && (
-                    <g className="pointer-events-none">
-                      <rect
-                        x={territory.x - 55}
-                        y={territory.y - size - 35}
-                        width="110"
-                        height="26"
-                        rx="4"
-                        fill="#1A1A1A"
-                        stroke="#A65D47"
-                        strokeWidth="1.5"
-                      />
-                      <text
-                        x={territory.x}
-                        y={territory.y - size - 17}
-                        textAnchor="middle"
-                        fill="#FFFFFF"
-                        fontSize="11"
-                      >
-                        {territory.name} · {territory.label}
-                      </text>
-                    </g>
-                  )}
                 </g>
               );
             })}
