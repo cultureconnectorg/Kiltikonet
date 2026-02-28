@@ -1,57 +1,30 @@
-# KiltiKonet Smart Engine — PRD v3.1
+# KiltiKonet Smart Engine — PRD v3.2
 
 ## Vision 2026-2031
 Infrastructure de données stratégique pour les marchés culturels afro-diasporiques.
 
 ---
 
-## Ce qui a été implémenté (Session actuelle)
+## Ce qui a été implémenté (Sessions précédentes + actuelle)
 
-### 1. Expérience Cinématique — Landing Page ✅
-L'ensemble de la page d'accueil est maintenant une expérience immersive :
+### 1. Expérience Cinématique — TOUTES LES PAGES PUBLIQUES ✅ (MAJ 28/02/2026)
+L'ensemble des pages publiques utilise maintenant les animations de scroll :
 
-**MOMENT 1 — HERO**
-- Animations d'entrée pour chaque ligne de texte (drop-in, fade-up)
-- Parallaxe sur le fond
-- Délais séquentiels pour titre, sous-titre, boutons
+**Pages avec expérience cinématique complète :**
+- **Landing Page (/)** : Hero, stats, countdown, programme, partenaires, CTA, contact
+- **Programme (/programme)** : Timeline, day cards, slots animés
+- **Pricing (/pricing)** : Hero, pricing cards avec hover
+- **Partnership (/partnership)** : Hero, métriques, avantages, formules partenariat
+- **Catalog (/catalog)** : Header animé, participant cards avec hover
+- **Registration (/inscription)** : Header, stepper, formulaire multi-étapes
 
-**MOMENT 2 — LES CHIFFRES**
-- Stat cards avec animation de comptage (40, 5+, etc.)
-- Entrées depuis différentes directions (left/right/up/down)
-- Hover effects avec bordure terracotta
+**Hooks d'animation utilisés :**
+- `useIntersectionObserver` : Déclenche les animations à l'entrée dans le viewport
+- `Reveal` : Composant wrapper avec direction, délai, durée
+- `useCountUp` : Animation de comptage pour les chiffres
+- `StaggerContainer` : Animation échelonnée des enfants
 
-**MOMENT 3 — PLANISPHÈRE DIASPORA**
-- Carte du monde stylisée avec contours des continents
-- 10 territoires avec points colorés
-- Lignes animées vers Martinique (centre)
-- Compteur "10 territoires connectés"
-- NOTE: Les points ne s'affichent pas dans l'environnement preview (bug d'injection de spans par le tool) mais fonctionneront en production
-
-**MOMENT 4 — COUNTDOWN**
-- Compte à rebours live vers le 22 Mai 2026
-- Jours/Heures/Minutes/Secondes
-- Animation flip sur les secondes
-- "Battement de cœur" de la page
-
-**MOMENT 5 — PROGRAMME**
-- Cards qui apparaissent au scroll
-- Jour principal (22 Mai) avec bordure pulsante terracotta
-
-**MOMENT 6 — PARTENAIRES**
-- Révélation en cascade (row by row)
-- Hover avec bordure terracotta et lift
-
-**MOMENT 7 — CTA FINAL**
-- Effet de particules (ascension type braises)
-- Titre qui se rejoint au centre
-
-### 2. Page Programme Cinématique ✅
-- Timeline verticale terracotta
-- Cards qui entrent en alternance gauche/droite
-- Jour principal avec animation pulse 3x
-- Slots avec stagger animation
-
-### 3. Intro Sequence "Ancestrale" ✅
+### 2. Intro Sequence "Ancestrale" ✅
 Séquence sur première visite (localStorage kk_visited) :
 - Step 1: Le Souffle (pulsation)
 - Step 2: Le Tambour (son + vibration mobile)
@@ -60,21 +33,18 @@ Séquence sur première visite (localStorage kk_visited) :
 - Step 5: Le Silence sacré
 - Step 6: La Question des identités (5 choix)
 
-### 4. CMS "Intention de l'année" ✅
-Dans /admin/cms > onglet "Intention" :
-- Mot d'ouverture créole (NOU., SONJE, MOVÉ...)
-- Image d'ouverture
-- Phrases de vérité (2 lignes)
-- Mot à coloriser
-- Couleur accent annuelle
-- Messages territoriaux éditables
-- Prévisualisation de la séquence
+### 3. CMS Complet ✅
+Dans /admin/cms :
+- **Design** : Thème, couleurs, typographie
+- **Contenu** : Programme avec éditeur structuré
+- **Pages** : Gestion des pages dynamiques
+- **Intention** : Mot de l'année, images, messages territoriaux
+- **Carte & Fonds** : Territoires, arrière-plans, animations (backend prêt)
 
-### 5. CMS "Carte & Fonds" (Backend prêt) ✅
-Dans /admin/cms > onglet "Carte & Fonds" :
-- **Territoires** : Liste éditable avec nom, lat/lon, couleur, taille
-- **Fonds d'écran** : Par section (Hero, Programme, etc.)
-- **Animations** : Toggles globaux et par section
+### 4. Planisphère 2D ✅ (À remplacer par Globe 3D)
+- Carte du monde SVG stylisée
+- 10 territoires avec points colorés
+- NOTE: Problème d'affichage en preview (fonctionne en production)
 
 ---
 
@@ -89,16 +59,20 @@ Dans /admin/cms > onglet "Carte & Fonds" :
 - **Media**: Cloudinary
 - **PDF**: pdf-lib + qrcode
 
-### Nouveaux composants
+### Composants clés
 - `/frontend/src/hooks/useAnimations.js` - Hooks pour animations scroll
-- `/frontend/src/components/Planisphere.jsx` - Carte diaspora animée
+- `/frontend/src/components/Planisphere.jsx` - Carte diaspora (à remplacer)
 - `/frontend/src/components/CinematicElements.jsx` - Countdown, Particles
 - `/frontend/src/components/IntroSequence.jsx` - Séquence d'accueil
+- `/frontend/src/components/PartnershipPage.jsx` - Page partenariat cinématique
+- `/frontend/src/components/CatalogPage.jsx` - Catalogue avec animations
+- `/frontend/src/components/RegistrationForm.jsx` - Formulaire animé
 
-### Nouvelles collections MongoDB
+### Collections MongoDB
 - `annual_intention` - Intention de l'année pour intro sequence
-- `map_config` - Configuration des territoires de la carte
-- `site_config` - Configuration globale (animations, backgrounds)
+- `cms_territories` - Configuration des territoires de la carte
+- `cms_backgrounds` - Arrière-plans par section
+- `cms_animations` - Configuration des animations
 
 ---
 
@@ -108,24 +82,29 @@ Dans /admin/cms > onglet "Carte & Fonds" :
 - **Symptôme**: Les cercles des territoires sont dans le DOM mais ne s'affichent pas
 - **Cause**: L'environnement Emergent Preview injecte des `<span>` dans le SVG
 - **Impact**: Preview seulement - fonctionne en production
-- **Workaround**: Aucun nécessaire pour la production
+- **Résolution prévue**: Remplacement par Globe 3D interactif
 
 ---
 
 ## Prochaines Étapes
 
 ### P0 (Immédiat)
-- Déploiement en production pour tester le planisphère
-- Tests de l'intro sequence en conditions réelles
+- **Remplacer le Planisphère 2D par un Globe 3D interactif**
+  - Bibliothèque: react-globe.gl ou three.js
+  - Affichage des territoires avec points et lignes vers Martinique
+  - Intégration avec `/api/cms/territories`
 
 ### P1 (À venir)
-- Export PDF du programme officiel
-- Intégration RAG pour assistant IA
-- Animations sur autres pages (/about, /partnership)
+- Compléter l'interface CMS "Carte & Fonds"
+  - Gestion des territoires sur le globe
+  - Gestion des arrière-plans de sections
+  - Toggles d'animations
 
 ### P2 (Futur)
+- Export PDF du programme officiel
 - Configuration DNS kiltikonet.fr
 - Extension white-label pour autres événements
+- Refactoring CMSAdmin.jsx (fichier > 2000 lignes)
 
 ---
 
