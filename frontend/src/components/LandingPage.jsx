@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
@@ -10,33 +10,46 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { LegalFooter } from './legal';
+import { 
+  useIntersectionObserver, 
+  useCountUp, 
+  Reveal, 
+  StaggerContainer,
+  AnimatedNumber 
+} from '../hooks/useAnimations';
+import { ConvergenceMap, ParticleBackground, Countdown } from './CinematicElements';
 
 export const LandingPage = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const [contactForm, setContactForm] = React.useState({ name: '', email: '', message: '' });
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const parallaxRef = useRef(null);
+  const [parallaxOffset, setParallaxOffset] = useState(0);
   
-  const observerRef = useRef(null);
-  
+  // Reduced motion check
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Hero load animation trigger
   useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-visible');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    
-    document.querySelectorAll('.animate-on-scroll').forEach((el) => {
-      observerRef.current.observe(el);
-    });
-    
-    return () => observerRef.current?.disconnect();
+    const timer = setTimeout(() => setHeroLoaded(true), 100);
+    return () => clearTimeout(timer);
   }, []);
+
+  // Parallax effect for hero
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setParallaxOffset(scrollY * 0.5);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [prefersReducedMotion]);
   
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -52,29 +65,70 @@ export const LandingPage = () => {
   };
   
   const programDays = [
-    { day: 'Mer. 20 Mai', title: language === 'fr' ? 'Accueil & Accréditations' : 'Welcome', location: 'Bibliothèque Schœlcher' },
-    { day: 'Jeu. 21 Mai', title: language === 'fr' ? 'Débats Industrie' : 'Industry Debates', location: 'Atrium' },
-    { day: 'Ven. 22 Mai', title: language === 'fr' ? 'Marché Culturel' : 'Cultural Market', location: 'La Savane', highlight: true },
-    { day: 'Sam. 23 Mai', title: language === 'fr' ? 'Brunch & Clôture' : 'Brunch & Closing', location: 'Fort-de-France' }
+    { day: 'Mar. 20 Mai', title: language === 'fr' ? 'Accueil & Accréditations' : 'Welcome', location: 'Bibliothèque Schœlcher' },
+    { day: 'Mer. 21 Mai', title: language === 'fr' ? 'Débats Industrie' : 'Industry Debates', location: 'Atrium' },
+    { day: 'Jeu. 22 Mai', title: language === 'fr' ? 'Marché Culturel' : 'Cultural Market', location: 'La Savane', highlight: true },
+    { day: 'Ven. 23 Mai', title: language === 'fr' ? 'Brunch & Clôture' : 'Brunch & Closing', location: 'Fort-de-France' }
   ];
   
   const partners = [
     'CTM', 'Skillfor Campus', 'ISCA Business School', 'France Travail', 'SACEM', 'Factory Maker Studio', 'Direction des Affaires Culturelles'
   ];
 
+  // Stats data with animation directions
+  const stats = [
+    { num: '40', suffix: '-60', title: language === 'fr' ? 'Stands Accrédités' : 'Accredited Stands', direction: 'left' },
+    { num: 'Live', title: language === 'fr' ? 'Scène Démo' : 'Demo Stage', direction: 'down', isText: true },
+    { num: 'VIP', title: 'Networking B2B', direction: 'right', isText: true },
+    { num: '5', suffix: '+', title: language === 'fr' ? 'Institutions' : 'Institutions', direction: 'up' }
+  ];
+
   return (
-    <div className="min-h-screen bg-paper">
-      {/* HERO */}
-      <section className="relative pt-32 pb-24 sm:pt-40 sm:pb-32 lg:pt-48 lg:pb-40" data-testid="hero-section">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-paper overflow-hidden">
+      {/* ═══════════ MOMENT 1 — HERO ═══════════ */}
+      <section 
+        ref={parallaxRef}
+        className="relative min-h-screen flex items-center justify-center overflow-hidden" 
+        data-testid="hero-section"
+      >
+        {/* Parallax Background */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-charcoal/5 via-cream to-terracotta/5"
+          style={{
+            transform: prefersReducedMotion ? 'none' : `translateY(${parallaxOffset}px)`,
+          }}
+        />
+        
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-paper/70" />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
           <div className="max-w-4xl">
-            {/* Eyebrow */}
-            <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-6">
+            {/* Eyebrow - Slides from left */}
+            <p 
+              className="text-terracotta font-syne text-sm tracking-widest uppercase mb-6"
+              style={{
+                opacity: heroLoaded ? 1 : 0,
+                transform: heroLoaded ? 'translateX(0)' : 'translateX(-40px)',
+                transition: prefersReducedMotion 
+                  ? 'opacity 0.3s ease-out' 
+                  : 'opacity 0.6s ease-out, transform 0.6s ease-out',
+              }}
+            >
               Fort-de-France, Martinique · 20—23 Mai 2026
             </p>
             
-            {/* Logo */}
-            <div className="mb-8">
+            {/* Logo - Fades in */}
+            <div 
+              className="mb-8"
+              style={{
+                opacity: heroLoaded ? 1 : 0,
+                transform: heroLoaded ? 'translateY(0)' : 'translateY(-20px)',
+                transition: prefersReducedMotion 
+                  ? 'opacity 0.3s ease-out' 
+                  : 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s',
+              }}
+            >
               <img 
                 src="/logo.png" 
                 alt="Culture Connect" 
@@ -82,37 +136,87 @@ export const LandingPage = () => {
               />
             </div>
             
-            {/* Title */}
+            {/* Title - Each line drops from above */}
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-charcoal leading-tight mb-6">
-              {language === 'fr' 
-                ? 'Marché professionnel des industries culturelles afro-descendantes'
-                : 'Professional market for Afro-descendant cultural industries'
-              }
+              <span 
+                className="block"
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transform: heroLoaded ? 'translateY(0)' : 'translateY(-30px)',
+                  transition: prefersReducedMotion 
+                    ? 'opacity 0.3s ease-out' 
+                    : 'opacity 0.5s ease-out 0.4s, transform 0.5s ease-out 0.4s',
+                }}
+              >
+                {language === 'fr' ? 'Marché professionnel' : 'Professional market'}
+              </span>
+              <span 
+                className="block"
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transform: heroLoaded ? 'translateY(0)' : 'translateY(-30px)',
+                  transition: prefersReducedMotion 
+                    ? 'opacity 0.3s ease-out' 
+                    : 'opacity 0.5s ease-out 0.6s, transform 0.5s ease-out 0.6s',
+                }}
+              >
+                {language === 'fr' ? 'des industries culturelles' : 'for cultural industries'}
+              </span>
+              <span 
+                className="block text-terracotta"
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transform: heroLoaded ? 'translateY(0)' : 'translateY(-30px)',
+                  transition: prefersReducedMotion 
+                    ? 'opacity 0.3s ease-out' 
+                    : 'opacity 0.5s ease-out 0.8s, transform 0.5s ease-out 0.8s',
+                }}
+              >
+                {language === 'fr' ? 'afro-descendantes' : 'of the Afro-descendant'}
+              </span>
             </h1>
             
-            {/* Subtitle */}
-            <p className="text-lg sm:text-xl text-charcoal/70 font-body max-w-2xl mb-10">
+            {/* Subtitle - Fades up */}
+            <p 
+              className="text-lg sm:text-xl text-charcoal/70 font-body max-w-2xl mb-10"
+              style={{
+                opacity: heroLoaded ? 1 : 0,
+                transform: heroLoaded ? 'translateY(0)' : 'translateY(20px)',
+                transition: prefersReducedMotion 
+                  ? 'opacity 0.3s ease-out' 
+                  : 'opacity 0.6s ease-out 1s, transform 0.6s ease-out 1s',
+              }}
+            >
               {language === 'fr'
                 ? 'Connecter la diaspora et les territoires d\'origine pour façonner l\'avenir de la culture caribéenne.'
                 : 'Connecting the diaspora and territories of origin to shape the future of Caribbean culture.'
               }
             </p>
             
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            {/* CTAs - Rise together */}
+            <div 
+              className="flex flex-col sm:flex-row gap-4"
+              style={{
+                opacity: heroLoaded ? 1 : 0,
+                transform: heroLoaded ? 'translateY(0)' : 'translateY(30px)',
+                transition: prefersReducedMotion 
+                  ? 'opacity 0.3s ease-out' 
+                  : 'opacity 0.6s ease-out 1.2s, transform 0.6s ease-out 1.2s',
+              }}
+            >
               <Button
                 onClick={() => navigate('/pricing')}
-                className="h-14 px-8 bg-terracotta text-paper font-syne text-sm tracking-wide hover:bg-terracotta/90 rounded-none"
+                className="group h-14 px-8 bg-terracotta text-paper font-syne text-sm tracking-wide hover:bg-terracotta/90 rounded-none transition-all duration-300 hover:scale-[1.02]"
                 data-testid="hero-cta-register"
               >
                 {language === 'fr' ? "Demander une accréditation" : "Request accreditation"}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
               </Button>
               
               <Button
                 onClick={() => scrollToSection('programme')}
                 variant="outline"
-                className="h-14 px-8 border-charcoal text-charcoal font-syne text-sm tracking-wide hover:bg-charcoal hover:text-paper rounded-none"
+                className="h-14 px-8 border-charcoal text-charcoal font-syne text-sm tracking-wide hover:bg-charcoal hover:text-paper rounded-none transition-all duration-300"
                 data-testid="hero-cta-program"
               >
                 {language === 'fr' ? "Découvrir le programme" : "Discover the program"}
@@ -123,8 +227,12 @@ export const LandingPage = () => {
         
         {/* Scroll indicator */}
         <button 
-          onClick={() => scrollToSection('vision')}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-charcoal/40 hover:text-terracotta transition-colors"
+          onClick={() => scrollToSection('stats')}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-charcoal/40 hover:text-terracotta transition-colors animate-bounce"
+          style={{
+            opacity: heroLoaded ? 1 : 0,
+            transition: 'opacity 0.6s ease-out 1.5s',
+          }}
         >
           <ChevronDown className="w-6 h-6" />
         </button>
@@ -135,115 +243,24 @@ export const LandingPage = () => {
         <div className="h-px bg-lightborder" />
       </div>
 
-      {/* VISION */}
-      <section id="vision" className="py-24 sm:py-32" data-testid="vision-section">
+      {/* ═══════════ MOMENT 2 — LES CHIFFRES ═══════════ */}
+      <section id="stats" className="py-24 sm:py-32" data-testid="stats-section">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="animate-on-scroll">
-              <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
-                {language === 'fr' ? 'Notre vision' : 'Our vision'}
-              </p>
-              <h2 className="font-serif text-3xl sm:text-4xl text-charcoal mb-6">
-                {language === 'fr' 
-                  ? 'Une plateforme pour les industries culturelles afro-descendantes'
-                  : 'A platform for Afro-descendant cultural industries'
-                }
-              </h2>
-              <p className="text-charcoal/70 font-body text-lg leading-relaxed">
-                {language === 'fr'
-                  ? 'Culture Connect relie la diaspora et les territoires d\'origine pour co-construire des stratégies d\'avenir. Un espace de rencontre entre artistes, labels, institutions et professionnels de la culture.'
-                  : 'Culture Connect connects the diaspora and territories of origin to co-build future strategies. A meeting space for artists, labels, institutions and cultural professionals.'
-                }
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { icon: Globe, title: language === 'fr' ? 'Connecter' : 'Connect' },
-                { icon: Layers, title: language === 'fr' ? 'Structurer' : 'Structure' },
-                { icon: Star, title: language === 'fr' ? 'Rayonner' : 'Shine' }
-              ].map((item, i) => (
-                <div 
-                  key={item.title}
-                  className="animate-on-scroll text-center p-6 border border-lightborder bg-cream"
-                  style={{ animationDelay: `${i * 100}ms` }}
-                >
-                  <item.icon className="w-8 h-8 text-sage mx-auto mb-4" />
-                  <p className="font-syne text-sm text-charcoal">{item.title}</p>
-                </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {stats.map((item, i) => (
+                <StatCard 
+                  key={item.title} 
+                  {...item} 
+                  index={i}
+                  prefersReducedMotion={prefersReducedMotion}
+                />
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PROGRAMME */}
-      <section id="programme" className="py-24 sm:py-32 bg-cream" data-testid="programme-section">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-on-scroll">
-            <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
-              {language === 'fr' ? '4 jours d\'événements' : '4 days of events'}
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-charcoal">
-              Programme
-            </h2>
-          </div>
-          
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {programDays.map((day, i) => (
-              <div 
-                key={day.day}
-                className={`animate-on-scroll p-6 border bg-paper ${
-                  day.highlight 
-                    ? 'border-terracotta' 
-                    : 'border-lightborder'
-                }`}
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                {day.highlight && (
-                  <p className="text-terracotta font-syne text-xs tracking-widest uppercase mb-3">
-                    {language === 'fr' ? 'Jour principal' : 'Main day'}
-                  </p>
-                )}
-                <p className={`text-sm mb-2 ${day.highlight ? 'text-terracotta' : 'text-charcoal/50'}`}>
-                  {day.day}
-                </p>
-                <h3 className="font-serif text-xl text-charcoal mb-3">{day.title}</h3>
-                <p className="text-sm text-charcoal/50 flex items-center gap-2">
-                  <MapPin className="w-3 h-3" />
-                  {day.location}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* MARCHÉ */}
-      <section className="py-24 sm:py-32" data-testid="marche-section">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1">
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { title: language === 'fr' ? 'Stands Accrédités' : 'Accredited Stands', num: '40-60' },
-                  { title: language === 'fr' ? 'Scène Démo' : 'Demo Stage', num: 'Live' },
-                  { title: 'Networking B2B', num: 'VIP' },
-                  { title: language === 'fr' ? 'Institutions' : 'Institutions', num: '5+' }
-                ].map((item, i) => (
-                  <div 
-                    key={item.title}
-                    className="animate-on-scroll p-6 border border-lightborder bg-cream"
-                    style={{ animationDelay: `${i * 100}ms` }}
-                  >
-                    <p className="font-serif text-2xl text-terracotta mb-2">{item.num}</p>
-                    <p className="text-sm text-charcoal/70">{item.title}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
             
-            <div className="order-1 lg:order-2 animate-on-scroll">
+            {/* Text Content */}
+            <Reveal direction="right" delay={0.3}>
               <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
                 22 Mai 2026
               </p>
@@ -259,78 +276,99 @@ export const LandingPage = () => {
               <p className="text-charcoal/50 text-sm italic">
                 Inspiré du Mercado Cultural del Caribe
               </p>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* PARTENAIRES */}
-      <section id="partenaires" className="py-24 sm:py-32 bg-cream" data-testid="partenaires-section">
+      {/* ═══════════ MOMENT 3 — LA CONVERGENCE ═══════════ */}
+      <ConvergenceMap />
+
+      {/* ═══════════ MOMENT 4 — LE COMPTE À REBOURS ═══════════ */}
+      <Countdown targetDate="2026-05-22T00:00:00" />
+
+      {/* ═══════════ MOMENT 5 — PROGRAMME ═══════════ */}
+      <section id="programme" className="py-24 sm:py-32 bg-cream" data-testid="programme-section">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-on-scroll">
-            <p className="text-sage font-syne text-sm tracking-widest uppercase mb-4">
-              {language === 'fr' ? 'Nos soutiens' : 'Our supporters'}
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-charcoal">
-              {language === 'fr' ? 'Ils soutiennent Culture Connect' : 'They support Culture Connect'}
-            </h2>
-          </div>
+          <Reveal>
+            <div className="text-center mb-16">
+              <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
+                {language === 'fr' ? '4 jours d\'événements' : '4 days of events'}
+              </p>
+              <h2 className="font-serif text-3xl sm:text-4xl text-charcoal">
+                Programme
+              </h2>
+            </div>
+          </Reveal>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-12">
-            {partners.map((partner, i) => (
-              <div 
-                key={partner}
-                className="animate-on-scroll p-4 border border-lightborder bg-paper flex items-center justify-center min-h-[80px]"
-                style={{ animationDelay: `${i * 50}ms` }}
-              >
-                <span className="text-charcoal/50 text-xs font-syne text-center">{partner}</span>
-              </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {programDays.map((day, i) => (
+              <ProgramCard 
+                key={day.day} 
+                day={day} 
+                index={i} 
+                isLast={i === programDays.length - 1}
+                language={language}
+                prefersReducedMotion={prefersReducedMotion}
+              />
             ))}
           </div>
-          
-          <div className="text-center animate-on-scroll">
-            <button 
-              onClick={() => {
-                navigate('/partnership');
-                setTimeout(() => {
-                  document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              }}
-              className="text-terracotta hover:text-terracotta/80 font-syne text-sm tracking-wide underline underline-offset-4 transition-colors"
-            >
-              {language === 'fr' ? 'Devenir partenaire →' : 'Become a partner →'}
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 sm:py-32 bg-charcoal" data-testid="cta-section">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl text-paper mb-6">
-            {language === 'fr' ? 'Rejoignez Culture Connect 2026' : 'Join Culture Connect 2026'}
-          </h2>
-          <p className="text-paper/70 font-body text-lg mb-10 max-w-2xl mx-auto">
-            {language === 'fr' 
-              ? 'Artistes, labels, institutions, presse — déposez votre dossier d\'accréditation'
-              : 'Artists, labels, institutions, press — submit your accreditation request'
-            }
-          </p>
-          <Button
-            onClick={() => navigate('/pricing')}
-            className="h-14 px-10 bg-terracotta text-paper font-syne text-sm tracking-wide hover:bg-terracotta/90 rounded-none"
-          >
-            {language === 'fr' ? "S'accréditer maintenant" : "Register now"}
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+      {/* ═══════════ MOMENT 6 — PARTENAIRES ═══════════ */}
+      <section id="partenaires" className="py-24 sm:py-32" data-testid="partenaires-section">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Reveal>
+            <div className="text-center mb-16">
+              <p className="text-sage font-syne text-sm tracking-widest uppercase mb-4">
+                {language === 'fr' ? 'Nos soutiens' : 'Our supporters'}
+              </p>
+              <h2 className="font-serif text-3xl sm:text-4xl text-charcoal">
+                {language === 'fr' ? 'Ils soutiennent Culture Connect' : 'They support Culture Connect'}
+              </h2>
+            </div>
+          </Reveal>
+          
+          <PartnersGrid partners={partners} navigate={navigate} language={language} />
+        </div>
+      </section>
+
+      {/* ═══════════ MOMENT 7 — L'APPEL FINAL ═══════════ */}
+      <section className="relative py-24 sm:py-32 bg-charcoal overflow-hidden" data-testid="cta-section">
+        {/* Particle Background */}
+        <ParticleBackground />
+        
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Split title animation */}
+          <CTATitle language={language} />
+          
+          <Reveal delay={0.4}>
+            <p className="text-paper/70 font-body text-lg mb-10 max-w-2xl mx-auto">
+              {language === 'fr' 
+                ? 'Artistes, labels, institutions, presse — déposez votre dossier d\'accréditation'
+                : 'Artists, labels, institutions, press — submit your accreditation request'
+              }
+            </p>
+          </Reveal>
+          
+          <Reveal delay={0.6}>
+            <Button
+              onClick={() => navigate('/pricing')}
+              className="group h-14 px-10 bg-terracotta text-paper font-syne text-sm tracking-wide hover:bg-terracotta/80 rounded-none transition-all duration-300 hover:scale-[1.02]"
+            >
+              {language === 'fr' ? "S'accréditer maintenant" : "Register now"}
+              <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1 group-hover:pause" />
+            </Button>
+          </Reveal>
         </div>
       </section>
 
       {/* CONTACT */}
-      <section id="contact" className="py-24 sm:py-32" data-testid="contact-section">
+      <section id="contact" className="py-24 sm:py-32 bg-paper" data-testid="contact-section">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16">
-            <div className="animate-on-scroll">
+            <Reveal direction="left">
               <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
                 Contact
               </p>
@@ -353,68 +391,68 @@ export const LandingPage = () => {
                   href="https://www.instagram.com/culturconnect?igsh=ODB1cXF1enVya3cz&utm_source=qr"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-12 h-12 border border-lightborder flex items-center justify-center text-charcoal/50 hover:text-terracotta hover:border-terracotta transition-all"
+                  className="w-12 h-12 border border-lightborder flex items-center justify-center text-charcoal/50 hover:text-terracotta hover:border-terracotta transition-all duration-300"
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
                 <a 
                   href="#" 
-                  className="w-12 h-12 border border-lightborder flex items-center justify-center text-charcoal/50 hover:text-terracotta hover:border-terracotta transition-all"
+                  className="w-12 h-12 border border-lightborder flex items-center justify-center text-charcoal/50 hover:text-terracotta hover:border-terracotta transition-all duration-300"
                 >
                   <Linkedin className="w-5 h-5" />
                 </a>
               </div>
-            </div>
+            </Reveal>
             
-            <form 
-              onSubmit={handleContactSubmit}
-              className="animate-on-scroll space-y-5"
-              style={{ animationDelay: '150ms' }}
-            >
-              <Input
-                type="text"
-                placeholder={language === 'fr' ? 'Votre nom' : 'Your name'}
-                value={contactForm.name}
-                onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
-                className="h-12 bg-cream border-lightborder text-charcoal placeholder:text-charcoal/40 rounded-none focus:border-terracotta"
-                required
-              />
-              <Input
-                type="email"
-                placeholder={language === 'fr' ? 'Votre email' : 'Your email'}
-                value={contactForm.email}
-                onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
-                className="h-12 bg-cream border-lightborder text-charcoal placeholder:text-charcoal/40 rounded-none focus:border-terracotta"
-                required
-              />
-              <Textarea
-                placeholder={language === 'fr' ? 'Votre message' : 'Your message'}
-                value={contactForm.message}
-                onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
-                className="bg-cream border-lightborder text-charcoal placeholder:text-charcoal/40 min-h-[120px] rounded-none focus:border-terracotta"
-                required
-              />
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-12 bg-charcoal text-paper font-syne text-sm tracking-wide hover:bg-charcoal/90 rounded-none"
+            <Reveal direction="right" delay={0.15}>
+              <form 
+                onSubmit={handleContactSubmit}
+                className="space-y-5"
               >
-                <Send className="w-4 h-4 mr-2" />
-                {language === 'fr' ? 'Envoyer' : 'Send'}
-              </Button>
-            </form>
+                <Input
+                  type="text"
+                  placeholder={language === 'fr' ? 'Votre nom' : 'Your name'}
+                  value={contactForm.name}
+                  onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="h-12 bg-cream border-lightborder text-charcoal placeholder:text-charcoal/40 rounded-none focus:border-terracotta transition-colors"
+                  required
+                />
+                <Input
+                  type="email"
+                  placeholder={language === 'fr' ? 'Votre email' : 'Your email'}
+                  value={contactForm.email}
+                  onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                  className="h-12 bg-cream border-lightborder text-charcoal placeholder:text-charcoal/40 rounded-none focus:border-terracotta transition-colors"
+                  required
+                />
+                <Textarea
+                  placeholder={language === 'fr' ? 'Votre message' : 'Your message'}
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
+                  className="bg-cream border-lightborder text-charcoal placeholder:text-charcoal/40 min-h-[120px] rounded-none focus:border-terracotta transition-colors"
+                  required
+                />
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-charcoal text-paper font-syne text-sm tracking-wide hover:bg-charcoal/90 rounded-none transition-all duration-300"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Envoyer' : 'Send'}
+                </Button>
+              </form>
+            </Reveal>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-8 border-t border-lightborder" data-testid="footer">
+      <footer className="py-8 border-t border-lightborder bg-paper" data-testid="footer">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-charcoal/50">
             <p>Culture Connect 2026 · Fort-de-France, Martinique</p>
             <p>Factory Maker Studio</p>
           </div>
-          {/* Legal links */}
           <div className="mt-6 pt-4 border-t border-lightborder">
             <LegalFooter />
           </div>
@@ -423,3 +461,243 @@ export const LandingPage = () => {
     </div>
   );
 };
+
+// ═══════════ STAT CARD COMPONENT ═══════════
+const StatCard = ({ num, suffix = '', title, direction, isText, index, prefersReducedMotion }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.3 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasFlashed, setHasFlashed] = useState(false);
+  const countValue = useCountUp(isText ? 0 : parseInt(num), 2000, isVisible);
+
+  // Flash effect for text stats
+  useEffect(() => {
+    if (isVisible && isText && !hasFlashed) {
+      setHasFlashed(true);
+    }
+  }, [isVisible, isText, hasFlashed]);
+
+  const getTransform = () => {
+    if (prefersReducedMotion) return 'none';
+    if (!isVisible) {
+      switch (direction) {
+        case 'left': return 'translateX(-40px)';
+        case 'right': return 'translateX(40px)';
+        case 'down': return 'translateY(-40px)';
+        case 'up': return 'translateY(40px)';
+        default: return 'translateY(20px)';
+      }
+    }
+    return 'translateX(0) translateY(0)';
+  };
+
+  return (
+    <div 
+      ref={ref}
+      className={`p-6 border bg-cream transition-all duration-300 cursor-pointer ${
+        isHovered ? 'border-terracotta bg-terracotta/5' : 'border-lightborder'
+      }`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: getTransform(),
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out, border-color 0.3s ease-out, background-color 0.3s ease-out' 
+          : `opacity 0.5s ease-out ${index * 0.3}s, transform 0.5s ease-out ${index * 0.3}s, border-color 0.3s ease-out, background-color 0.3s ease-out`,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <p 
+        className={`font-serif text-2xl text-terracotta mb-2 transition-transform duration-300 ${
+          isHovered ? 'scale-110' : 'scale-100'
+        } ${isText && hasFlashed && isVisible ? 'animate-flash' : ''}`}
+      >
+        {isText ? num : countValue}{suffix}
+      </p>
+      <p className="text-sm text-charcoal/70">{title}</p>
+    </div>
+  );
+};
+
+// ═══════════ PROGRAM CARD COMPONENT ═══════════
+const ProgramCard = ({ day, index, isLast, language, prefersReducedMotion }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.2 });
+  const [hasPulsed, setHasPulsed] = useState(false);
+
+  // Pulse effect for highlight card (May 22)
+  useEffect(() => {
+    if (isVisible && day.highlight && !hasPulsed) {
+      setHasPulsed(true);
+    }
+  }, [isVisible, day.highlight, hasPulsed]);
+
+  const getTransform = () => {
+    if (prefersReducedMotion) return 'none';
+    if (!isVisible) {
+      // Last card (May 22) comes from bottom
+      if (day.highlight) {
+        return 'translateY(40px) scale(0.95)';
+      }
+      return 'translateX(-40px)';
+    }
+    return 'translateX(0) translateY(0) scale(1)';
+  };
+
+  return (
+    <div 
+      ref={ref}
+      className={`p-6 border bg-paper transition-all duration-500 ${
+        day.highlight 
+          ? `border-terracotta ${hasPulsed && isVisible ? 'animate-pulse-border' : ''}` 
+          : 'border-lightborder hover:border-charcoal/30'
+      }`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: getTransform(),
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out' 
+          : `opacity 0.5s ease-out ${index * 0.2}s, transform 0.5s ease-out ${index * 0.2}s`,
+      }}
+    >
+      {day.highlight && (
+        <p className="text-terracotta font-syne text-xs tracking-widest uppercase mb-3">
+          {language === 'fr' ? 'Jour principal' : 'Main day'}
+        </p>
+      )}
+      <p className={`text-sm mb-2 ${day.highlight ? 'text-terracotta' : 'text-charcoal/50'}`}>
+        {day.day}
+      </p>
+      <h3 className="font-serif text-xl text-charcoal mb-3">{day.title}</h3>
+      <p className="text-sm text-charcoal/50 flex items-center gap-2">
+        <MapPin className="w-3 h-3" />
+        {day.location}
+      </p>
+    </div>
+  );
+};
+
+// ═══════════ PARTNERS GRID COMPONENT ═══════════
+const PartnersGrid = ({ partners, navigate, language }) => {
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-12">
+        {partners.map((partner, i) => (
+          <PartnerCard key={partner} partner={partner} index={i} />
+        ))}
+      </div>
+      
+      <Reveal>
+        <div className="text-center">
+          <button 
+            onClick={() => {
+              navigate('/partnership');
+              setTimeout(() => {
+                document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}
+            className="text-terracotta hover:text-terracotta/80 font-syne text-sm tracking-wide underline underline-offset-4 transition-colors"
+          >
+            {language === 'fr' ? 'Devenir partenaire →' : 'Become a partner →'}
+          </button>
+        </div>
+      </Reveal>
+    </>
+  );
+};
+
+// ═══════════ PARTNER CARD COMPONENT ═══════════
+const PartnerCard = ({ partner, index }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.2 });
+  const [isHovered, setIsHovered] = useState(false);
+  const row = Math.floor(index / 4);
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  return (
+    <div 
+      ref={ref}
+      className={`p-4 border bg-paper flex items-center justify-center min-h-[80px] transition-all duration-300 ${
+        isHovered ? 'border-terracotta bg-terracotta/5 -translate-y-1' : 'border-lightborder'
+      }`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible 
+          ? (isHovered ? 'translateY(-3px)' : 'translateY(0)') 
+          : 'translateY(20px)',
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out, border-color 0.3s ease-out, background-color 0.3s ease-out' 
+          : `opacity 0.4s ease-out ${row * 0.15}s, transform 0.4s ease-out ${row * 0.15}s, border-color 0.3s ease-out, background-color 0.3s ease-out`,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <span className="text-charcoal/50 text-xs font-syne text-center">{partner}</span>
+    </div>
+  );
+};
+
+// ═══════════ CTA TITLE COMPONENT ═══════════
+const CTATitle = ({ language }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.3 });
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const title = language === 'fr' ? 'Rejoignez Culture Connect 2026' : 'Join Culture Connect 2026';
+  const words = title.split(' ');
+  const midPoint = Math.floor(words.length / 2);
+  const firstPart = words.slice(0, midPoint).join(' ');
+  const secondPart = words.slice(midPoint).join(' ');
+
+  return (
+    <h2 ref={ref} className="font-serif text-3xl sm:text-4xl text-paper mb-6 overflow-hidden">
+      <span 
+        className="inline-block"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'translateX(0)' : 'translateX(-50px)',
+          transition: prefersReducedMotion 
+            ? 'opacity 0.3s ease-out' 
+            : 'opacity 0.8s ease-out, transform 0.8s ease-out',
+        }}
+      >
+        {firstPart}
+      </span>{' '}
+      <span 
+        className="inline-block"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'translateX(0)' : 'translateX(50px)',
+          transition: prefersReducedMotion 
+            ? 'opacity 0.3s ease-out' 
+            : 'opacity 0.8s ease-out, transform 0.8s ease-out',
+        }}
+      >
+        {secondPart}
+      </span>
+    </h2>
+  );
+};
+
+// Add custom animations to global CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .animate-flash {
+    animation: flash 0.3s ease-out 2;
+  }
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(166, 93, 71, 0); }
+    50% { box-shadow: 0 0 0 4px rgba(166, 93, 71, 0.3); }
+  }
+  .animate-pulse-border {
+    animation: pulse-border 0.5s ease-out 3;
+  }
+`;
+if (typeof document !== 'undefined' && !document.getElementById('cinematic-styles')) {
+  style.id = 'cinematic-styles';
+  document.head.appendChild(style);
+}
+
+export default LandingPage;
