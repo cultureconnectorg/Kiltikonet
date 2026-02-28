@@ -554,6 +554,7 @@ export const RegistrationForm = () => {
                 </div>
               </div>
             </div>
+          </Reveal>
           )}
           
           {/* Navigation */}
