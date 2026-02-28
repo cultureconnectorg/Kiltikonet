@@ -468,7 +468,9 @@ const IntroSequence = ({ onComplete }) => {
                   }}
                   data-testid={`identity-${identity.id}`}
                 >
-                  <span className="text-2xl">{identity.emoji}</span>
+                  <span style={{ color: hoveredIdentity === identity.id ? accentColor : '#888888' }}>
+                    <IdentityIcon type={identity.icon} color={hoveredIdentity === identity.id ? accentColor : '#888888'} />
+                  </span>
                   <span className="text-white text-lg sm:text-xl">{identity.label}</span>
                 </button>
               ))}
