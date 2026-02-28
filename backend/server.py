@@ -3968,8 +3968,121 @@ async def realtime_events(request: Request):
 
 @app.get("/api/realtime/status")
 async def realtime_status():
-    """Get the status of real-time connections"""
+    """Get the status of real-time connections (WebSocket + SSE)"""
     return {
-        "active_connections": len(sse_connections),
-        "status": "active"
+        "websocket": ws_manager.get_status(),
+        "sse_connections": len(sse_connections),
+        "total_connections": len(ws_manager.active_connections) + len(sse_connections),
+        "status": "active",
+        "mode": "bidirectional"
     }
+
+# ================== BIDIRECTIONAL WEBSOCKET ENDPOINT ==================
+
+@app.websocket("/api/ws/sync")
+async def websocket_sync(websocket: WebSocket):
+    """
+    Bidirectional WebSocket endpoint for real-time synchronization.
+    
+    Supported message types from client:
+    - subscribe: {"action": "subscribe", "channels": ["cms", "globe", "registrations"]}
+    - unsubscribe: {"action": "unsubscribe", "channels": ["cms"]}
+    - update: {"action": "update", "type": "territories", "data": {...}}
+    - ping: {"action": "ping"}
+    
+    Server broadcasts:
+    - Event notifications to all subscribed clients
+    - Confirmation of actions
+    """
+    client_id = await ws_manager.connect(websocket)
+    
+    try:
+        # Send welcome message with client ID
+        await websocket.send_json({
+            "event_type": "connected",
+            "client_id": client_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Bidirectional sync active"
+        })
+        
+        # Auto-subscribe to all channels
+        for channel in ["cms", "globe", "registrations", "theme", "intention"]:
+            ws_manager.subscribe(client_id, channel)
+        
+        while True:
+            # Receive message from client
+            data = await websocket.receive_json()
+            action = data.get("action", "")
+            
+            if action == "ping":
+                await websocket.send_json({
+                    "event_type": "pong",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+            
+            elif action == "subscribe":
+                channels = data.get("channels", [])
+                for channel in channels:
+                    ws_manager.subscribe(client_id, channel)
+                await websocket.send_json({
+                    "event_type": "subscribed",
+                    "channels": channels,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+            
+            elif action == "unsubscribe":
+                channels = data.get("channels", [])
+                for channel in channels:
+                    ws_manager.unsubscribe(client_id, channel)
+                await websocket.send_json({
+                    "event_type": "unsubscribed",
+                    "channels": channels
+                })
+            
+            elif action == "update":
+                # Client is sending an update - broadcast to others
+                update_type = data.get("type", "")
+                update_data = data.get("data", {})
+                
+                # Broadcast the update to all other clients
+                await broadcast_event(
+                    event_type=f"{update_type}_updated",
+                    data=update_data,
+                    source_client=client_id,
+                    channels=[update_type] if update_type else None
+                )
+                
+                # Confirm to sender
+                await websocket.send_json({
+                    "event_type": "update_confirmed",
+                    "type": update_type,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+            
+            elif action == "request_sync":
+                # Client requests full sync state
+                sync_type = data.get("type", "all")
+                await websocket.send_json({
+                    "event_type": "sync_state",
+                    "type": sync_type,
+                    "connections": ws_manager.get_status(),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+    
+    except WebSocketDisconnect:
+        ws_manager.disconnect(client_id)
+    except Exception as e:
+        logger.error(f"WebSocket error for {client_id}: {e}")
+        ws_manager.disconnect(client_id)
+
+@app.post("/api/realtime/broadcast")
+async def manual_broadcast(event_type: str = Form(...), data: str = Form("{}")):
+    """Manual broadcast endpoint for testing or external triggers"""
+    try:
+        parsed_data = json.loads(data)
+    except:
+        parsed_data = {"raw": data}
+    
+    await broadcast_event(event_type, parsed_data)
+    return {"success": True, "event_type": event_type, "recipients": len(ws_manager.active_connections) + len(sse_connections)}
+
