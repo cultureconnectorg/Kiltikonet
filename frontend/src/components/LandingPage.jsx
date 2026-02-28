@@ -9,6 +9,7 @@ import {
   Mail, Instagram, Linkedin, Send, ChevronDown, Star
 } from 'lucide-react';
 import { toast } from 'sonner';
+import axios from 'axios';
 import { LegalFooter } from './legal';
 import { 
   useIntersectionObserver, 
