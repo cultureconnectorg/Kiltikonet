@@ -3357,6 +3357,165 @@ async def get_public_page(slug: str, tenant_id: str = DEFAULT_TENANT):
         raise HTTPException(status_code=404, detail="Page not found")
     return page
 
+# ================== MAP TERRITORIES API ==================
+DEFAULT_MAP_TERRITORIES = [
+    {"id": "martinique", "name": "Fort-de-France", "lat": 14.6, "lon": -61.0, "color": "#A65D47", "size": "primary", "label": "Martinique", "isCenter": True, "active": True},
+    {"id": "paris", "name": "Paris", "lat": 48.8, "lon": 2.3, "color": "#C8922A", "size": "large", "label": "Paris — Diaspora", "active": True},
+    {"id": "colombia", "name": "Bogotá", "lat": 4.7, "lon": -74.0, "color": "#C8922A", "size": "medium", "label": "Colombie", "active": True},
+    {"id": "haiti", "name": "Port-au-Prince", "lat": 18.9, "lon": -72.3, "color": "#A65D47", "size": "medium", "label": "Haïti", "opacity": 0.8, "active": True},
+    {"id": "senegal", "name": "Dakar", "lat": 14.7, "lon": -17.4, "color": "#C8922A", "size": "medium", "label": "Sénégal", "active": True},
+    {"id": "nigeria", "name": "Lagos", "lat": 6.5, "lon": 3.4, "color": "#C8922A", "size": "small", "label": "Nigeria", "active": True},
+    {"id": "guadeloupe", "name": "Guadeloupe", "lat": 16.2, "lon": -61.5, "color": "#A65D47", "size": "medium", "label": "Guadeloupe", "active": True},
+    {"id": "london", "name": "Londres", "lat": 51.5, "lon": -0.1, "color": "#FFFFFF", "size": "small", "label": "UK", "active": True},
+    {"id": "newyork", "name": "New York", "lat": 40.7, "lon": -74.0, "color": "#FFFFFF", "size": "small", "label": "USA", "active": True},
+    {"id": "brazil", "name": "Brasília", "lat": -15.7, "lon": -47.9, "color": "#C8922A", "size": "small", "label": "Brésil", "active": True},
+]
+
+@app.get("/api/cms/map-territories")
+async def get_map_territories(tenant_id: str = DEFAULT_TENANT):
+    """Get map territories configuration"""
+    config = await db.map_config.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    if not config or not config.get("territories"):
+        return {
+            "territories": DEFAULT_MAP_TERRITORIES,
+            "counter_text": "territoires connectés",
+            "animations_enabled": True,
+            "lines_enabled": True
+        }
+    
+    return config
+
+@app.post("/api/cms/map-territories")
+async def save_map_territories(config: MapConfig):
+    """Save map territories configuration"""
+    config_dict = config.model_dump()
+    config_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.map_config.update_one(
+        {"tenant_id": config.tenant_id},
+        {"$set": config_dict},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Configuration de la carte sauvegardée"}
+
+@app.post("/api/cms/map-territories/add")
+async def add_map_territory(territory: MapTerritory, tenant_id: str = DEFAULT_TENANT):
+    """Add a new territory to the map"""
+    config = await db.map_config.find_one({"tenant_id": tenant_id})
+    
+    if not config:
+        config = {
+            "tenant_id": tenant_id,
+            "territories": DEFAULT_MAP_TERRITORIES.copy(),
+            "counter_text": "territoires connectés",
+            "animations_enabled": True,
+            "lines_enabled": True
+        }
+    
+    territories = config.get("territories", [])
+    territories.append(territory.model_dump())
+    
+    await db.map_config.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {"territories": territories, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Territoire ajouté"}
+
+@app.delete("/api/cms/map-territories/{territory_id}")
+async def delete_map_territory(territory_id: str, tenant_id: str = DEFAULT_TENANT):
+    """Delete a territory from the map"""
+    config = await db.map_config.find_one({"tenant_id": tenant_id})
+    
+    if config and config.get("territories"):
+        territories = [t for t in config["territories"] if t.get("id") != territory_id]
+        await db.map_config.update_one(
+            {"tenant_id": tenant_id},
+            {"$set": {"territories": territories, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    
+    return {"success": True, "message": "Territoire supprimé"}
+
+# ================== SECTION BACKGROUNDS API ==================
+DEFAULT_SECTION_BACKGROUNDS = [
+    {"section_id": "hero", "background_type": "color", "color": "#F4F1EA", "overlay_opacity": 0, "active": True},
+    {"section_id": "vision", "background_type": "color", "color": "#F4F1EA", "overlay_opacity": 0, "active": True},
+    {"section_id": "diaspora", "background_type": "color", "color": "#1A1A1A", "overlay_opacity": 0, "active": True},
+    {"section_id": "programme", "background_type": "color", "color": "#F5F3EE", "overlay_opacity": 0, "active": True},
+    {"section_id": "partenaires", "background_type": "color", "color": "#F4F1EA", "overlay_opacity": 0, "active": True},
+    {"section_id": "cta", "background_type": "color", "color": "#1A1A1A", "overlay_opacity": 0, "active": True},
+]
+
+@app.get("/api/cms/site-config")
+async def get_site_config(tenant_id: str = DEFAULT_TENANT):
+    """Get global site configuration"""
+    config = await db.site_config.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    if not config:
+        return {
+            "tenant_id": tenant_id,
+            "animations_enabled": True,
+            "countdown_enabled": True,
+            "particles_enabled": True,
+            "map_lines_enabled": True,
+            "section_backgrounds": DEFAULT_SECTION_BACKGROUNDS
+        }
+    
+    return config
+
+@app.post("/api/cms/site-config")
+async def save_site_config(config: SiteConfig):
+    """Save global site configuration"""
+    config_dict = config.model_dump()
+    config_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.site_config.update_one(
+        {"tenant_id": config.tenant_id},
+        {"$set": config_dict},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Configuration du site sauvegardée"}
+
+@app.post("/api/cms/section-background")
+async def save_section_background(background: SectionBackground, tenant_id: str = DEFAULT_TENANT):
+    """Save or update a section background"""
+    config = await db.site_config.find_one({"tenant_id": tenant_id})
+    
+    if not config:
+        config = {
+            "tenant_id": tenant_id,
+            "animations_enabled": True,
+            "countdown_enabled": True,
+            "particles_enabled": True,
+            "map_lines_enabled": True,
+            "section_backgrounds": DEFAULT_SECTION_BACKGROUNDS.copy()
+        }
+    
+    backgrounds = config.get("section_backgrounds", [])
+    
+    # Update or add
+    updated = False
+    for i, bg in enumerate(backgrounds):
+        if bg.get("section_id") == background.section_id:
+            backgrounds[i] = background.model_dump()
+            updated = True
+            break
+    
+    if not updated:
+        backgrounds.append(background.model_dump())
+    
+    await db.site_config.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {"section_backgrounds": backgrounds, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Fond de section sauvegardé"}
+
 # ================== ANNUAL INTENTION API ==================
 DEFAULT_TERRITORY_MESSAGES = {
     "Martinique": "Ou ka vini.",
