@@ -2169,12 +2169,20 @@ const MapFondsSection = () => {
     isCenter: false,
     active: true
   });
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   const SIZE_OPTIONS = [
-    { value: 'primary', label: 'Principale (12px)', desc: 'Point central' },
-    { value: 'large', label: 'Grande (8px)', desc: 'Points importants' },
-    { value: 'medium', label: 'Moyenne (7px)', desc: 'Points standards' },
-    { value: 'small', label: 'Petite (6px)', desc: 'Points secondaires' },
+    { value: 'primary', label: 'Principale (centre)', desc: 'Point central du globe' },
+    { value: 'large', label: 'Grande', desc: 'Points importants' },
+    { value: 'medium', label: 'Moyenne', desc: 'Points standards' },
+    { value: 'small', label: 'Petite', desc: 'Points secondaires' },
+  ];
+
+  const COLOR_PRESETS = [
+    { value: '#A65D47', label: 'Terracotta (Caraïbes)' },
+    { value: '#C8922A', label: 'Doré (Afrique/Amérique Sud)' },
+    { value: '#FFFFFF', label: 'Blanc (Europe/USA)' },
+    { value: '#6B8E7B', label: 'Sage (Asie/Océanie)' },
   ];
 
   const SECTION_BACKGROUNDS = [
