@@ -58,19 +58,23 @@ export const Globe3D = () => {
   useEffect(() => {
     const loadTerritories = async () => {
       try {
-        const res = await axios.get(`${API}/api/cms/territories`);
+        const res = await axios.get(`${API}/api/cms/map-territories`);
         if (res.data?.territories?.length > 0) {
-          const converted = res.data.territories.map(t => ({
-            id: t.id || t.name.toLowerCase().replace(/\s/g, '-'),
-            name: t.name,
-            lat: t.lat,
-            lng: t.lon || t.lng,
-            color: t.color || '#C8922A',
-            size: typeof t.size === 'string' ? 0.4 : (t.size || 0.4),
-            label: t.label || t.name,
-            isCenter: t.isCenter || t.name === 'Fort-de-France' || t.name === 'Martinique'
-          }));
-          setTerritories(converted);
+          const converted = res.data.territories
+            .filter(t => t.active !== false) // Only active territories
+            .map(t => ({
+              id: t.id || t.name.toLowerCase().replace(/\s/g, '-'),
+              name: t.name,
+              lat: parseFloat(t.lat) || 0,
+              lng: parseFloat(t.lon || t.lng) || 0, // Accept both lon and lng
+              color: t.color || '#C8922A',
+              size: convertSize(t.size), // Convert size string to number
+              label: t.label || t.name,
+              isCenter: t.isCenter || t.name === 'Fort-de-France' || t.name === 'Martinique'
+            }));
+          if (converted.length > 0) {
+            setTerritories(converted);
+          }
         }
       } catch (err) {
         // Keep defaults
@@ -79,6 +83,18 @@ export const Globe3D = () => {
     };
     loadTerritories();
   }, []);
+
+  // Convert size string to numeric value
+  const convertSize = (size) => {
+    if (typeof size === 'number') return size;
+    switch (size) {
+      case 'primary': return 0.8;
+      case 'large': return 0.6;
+      case 'medium': return 0.45;
+      case 'small': return 0.35;
+      default: return 0.4;
+    }
+  };
 
   // Initialize globe position focused on Atlantic (Martinique region)
   useEffect(() => {
