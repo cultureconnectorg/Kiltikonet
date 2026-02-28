@@ -94,16 +94,14 @@ Dans /admin/cms :
 ### P0 (Immédiat)
 - ✅ Animations cinématiques sur toutes les pages - COMPLÉTÉ
 - ✅ Globe 3D interactif - COMPLÉTÉ
+- ✅ Interface CMS "Carte & Fonds" - COMPLÉTÉ
+- 🚀 **Déploiement en production**
 
 ### P1 (À venir)
-- Compléter l'interface CMS "Carte & Fonds"
-  - Gestion des territoires sur le globe (lat/lng, couleur, taille)
-  - Gestion des arrière-plans de sections
-  - Toggles d'animations
+- Configuration DNS kiltikonet.fr
+- Export PDF du programme officiel
 
 ### P2 (Futur)
-- Export PDF du programme officiel
-- Configuration DNS kiltikonet.fr
 - Extension white-label pour autres événements
 - Refactoring CMSAdmin.jsx (fichier > 2000 lignes)
 
