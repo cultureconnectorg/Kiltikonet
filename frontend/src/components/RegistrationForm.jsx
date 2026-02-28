@@ -445,11 +445,13 @@ export const RegistrationForm = () => {
                 </div>
               )}
             </div>
+          </Reveal>
           )}
 
           {currentStep === 3 && (
-            <div className="space-y-6">
-              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Objectifs & Réseautage' : 'Goals & Networking'}</h2>
+            <Reveal>
+              <div className="space-y-6" data-testid="registration-step-3">
+                <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Objectifs & Réseautage' : 'Goals & Networking'}</h2>
               
               {/* Expertise Tags - Multi-select */}
               <div>
