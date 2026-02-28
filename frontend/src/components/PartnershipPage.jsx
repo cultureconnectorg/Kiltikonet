@@ -261,18 +261,45 @@ export const PartnershipPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-paper pt-24 sm:pt-32">
+    <div className="min-h-screen bg-paper pt-24 sm:pt-32 overflow-hidden">
       {/* Hero */}
       <section className="py-16 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
+            <p 
+              className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4"
+              style={{
+                opacity: heroVisible ? 1 : 0,
+                transform: heroVisible ? 'translateX(0)' : 'translateX(-30px)',
+                transition: prefersReducedMotion 
+                  ? 'opacity 0.3s ease-out' 
+                  : 'opacity 0.5s ease-out, transform 0.5s ease-out',
+              }}
+            >
               {language === 'fr' ? 'Programme Partenaires' : 'Partners Program'}
             </p>
-            <h1 className="font-serif text-4xl sm:text-5xl text-charcoal mb-6">
+            <h1 
+              className="font-serif text-4xl sm:text-5xl text-charcoal mb-6"
+              style={{
+                opacity: heroVisible ? 1 : 0,
+                transform: heroVisible ? 'translateY(0)' : 'translateY(-30px)',
+                transition: prefersReducedMotion 
+                  ? 'opacity 0.3s ease-out' 
+                  : 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s',
+              }}
+            >
               {language === 'fr' ? 'Investissez dans l\'avenir de la culture caribéenne' : 'Invest in the future of Caribbean culture'}
             </h1>
-            <p className="text-charcoal/70 font-body text-lg">
+            <p 
+              className="text-charcoal/70 font-body text-lg"
+              style={{
+                opacity: heroVisible ? 1 : 0,
+                transform: heroVisible ? 'translateY(0)' : 'translateY(20px)',
+                transition: prefersReducedMotion 
+                  ? 'opacity 0.3s ease-out' 
+                  : 'opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s',
+              }}
+            >
               {language === 'fr'
                 ? 'Rejoignez les acteurs majeurs qui façonnent l\'industrie culturelle afro-descendante.'
                 : 'Join the major players shaping the Afro-descendant cultural industry.'
@@ -283,10 +310,7 @@ export const PartnershipPage = () => {
           {/* Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-16">
             {impactMetrics.map((m, i) => (
-              <div key={i} className="p-6 border border-lightborder bg-cream text-center">
-                <p className="font-serif text-3xl text-terracotta mb-1">{m.value}</p>
-                <p className="text-sm text-charcoal/60">{m.label}</p>
-              </div>
+              <MetricCard key={i} metric={m} index={i} />
             ))}
           </div>
         </div>
@@ -295,18 +319,16 @@ export const PartnershipPage = () => {
       {/* Benefits */}
       <section className="py-16 sm:py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-3xl text-charcoal">
-              {language === 'fr' ? 'Pourquoi devenir partenaire ?' : 'Why become a partner?'}
-            </h2>
-          </div>
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="font-serif text-3xl text-charcoal">
+                {language === 'fr' ? 'Pourquoi devenir partenaire ?' : 'Why become a partner?'}
+              </h2>
+            </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {benefits.map((b, i) => (
-              <div key={i} className="p-6 border border-lightborder bg-paper">
-                <b.icon className="w-8 h-8 text-sage mb-4" />
-                <h3 className="font-serif text-lg text-charcoal mb-2">{b.title}</h3>
-                <p className="text-sm text-charcoal/60">{b.desc}</p>
-              </div>
+              <BenefitCard key={i} benefit={b} index={i} />
             ))}
           </div>
         </div>
@@ -315,55 +337,23 @@ export const PartnershipPage = () => {
       {/* Tiers */}
       <section className="py-16 sm:py-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-3xl text-charcoal">
-              {language === 'fr' ? 'Formules Partenariat' : 'Partnership Packages'}
-            </h2>
-          </div>
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="font-serif text-3xl text-charcoal">
+                {language === 'fr' ? 'Formules Partenariat' : 'Partnership Packages'}
+              </h2>
+            </div>
+          </Reveal>
           <div className="grid lg:grid-cols-3 gap-6">
-            {Object.values(partnerTiersData).map((tier) => (
-              <div 
-                key={tier.id} 
-                className={`p-8 border bg-cream transition-all ${
-                  tier.popular ? 'border-terracotta' : 'border-lightborder'
-                } ${selectedTier === tier.id ? 'ring-2 ring-sage' : ''}`}
-              >
-                {tier.popular && (
-                  <p className="text-terracotta font-syne text-xs tracking-widest uppercase mb-4">
-                    {language === 'fr' ? 'Recommandé' : 'Recommended'}
-                  </p>
-                )}
-                <h3 className="font-serif text-2xl text-charcoal mb-2">
-                  {language === 'fr' ? tier.nameFr : tier.nameEn}
-                </h3>
-                <p className="font-serif text-3xl text-terracotta mb-2">
-                  {tier.price.toLocaleString('fr-FR')}€
-                </p>
-                <p className="text-sm text-sage mb-6">
-                  {tier.vip} {language === 'fr' ? 'accréditations VIP offertes' : 'complimentary VIP accreditations'}
-                </p>
-                <ul className="space-y-2 mb-6">
-                  {(language === 'fr' ? tier.featuresFr : tier.featuresEn).map((f, j) => (
-                    <li key={j} className="flex items-start gap-2 text-sm text-charcoal/70">
-                      <Check className="w-4 h-4 text-sage flex-shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={() => handleSelectTier(tier.id)}
-                  className={`w-full h-12 font-syne text-sm rounded-none ${
-                    selectedTier === tier.id 
-                      ? 'bg-sage text-paper' 
-                      : tier.popular 
-                        ? 'bg-terracotta text-paper hover:bg-terracotta/90' 
-                        : 'bg-charcoal text-paper hover:bg-charcoal/90'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Devenir partenaire' : 'Become a partner'}
-                </Button>
-              </div>
+            {Object.values(partnerTiersData).map((tier, index) => (
+              <TierCard 
+                key={tier.id}
+                tier={tier}
+                index={index}
+                selectedTier={selectedTier}
+                onSelect={handleSelectTier}
+                language={language}
+              />
             ))}
           </div>
         </div>
