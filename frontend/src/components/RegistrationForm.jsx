@@ -315,11 +315,13 @@ export const RegistrationForm = () => {
                 </div>
               </div>
             </div>
+          </Reveal>
           )}
 
           {currentStep === 2 && (
-            <div className="space-y-6">
-              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Activité professionnelle' : 'Professional Activity'}</h2>
+            <Reveal>
+              <div className="space-y-6" data-testid="registration-step-2">
+                <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Activité professionnelle' : 'Professional Activity'}</h2>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div>
                   <Label className="text-charcoal/70 text-sm">{t('organizationName')} *</Label>
