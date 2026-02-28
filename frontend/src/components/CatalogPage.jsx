@@ -278,12 +278,6 @@ export const CatalogPage = () => {
       }
     });
   };
-
-  // Calculate shared interests count
-  const getSharedInterestsCount = (participantTags, filterTags) => {
-    if (!participantTags || !filterTags || filterTags.length === 0) return 0;
-    return participantTags.filter(t => filterTags.includes(t)).length;
-  };
   
   // Smart Connect: Search by sector keyword
   const searchBySector = async (keyword) => {
