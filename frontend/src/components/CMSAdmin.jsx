@@ -2345,37 +2345,87 @@ const MapFondsSection = () => {
       {/* Territories Tab */}
       {activeTab === 'territories' && (
         <div className="space-y-6">
+          {/* Preview Banner */}
+          <div className="bg-charcoal/5 border border-charcoal/10 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center">
+                <Globe className="w-5 h-5 text-terracotta" />
+              </div>
+              <div>
+                <p className="font-medium text-charcoal">Globe 3D Interactif</p>
+                <p className="text-sm text-charcoal/60">Les modifications seront visibles après sauvegarde et rechargement de la page d'accueil</p>
+              </div>
+            </div>
+            <a 
+              href="/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-terracotta text-white rounded-lg text-sm flex items-center gap-2 hover:bg-terracotta/90"
+            >
+              <Eye className="w-4 h-4" />
+              Voir le globe
+            </a>
+          </div>
+
           {/* Territory List */}
           <div className="bg-paper border border-lightborder rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-charcoal">Points sur la carte ({territories.filter(t => t.active).length} actifs)</h3>
+              <h3 className="text-lg font-semibold text-charcoal">
+                Territoires ({territories.filter(t => t.active).length}/{territories.length} actifs)
+              </h3>
               <Button onClick={saveTerritories} disabled={saving} className="bg-terracotta text-white">
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Sauvegarder
               </Button>
             </div>
 
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            {/* Legend */}
+            <div className="flex gap-4 mb-4 text-xs text-charcoal/60 border-b border-lightborder pb-3">
+              <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-terracotta"></div> Couleur</span>
+              <span>Nom</span>
+              <span>Label (survol)</span>
+              <span>Lat</span>
+              <span>Lon</span>
+              <span>Taille</span>
+              <span>Statut</span>
+            </div>
+
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
               {territories.map((territory) => (
                 <div 
                   key={territory.id}
-                  className={`p-4 rounded-lg border transition-colors ${
+                  className={`p-4 rounded-lg border transition-all ${
                     territory.isCenter 
-                      ? 'bg-terracotta/10 border-terracotta' 
+                      ? 'bg-terracotta/10 border-terracotta shadow-sm' 
                       : territory.active 
-                        ? 'bg-cream border-lightborder' 
-                        : 'bg-charcoal/5 border-charcoal/20 opacity-60'
+                        ? 'bg-cream border-lightborder hover:border-sage' 
+                        : 'bg-charcoal/5 border-charcoal/10 opacity-60'
                   }`}
+                  data-testid={`territory-${territory.id}`}
                 >
-                  <div className="grid grid-cols-12 gap-3 items-center">
-                    {/* Color */}
+                  <div className="grid grid-cols-12 gap-2 items-center">
+                    {/* Color with presets */}
                     <div className="col-span-1">
-                      <input
-                        type="color"
-                        value={territory.color}
-                        onChange={(e) => updateTerritory(territory.id, 'color', e.target.value)}
-                        className="w-8 h-8 rounded cursor-pointer border-0"
-                      />
+                      <div className="relative group">
+                        <input
+                          type="color"
+                          value={territory.color}
+                          onChange={(e) => updateTerritory(territory.id, 'color', e.target.value)}
+                          className="w-8 h-8 rounded cursor-pointer border border-lightborder"
+                        />
+                        {/* Quick color presets on hover */}
+                        <div className="absolute left-0 top-full mt-1 hidden group-hover:flex gap-1 bg-white p-1 rounded shadow-lg z-10">
+                          {COLOR_PRESETS.map(c => (
+                            <button
+                              key={c.value}
+                              onClick={() => updateTerritory(territory.id, 'color', c.value)}
+                              className="w-5 h-5 rounded border border-lightborder hover:scale-110 transition-transform"
+                              style={{ backgroundColor: c.value }}
+                              title={c.label}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     {/* Name */}
                     <div className="col-span-2">
@@ -2383,29 +2433,38 @@ const MapFondsSection = () => {
                         value={territory.name}
                         onChange={(e) => updateTerritory(territory.id, 'name', e.target.value)}
                         placeholder="Nom"
-                        className="text-sm"
+                        className="text-sm h-8"
+                      />
+                    </div>
+                    {/* Label (for hover) */}
+                    <div className="col-span-2">
+                      <Input
+                        value={territory.label || ''}
+                        onChange={(e) => updateTerritory(territory.id, 'label', e.target.value)}
+                        placeholder="Label survol"
+                        className="text-sm h-8 text-charcoal/70"
                       />
                     </div>
                     {/* Lat */}
-                    <div className="col-span-2">
+                    <div className="col-span-1">
                       <Input
                         type="number"
                         step="0.1"
                         value={territory.lat}
                         onChange={(e) => updateTerritory(territory.id, 'lat', parseFloat(e.target.value))}
                         placeholder="Lat"
-                        className="text-sm font-mono"
+                        className="text-sm font-mono h-8"
                       />
                     </div>
                     {/* Lon */}
-                    <div className="col-span-2">
+                    <div className="col-span-1">
                       <Input
                         type="number"
                         step="0.1"
                         value={territory.lon}
                         onChange={(e) => updateTerritory(territory.id, 'lon', parseFloat(e.target.value))}
                         placeholder="Lon"
-                        className="text-sm font-mono"
+                        className="text-sm font-mono h-8"
                       />
                     </div>
                     {/* Size */}
@@ -2413,26 +2472,28 @@ const MapFondsSection = () => {
                       <select
                         value={territory.size}
                         onChange={(e) => updateTerritory(territory.id, 'size', e.target.value)}
-                        className="w-full px-2 py-1.5 border border-lightborder rounded text-sm"
+                        className="w-full px-2 py-1 border border-lightborder rounded text-sm h-8"
                       >
                         {SIZE_OPTIONS.map(opt => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
-                    {/* Active */}
+                    {/* Active + Center badge */}
                     <div className="col-span-2 flex items-center gap-2">
-                      <label className="flex items-center gap-2 text-sm">
+                      <label className="flex items-center gap-1.5 text-sm cursor-pointer">
                         <input
                           type="checkbox"
                           checked={territory.active}
                           onChange={(e) => updateTerritory(territory.id, 'active', e.target.checked)}
-                          className="rounded"
+                          className="rounded text-sage"
                         />
-                        Actif
+                        <span className={territory.active ? 'text-sage' : 'text-charcoal/40'}>Actif</span>
                       </label>
                       {territory.isCenter && (
-                        <span className="text-xs text-terracotta font-medium">CENTRE</span>
+                        <span className="px-2 py-0.5 bg-terracotta text-white text-xs rounded font-medium">
+                          CENTRE
+                        </span>
                       )}
                     </div>
                     {/* Delete */}
@@ -2440,7 +2501,8 @@ const MapFondsSection = () => {
                       {!territory.isCenter && (
                         <button
                           onClick={() => deleteTerritory(territory.id)}
-                          className="p-1 hover:bg-red-50 rounded"
+                          className="p-1.5 hover:bg-red-50 rounded transition-colors"
+                          title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
@@ -2456,47 +2518,87 @@ const MapFondsSection = () => {
           <div className="bg-sage/10 border border-sage/30 rounded-xl p-6">
             <h4 className="font-semibold text-charcoal mb-4 flex items-center gap-2">
               <Plus className="w-4 h-4 text-sage" />
-              Ajouter un territoire
+              Ajouter un nouveau territoire
             </h4>
-            <div className="grid grid-cols-6 gap-3">
-              <Input
-                value={newTerritory.id}
-                onChange={(e) => setNewTerritory({ ...newTerritory, id: e.target.value.toLowerCase().replace(/\s/g, '-') })}
-                placeholder="ID (ex: brasil)"
-                className="col-span-1"
-              />
-              <Input
-                value={newTerritory.name}
-                onChange={(e) => setNewTerritory({ ...newTerritory, name: e.target.value })}
-                placeholder="Nom affiché (ex: Brasília)"
-                className="col-span-1"
-              />
-              <Input
-                type="number"
-                step="0.1"
-                value={newTerritory.lat || ''}
-                onChange={(e) => setNewTerritory({ ...newTerritory, lat: parseFloat(e.target.value) || 0 })}
-                placeholder="Latitude"
-                className="col-span-1 font-mono"
-              />
-              <Input
-                type="number"
-                step="0.1"
-                value={newTerritory.lon || ''}
-                onChange={(e) => setNewTerritory({ ...newTerritory, lon: parseFloat(e.target.value) || 0 })}
-                placeholder="Longitude"
-                className="col-span-1 font-mono"
-              />
-              <input
-                type="color"
-                value={newTerritory.color}
-                onChange={(e) => setNewTerritory({ ...newTerritory, color: e.target.value })}
-                className="w-full h-10 rounded cursor-pointer"
-              />
-              <Button onClick={addTerritory} className="bg-sage text-white">
+            <div className="grid grid-cols-7 gap-3 items-end">
+              <div>
+                <label className="block text-xs text-charcoal/60 mb-1">ID unique</label>
+                <Input
+                  value={newTerritory.id}
+                  onChange={(e) => setNewTerritory({ ...newTerritory, id: e.target.value.toLowerCase().replace(/\s/g, '-') })}
+                  placeholder="ex: jamaica"
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-charcoal/60 mb-1">Nom (ville)</label>
+                <Input
+                  value={newTerritory.name}
+                  onChange={(e) => setNewTerritory({ ...newTerritory, name: e.target.value })}
+                  placeholder="ex: Kingston"
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-charcoal/60 mb-1">Label (pays)</label>
+                <Input
+                  value={newTerritory.label}
+                  onChange={(e) => setNewTerritory({ ...newTerritory, label: e.target.value })}
+                  placeholder="ex: Jamaïque"
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-charcoal/60 mb-1">Latitude</label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={newTerritory.lat || ''}
+                  onChange={(e) => setNewTerritory({ ...newTerritory, lat: parseFloat(e.target.value) || 0 })}
+                  placeholder="18.0"
+                  className="text-sm font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-charcoal/60 mb-1">Longitude</label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={newTerritory.lon || ''}
+                  onChange={(e) => setNewTerritory({ ...newTerritory, lon: parseFloat(e.target.value) || 0 })}
+                  placeholder="-76.8"
+                  className="text-sm font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-charcoal/60 mb-1">Couleur</label>
+                <div className="flex gap-1">
+                  <input
+                    type="color"
+                    value={newTerritory.color}
+                    onChange={(e) => setNewTerritory({ ...newTerritory, color: e.target.value })}
+                    className="w-10 h-9 rounded cursor-pointer border border-lightborder"
+                  />
+                  <div className="flex gap-0.5">
+                    {COLOR_PRESETS.map(c => (
+                      <button
+                        key={c.value}
+                        onClick={() => setNewTerritory({ ...newTerritory, color: c.value })}
+                        className="w-4 h-9 rounded border border-lightborder hover:scale-105 transition-transform"
+                        style={{ backgroundColor: c.value }}
+                        title={c.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Button onClick={addTerritory} className="bg-sage text-white h-9">
                 <Plus className="w-4 h-4 mr-1" /> Ajouter
               </Button>
             </div>
+            <p className="text-xs text-charcoal/50 mt-3">
+              💡 Astuce: Utilisez <a href="https://www.latlong.net/" target="_blank" rel="noopener noreferrer" className="text-sage underline">latlong.net</a> pour trouver les coordonnées d'une ville
+            </p>
           </div>
         </div>
       )}
