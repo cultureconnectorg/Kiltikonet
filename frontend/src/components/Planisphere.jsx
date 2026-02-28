@@ -73,18 +73,18 @@ export const Planisphere = () => {
       try {
         const res = await axios.get(`${API}/api/cms/map-territories`);
         if (res.data?.territories?.length > 0) {
-          // Convert and validate territory data
-          const converted = res.data.territories.map(t => ({
-            ...t,
-            x: typeof t.x === 'number' ? t.x : parseFloat(t.x) || 400,
-            y: typeof t.y === 'number' ? t.y : parseFloat(t.y) || 200,
-            size: getSize(t.size),
-            active: t.active !== false
-          }));
-          // Only use if valid
-          if (converted.every(t => !isNaN(t.x) && !isNaN(t.y))) {
+          // Check if data has x/y coordinates (SVG format)
+          const firstTerritory = res.data.territories[0];
+          if (typeof firstTerritory.x === 'number' && typeof firstTerritory.y === 'number') {
+            // Data is in SVG format, use it
+            const converted = res.data.territories.map(t => ({
+              ...t,
+              size: getSize(t.size),
+              active: t.active !== false
+            }));
             setTerritories(converted);
           }
+          // Otherwise keep the default territories with x/y positions
         }
       } catch (err) {
         // Keep defaults
