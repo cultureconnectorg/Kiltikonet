@@ -303,13 +303,14 @@ export const Planisphere = () => {
                   className="cursor-pointer"
                   onMouseEnter={() => setHoveredTerritory(territory.id)}
                   onMouseLeave={() => setHoveredTerritory(null)}
+                  style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
                 >
                   {/* Pulsing ring for center */}
                   {territory.isCenter && (
                     <>
                       <circle
-                        cx={pos.x}
-                        cy={pos.y}
+                        cx={0}
+                        cy={0}
                         r={size}
                         fill="none"
                         stroke={territory.color}
@@ -318,8 +319,8 @@ export const Planisphere = () => {
                         className="animate-ping-slow"
                       />
                       <circle
-                        cx={pos.x}
-                        cy={pos.y}
+                        cx={0}
+                        cy={0}
                         r={size * 1.5}
                         fill="none"
                         stroke={territory.color}
@@ -332,8 +333,8 @@ export const Planisphere = () => {
                   
                   {/* Main dot */}
                   <circle
-                    cx={pos.x}
-                    cy={pos.y}
+                    cx={0}
+                    cy={0}
                     r={isHovered ? size * 1.5 : size}
                     fill={territory.color}
                     opacity={territory.opacity || 1}
@@ -346,8 +347,8 @@ export const Planisphere = () => {
                   {/* Label - always visible for center, on hover for others */}
                   {(territory.isCenter || isHovered || !isMobile) && (
                     <text
-                      x={pos.x}
-                      y={pos.y + size + 12}
+                      x={0}
+                      y={size + 12}
                       textAnchor="middle"
                       fill={territory.isCenter ? '#A65D47' : '#F4F1EA80'}
                       fontSize={territory.isCenter ? '11' : '9'}
@@ -366,8 +367,8 @@ export const Planisphere = () => {
                   {isHovered && !territory.isCenter && (
                     <g>
                       <rect
-                        x={pos.x - 45}
-                        y={pos.y - size - 35}
+                        x={-45}
+                        y={-size - 35}
                         width="90"
                         height="25"
                         rx="3"
@@ -376,8 +377,8 @@ export const Planisphere = () => {
                         strokeWidth="1"
                       />
                       <text
-                        x={pos.x}
-                        y={pos.y - size - 18}
+                        x={0}
+                        y={-size - 18}
                         textAnchor="middle"
                         fill="#FFFFFF"
                         fontSize="10"
