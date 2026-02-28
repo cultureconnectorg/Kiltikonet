@@ -18,18 +18,18 @@ const getSize = (size) => {
   return SIZE_MAP[size] || 8;
 };
 
-// Default territories with fixed SVG positions (not geographic)
+// Default territories with fixed SVG positions - adjusted to match continent shapes
 const DEFAULT_TERRITORIES = [
-  { id: 'martinique', name: 'Fort-de-France', x: 280, y: 180, color: '#A65D47', size: 14, label: 'Martinique', isCenter: true, active: true },
-  { id: 'paris', name: 'Paris', x: 480, y: 85, color: '#C8922A', size: 9, label: 'Paris — Diaspora', active: true },
-  { id: 'colombia', name: 'Bogotá', x: 240, y: 220, color: '#C8922A', size: 8, label: 'Colombie', active: true },
-  { id: 'haiti', name: 'Port-au-Prince', x: 265, y: 165, color: '#A65D47', size: 8, label: 'Haïti', active: true },
-  { id: 'senegal', name: 'Dakar', x: 420, y: 175, color: '#C8922A', size: 8, label: 'Sénégal', active: true },
-  { id: 'nigeria', name: 'Lagos', x: 475, y: 210, color: '#C8922A', size: 7, label: 'Nigeria', active: true },
-  { id: 'guadeloupe', name: 'Guadeloupe', x: 290, y: 170, color: '#A65D47', size: 7, label: 'Guadeloupe', active: true },
-  { id: 'london', name: 'Londres', x: 465, y: 70, color: '#FFFFFF', size: 7, label: 'UK', active: true },
-  { id: 'newyork', name: 'New York', x: 220, y: 110, color: '#FFFFFF', size: 7, label: 'USA', active: true },
-  { id: 'brazil', name: 'Brasília', x: 330, y: 290, color: '#C8922A', size: 7, label: 'Brésil', active: true },
+  { id: 'martinique', name: 'Fort-de-France', x: 280, y: 195, color: '#A65D47', size: 14, label: 'Martinique', isCenter: true, active: true },
+  { id: 'paris', name: 'Paris', x: 485, y: 95, color: '#C8922A', size: 9, label: 'Paris — Diaspora', active: true },
+  { id: 'colombia', name: 'Bogotá', x: 260, y: 245, color: '#C8922A', size: 8, label: 'Colombie', active: true },
+  { id: 'haiti', name: 'Port-au-Prince', x: 270, y: 185, color: '#A65D47', size: 8, label: 'Haïti', active: true },
+  { id: 'senegal', name: 'Dakar', x: 430, y: 190, color: '#C8922A', size: 8, label: 'Sénégal', active: true },
+  { id: 'nigeria', name: 'Lagos', x: 480, y: 225, color: '#C8922A', size: 7, label: 'Nigeria', active: true },
+  { id: 'guadeloupe', name: 'Guadeloupe', x: 285, y: 180, color: '#A65D47', size: 7, label: 'Guadeloupe', active: true },
+  { id: 'london', name: 'Londres', x: 465, y: 80, color: '#FFFFFF', size: 7, label: 'UK', active: true },
+  { id: 'newyork', name: 'New York', x: 225, y: 125, color: '#FFFFFF', size: 7, label: 'USA', active: true },
+  { id: 'brazil', name: 'Brasília', x: 320, y: 295, color: '#C8922A', size: 7, label: 'Brésil', active: true },
 ];
 
 // Simplified world map - just outlines for visual effect
