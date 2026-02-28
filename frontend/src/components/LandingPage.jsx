@@ -17,7 +17,8 @@ import {
   StaggerContainer,
   AnimatedNumber 
 } from '../hooks/useAnimations';
-import { ConvergenceMap, ParticleBackground, Countdown } from './CinematicElements';
+import { ParticleBackground, Countdown } from './CinematicElements';
+import { Planisphere } from './Planisphere';
 
 export const LandingPage = () => {
   const { language } = useLanguage();
@@ -281,8 +282,8 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* ═══════════ MOMENT 3 — LA CONVERGENCE ═══════════ */}
-      <ConvergenceMap />
+      {/* ═══════════ MOMENT 3 — LA DIASPORA SE RASSEMBLE ═══════════ */}
+      <Planisphere />
 
       {/* ═══════════ MOMENT 4 — LE COMPTE À REBOURS ═══════════ */}
       <Countdown targetDate="2026-05-22T00:00:00" />
