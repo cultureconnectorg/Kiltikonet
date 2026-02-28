@@ -653,6 +653,9 @@ const PartnersCarousel = ({ language }) => {
                 <img 
                   src={partner.logo_url} 
                   alt={partner.name}
+                  loading="lazy"
+                  decoding="async"
+                  fetchpriority="low"
                   className="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
                 />
               ) : (
