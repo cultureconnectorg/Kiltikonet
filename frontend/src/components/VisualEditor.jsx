@@ -522,10 +522,11 @@ const VisualEditor = () => {
               )}
               <iframe
                 ref={iframeRef}
-                src={`${window.location.origin}${currentPage.path}?ve=1`}
+                src={`${window.location.origin}${currentPage.path}?ve=1&skip_intro=1`}
                 className="w-full h-full border-0"
                 onLoad={handleIframeLoad}
                 title="Apercu du site"
+                sandbox="allow-same-origin allow-scripts allow-forms"
               />
             </div>
           </div>
