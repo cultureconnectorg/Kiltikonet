@@ -2241,6 +2241,7 @@ const CMSAdmin = () => {
         {activeSection === 'design' && <DesignSection />}
         {activeSection === 'content' && <ContentSection />}
         {activeSection === 'pages' && <PagesSection />}
+        {activeSection === 'mapfonds' && <MapFondsSection />}
         {activeSection === 'intention' && <IntentionSection />}
         {activeSection === 'preview' && <PreviewSection />}
       </div>
