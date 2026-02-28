@@ -208,14 +208,33 @@ export const RegistrationForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-paper pt-24 sm:pt-32">
+    <div className="min-h-screen bg-paper pt-24 sm:pt-32 overflow-hidden">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-10">
-          <button onClick={() => navigate('/pricing')} className="flex items-center gap-2 text-charcoal/50 hover:text-terracotta mb-6">
+          <button 
+            onClick={() => navigate('/pricing')} 
+            className="flex items-center gap-2 text-charcoal/50 hover:text-terracotta mb-6"
+            style={{
+              opacity: headerVisible ? 1 : 0,
+              transform: headerVisible ? 'translateX(0)' : 'translateX(-20px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.3s ease-out' 
+                : 'opacity 0.4s ease-out, transform 0.4s ease-out',
+            }}
+          >
             <ArrowLeft className="w-4 h-4" /> {language === 'fr' ? 'Retour aux formules' : 'Back to pricing'}
           </button>
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div 
+            className="flex items-center justify-between flex-wrap gap-4"
+            style={{
+              opacity: headerVisible ? 1 : 0,
+              transform: headerVisible ? 'translateY(0)' : 'translateY(-20px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.3s ease-out' 
+                : 'opacity 0.5s ease-out 0.15s, transform 0.5s ease-out 0.15s',
+            }}
+          >
             <div>
               <h1 className="font-serif text-2xl sm:text-3xl text-charcoal">{t('accreditationForm')}</h1>
               <p className="text-charcoal/50 mt-1">{t('formSubtitle')}</p>
@@ -228,7 +247,16 @@ export const RegistrationForm = () => {
         </div>
         
         {/* Stepper */}
-        <div className="flex items-center justify-between mb-12 border-b border-lightborder pb-6">
+        <div 
+          className="flex items-center justify-between mb-12 border-b border-lightborder pb-6"
+          style={{
+            opacity: headerVisible ? 1 : 0,
+            transform: headerVisible ? 'translateY(0)' : 'translateY(20px)',
+            transition: prefersReducedMotion 
+              ? 'opacity 0.3s ease-out' 
+              : 'opacity 0.5s ease-out 0.3s, transform 0.5s ease-out 0.3s',
+          }}
+        >
           {steps.map((step, index) => (
             <React.Fragment key={step.id}>
               <div className="flex flex-col items-center gap-2">
@@ -249,8 +277,9 @@ export const RegistrationForm = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
           {currentStep === 1 && (
-            <div className="space-y-6">
-              <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Informations personnelles' : 'Personal Information'}</h2>
+            <Reveal>
+              <div className="space-y-6" data-testid="registration-step-1">
+                <h2 className="font-serif text-xl text-charcoal mb-6">{language === 'fr' ? 'Informations personnelles' : 'Personal Information'}</h2>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div>
                   <Label className="text-charcoal/70 text-sm">{t('fullName')} *</Label>
