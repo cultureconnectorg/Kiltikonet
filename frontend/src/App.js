@@ -19,6 +19,8 @@ import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner }
 import SmartEngineDashboard from "./components/SmartEngineDashboard";
 // CMS Admin
 import CMSAdmin from "./components/CMSAdmin";
+// Visual Editor
+import VisualEditor from "./components/VisualEditor";
 // Dynamic Pages
 import DynamicPage from "./components/DynamicPage";
 // Program Page
