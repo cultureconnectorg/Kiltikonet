@@ -3778,4 +3778,62 @@ async def create_indexes():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    # Clean up SSE connections
+    for queue in sse_connections:
+        await queue.put(None)
+    sse_connections.clear()
     client.close()
+
+# ================== REAL-TIME SYNC ENDPOINT (SSE) ==================
+
+@app.get("/api/realtime/events")
+async def realtime_events(request: Request):
+    """
+    Server-Sent Events endpoint for real-time synchronization.
+    Clients connect here to receive live updates when data changes.
+    """
+    async def event_generator():
+        queue = asyncio.Queue()
+        sse_connections.append(queue)
+        logger.info(f"🔗 New SSE connection. Total: {len(sse_connections)}")
+        
+        try:
+            # Send initial connection confirmation
+            yield f"data: {json.dumps({'event_type': 'connected', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+            
+            while True:
+                # Check if client disconnected
+                if await request.is_disconnected():
+                    break
+                
+                try:
+                    # Wait for event with timeout (keepalive)
+                    event = await asyncio.wait_for(queue.get(), timeout=30.0)
+                    if event is None:
+                        break
+                    yield f"data: {json.dumps(event)}\n\n"
+                except asyncio.TimeoutError:
+                    # Send keepalive ping
+                    yield f"data: {json.dumps({'event_type': 'ping', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+        finally:
+            if queue in sse_connections:
+                sse_connections.remove(queue)
+            logger.info(f"🔌 SSE connection closed. Remaining: {len(sse_connections)}")
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.get("/api/realtime/status")
+async def realtime_status():
+    """Get the status of real-time connections"""
+    return {
+        "active_connections": len(sse_connections),
+        "status": "active"
+    }
