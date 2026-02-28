@@ -296,6 +296,9 @@ export const Planisphere = () => {
               const pos = geoToSvg(territory.lat, territory.lon, svgWidth, svgHeight);
               const size = SIZE_MAP[territory.size] || 7;
               const isHovered = hoveredTerritory === territory.id;
+              
+              // Debug: ensure valid coordinates
+              if (isNaN(pos.x) || isNaN(pos.y)) return null;
 
               return (
                 <g 
@@ -303,86 +306,78 @@ export const Planisphere = () => {
                   className="cursor-pointer"
                   onMouseEnter={() => setHoveredTerritory(territory.id)}
                   onMouseLeave={() => setHoveredTerritory(null)}
-                  style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
                 >
                   {/* Pulsing ring for center */}
                   {territory.isCenter && (
                     <>
                       <circle
-                        cx={0}
-                        cy={0}
+                        cx={pos.x}
+                        cy={pos.y}
                         r={size}
                         fill="none"
                         stroke={territory.color}
                         strokeWidth="2"
-                        opacity="0.6"
                         className="animate-ping-slow"
+                        style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
                       />
                       <circle
-                        cx={0}
-                        cy={0}
-                        r={size * 1.5}
+                        cx={pos.x}
+                        cy={pos.y}
+                        r={size * 1.8}
                         fill="none"
                         stroke={territory.color}
                         strokeWidth="1"
-                        opacity="0.3"
                         className="animate-ping-slower"
+                        style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
                       />
                     </>
                   )}
                   
                   {/* Main dot */}
                   <circle
-                    cx={0}
-                    cy={0}
+                    cx={pos.x}
+                    cy={pos.y}
                     r={isHovered ? size * 1.5 : size}
                     fill={territory.color}
                     opacity={territory.opacity || 1}
                     style={{ 
-                      transition: 'r 0.3s ease-out',
-                      filter: territory.isCenter ? `drop-shadow(0 0 8px ${territory.color}80)` : 'none'
+                      filter: territory.isCenter ? `drop-shadow(0 0 10px ${territory.color})` : `drop-shadow(0 0 4px ${territory.color}60)`
                     }}
                   />
 
-                  {/* Label - always visible for center, on hover for others */}
-                  {(territory.isCenter || isHovered || !isMobile) && (
-                    <text
-                      x={0}
-                      y={size + 12}
-                      textAnchor="middle"
-                      fill={territory.isCenter ? '#A65D47' : '#F4F1EA80'}
-                      fontSize={territory.isCenter ? '11' : '9'}
-                      fontFamily="inherit"
-                      className="pointer-events-none"
-                      style={{
-                        opacity: territory.isCenter || isHovered ? 1 : 0.6,
-                        transition: 'opacity 0.3s ease-out'
-                      }}
-                    >
-                      {territory.name}
-                    </text>
-                  )}
+                  {/* Label */}
+                  <text
+                    x={pos.x}
+                    y={pos.y + size + 14}
+                    textAnchor="middle"
+                    fill={territory.isCenter ? '#A65D47' : '#F4F1EA'}
+                    fontSize={territory.isCenter ? '12' : '10'}
+                    fontWeight={territory.isCenter ? 'bold' : 'normal'}
+                    className="pointer-events-none"
+                    style={{ opacity: territory.isCenter || isHovered ? 1 : 0.7 }}
+                  >
+                    {territory.name}
+                  </text>
 
                   {/* Tooltip on hover */}
                   {isHovered && !territory.isCenter && (
                     <g>
                       <rect
-                        x={-45}
-                        y={-size - 35}
-                        width="90"
-                        height="25"
-                        rx="3"
+                        x={pos.x - 50}
+                        y={pos.y - size - 32}
+                        width="100"
+                        height="24"
+                        rx="4"
                         fill="#1A1A1A"
                         stroke="#A65D47"
                         strokeWidth="1"
                       />
                       <text
-                        x={0}
-                        y={-size - 18}
+                        x={pos.x}
+                        y={pos.y - size - 15}
                         textAnchor="middle"
                         fill="#FFFFFF"
                         fontSize="10"
-                        fontFamily="inherit"
                       >
                         {territory.name} · {territory.label}
                       </text>
