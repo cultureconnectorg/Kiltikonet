@@ -1,95 +1,102 @@
-# KiltiKonet Smart Engine — PRD v3.4
+# KiltiKonet Smart Engine — PRD v3.5
 
 ## Vision 2026-2031
 Infrastructure de données stratégique pour les marchés culturels afro-diasporiques.
 
 ---
 
-## Ce qui a été implémenté (Sessions précédentes + actuelle)
+## Ce qui a été implémenté
 
-### 1. Expérience Cinématique — TOUTES LES PAGES PUBLIQUES ✅
-L'ensemble des pages publiques utilise maintenant les animations de scroll :
+### 1. 🔄 SYNCHRONISATION BIDIRECTIONNELLE TEMPS RÉEL ✅ (28/02/2026)
 
-**Pages avec expérience cinématique complète :**
-- **Landing Page (/)** : Hero, stats, countdown, programme, partenaires, CTA, contact
-- **Programme (/programme)** : Timeline, day cards, slots animés
-- **Pricing (/pricing)** : Hero, pricing cards avec hover
-- **Partnership (/partnership)** : Hero, métriques, avantages, formules partenariat
-- **Catalog (/catalog)** : Header animé, participant cards avec hover
-- **Registration (/inscription)** : Header, stepper, formulaire multi-étapes
+**Architecture Atomic Realtime Connected :**
 
-### 2. Globe 3D Interactif ✅
-- Globe terrestre avec texture réaliste
-- 10 territoires avec arcs animés vers Martinique
-- Interaction utilisateur : rotation, zoom, survol
-- Bibliothèque : react-globe.gl
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    BIDIRECTIONAL SYNC                           │
+│                                                                 │
+│   CMS Admin ◄──────► WebSocket Server ◄──────► Public Site     │
+│       │                    │                       │            │
+│       │              ┌─────┴─────┐                │            │
+│       │              │  MongoDB  │                │            │
+│       │              └───────────┘                │            │
+│       │                    │                       │            │
+│   Dashboard ◄─────────────┴───────────────► Globe 3D           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### 3. 🔄 Synchronisation Temps Réel ✅ (28/02/2026) - NOUVEAU
-**Toute modification se propage automatiquement en temps réel !**
-
-**Architecture SSE (Server-Sent Events) :**
-- Endpoint `/api/realtime/events` - connexion persistante
-- Endpoint `/api/realtime/status` - monitoring
-- Hook React `useRealtime()` - écoute des événements
+**Endpoints :**
+| Endpoint | Type | Description |
+|----------|------|-------------|
+| `/api/ws/sync` | WebSocket | Connexion bidirectionnelle |
+| `/api/realtime/events` | SSE | Fallback unidirectionnel |
+| `/api/realtime/status` | GET | Monitoring des connexions |
+| `/api/realtime/broadcast` | POST | Broadcast manuel |
 
 **Événements propagés :**
-| Événement | Déclencheur | Résultat |
-|-----------|-------------|----------|
-| `territories_updated` | Modification CMS globe | Globe se rafraîchit auto |
-| `cms_content_updated` | Modification contenu | Pages mises à jour |
-| `theme_updated` | Modification design | Thème appliqué |
-| `intention_updated` | Modification intro | Intro mise à jour |
-| `registration_created` | Nouvelle inscription | Dashboard notifié |
+- `territories_updated` → Globe 3D se rafraîchit
+- `cms_content_updated` → Pages mises à jour
+- `theme_updated` → Design appliqué
+- `intention_updated` → Intro sequence
+- `registration_created` → Dashboard admin
 
-**Indicateur visuel :** Pastille verte "Live" sur le globe
+**Hooks React :**
+- `useBidirectionalSync()` - Connexion WebSocket + subscriptions
+- `useRealtimeRefetch()` - Auto-refetch sur événement
+- `useCMSSync()` - Sync spécifique CMS
+
+**Indicateurs visuels :**
+- Badge "Live Sync" dans le header CMS (vert = connecté)
+- Badge "Live" sous le compteur du Globe 3D
+- Nombre de clients connectés affiché
+
+### 2. Expérience Cinématique — TOUTES LES PAGES ✅
+Animations scroll sur : Landing, Programme, Pricing, Partnership, Catalog, Registration
+
+### 3. Globe 3D Interactif ✅
+- 10 territoires avec arcs animés vers Martinique
+- Synchronisation temps réel des modifications CMS
+- react-globe.gl (Three.js/WebGL)
 
 ### 4. CMS Complet ✅
-- **Carte & Fonds** : Gestion territoires globe (lat/lon, couleur, taille)
-- **Design** : Thème, couleurs, typographie
-- **Contenu** : Programme structuré
-- **Intention** : Intro sequence (NOU.)
+10 onglets : Médias, Profils, Intervenants, Partenaires, Design, Contenu, Pages, Carte & Fonds, Intention, Aperçu
 
-### 5. Intro Sequence "Ancestrale" ✅
-Séquence première visite avec 6 étapes immersives
+### 5. Bannière Cookies ✅
+- Accepter/Refuser/Fermer sauvegarde le choix
+- Ne réapparaît plus après action
 
 ---
 
 ## Architecture Technique
 
 ### Stack
-- **Backend**: FastAPI Python + SSE temps réel
+- **Backend**: FastAPI + WebSocket + SSE
 - **Frontend**: React + Tailwind CSS
 - **Database**: MongoDB
-- **3D**: react-globe.gl (Three.js/WebGL)
-- **Media**: Cloudinary
+- **3D**: react-globe.gl
+- **Real-time**: WebSocket bidirectionnel
 
-### Nouveaux composants
-- `/frontend/src/hooks/useRealtime.js` - Hook SSE temps réel
+### Fichiers clés temps réel
+- `/backend/server.py` - ConnectionManager, WebSocket endpoint
+- `/frontend/src/hooks/useRealtime.js` - useBidirectionalSync hook
 - `/frontend/src/components/Globe3D.jsx` - Globe avec sync live
+- `/frontend/src/components/CMSAdmin.jsx` - CMS avec indicator Live Sync
 
 ---
 
-## Prochaines Étapes
+## Accès
 
-### ✅ COMPLÉTÉ
-- Animations cinématiques toutes pages
-- Globe 3D interactif
-- Interface CMS "Carte & Fonds"
-- **Synchronisation temps réel**
-
-### 🚀 Déploiement
-Prêt pour la production !
-
-### P1 (Après déploiement)
-- Configuration DNS kiltikonet.fr
-- Export PDF programme
+| URL | Page | Mot de passe |
+|-----|------|--------------|
+| `/admin` | Dashboard | CC2026admin |
+| `/admin/cms` | CMS complet | CC2026admin |
 
 ---
 
-## Accès Admin
+## 🚀 PRÊT POUR LE DÉPLOIEMENT
 
-- **URL CMS**: `/admin/cms`
-- **Mot de passe**: `CC2026admin`
+Toutes les fonctionnalités sont implémentées et testées.
 
 ---
 
