@@ -1,0 +1,10 @@
+# Culture Connect 2026 Security Information
+# https://securitytxt.org/
+
+Contact: mailto:cultureconnectorg@gmail.com
+Preferred-Languages: fr, en
+Canonical: https://cultureconnect2026.fr/.well-known/security.txt
+Expires: 2027-05-23T23:00:00.000Z
+
+# Si vous découvrez une vulnérabilité de sécurité, merci de nous contacter
+# de manière responsable à l'adresse ci-dessus.
