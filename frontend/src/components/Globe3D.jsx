@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import Globe from 'react-globe.gl';
 import { useIntersectionObserver, useCountUp } from '../hooks/useAnimations';
-import { useRealtime } from '../hooks/useRealtime';
+import { useBidirectionalSync } from '../hooks/useRealtime';
 import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
