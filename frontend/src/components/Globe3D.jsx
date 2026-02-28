@@ -30,8 +30,8 @@ export const Globe3D = () => {
   const [globeReady, setGlobeReady] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 500 });
   
-  // 🔄 Real-time sync
-  const { subscribe, isConnected } = useRealtime();
+  // 🔄 Bidirectional Real-time sync
+  const { subscribe, isConnected, connectionCount } = useBidirectionalSync();
 
   // Martinique center point
   const center = useMemo(() => 
