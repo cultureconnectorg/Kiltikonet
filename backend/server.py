@@ -3075,6 +3075,9 @@ async def update_cms_theme(theme: CMSTheme):
         upsert=True
     )
     
+    # 🔄 Broadcast real-time update
+    await broadcast_event("theme_updated", {"tenant_id": theme.tenant_id})
+    
     return {"success": True, "message": "Thème mis à jour"}
 
 @app.post("/api/cms/theme/hero-upload")
