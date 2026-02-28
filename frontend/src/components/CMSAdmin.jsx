@@ -2865,6 +2865,16 @@ const CMSAdmin = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {/* Visual Editor Button */}
+              <Button 
+                onClick={() => navigate('/admin/cms/visual-editor')}
+                variant="outline" 
+                size="sm" 
+                className="border-terracotta/50 text-terracotta hover:bg-terracotta hover:text-white"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Editeur Visuel
+              </Button>
               {/* Real-time Status Indicator */}
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs ${
                 isConnected ? 'bg-sage/20 text-sage' : 'bg-red-500/20 text-red-400'
@@ -2873,11 +2883,11 @@ const CMSAdmin = () => {
                 {isConnected ? (
                   <>Live Sync {connectionCount > 1 && <span className="font-bold">({connectionCount})</span>}</>
                 ) : (
-                  'Déconnecté'
+                  'Deconnecte'
                 )}
               </div>
               <Button onClick={() => setIsAuthenticated(false)} variant="outline" size="sm" className="border-paper/30 text-paper hover:bg-white/10">
-                Déconnexion
+                Deconnexion
               </Button>
             </div>
           </div>
