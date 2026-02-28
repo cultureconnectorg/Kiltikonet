@@ -61,6 +61,34 @@ api_router = APIRouter(prefix="/api")
 # Create a v1 router for new API endpoints
 api_v1_router = APIRouter(prefix="/api/v1")
 
+# ================== REAL-TIME SYNC (SSE) ==================
+# Store active SSE connections
+sse_connections: List[asyncio.Queue] = []
+
+class RealtimeEvent(BaseModel):
+    event_type: str  # cms_updated, territories_updated, registration_created, etc.
+    data: dict = {}
+    timestamp: str = ""
+
+async def broadcast_event(event_type: str, data: dict = {}):
+    """Broadcast an event to all connected SSE clients"""
+    event = RealtimeEvent(
+        event_type=event_type,
+        data=data,
+        timestamp=datetime.now(timezone.utc).isoformat()
+    )
+    dead_connections = []
+    for queue in sse_connections:
+        try:
+            await queue.put(event.model_dump())
+        except:
+            dead_connections.append(queue)
+    # Clean up dead connections
+    for dead in dead_connections:
+        if dead in sse_connections:
+            sse_connections.remove(dead)
+    logger.info(f"📡 Broadcast event: {event_type} to {len(sse_connections)} clients")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
