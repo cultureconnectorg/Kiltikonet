@@ -4173,7 +4173,7 @@ async def manual_broadcast(event_type: str = Form(...), data: str = Form("{}")):
 
 # ================== SMART ENGINE INDEXATION ==================
 
-@api_router.post("/smart-engine/index-contacts")
+@app.post("/api/smart-engine/index-contacts")
 async def index_contacts_to_smart_engine():
     """
     Index all 44 contacts from registrations to Smart Engine profiles.
@@ -4225,7 +4225,7 @@ async def index_contacts_to_smart_engine():
         logger.error(f"Smart Engine indexation error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/smart-engine/profiles")
+@app.get("/api/smart-engine/profiles")
 async def get_smart_engine_profiles(
     profile_type: Optional[str] = None,
     country: Optional[str] = None,
@@ -4253,7 +4253,7 @@ async def get_smart_engine_profiles(
         logger.error(f"Error fetching smart profiles: {str(e)}")
         return {"profiles": [], "total": 0, "error": str(e)}
 
-@api_router.delete("/smart-engine/purge")
+@app.delete("/api/smart-engine/purge")
 async def purge_smart_engine():
     """Purge all mock data from Smart Engine (admin only)"""
     try:
