@@ -42,6 +42,135 @@ const partnerTiersData = {
   }
 };
 
+// Animated Metric Card
+const MetricCard = ({ metric, index }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.2 });
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  return (
+    <div 
+      ref={ref}
+      className="p-6 border border-lightborder bg-cream text-center"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out' 
+          : `opacity 0.5s ease-out ${index * 0.1}s, transform 0.5s ease-out ${index * 0.1}s`,
+      }}
+      data-testid={`metric-card-${index}`}
+    >
+      <p className="font-serif text-3xl text-terracotta mb-1">{metric.value}</p>
+      <p className="text-sm text-charcoal/60">{metric.label}</p>
+    </div>
+  );
+};
+
+// Animated Benefit Card  
+const BenefitCard = ({ benefit, index }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.2 });
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const Icon = benefit.icon;
+
+  return (
+    <div 
+      ref={ref}
+      className="p-6 border border-lightborder bg-paper hover:border-terracotta transition-colors"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out' 
+          : `opacity 0.5s ease-out ${index * 0.12}s, transform 0.5s ease-out ${index * 0.12}s`,
+      }}
+      data-testid={`benefit-card-${index}`}
+    >
+      <Icon className="w-8 h-8 text-sage mb-4" />
+      <h3 className="font-serif text-lg text-charcoal mb-2">{benefit.title}</h3>
+      <p className="text-sm text-charcoal/60">{benefit.desc}</p>
+    </div>
+  );
+};
+
+// Animated Partner Tier Card
+const TierCard = ({ tier, index, selectedTier, onSelect, language }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.15 });
+  const [isHovered, setIsHovered] = useState(false);
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  return (
+    <div 
+      ref={ref}
+      className={`p-8 border bg-cream transition-all duration-300 ${
+        tier.popular ? 'border-terracotta' : 'border-lightborder'
+      } ${selectedTier === tier.id ? 'ring-2 ring-sage' : ''} ${
+        isHovered ? '-translate-y-1 shadow-lg' : ''
+      }`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible 
+          ? (isHovered ? 'translateY(-4px)' : 'translateY(0)') 
+          : 'translateY(40px)',
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out' 
+          : `opacity 0.6s ease-out ${index * 0.15}s, transform 0.6s ease-out ${index * 0.15}s`,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      data-testid={`tier-card-${tier.id}`}
+    >
+      {tier.popular && (
+        <p className="text-terracotta font-syne text-xs tracking-widest uppercase mb-4">
+          {language === 'fr' ? 'Recommandé' : 'Recommended'}
+        </p>
+      )}
+      <h3 className="font-serif text-2xl text-charcoal mb-2">
+        {language === 'fr' ? tier.nameFr : tier.nameEn}
+      </h3>
+      <p className="font-serif text-3xl text-terracotta mb-2">
+        {tier.price.toLocaleString('fr-FR')}€
+      </p>
+      <p className="text-sm text-sage mb-6">
+        {tier.vip} {language === 'fr' ? 'accréditations VIP offertes' : 'complimentary VIP accreditations'}
+      </p>
+      <ul className="space-y-2 mb-6">
+        {(language === 'fr' ? tier.featuresFr : tier.featuresEn).map((f, j) => (
+          <li 
+            key={j} 
+            className="flex items-start gap-2 text-sm text-charcoal/70"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateX(0)' : 'translateX(-10px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.2s' 
+                : `opacity 0.4s ease-out ${(index * 0.15) + (j * 0.05)}s, transform 0.4s ease-out ${(index * 0.15) + (j * 0.05)}s`,
+            }}
+          >
+            <Check className="w-4 h-4 text-sage flex-shrink-0 mt-0.5" />
+            {f}
+          </li>
+        ))}
+      </ul>
+      <Button
+        onClick={() => onSelect(tier.id)}
+        className={`w-full h-12 font-syne text-sm rounded-none ${
+          selectedTier === tier.id 
+            ? 'bg-sage text-paper' 
+            : tier.popular 
+              ? 'bg-terracotta text-paper hover:bg-terracotta/90' 
+              : 'bg-charcoal text-paper hover:bg-charcoal/90'
+        }`}
+      >
+        <CreditCard className="w-4 h-4 mr-2" />
+        {language === 'fr' ? 'Devenir partenaire' : 'Become a partner'}
+      </Button>
+    </div>
+  );
+};
+
 export const PartnershipPage = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
@@ -55,6 +184,16 @@ export const PartnershipPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(false);
+  
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Hero animation trigger
+  useEffect(() => {
+    const timer = setTimeout(() => setHeroVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const hash = window.location.hash;
