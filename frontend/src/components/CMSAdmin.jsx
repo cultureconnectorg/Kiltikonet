@@ -36,8 +36,7 @@ import {
   Volume2,
   VolumeX,
   Music,
-  MapPin,
-  Eye
+  MapPin
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
