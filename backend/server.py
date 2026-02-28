@@ -62,33 +62,150 @@ api_router = APIRouter(prefix="/api")
 # Create a v1 router for new API endpoints
 api_v1_router = APIRouter(prefix="/api/v1")
 
-# ================== REAL-TIME SYNC (SSE) ==================
-# Store active SSE connections
+# ================== BIDIRECTIONAL REALTIME SYNC (WebSocket + SSE) ==================
+from fastapi import WebSocket, WebSocketDisconnect
+from typing import Set
+import uuid as uuid_lib
+
+# Connection managers
+class ConnectionManager:
+    """Manages WebSocket connections for bidirectional real-time sync"""
+    
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}  # client_id -> websocket
+        self.subscriptions: Dict[str, Set[str]] = {}  # channel -> set of client_ids
+        self.client_metadata: Dict[str, dict] = {}  # client_id -> metadata (user info, page, etc.)
+    
+    async def connect(self, websocket: WebSocket, client_id: str = None):
+        await websocket.accept()
+        if not client_id:
+            client_id = str(uuid_lib.uuid4())[:8]
+        self.active_connections[client_id] = websocket
+        self.client_metadata[client_id] = {
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+            "subscriptions": []
+        }
+        logger.info(f"🔗 WebSocket connected: {client_id} (Total: {len(self.active_connections)})")
+        return client_id
+    
+    def disconnect(self, client_id: str):
+        if client_id in self.active_connections:
+            del self.active_connections[client_id]
+        if client_id in self.client_metadata:
+            del self.client_metadata[client_id]
+        # Remove from all subscriptions
+        for channel in self.subscriptions.values():
+            channel.discard(client_id)
+        logger.info(f"🔌 WebSocket disconnected: {client_id} (Remaining: {len(self.active_connections)})")
+    
+    def subscribe(self, client_id: str, channel: str):
+        """Subscribe client to a channel (e.g., 'cms', 'globe', 'registrations')"""
+        if channel not in self.subscriptions:
+            self.subscriptions[channel] = set()
+        self.subscriptions[channel].add(client_id)
+        if client_id in self.client_metadata:
+            if "subscriptions" not in self.client_metadata[client_id]:
+                self.client_metadata[client_id]["subscriptions"] = []
+            self.client_metadata[client_id]["subscriptions"].append(channel)
+    
+    def unsubscribe(self, client_id: str, channel: str):
+        if channel in self.subscriptions:
+            self.subscriptions[channel].discard(client_id)
+    
+    async def broadcast_to_channel(self, channel: str, message: dict, exclude_client: str = None):
+        """Broadcast message to all clients subscribed to a channel"""
+        if channel not in self.subscriptions:
+            return
+        
+        dead_clients = []
+        for client_id in self.subscriptions[channel]:
+            if client_id == exclude_client:
+                continue
+            if client_id in self.active_connections:
+                try:
+                    await self.active_connections[client_id].send_json(message)
+                except Exception as e:
+                    logger.error(f"Error sending to {client_id}: {e}")
+                    dead_clients.append(client_id)
+        
+        # Clean up dead connections
+        for client_id in dead_clients:
+            self.disconnect(client_id)
+    
+    async def broadcast_to_all(self, message: dict, exclude_client: str = None):
+        """Broadcast message to all connected clients"""
+        dead_clients = []
+        for client_id, websocket in self.active_connections.items():
+            if client_id == exclude_client:
+                continue
+            try:
+                await websocket.send_json(message)
+            except Exception as e:
+                logger.error(f"Error sending to {client_id}: {e}")
+                dead_clients.append(client_id)
+        
+        for client_id in dead_clients:
+            self.disconnect(client_id)
+        
+        logger.info(f"📡 Broadcast to {len(self.active_connections) - (1 if exclude_client else 0)} clients")
+    
+    async def send_to_client(self, client_id: str, message: dict):
+        """Send message to a specific client"""
+        if client_id in self.active_connections:
+            try:
+                await self.active_connections[client_id].send_json(message)
+            except Exception as e:
+                logger.error(f"Error sending to {client_id}: {e}")
+                self.disconnect(client_id)
+    
+    def get_status(self):
+        return {
+            "total_connections": len(self.active_connections),
+            "channels": {ch: len(clients) for ch, clients in self.subscriptions.items()},
+            "clients": list(self.active_connections.keys())
+        }
+
+# Global connection manager
+ws_manager = ConnectionManager()
+
+# Keep SSE for backward compatibility
 sse_connections: List[asyncio.Queue] = []
 
 class RealtimeEvent(BaseModel):
-    event_type: str  # cms_updated, territories_updated, registration_created, etc.
+    event_type: str
     data: dict = {}
     timestamp: str = ""
+    source_client: str = ""  # Added to track origin
 
-async def broadcast_event(event_type: str, data: dict = {}):
-    """Broadcast an event to all connected SSE clients"""
+async def broadcast_event(event_type: str, data: dict = {}, source_client: str = "", channels: List[str] = None):
+    """Broadcast an event to all connected clients (WebSocket + SSE)"""
     event = RealtimeEvent(
         event_type=event_type,
         data=data,
-        timestamp=datetime.now(timezone.utc).isoformat()
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        source_client=source_client
     )
+    event_dict = event.model_dump()
+    
+    # Broadcast via WebSocket
+    if channels:
+        for channel in channels:
+            await ws_manager.broadcast_to_channel(channel, event_dict, exclude_client=source_client)
+    else:
+        await ws_manager.broadcast_to_all(event_dict, exclude_client=source_client)
+    
+    # Also broadcast via SSE for backward compatibility
     dead_connections = []
     for queue in sse_connections:
         try:
-            await queue.put(event.model_dump())
+            await queue.put(event_dict)
         except:
             dead_connections.append(queue)
-    # Clean up dead connections
     for dead in dead_connections:
         if dead in sse_connections:
             sse_connections.remove(dead)
-    logger.info(f"📡 Broadcast event: {event_type} to {len(sse_connections)} clients")
+    
+    logger.info(f"📡 Broadcast event: {event_type} | WS: {len(ws_manager.active_connections)} | SSE: {len(sse_connections)}")
 
 # Configure logging
 logging.basicConfig(
