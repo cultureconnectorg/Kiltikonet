@@ -30,21 +30,54 @@ const DEFAULT_TERRITORY_MESSAGES = {
   'GN': 'Les racines appellent.',
 };
 
-// Identity mapping
+// Identity mapping (no emojis)
 const IDENTITIES = [
-  { id: 'artist', emoji: '🎤', label: 'Une voix', value: 'artist' },
-  { id: 'label', emoji: '📀', label: 'Un catalogue', value: 'label' },
-  { id: 'agent', emoji: '🌐', label: 'Un réseau', value: 'agent' },
-  { id: 'institution', emoji: '📖', label: 'Une histoire', value: 'institution' },
-  { id: 'producer', emoji: '🔭', label: 'Une vision', value: 'producer' },
+  { id: 'artist', icon: 'voice', label: 'Une voix', value: 'artist' },
+  { id: 'label', icon: 'catalog', label: 'Un catalogue', value: 'label' },
+  { id: 'agent', icon: 'network', label: 'Un reseau', value: 'agent' },
+  { id: 'institution', icon: 'history', label: 'Une histoire', value: 'institution' },
+  { id: 'producer', icon: 'vision', label: 'Une vision', value: 'producer' },
 ];
 
 const RETURN_MESSAGES = {
-  artist: 'Bon retour. 🎤',
-  label: 'Bon retour. 📀',
-  agent: 'Bon retour. 🌐',
-  institution: 'Bon retour. 📖',
-  producer: 'Bon retour. 🔭',
+  artist: 'Bon retour.',
+  label: 'Bon retour.',
+  agent: 'Bon retour.',
+  institution: 'Bon retour.',
+  producer: 'Bon retour.',
+};
+
+// Icon components for identities
+const IdentityIcon = ({ type, color }) => {
+  const icons = {
+    voice: (
+      <svg className="w-6 h-6" fill="none" stroke={color} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+      </svg>
+    ),
+    catalog: (
+      <svg className="w-6 h-6" fill="none" stroke={color} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+      </svg>
+    ),
+    network: (
+      <svg className="w-6 h-6" fill="none" stroke={color} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+      </svg>
+    ),
+    history: (
+      <svg className="w-6 h-6" fill="none" stroke={color} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    ),
+    vision: (
+      <svg className="w-6 h-6" fill="none" stroke={color} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      </svg>
+    ),
+  };
+  return icons[type] || null;
 };
 
 // Default sounds (embedded as base64 for reliability - short tones)
