@@ -3427,6 +3427,9 @@ async def save_map_territories(config: MapConfig):
         upsert=True
     )
     
+    # 🔄 Broadcast real-time update
+    await broadcast_event("territories_updated", {"count": len(config.territories)})
+    
     return {"success": True, "message": "Configuration de la carte sauvegardée"}
 
 @app.post("/api/cms/map-territories/add")
@@ -3451,6 +3454,9 @@ async def add_map_territory(territory: MapTerritory, tenant_id: str = DEFAULT_TE
         {"$set": {"territories": territories, "updated_at": datetime.now(timezone.utc).isoformat()}},
         upsert=True
     )
+    
+    # 🔄 Broadcast real-time update
+    await broadcast_event("territories_updated", {"action": "added", "territory": territory.name})
     
     return {"success": True, "message": "Territoire ajouté"}
 
