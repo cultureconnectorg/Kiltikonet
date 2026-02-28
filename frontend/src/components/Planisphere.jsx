@@ -233,7 +233,7 @@ export const Planisphere = () => {
 
             {/* Territory dots */}
             {visibleTerritories.map((territory) => {
-              const size = territory.size || 8;
+              const size = getSize(territory.size);
               const isHovered = hoveredTerritory === territory.id;
               const isCenter = territory.isCenter;
 
