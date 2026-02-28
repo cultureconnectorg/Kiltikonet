@@ -18,7 +18,7 @@ import {
   AnimatedNumber 
 } from '../hooks/useAnimations';
 import { ParticleBackground, Countdown } from './CinematicElements';
-import { Planisphere } from './Planisphere';
+import { Globe3D } from './Globe3D';
 
 export const LandingPage = () => {
   const { language } = useLanguage();
