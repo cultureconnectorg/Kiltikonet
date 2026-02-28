@@ -216,12 +216,8 @@ export const Planisphere = () => {
 
         {/* Map Container */}
         <div 
-          className="relative mx-auto transition-all duration-700 delay-500"
-          style={{ 
-            maxWidth: '900px',
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? 'scale(1)' : 'scale(0.95)',
-          }}
+          className="relative mx-auto"
+          style={{ maxWidth: '900px' }}
         >
           <svg 
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
