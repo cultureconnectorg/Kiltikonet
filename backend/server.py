@@ -3931,22 +3931,29 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
         
-        # Content Security Policy (relaxed for external resources)
+        # Hide server info
+        if "server" in response.headers:
+            del response.headers["server"]
+        if "x-powered-by" in response.headers:
+            del response.headers["x-powered-by"]
+        
+        # Content Security Policy (optimized for all integrations)
         csp = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://assets.emergent.sh https://cdn.tailwindcss.com https://us.i.posthog.com https://*.posthog.com; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://assets.emergent.sh https://cdn.tailwindcss.com https://us.i.posthog.com https://*.posthog.com https://js.stripe.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: blob: https: http:; "
-            "connect-src 'self' https: wss:; "
+            "connect-src 'self' https: wss: https://api.openai.com https://api.anthropic.com https://api.stripe.com https://api.cloudinary.com; "
+            "frame-src 'self' https://js.stripe.com https://hooks.stripe.com; "
             "frame-ancestors 'self'; "
             "base-uri 'self'; "
             "form-action 'self' https://checkout.stripe.com;"
         )
         response.headers["Content-Security-Policy"] = csp
         
-        # HSTS (HTTP Strict Transport Security)
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # HSTS with extended max-age (2 years)
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
         
         return response
 
