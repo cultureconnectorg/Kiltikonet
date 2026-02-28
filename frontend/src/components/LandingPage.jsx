@@ -74,7 +74,7 @@ export const LandingPage = () => {
   ];
   
   const partners = [
-    'CTM', 'Skillfor Campus', 'ISCA Business School', 'France Travail', 'SACEM', 'Factory Maker Studio', 'Direction des Affaires Culturelles'
+    'CTM - Collectivité Territoriale de Martinique', 'France Travail', 'ISCA Business School', 'SACEM', 'Direction des Affaires Culturelles - Martinique'
   ];
 
   // Stats data with animation directions
