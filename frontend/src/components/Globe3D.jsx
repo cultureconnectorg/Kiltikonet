@@ -29,6 +29,9 @@ export const Globe3D = () => {
   const [arcsData, setArcsData] = useState([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 500 });
+  
+  // 🔄 Real-time sync
+  const { subscribe, isConnected } = useRealtime();
 
   // Martinique center point
   const center = useMemo(() => 
@@ -55,34 +58,31 @@ export const Globe3D = () => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Load territories from CMS
-  useEffect(() => {
-    const loadTerritories = async () => {
-      try {
-        const res = await axios.get(`${API}/api/cms/map-territories`);
-        if (res.data?.territories?.length > 0) {
-          const converted = res.data.territories
-            .filter(t => t.active !== false) // Only active territories
-            .map(t => ({
-              id: t.id || t.name.toLowerCase().replace(/\s/g, '-'),
-              name: t.name,
-              lat: parseFloat(t.lat) || 0,
-              lng: parseFloat(t.lon || t.lng) || 0, // Accept both lon and lng
-              color: t.color || '#C8922A',
-              size: convertSize(t.size), // Convert size string to number
-              label: t.label || t.name,
-              isCenter: t.isCenter || t.name === 'Fort-de-France' || t.name === 'Martinique'
-            }));
-          if (converted.length > 0) {
-            setTerritories(converted);
-          }
+  // Load territories function
+  const loadTerritories = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/api/cms/map-territories`);
+      if (res.data?.territories?.length > 0) {
+        const converted = res.data.territories
+          .filter(t => t.active !== false)
+          .map(t => ({
+            id: t.id || t.name.toLowerCase().replace(/\s/g, '-'),
+            name: t.name,
+            lat: parseFloat(t.lat) || 0,
+            lng: parseFloat(t.lon || t.lng) || 0,
+            color: t.color || '#C8922A',
+            size: convertSize(t.size),
+            label: t.label || t.name,
+            isCenter: t.isCenter || t.name === 'Fort-de-France' || t.name === 'Martinique'
+          }));
+        if (converted.length > 0) {
+          setTerritories(converted);
+          console.log('🌍 Globe territories loaded:', converted.length);
         }
-      } catch (err) {
-        // Keep defaults
-        console.log('Using default territories');
       }
-    };
-    loadTerritories();
+    } catch (err) {
+      console.log('Using default territories');
+    }
   }, []);
 
   // Convert size string to numeric value
@@ -96,6 +96,20 @@ export const Globe3D = () => {
       default: return 0.4;
     }
   };
+
+  // Load territories on mount
+  useEffect(() => {
+    loadTerritories();
+  }, [loadTerritories]);
+
+  // 🔄 Subscribe to real-time territory updates
+  useEffect(() => {
+    const unsubscribe = subscribe('territories_updated', (data) => {
+      console.log('🔄 Real-time: Territories updated, reloading...', data);
+      loadTerritories();
+    });
+    return unsubscribe;
+  }, [subscribe, loadTerritories]);
 
   // Initialize globe position focused on Atlantic (Martinique region)
   useEffect(() => {
