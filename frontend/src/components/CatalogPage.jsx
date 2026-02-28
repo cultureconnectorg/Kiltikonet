@@ -33,6 +33,168 @@ const placeholderImages = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop'
 ];
 
+// Animated Participant Card
+const ParticipantCard = ({ participant, language, filters, onBadgeClick, onSmartClick, viewMode }) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1 });
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const tier = tierConfig[participant.tier] || tierConfig.professional;
+  const Icon = profileIcons[participant.profile_type] || Users;
+  const pTags = participant.expertise_tags || [];
+  
+  const getSharedInterestsCount = (participantTags, filterTags) => {
+    if (!participantTags || !filterTags || filterTags.length === 0) return 0;
+    return participantTags.filter(t => filterTags.includes(t)).length;
+  };
+  
+  const sharedCount = getSharedInterestsCount(pTags, filters.expertiseTags);
+
+  const getProfileLabel = (type) => {
+    const p = profileTypes.find(x => x.value === type);
+    return p ? (language === 'fr' ? p.labelFr : p.labelEn) : type;
+  };
+
+  const getCountryLabel = (code) => {
+    const c = countryList.find(x => x.value === code);
+    return c ? code : code;
+  };
+
+  if (viewMode === 'list') {
+    return (
+      <div 
+        ref={ref}
+        className="flex items-center gap-4 p-4 border border-lightborder bg-cream hover:border-terracotta transition-all"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'translateX(0)' : 'translateX(-20px)',
+          transition: prefersReducedMotion ? 'opacity 0.3s' : 'opacity 0.4s ease-out, transform 0.4s ease-out',
+        }}
+      >
+        <img src={participant.image} alt={participant.full_name} className="w-16 h-16 object-cover" />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-serif text-charcoal truncate">{participant.full_name}</h3>
+          <p className="text-sm text-charcoal/60 truncate">{participant.organization_name}</p>
+          {pTags.length > 0 && (
+            <div className="flex gap-1 mt-1">
+              {pTags.slice(0, 2).map((tagValue) => {
+                const tagInfo = expertiseTags.find(t => t.value === tagValue);
+                return tagInfo && (
+                  <span key={tagValue} className="px-1.5 py-0.5 text-xs bg-charcoal/10 text-charcoal/60">
+                    {language === 'fr' ? tagInfo.labelFr : tagInfo.labelEn}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {sharedCount > 0 && (
+          <span className="hidden sm:flex items-center gap-1 px-2 py-1 bg-terracotta/10 text-terracotta text-xs">
+            <Sparkles className="w-3 h-3" /> {sharedCount}
+          </span>
+        )}
+        <span className="hidden sm:block px-3 py-1 text-xs font-syne" style={{ backgroundColor: tier.color, color: '#F4F1EA' }}>
+          {language === 'fr' ? tier.name : tier.nameEn}
+        </span>
+        <button onClick={() => onBadgeClick(participant)} className="px-4 py-2 border border-charcoal text-charcoal text-sm hover:bg-charcoal hover:text-paper">
+          Badge
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      ref={ref}
+      className={`border border-lightborder bg-cream group transition-all duration-300 ${
+        isHovered ? 'border-terracotta -translate-y-1 shadow-lg' : ''
+      }`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible 
+          ? (isHovered ? 'translateY(-4px)' : 'translateY(0)') 
+          : 'translateY(30px)',
+        transition: prefersReducedMotion 
+          ? 'opacity 0.3s ease-out' 
+          : 'opacity 0.5s ease-out, transform 0.5s ease-out',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      data-testid={`participant-card-${participant.id}`}
+    >
+      <div className="relative h-48 overflow-hidden">
+        <img src={participant.image} alt={participant.full_name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        <div className="absolute top-3 right-3 px-3 py-1 text-xs font-syne" style={{ backgroundColor: tier.color, color: '#F4F1EA' }}>
+          {language === 'fr' ? tier.name : tier.nameEn}
+        </div>
+        {participant.stand_request && (
+          <div className="absolute top-3 left-3 px-2 py-1 bg-sage text-paper text-xs">Stand</div>
+        )}
+        {sharedCount > 0 && (
+          <div className="absolute bottom-3 left-3 px-2 py-1 bg-terracotta/90 text-paper text-xs flex items-center gap-1">
+            <Sparkles className="w-3 h-3" />
+            {sharedCount} {language === 'fr' ? 'intérêt(s) commun(s)' : 'shared interest(s)'}
+          </div>
+        )}
+      </div>
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Icon className="w-4 h-4 text-charcoal/40" />
+          <span className="text-xs text-charcoal/50">{getProfileLabel(participant.profile_type)}</span>
+        </div>
+        <h3 className="font-serif text-lg text-charcoal mb-1">{participant.full_name}</h3>
+        <p className="text-sm text-charcoal/60 mb-3">{participant.organization_name}</p>
+        
+        {pTags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {pTags.slice(0, 3).map((tagValue) => {
+              const tagInfo = expertiseTags.find(t => t.value === tagValue);
+              const isShared = filters.expertiseTags?.includes(tagValue);
+              return tagInfo && (
+                <span 
+                  key={tagValue} 
+                  className={`px-2 py-0.5 text-xs ${isShared ? 'bg-sage text-paper' : 'bg-charcoal/10 text-charcoal/60'}`}
+                >
+                  {language === 'fr' ? tagInfo.labelFr : tagInfo.labelEn}
+                </span>
+              );
+            })}
+            {pTags.length > 3 && (
+              <span className="px-2 py-0.5 text-xs bg-lightborder text-charcoal/50">
+                +{pTags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+        
+        <div className="flex gap-2 mb-4">
+          <span className="px-2 py-1 border border-lightborder text-xs text-charcoal/60">{getCountryLabel(participant.country)}</span>
+          <span className="px-2 py-1 border border-lightborder text-xs text-charcoal/60">B2B</span>
+        </div>
+        <p className="text-sm text-charcoal/50 line-clamp-2 mb-4">{participant.bio}</p>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => onBadgeClick(participant)}
+            className="flex-1 py-2 border border-charcoal text-charcoal text-sm font-syne hover:bg-charcoal hover:text-paper transition-colors"
+          >
+            Badge
+          </button>
+          <button 
+            onClick={() => onSmartClick(participant.id)}
+            className="flex-1 py-2 bg-sage text-paper text-sm font-syne hover:bg-sage/90 flex items-center justify-center gap-1"
+            title={language === 'fr' ? 'Trouver des partenaires similaires' : 'Find similar partners'}
+          >
+            <Sparkles className="w-4 h-4" />
+            Smart
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const CatalogPage = () => {
   const { language, t } = useLanguage();
   const [participants, setParticipants] = useState([]);
@@ -45,7 +207,17 @@ export const CatalogPage = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [sectorKeywords, setSectorKeywords] = useState([]);
   const [showExpertiseFilter, setShowExpertiseFilter] = useState(false);
-  const [similarityScores, setSimilarityScores] = useState({}); // Store similarity scores
+  const [similarityScores, setSimilarityScores] = useState({});
+  const [headerVisible, setHeaderVisible] = useState(false);
+
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Header animation trigger
+  useEffect(() => {
+    const timer = setTimeout(() => setHeaderVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
