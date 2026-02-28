@@ -344,17 +344,44 @@ export const CatalogPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-paper pt-24 sm:pt-32">
+    <div className="min-h-screen bg-paper pt-24 sm:pt-32 overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
+          <p 
+            className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4"
+            style={{
+              opacity: headerVisible ? 1 : 0,
+              transform: headerVisible ? 'translateY(0)' : 'translateY(-20px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.3s ease-out' 
+                : 'opacity 0.5s ease-out, transform 0.5s ease-out',
+            }}
+          >
             {language === 'fr' ? 'Répertoire' : 'Directory'}
           </p>
-          <h1 className="font-serif text-4xl sm:text-5xl text-charcoal mb-4">
+          <h1 
+            className="font-serif text-4xl sm:text-5xl text-charcoal mb-4"
+            style={{
+              opacity: headerVisible ? 1 : 0,
+              transform: headerVisible ? 'translateY(0)' : 'translateY(-30px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.3s ease-out' 
+                : 'opacity 0.6s ease-out 0.15s, transform 0.6s ease-out 0.15s',
+            }}
+          >
             Catalogue
           </h1>
-          <p className="text-charcoal/60 max-w-2xl mx-auto">
+          <p 
+            className="text-charcoal/60 max-w-2xl mx-auto"
+            style={{
+              opacity: headerVisible ? 1 : 0,
+              transform: headerVisible ? 'translateY(0)' : 'translateY(20px)',
+              transition: prefersReducedMotion 
+                ? 'opacity 0.3s ease-out' 
+                : 'opacity 0.6s ease-out 0.3s, transform 0.6s ease-out 0.3s',
+            }}
+          >
             {language === 'fr' ? 'Découvrez les professionnels accrédités' : 'Discover accredited professionals'}
           </p>
         </div>
