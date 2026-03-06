@@ -2018,7 +2018,256 @@ async def workspace_logout(log: WorkspaceLogoutRequest):
     await db.workspace_logs.insert_one(log_entry)
     return {"success": True}
 
-# ================== AI ASSISTANT FOR ALIRIO ==================
+# ================== INTERNAL MESSAGING SYSTEM ==================
+
+class ChatMessage(BaseModel):
+    content: str
+    channel: Optional[str] = None
+    dmTo: Optional[str] = None
+    attachments: Optional[List[dict]] = []
+
+class ChatManager:
+    """Manages chat WebSocket connections and messaging"""
+    
+    def __init__(self):
+        self.connections: Dict[str, WebSocket] = {}  # userId -> websocket
+        self.user_info: Dict[str, dict] = {}  # userId -> {name, role}
+        self.typing_status: Dict[str, bool] = {}  # userId -> isTyping
+    
+    async def connect(self, websocket: WebSocket, user_id: str, user_name: str, role: str):
+        await websocket.accept()
+        self.connections[user_id] = websocket
+        self.user_info[user_id] = {"name": user_name, "role": role}
+        await self.broadcast_online_users()
+        logger.info(f"💬 Chat connected: {user_name} ({user_id})")
+    
+    def disconnect(self, user_id: str):
+        if user_id in self.connections:
+            del self.connections[user_id]
+        if user_id in self.user_info:
+            del self.user_info[user_id]
+        if user_id in self.typing_status:
+            del self.typing_status[user_id]
+        logger.info(f"💬 Chat disconnected: {user_id}")
+    
+    async def broadcast_online_users(self):
+        online = list(self.connections.keys())
+        message = {"type": "online_users", "users": online}
+        for ws in self.connections.values():
+            try:
+                await ws.send_json(message)
+            except:
+                pass
+    
+    async def broadcast_to_channel(self, channel: str, message: dict, exclude: str = None):
+        for user_id, ws in self.connections.items():
+            if user_id == exclude:
+                continue
+            try:
+                await ws.send_json({"type": "message", "message": message})
+            except:
+                pass
+    
+    async def send_dm(self, from_id: str, to_id: str, message: dict):
+        # Envoyer au destinataire
+        if to_id in self.connections:
+            try:
+                await self.connections[to_id].send_json({"type": "message", "message": message})
+            except:
+                pass
+        # Laurent (founder) voit tous les DMs
+        for user_id, info in self.user_info.items():
+            if info.get("role") == "founder" and user_id not in [from_id, to_id]:
+                if user_id in self.connections:
+                    try:
+                        await self.connections[user_id].send_json({"type": "message", "message": message})
+                    except:
+                        pass
+    
+    async def broadcast_typing(self, user_id: str, user_name: str, is_typing: bool, channel: str = None, dm_to: str = None):
+        self.typing_status[user_id] = is_typing
+        message = {"type": "typing", "userId": user_id, "userName": user_name, "isTyping": is_typing}
+        
+        if dm_to:
+            # DM typing - envoyer au destinataire uniquement
+            if dm_to in self.connections:
+                try:
+                    await self.connections[dm_to].send_json(message)
+                except:
+                    pass
+        else:
+            # Channel typing - broadcast à tous
+            for uid, ws in self.connections.items():
+                if uid != user_id:
+                    try:
+                        await ws.send_json(message)
+                    except:
+                        pass
+
+chat_manager = ChatManager()
+
+@app.websocket("/api/ws/chat")
+async def chat_websocket(websocket: WebSocket):
+    """WebSocket endpoint for internal messaging"""
+    user_id = None
+    try:
+        await websocket.accept()
+        
+        # Attendre l'authentification
+        auth_data = await asyncio.wait_for(websocket.receive_json(), timeout=30)
+        
+        if auth_data.get("type") != "auth":
+            await websocket.close(code=4001, reason="Auth required")
+            return
+        
+        user_id = auth_data.get("userId", "").lower()
+        user_name = auth_data.get("user", "Unknown")
+        role = auth_data.get("role", "member")
+        
+        chat_manager.connections[user_id] = websocket
+        chat_manager.user_info[user_id] = {"name": user_name, "role": role}
+        await chat_manager.broadcast_online_users()
+        
+        logger.info(f"💬 Chat authenticated: {user_name} ({user_id})")
+        
+        # Envoyer l'historique des messages récents
+        recent_messages = await db.chat_messages.find().sort("timestamp", -1).limit(50).to_list(50)
+        recent_messages.reverse()
+        await websocket.send_json({
+            "type": "history",
+            "messages": [{k: v for k, v in msg.items() if k != "_id"} for msg in recent_messages]
+        })
+        
+        # Boucle de réception des messages
+        while True:
+            data = await websocket.receive_json()
+            
+            if data.get("type") == "message":
+                msg = data.get("message", {})
+                msg["id"] = str(uuid.uuid4())
+                msg["timestamp"] = datetime.now(timezone.utc).isoformat()
+                msg["senderId"] = user_id
+                msg["sender"] = user_name
+                msg["senderRole"] = role
+                
+                # Sauvegarder en DB
+                await db.chat_messages.insert_one(msg)
+                
+                # Router le message
+                if msg.get("dmTo"):
+                    await chat_manager.send_dm(user_id, msg["dmTo"], msg)
+                    # Aussi envoyer à l'expéditeur pour confirmation
+                    await websocket.send_json({"type": "message", "message": msg})
+                else:
+                    await chat_manager.broadcast_to_channel(msg.get("channel", "general"), msg)
+                
+                logger.info(f"💬 Message from {user_name}: {msg.get('content', '')[:50]}...")
+            
+            elif data.get("type") == "typing":
+                await chat_manager.broadcast_typing(
+                    user_id, 
+                    user_name, 
+                    data.get("isTyping", False),
+                    data.get("channel"),
+                    data.get("dmTo")
+                )
+    
+    except WebSocketDisconnect:
+        if user_id:
+            chat_manager.disconnect(user_id)
+            await chat_manager.broadcast_online_users()
+    except asyncio.TimeoutError:
+        await websocket.close(code=4000, reason="Auth timeout")
+    except Exception as e:
+        logger.error(f"Chat WebSocket error: {e}")
+        if user_id:
+            chat_manager.disconnect(user_id)
+
+@api_router.get("/chat/messages/channel/{channel}")
+async def get_channel_messages(channel: str, include_all: bool = False, limit: int = 100):
+    """Get messages for a channel"""
+    query = {"channel": channel}
+    if include_all:
+        query = {}  # Founder can see all
+    
+    messages = await db.chat_messages.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    messages.reverse()
+    return {"messages": messages}
+
+@api_router.get("/chat/messages/dm/{user_id}")
+async def get_dm_messages(user_id: str, current_user: str = None, limit: int = 100):
+    """Get DM messages between current user and specified user"""
+    query = {
+        "$or": [
+            {"senderId": user_id, "dmTo": current_user},
+            {"senderId": current_user, "dmTo": user_id}
+        ]
+    }
+    
+    messages = await db.chat_messages.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    messages.reverse()
+    return {"messages": messages}
+
+@api_router.post("/chat/messages")
+async def save_chat_message(message: ChatMessage, request: Request):
+    """Save a chat message (backup for WebSocket)"""
+    msg_dict = message.model_dump()
+    msg_dict["id"] = str(uuid.uuid4())
+    msg_dict["timestamp"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.chat_messages.insert_one(msg_dict)
+    return {"success": True, "id": msg_dict["id"]}
+
+@api_router.post("/chat/upload")
+async def upload_chat_attachment(files: List[UploadFile] = File(...)):
+    """Upload attachments for chat messages (images and PDFs only)"""
+    uploaded_files = []
+    
+    for file in files:
+        # Vérifier le type de fichier
+        if not file.content_type:
+            continue
+        
+        allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"]
+        if file.content_type not in allowed_types:
+            continue
+        
+        try:
+            # Upload vers Cloudinary
+            contents = await file.read()
+            result = cloudinary.uploader.upload(
+                contents,
+                folder="cc2026_chat",
+                resource_type="auto"
+            )
+            
+            uploaded_files.append({
+                "name": file.filename,
+                "url": result["secure_url"],
+                "type": file.content_type,
+                "size": len(contents)
+            })
+        except Exception as e:
+            logger.error(f"Upload error: {e}")
+            continue
+    
+    return {"files": uploaded_files}
+
+@api_router.get("/chat/online")
+async def get_online_users():
+    """Get list of currently online users in chat"""
+    return {
+        "online": list(chat_manager.connections.keys()),
+        "users": chat_manager.user_info
+    }
 
 CC2026_CONTEXT = """
 Tu es l'assistant IA de Culture Connect 2026 (CC2026), le premier marche professionnel des industries culturelles afro-descendantes.

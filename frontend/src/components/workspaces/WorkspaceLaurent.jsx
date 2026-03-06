@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { NotificationBell, useNotifications } from './NotificationSystem';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -458,6 +459,16 @@ const WorkspaceLaurent = () => {
           </div>
         )}
       </main>
+      
+      {/* Internal Messaging - Founder sees ALL messages */}
+      <InternalMessaging 
+        currentUser={{ 
+          id: 'laurent', 
+          name: 'Laurent', 
+          role: 'founder' 
+        }} 
+        isFounder={true} 
+      />
     </div>
   );
 };

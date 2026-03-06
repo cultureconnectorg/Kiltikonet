@@ -4,6 +4,7 @@ import { LogOut, Monitor, Send, Play, Pause, Edit2, Plus, Clock, RefreshCw, Came
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -435,6 +436,12 @@ const WorkspaceFabrice = () => {
           )}
         </div>
       </main>
+      
+      {/* Internal Messaging */}
+      <InternalMessaging 
+        currentUser={{ id: 'fabrice', name: 'Fabrice', role: 'captions' }} 
+        isFounder={false} 
+      />
     </div>
   );
 };

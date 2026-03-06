@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, BarChart2, Lock, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -88,6 +89,12 @@ const WorkspaceAnalyst = () => {
           Retour connexion
         </Button>
       </div>
+      
+      {/* Internal Messaging */}
+      <InternalMessaging 
+        currentUser={{ id: 'analyst', name: 'Data Analyst', role: 'analyst' }} 
+        isFounder={false} 
+      />
     </div>
   );
 };

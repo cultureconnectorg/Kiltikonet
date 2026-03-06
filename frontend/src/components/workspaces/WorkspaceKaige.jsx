@@ -4,6 +4,7 @@ import { LogOut, Newspaper, Users, Send, FileText, Plus, Edit2, Eye, CheckCircle
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -442,6 +443,12 @@ const WorkspaceKaige = () => {
           </div>
         )}
       </main>
+      
+      {/* Internal Messaging */}
+      <InternalMessaging 
+        currentUser={{ id: 'kaige', name: 'Kaige', role: 'press' }} 
+        isFounder={false} 
+      />
     </div>
   );
 };

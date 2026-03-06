@@ -4,6 +4,7 @@ import { LogOut, Music, Users, FileText, CheckSquare, Square, Plus, Calendar, Cl
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -417,6 +418,12 @@ const WorkspaceGwen = () => {
           </div>
         </div>
       </main>
+      
+      {/* Internal Messaging */}
+      <InternalMessaging 
+        currentUser={{ id: 'gwen', name: 'Gwen', role: 'event' }} 
+        isFounder={false} 
+      />
     </div>
   );
 };

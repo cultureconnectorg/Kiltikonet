@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Palette, Image, FileText, Upload, Eye, Plus, Save, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -238,6 +239,12 @@ const WorkspaceTwina = () => {
           </div>
         </div>
       </main>
+      
+      {/* Internal Messaging */}
+      <InternalMessaging 
+        currentUser={{ id: 'twina', name: 'Twina', role: 'design' }} 
+        isFounder={false} 
+      />
     </div>
   );
 };

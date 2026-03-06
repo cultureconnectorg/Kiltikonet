@@ -4,6 +4,7 @@ import { LogOut, DollarSign, TrendingUp, TrendingDown, FileText, Plus, Edit2, Sa
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -418,6 +419,12 @@ const WorkspaceWudy = () => {
           </div>
         )}
       </main>
+      
+      {/* Internal Messaging */}
+      <InternalMessaging 
+        currentUser={{ id: 'wudy', name: 'Wudy', role: 'finance' }} 
+        isFounder={false} 
+      />
     </div>
   );
 };

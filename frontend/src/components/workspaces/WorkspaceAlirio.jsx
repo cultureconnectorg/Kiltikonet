@@ -4,6 +4,7 @@ import { LogOut, MessageSquare, Calendar, FileText, Send, Loader2, Bot, User, Br
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
+import InternalMessaging from '../InternalMessaging';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -555,6 +556,12 @@ Comment puis-je vous aider ?`
           </div>
         )}
       </main>
+      
+      {/* Internal Messaging */}
+      <InternalMessaging 
+        currentUser={{ id: 'alirio', name: 'Alirio', role: 'business' }} 
+        isFounder={false} 
+      />
     </div>
   );
 };
