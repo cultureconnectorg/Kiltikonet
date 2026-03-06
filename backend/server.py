@@ -1925,14 +1925,78 @@ async def verify_admin(admin: AdminVerify):
 
 # ================== WORKSPACE LOGIN & LOGS ==================
 
+# Rate limiting for login attempts
+login_attempts = {}  # IP -> {count, last_attempt, blocked_until}
+LOGIN_ATTEMPT_LIMIT = 5
+LOGIN_BLOCK_DURATION = 300  # 5 minutes
+
+def check_rate_limit(client_ip: str) -> bool:
+    """Check if client is rate limited. Returns True if blocked."""
+    now = datetime.now(timezone.utc)
+    
+    if client_ip in login_attempts:
+        attempt_info = login_attempts[client_ip]
+        
+        # Check if blocked
+        if attempt_info.get("blocked_until"):
+            if now < attempt_info["blocked_until"]:
+                return True
+            else:
+                # Block expired, reset
+                login_attempts[client_ip] = {"count": 0, "last_attempt": now, "blocked_until": None}
+                return False
+        
+        # Reset if last attempt was more than 15 minutes ago
+        if (now - attempt_info["last_attempt"]).total_seconds() > 900:
+            login_attempts[client_ip] = {"count": 0, "last_attempt": now, "blocked_until": None}
+    
+    return False
+
+def record_failed_login(client_ip: str):
+    """Record a failed login attempt."""
+    now = datetime.now(timezone.utc)
+    
+    if client_ip not in login_attempts:
+        login_attempts[client_ip] = {"count": 0, "last_attempt": now, "blocked_until": None}
+    
+    login_attempts[client_ip]["count"] += 1
+    login_attempts[client_ip]["last_attempt"] = now
+    
+    # Block after 5 failed attempts
+    if login_attempts[client_ip]["count"] >= LOGIN_ATTEMPT_LIMIT:
+        login_attempts[client_ip]["blocked_until"] = now + timedelta(seconds=LOGIN_BLOCK_DURATION)
+        logger.warning(f"🚫 IP {client_ip} blocked for {LOGIN_BLOCK_DURATION}s after {LOGIN_ATTEMPT_LIMIT} failed login attempts")
+
+def clear_failed_login(client_ip: str):
+    """Clear failed login attempts after successful login."""
+    if client_ip in login_attempts:
+        del login_attempts[client_ip]
+
 @api_router.post("/workspace/login")
-async def workspace_login(request: WorkspaceLoginRequest):
+async def workspace_login(request: WorkspaceLoginRequest, req: Request):
     """
     Workspace login - returns user info and redirect based on password
     Also logs the connection to MongoDB
     """
+    client_ip = req.client.host if req.client else "unknown"
+    
+    # Check rate limiting
+    if check_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=429, 
+            detail="Trop de tentatives de connexion. Veuillez réessayer dans 5 minutes."
+        )
+    
     if request.password not in WORKSPACE_CREDENTIALS:
-        raise HTTPException(status_code=401, detail="Mot de passe invalide")
+        record_failed_login(client_ip)
+        remaining = LOGIN_ATTEMPT_LIMIT - login_attempts.get(client_ip, {}).get("count", 0)
+        if remaining > 0:
+            raise HTTPException(status_code=401, detail=f"Mot de passe invalide. {remaining} tentatives restantes.")
+        else:
+            raise HTTPException(status_code=429, detail="Compte bloqué temporairement. Réessayez dans 5 minutes.")
+    
+    # Clear failed attempts on successful login
+    clear_failed_login(client_ip)
     
     user_info = WORKSPACE_CREDENTIALS[request.password]
     

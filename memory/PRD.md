@@ -1,7 +1,7 @@
 # Culture Connect 2026 - Product Requirements Document
 
 ## Overview
-Culture Connect 2026 est le premier marché professionnel des industries culturelles afro-caribéennes. La plateforme comprend un site public cinématique avec globe 3D interactif, un système CMS complet, une gestion des accréditations, et des espaces de travail dédiés pour chaque membre de l'équipe.
+Culture Connect 2026 est le premier marché professionnel des industries culturelles afro-caribéennes. La plateforme comprend un site public cinématique, un système multi-workspace pour l'équipe, une messagerie interne temps réel, et un système d'accréditation.
 
 ## Core Features
 
@@ -10,26 +10,16 @@ Culture Connect 2026 est le premier marché professionnel des industries culture
 - Globe 3D interactif (react-globe.gl)
 - Pages : Accueil, Programme, Tarifs, Partenariat, Catalogue
 - Formulaire d'inscription
-- Pages légales (CGU, Mentions légales, etc.)
+- Pages légales
 
 ### 2. Admin Dashboard (/admin)
 - **Accès** : Mot de passe `CC2026admin`
 - Gestion des accréditations participants
-- Statistiques et insights (conversion, profils, territoires)
+- Statistiques et insights
 - Export CSV
-- Gestion des partenaires
 - Accès CMS et Smart Engine
 
-### 3. CMS System (/admin/cms)
-- Gestion des médias (hero, logo, venue, gallery)
-- Gestion des intervenants et partenaires
-- Éditeur de contenu (pages, programme)
-- Thème et design
-- Éditeur visuel (avec solution popup pour contourner les restrictions iframe)
-
-### 4. Workspace System (Multi-user)
-Multi-user workspace platform with role-specific tools:
-
+### 3. Multi-User Workspace System (NEW)
 | Password | User | Role | Route |
 |----------|------|------|-------|
 | CC2026admin | Admin | admin | /admin |
@@ -42,100 +32,129 @@ Multi-user workspace platform with role-specific tools:
 | Fabrice2026 | Fabrice | captions | /workspace/fabrice |
 | DataCC2026 | Data Analyst | analyst | /workspace/analyst |
 
-### 5. Accreditation System (/admin/accreditation)
-- Connexion Baserow (Table ID: 865847)
-- Génération de badges avec QR codes
-- Validation de présence par scan
-- Export PDF/CSV
-- Observatoire statistiques
+### 4. Internal Messaging System (NEW - March 6, 2026)
+**Type**: Chat temps réel style Slack
 
-### 6. Real-Time Features
-- Notifications entre workspaces
-- Logs d'activité et connexions
-- WebSocket pour temps réel
+**Canaux thématiques**:
+- #général
+- #urgences
+- #logistique
+- #communication
+- #presse
+
+**Fonctionnalités**:
+- ✅ Messages privés 1-to-1
+- ✅ Broadcast à tous (canaux)
+- ✅ Notifications sonores
+- ✅ Indicateur "en train d'écrire"
+- ✅ Pièces jointes (images, PDF)
+- ✅ WebSocket temps réel
+- ✅ **Laurent voit TOUS les messages** (DMs et canaux) via onglet "Tout voir"
+
+### 5. Security Features (NEW - March 6, 2026)
+- ✅ Routes protégées (ProtectedRoute component)
+- ✅ Accès croisé bloqué (Gwen ne peut pas voir /workspace/wudy)
+- ✅ SessionStorage pour sessions (non persistant)
+- ✅ Déconnexion propre avec nettoyage session
+- ✅ Rate limiting login (5 tentatives, blocage 5 min)
+- ✅ Bouton retour sécurisé après logout
+
+### 6. Accreditation System
+- Connexion Baserow (Table ID: 865847)
+- Génération badges QR
+- Validation présence par scan
+- Export PDF/CSV
 
 ## Technical Stack
 
 ### Frontend
 - React 18 with React Router
 - Tailwind CSS + Shadcn/UI
-- react-globe.gl pour le globe 3D
-- Socket.io-client pour temps réel
-- Lucide React pour les icônes
+- react-globe.gl
+- Socket.io-client (messagerie)
+- Lucide React
 
 ### Backend
 - FastAPI (Python)
 - MongoDB (async motor)
-- Cloudinary pour les médias
-- Baserow API pour accréditations
-- Anthropic Claude pour AI assistant (Emergent LLM Key)
-
-### External Integrations
-- **Baserow**: Accreditation database
-- **Cloudinary**: Media storage
-- **Stripe**: Payments (configured)
-- **Anthropic Claude**: AI assistant in Alirio's workspace
-
-## Recent Fixes (March 6, 2026)
-
-### ✅ Bug Déconnexion - CORRIGÉ
-- Admin et tous les workspaces redirigent correctement vers /admin
-- SessionStorage et localStorage sont nettoyés à la déconnexion
-- Endpoint `/api/workspace/logout` utilise un modèle simplifié (user, role seulement)
-
-### ✅ Warning Hydration React - CORRIGÉ
-- Suppression de `useTheme` de next-themes dans sonner.jsx
-- Theme fixé à "dark" statiquement
-
-### ✅ Visual Editor - SOLUTION DE CONTOURNEMENT
-- Bouton "Ouvrir l'aperçu éditable" au lieu d'iframe bloqué
-- Script de mode édition injecté dans index.js pour ?ve=1
-- Communication via postMessage entre fenêtre popup et éditeur
+- WebSocket (chat temps réel)
+- Cloudinary (médias)
+- Anthropic Claude (AI assistant)
 
 ## API Endpoints
 
 ### Authentication
-- `POST /api/workspace/login` - Unified workspace login
-- `POST /api/workspace/logout` - Logout with user/role only
-- `POST /api/admin/verify` - Legacy admin verify
+- `POST /api/workspace/login` - Login avec rate limiting
+- `POST /api/workspace/logout` - Logout avec log
+
+### Messaging (NEW)
+- `WS /api/ws/chat` - WebSocket temps réel
+- `GET /api/chat/messages/channel/{channel}` - Messages d'un canal
+- `GET /api/chat/messages/dm/{user_id}` - Messages privés
+- `POST /api/chat/messages` - Envoyer message
+- `POST /api/chat/upload` - Upload pièces jointes
+- `GET /api/chat/online` - Utilisateurs en ligne
 
 ### Workspace
-- `GET /api/workspace/logs` - Activity logs
-- `POST /api/workspace/log` - Add log entry
-- `GET /api/workspace/sessions` - Active sessions
-
-### Notifications
-- `POST /api/notifications` - Send notification
-- `GET /api/notifications` - Get notifications
-- `PUT /api/notifications/{id}/read` - Mark as read
-
-### CMS
-- `GET /api/cms/media` - Media management
-- `GET /api/cms/content` - Content management
-- `GET /api/cms/visual-editor/proxy` - Proxy for visual editor
+- `POST /api/workspace/log` - Log activité
+- `GET /api/workspace/logs` - Historique activités
 
 ## Testing Status (March 6, 2026)
-- ✅ Backend: 100% tests passed
-- ✅ Frontend: 100% tests passed
-- ✅ Logout flows: All 3 types verified (admin, workspaces)
-- ✅ Visual Editor: Popup button displayed correctly
-- ✅ Sonner.jsx: No hydration warnings
 
-## Known Issues (Resolved)
-1. ~~Bug déconnexion~~ → CORRIGÉ
-2. ~~Warning hydration~~ → CORRIGÉ
-3. ~~Visual Editor iframe blocked~~ → CONTOURNÉ avec popup
+### BLOC 1 - Sécurité : ✅ 100% PASS
+| Test | Résultat |
+|------|----------|
+| 1.1 Accès direct sans auth | ✅ PASS |
+| 1.2 Accès croisé workspaces | ✅ PASS |
+| 1.3 Rate limiting | ✅ IMPLÉMENTÉ |
+| 1.4 SessionStorage | ✅ PASS |
+| 1.5 Bouton retour après logout | ✅ PASS |
 
-## Minor Pre-existing Issues
-- Hydration warning `<tr>` in `<span>` dans AdminDashboard (LOW priority, non-bloquant)
+### Messagerie : ✅ 100% PASS
+| Test | Résultat |
+|------|----------|
+| Bouton chat visible | ✅ PASS |
+| Fenêtre chat ouvre | ✅ PASS |
+| 5 canaux affichés | ✅ PASS |
+| "Tout voir" founder only | ✅ PASS |
+| API REST | ✅ PASS |
+| WebSocket | ✅ PASS |
+
+## Tests Restants (Plan Expert)
+
+### BLOC 2 - Synchronisation Temps Réel
+- [ ] TEST 2.1 - Latence notification < 2s
+- [ ] TEST 2.2 - Sync accréditation live
+- [ ] TEST 2.3 - Modifications simultanées
+- [ ] TEST 2.4 - Volume notifications (5 simultanées)
+
+### BLOC 3 - Résilience Réseau (CRITIQUE)
+- [ ] TEST 3.1 - Reconnexion WebSocket auto
+- [ ] TEST 3.2 - Réseau lent (3G)
+- [ ] TEST 3.3 - Perte connexion pendant action
+- [ ] TEST 3.4 - Reconnexion après inactivité
+
+### BLOC 4 - Charge et Performance
+- [ ] TEST 4.1 - 8 connexions simultanées
+- [ ] TEST 4.2 - Stress notifications (20 en 60s)
+- [ ] TEST 4.3 - Accréditation sous charge (50 scans)
+- [ ] TEST 4.4 - Performance mobile/tablette
+
+### BLOC 5 - Intégrité des Données
+- [ ] TEST 5.1 - Cohérence Baserow
+- [ ] TEST 5.2 - Export CSV cohérence
+- [ ] TEST 5.3 - Logs exhaustifs
+
+### BLOC 6 - Scénario Jour J
+- [ ] Simulation complète 15 minutes
 
 ## Credentials
 - Admin: `CC2026admin`
 - Workspaces: `LC2026`, `Twina2026`, `Gwen2026`, `Kaige2026`, `Alirio2026`, `Wudy2026`, `Fabrice2026`, `DataCC2026`
 - Baserow Token: `BjKPCSpcpif72OtZtsmMFUbZysqlNGiK`
 
-## Future Tasks (Backlog)
-1. Refactor `server.py` into modules (routes/, services/)
-2. Refactor large React components (LaurentWorkspace, CMSAdmin)
-3. Production deployment preparation
-4. Fix minor hydration warning in AdminDashboard
+## Files Reference
+- `/app/frontend/src/components/InternalMessaging.jsx` - Messagerie
+- `/app/frontend/src/App.js` - Routes protégées
+- `/app/backend/server.py` - APIs messaging & rate limiting
+- `/app/test_reports/iteration_14.json` - Résultats tests
