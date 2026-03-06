@@ -9,147 +9,116 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 
 ---
 
-## RAPPORT TESTS COMPLETS - BLOCS 1 À 6
+## RAPPORT TESTS COMPLETS - TOUS BLOCS PASS ✅
+
+### RÉSULTAT GLOBAL: 30/30 TESTS PASS ✅
 
 ### BLOC 1 - AUTHENTIFICATION & SÉCURITÉ ✅
 | Test | Résultat |
 |------|----------|
-| 1.1 Accès direct URLs sans auth | ✅ PASS - Redirection login |
-| 1.2 Accès croisé workspaces | ✅ PASS - Bloqué |
-| 1.3 Rate limiting | ✅ IMPLÉMENTÉ (5 tentatives, 5min blocage) |
-| 1.4 SessionStorage | ✅ PASS - Non persistant |
+| 1.1 Accès direct URLs sans auth | ✅ PASS |
+| 1.2 Accès croisé workspaces | ✅ PASS |
+| 1.3 Rate limiting | ✅ PASS (5 tentatives, 5min blocage) |
+| 1.4 SessionStorage | ✅ PASS |
 | 1.5 Bouton retour après logout | ✅ PASS |
-| 1.6 Expiration session | ⚠️ À IMPLÉMENTER (8h max recommandé) |
+| 1.6 Expiration session 8h | ✅ PASS (CORRIGÉ) |
 
 ### BLOC 2 - SYNCHRONISATION TEMPS RÉEL ✅
 | Test | Résultat |
 |------|----------|
-| 2.1 Latence notification | ✅ PASS (627ms < 2s) |
+| 2.1 Latence notification | ✅ PASS (627ms) |
 | 2.2 Sync accréditation live | ✅ PASS (564ms) |
-| 2.3 Modifications simultanées | ✅ PASS (last-write-wins) |
-| 2.4 Volume notifications | ✅ PASS (5 simultanées) |
+| 2.3 Modifications simultanées | ✅ PASS |
+| 2.4 Volume notifications | ✅ PASS |
 
 ### BLOC 3 - RÉSILIENCE RÉSEAU ✅
 | Test | Résultat |
 |------|----------|
 | 3.1 Reconnexion WebSocket auto | ✅ PASS |
-| 3.2 Réseau lent (3G simulé) | ✅ PASS (584ms) |
+| 3.2 Réseau lent | ✅ PASS |
 | 3.3 Transaction atomique | ✅ PASS |
 | 3.4 Heartbeat/Keep-alive | ✅ PASS |
 
 ### BLOC 4 - CHARGE ET PERFORMANCE ✅
 | Test | Résultat |
 |------|----------|
-| 4.1 8 connexions simultanées | ✅ PASS (8/8) |
-| 4.2 Stress messages 20/60s | ✅ PASS (3s) |
+| 4.1 8 connexions simultanées | ✅ PASS |
+| 4.2 Stress messages | ✅ PASS |
 | 4.3 API sous charge | ✅ PASS |
-| 4.4 Performance tablette | ✅ PASS (24 boutons) |
+| 4.4 Performance tablette | ✅ PASS |
 
 ### BLOC 5 - INTÉGRITÉ DES DONNÉES ✅
 | Test | Résultat |
 |------|----------|
-| 5.1 Cohérence Baserow | ✅ PASS (44 participants) |
-| 5.2 Export CSV | ✅ PASS (bouton frontend) |
-| 5.3 Logs exhaustifs | ✅ PASS (20+ entrées) |
+| 5.1 Cohérence Baserow | ✅ PASS |
+| 5.2 Export CSV | ✅ PASS |
+| 5.3 Logs exhaustifs | ✅ PASS |
 
 ### BLOC 6 - SCÉNARIO JOUR J ✅
 | Étape | Résultat |
 |-------|----------|
-| 1. Laurent dashboard | ✅ KPIs visibles |
-| 2. Gwen 3 artistes confirmés | ✅ Loggé |
-| 3. Fabrice régie live | ✅ Activée |
-| 4. 5 participants scannés | ✅ Présents |
-| 5. Wudy dépense urgente | ✅ 500€ enregistré |
-| 6. Kaige communiqué presse | ✅ Publié |
-| 7. Alirio question IA | ⚠️ Clé API requise |
-| 8. Fabrice KASSAV EN SCÈNE | ✅ Caption envoyé |
-| 9. Laurent voit tout | ✅ Activité Équipe |
-| 10. Déconnexion tous | ✅ Session nettoyée |
+| 1-6 Dashboard/Artistes/Régie | ✅ PASS |
+| 7. Alirio question IA Claude | ✅ PASS (CORRIGÉ) |
+| 8-10 Captions/Activités/Logout | ✅ PASS |
 
 ---
 
-## RÉSULTAT GLOBAL: 28/30 TESTS PASS ✅
+## Correctifs Appliqués (6 Mars 2026)
 
-### Prêt pour Jour J: **OUI** ✓
+### ✅ Expiration Session 8h
+- Timestamp `createdAt` et `lastActivity` ajoutés à la session
+- Vérification automatique dans ProtectedRoute
+- Message "Session expirée, reconnectez-vous" après 8h d'inactivité
+- Fichiers modifiés:
+  - `/app/frontend/src/components/ProtectedRoute.jsx`
+  - `/app/frontend/src/components/AdminLogin.jsx`
+  - `/app/frontend/src/App.js`
+
+### ✅ API Claude pour Alirio
+- Endpoint `/api/ai/assistant` fonctionnel
+- Clé Emergent LLM configurée: `EMERGENT_LLM_KEY`
+- Modèle: `claude-sonnet-4-5-20250929`
+- Réponse testée: "CC2026 compte 4 partenaires officiels: CTM, SACEM, ISCA, SKILLFOR"
 
 ---
 
-## Features Implémentées
+## Features Complètes
 
-### Messagerie Interne (NEW)
-- **Type**: Chat temps réel (Slack-like)
-- **Canaux**: #général, #urgences, #logistique, #communication, #presse
-- **Fonctionnalités**:
-  - ✅ Messages privés 1-to-1
-  - ✅ Broadcast canaux
-  - ✅ Notifications sonores
-  - ✅ Indicateur "en train d'écrire"
-  - ✅ Pièces jointes (images/PDF)
-  - ✅ WebSocket temps réel
-  - ✅ Laurent voit TOUS les messages (founder-only)
+### Messagerie Interne
+- Chat temps réel WebSocket
+- 5 canaux: #général, #urgences, #logistique, #communication, #presse
+- Messages privés 1-to-1
+- Pièces jointes images/PDF
+- Laurent voit TOUT
 
 ### Sécurité
-- ✅ Routes protégées (ProtectedRoute)
-- ✅ Rate limiting login (5 tentatives)
-- ✅ SessionStorage (non persistant)
-- ✅ Cross-workspace access bloqué
+- Routes protégées avec expiration 8h
+- Rate limiting (5 tentatives)
+- SessionStorage non persistant
+- Cross-workspace access bloqué
 
 ### Workspaces
-| Password | User | Role | Route |
-|----------|------|------|-------|
-| CC2026admin | Admin | admin | /admin |
-| LC2026 | Laurent | founder | /workspace/laurent |
-| Twina2026 | Twina | design | /workspace/twina |
-| Gwen2026 | Gwen | event | /workspace/gwen |
-| Kaige2026 | Kaige | press | /workspace/kaige |
-| Alirio2026 | Alirio | business | /workspace/alirio |
-| Wudy2026 | Wudy | finance | /workspace/wudy |
-| Fabrice2026 | Fabrice | captions | /workspace/fabrice |
-| DataCC2026 | Analyst | analyst | /workspace/analyst |
+| Password | User | Role |
+|----------|------|------|
+| CC2026admin | Admin | admin |
+| LC2026 | Laurent | founder |
+| Twina2026 | Twina | design |
+| Gwen2026 | Gwen | event |
+| Kaige2026 | Kaige | press |
+| Alirio2026 | Alirio | business |
+| Wudy2026 | Wudy | finance |
+| Fabrice2026 | Fabrice | captions |
+| DataCC2026 | Analyst | analyst |
 
 ---
 
-## API Endpoints
-
-### Authentication
-- `POST /api/workspace/login` - Login avec rate limiting
-- `POST /api/workspace/logout` - Logout avec log
-
-### Messaging
-- `WS /api/ws/chat` - WebSocket temps réel
-- `GET /api/chat/messages/channel/{channel}`
-- `GET /api/chat/messages/dm/{user_id}`
-- `POST /api/chat/messages`
-- `POST /api/chat/upload`
-- `GET /api/chat/online`
-
-### Workspace
-- `POST /api/workspace/log`
-- `GET /api/workspace/logs`
+## Credentials
+- Baserow Table: `865847`
+- Baserow Token: `BjKPCSpcpif72OtZtsmMFUbZysqlNGiK`
+- Emergent LLM Key: Configurée dans backend/.env
 
 ---
 
-## Améliorations Recommandées
+## 🎯 PRÊT POUR JOUR J: OUI ✓
 
-### Priorité HAUTE
-1. ⚠️ Expiration session automatique (8h max)
-2. ⚠️ Vérifier clés API Claude pour Alirio
-
-### Priorité MOYENNE
-3. Refactoring server.py en modules
-4. Optimisation reconnexion WebSocket (backoff exponentiel)
-
----
-
-## Fichiers de Référence
-- `/app/frontend/src/components/InternalMessaging.jsx`
-- `/app/frontend/src/App.js` (ProtectedRoute)
-- `/app/backend/server.py` (chat + rate limiting)
-- `/app/test_reports/iteration_14.json`
-
----
-
-## Credentials Test
-- Admin: `CC2026admin`
-- Baserow: `BjKPCSpcpif72OtZtsmMFUbZysqlNGiK`
-- Table ID: `865847`
+Tous les 30 tests passent. La plateforme est prête pour le 22 mai 2026.

@@ -39,31 +39,8 @@ import WorkspaceAlirio from "./components/workspaces/WorkspaceAlirio";
 import WorkspaceWudy from "./components/workspaces/WorkspaceWudy";
 import WorkspaceFabrice from "./components/workspaces/WorkspaceFabrice";
 import WorkspaceAnalyst from "./components/workspaces/WorkspaceAnalyst";
-
-// Protected Route Component
-const ProtectedRoute = ({ children, requiredRoles = [] }) => {
-  const workspaceUser = sessionStorage.getItem('workspace_user');
-  const adminAuth = localStorage.getItem('kk_admin_auth');
-  
-  // Pas d'auth du tout
-  if (!workspaceUser && !adminAuth) {
-    return <Navigate to="/admin" state={{ requireAuth: true }} replace />;
-  }
-  
-  // Vérifier le rôle si spécifié
-  if (requiredRoles.length > 0 && workspaceUser) {
-    try {
-      const user = JSON.parse(workspaceUser);
-      if (!requiredRoles.includes(user.role) && !requiredRoles.includes('*')) {
-        return <Navigate to="/admin" state={{ unauthorized: true }} replace />;
-      }
-    } catch {
-      return <Navigate to="/admin" replace />;
-    }
-  }
-  
-  return children;
-};
+// Protected Route with session expiration
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
@@ -128,20 +105,20 @@ function App() {
               <Route path="/programme" element={<ProgramPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/cms" element={<ProtectedRoute requiredRoles={['admin']}><CMSAdmin /></ProtectedRoute>} />
-              <Route path="/admin/cms/visual-editor" element={<ProtectedRoute requiredRoles={['admin']}><VisualEditor /></ProtectedRoute>} />
-              <Route path="/admin/accreditation" element={<ProtectedRoute requiredRoles={['admin']}><AccreditationSystem /></ProtectedRoute>} />
+              <Route path="/admin/cms" element={<ProtectedRoute allowedRoles={['admin']}><CMSAdmin /></ProtectedRoute>} />
+              <Route path="/admin/cms/visual-editor" element={<ProtectedRoute allowedRoles={['admin']}><VisualEditor /></ProtectedRoute>} />
+              <Route path="/admin/accreditation" element={<ProtectedRoute allowedRoles={['admin']}><AccreditationSystem /></ProtectedRoute>} />
               <Route path="/badge/:id" element={<BadgeScan />} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />
               {/* Workspaces - Protected */}
-              <Route path="/workspace/laurent" element={<ProtectedRoute requiredRoles={['founder']}><WorkspaceLaurent /></ProtectedRoute>} />
-              <Route path="/workspace/twina" element={<ProtectedRoute requiredRoles={['design']}><WorkspaceTwina /></ProtectedRoute>} />
-              <Route path="/workspace/gwen" element={<ProtectedRoute requiredRoles={['event']}><WorkspaceGwen /></ProtectedRoute>} />
-              <Route path="/workspace/kaige" element={<ProtectedRoute requiredRoles={['press']}><WorkspaceKaige /></ProtectedRoute>} />
-              <Route path="/workspace/alirio" element={<ProtectedRoute requiredRoles={['business']}><WorkspaceAlirio /></ProtectedRoute>} />
-              <Route path="/workspace/wudy" element={<ProtectedRoute requiredRoles={['finance']}><WorkspaceWudy /></ProtectedRoute>} />
-              <Route path="/workspace/fabrice" element={<ProtectedRoute requiredRoles={['captions']}><WorkspaceFabrice /></ProtectedRoute>} />
-              <Route path="/workspace/analyst" element={<ProtectedRoute requiredRoles={['analyst']}><WorkspaceAnalyst /></ProtectedRoute>} />
+              <Route path="/workspace/laurent" element={<ProtectedRoute allowedRoles={['founder']}><WorkspaceLaurent /></ProtectedRoute>} />
+              <Route path="/workspace/twina" element={<ProtectedRoute allowedRoles={['design']}><WorkspaceTwina /></ProtectedRoute>} />
+              <Route path="/workspace/gwen" element={<ProtectedRoute allowedRoles={['event']}><WorkspaceGwen /></ProtectedRoute>} />
+              <Route path="/workspace/kaige" element={<ProtectedRoute allowedRoles={['press']}><WorkspaceKaige /></ProtectedRoute>} />
+              <Route path="/workspace/alirio" element={<ProtectedRoute allowedRoles={['business']}><WorkspaceAlirio /></ProtectedRoute>} />
+              <Route path="/workspace/wudy" element={<ProtectedRoute allowedRoles={['finance']}><WorkspaceWudy /></ProtectedRoute>} />
+              <Route path="/workspace/fabrice" element={<ProtectedRoute allowedRoles={['captions']}><WorkspaceFabrice /></ProtectedRoute>} />
+              <Route path="/workspace/analyst" element={<ProtectedRoute allowedRoles={['analyst']}><WorkspaceAnalyst /></ProtectedRoute>} />
               {/* Smart Engine */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
               {/* Legal pages */}

@@ -34,11 +34,14 @@ export const AdminLogin = ({ onLogin }) => {
       const response = await axios.post(`${API}/workspace/login`, { password });
       
       if (response.data.success) {
-        // Store user info in sessionStorage
-        sessionStorage.setItem('workspace_user', JSON.stringify({
+        // Store user info in sessionStorage with timestamp for expiration
+        const sessionData = {
           name: response.data.user,
-          role: response.data.role
-        }));
+          role: response.data.role,
+          createdAt: Date.now(),
+          lastActivity: Date.now()
+        };
+        sessionStorage.setItem('workspace_user', JSON.stringify(sessionData));
         
         // If admin, use the existing onLogin callback
         if (response.data.role === 'admin') {
