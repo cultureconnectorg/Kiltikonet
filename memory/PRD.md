@@ -25,9 +25,9 @@ Culture Connect 2026 est le premier marché professionnel des industries culture
 - Gestion des intervenants et partenaires
 - Éditeur de contenu (pages, programme)
 - Thème et design
-- Éditeur visuel (iframe - issue connue avec cross-origin)
+- Éditeur visuel (avec solution popup pour contourner les restrictions iframe)
 
-### 4. Workspace System (NEW - March 2026)
+### 4. Workspace System (Multi-user)
 Multi-user workspace platform with role-specific tools:
 
 | Password | User | Role | Route |
@@ -76,10 +76,27 @@ Multi-user workspace platform with role-specific tools:
 - **Stripe**: Payments (configured)
 - **Anthropic Claude**: AI assistant in Alirio's workspace
 
+## Recent Fixes (March 6, 2026)
+
+### ✅ Bug Déconnexion - CORRIGÉ
+- Admin et tous les workspaces redirigent correctement vers /admin
+- SessionStorage et localStorage sont nettoyés à la déconnexion
+- Endpoint `/api/workspace/logout` utilise un modèle simplifié (user, role seulement)
+
+### ✅ Warning Hydration React - CORRIGÉ
+- Suppression de `useTheme` de next-themes dans sonner.jsx
+- Theme fixé à "dark" statiquement
+
+### ✅ Visual Editor - SOLUTION DE CONTOURNEMENT
+- Bouton "Ouvrir l'aperçu éditable" au lieu d'iframe bloqué
+- Script de mode édition injecté dans index.js pour ?ve=1
+- Communication via postMessage entre fenêtre popup et éditeur
+
 ## API Endpoints
 
 ### Authentication
 - `POST /api/workspace/login` - Unified workspace login
+- `POST /api/workspace/logout` - Logout with user/role only
 - `POST /api/admin/verify` - Legacy admin verify
 
 ### Workspace
@@ -92,34 +109,33 @@ Multi-user workspace platform with role-specific tools:
 - `GET /api/notifications` - Get notifications
 - `PUT /api/notifications/{id}/read` - Mark as read
 
-### Registrations
-- `GET /api/registrations` - List participants
-- `POST /api/registrations/manual` - Add participant
-- `PATCH /api/registrations/{id}/status` - Update status
-
 ### CMS
 - `GET /api/cms/media` - Media management
 - `GET /api/cms/content` - Content management
-- `PUT /api/cms/theme` - Theme settings
+- `GET /api/cms/visual-editor/proxy` - Proxy for visual editor
 
-## Testing Status (March 2026)
-- ✅ Backend: 24/24 tests passed (100%)
-- ✅ Frontend: All flows working
-- ✅ All 9 credentials verified
-- ✅ Notifications API working
-- ✅ Workspace logs working
+## Testing Status (March 6, 2026)
+- ✅ Backend: 100% tests passed
+- ✅ Frontend: 100% tests passed
+- ✅ Logout flows: All 3 types verified (admin, workspaces)
+- ✅ Visual Editor: Popup button displayed correctly
+- ✅ Sonner.jsx: No hydration warnings
 
-## Known Issues
-1. **Visual Editor iframe** (P1) - Cross-origin security blocks iframe content
-2. **Hydration warning** (LOW) - `<tr>` inside `<span>` in AccreditationSystem
+## Known Issues (Resolved)
+1. ~~Bug déconnexion~~ → CORRIGÉ
+2. ~~Warning hydration~~ → CORRIGÉ
+3. ~~Visual Editor iframe blocked~~ → CONTOURNÉ avec popup
 
-## Credentials for Testing
+## Minor Pre-existing Issues
+- Hydration warning `<tr>` in `<span>` dans AdminDashboard (LOW priority, non-bloquant)
+
+## Credentials
 - Admin: `CC2026admin`
 - Workspaces: `LC2026`, `Twina2026`, `Gwen2026`, `Kaige2026`, `Alirio2026`, `Wudy2026`, `Fabrice2026`, `DataCC2026`
 - Baserow Token: `BjKPCSpcpif72OtZtsmMFUbZysqlNGiK`
 
 ## Future Tasks (Backlog)
-1. Refactor `server.py` into modules
-2. Fix Visual Editor iframe issue
-3. Refactor large React components
-4. Production deployment preparation
+1. Refactor `server.py` into modules (routes/, services/)
+2. Refactor large React components (LaurentWorkspace, CMSAdmin)
+3. Production deployment preparation
+4. Fix minor hydration warning in AdminDashboard
