@@ -1,6 +1,6 @@
 # Audit Complet - Culture Connect 2026
 **Date :** 26 Février 2026  
-**Plateforme :** https://cinematic-globe.preview.emergentagent.com
+**Plateforme :** https://badge-scan-portal.preview.emergentagent.com
 
 ---
 

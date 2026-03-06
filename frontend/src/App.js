@@ -30,11 +30,20 @@ import IntroSequence, { ReturnWelcome } from "./components/IntroSequence";
 // Accreditation System
 import { AccreditationSystem } from "./components/AccreditationSystem";
 import BadgeScan from "./components/BadgeScan";
+// Workspaces
+import WorkspaceLaurent from "./components/workspaces/WorkspaceLaurent";
+import WorkspaceTwina from "./components/workspaces/WorkspaceTwina";
+import WorkspaceGwen from "./components/workspaces/WorkspaceGwen";
+import WorkspaceKaige from "./components/workspaces/WorkspaceKaige";
+import WorkspaceAlirio from "./components/workspaces/WorkspaceAlirio";
+import WorkspaceWudy from "./components/workspaces/WorkspaceWudy";
+import WorkspaceFabrice from "./components/workspaces/WorkspaceFabrice";
+import WorkspaceAnalyst from "./components/workspaces/WorkspaceAnalyst";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
   const location = useLocation();
-  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge'];
+  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace'];
   const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
   
   return (
@@ -50,8 +59,8 @@ const AppLayout = ({ children }) => {
 const IntroWrapper = () => {
   const location = window.location.pathname;
   const [showIntro, setShowIntro] = React.useState(() => {
-    // Skip intro on admin pages, badge scan page
-    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge')) {
+    // Skip intro on admin pages, badge scan page, workspace pages
+    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge') || location.startsWith('/workspace')) {
       return false;
     }
     // Skip intro if visual editor mode
@@ -99,6 +108,15 @@ function App() {
               <Route path="/admin/accreditation" element={<AccreditationSystem />} />
               <Route path="/badge/:id" element={<BadgeScan />} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />
+              {/* Workspaces */}
+              <Route path="/workspace/laurent" element={<WorkspaceLaurent />} />
+              <Route path="/workspace/twina" element={<WorkspaceTwina />} />
+              <Route path="/workspace/gwen" element={<WorkspaceGwen />} />
+              <Route path="/workspace/kaige" element={<WorkspaceKaige />} />
+              <Route path="/workspace/alirio" element={<WorkspaceAlirio />} />
+              <Route path="/workspace/wudy" element={<WorkspaceWudy />} />
+              <Route path="/workspace/fabrice" element={<WorkspaceFabrice />} />
+              <Route path="/workspace/analyst" element={<WorkspaceAnalyst />} />
               {/* Smart Engine */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
               {/* Legal pages */}

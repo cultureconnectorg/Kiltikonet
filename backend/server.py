@@ -616,6 +616,30 @@ class RegistrationListResponse(BaseModel):
 class AdminVerify(BaseModel):
     password: str
 
+# ================== WORKSPACE SYSTEM ==================
+# Workspace passwords and roles configuration
+WORKSPACE_CREDENTIALS = {
+    "CC2026admin": {"role": "admin", "name": "Admin", "redirect": "/admin"},
+    "LC2026": {"role": "founder", "name": "Laurent Coeurvolan", "redirect": "/workspace/laurent"},
+    "Twina2026": {"role": "design", "name": "Twina", "redirect": "/workspace/twina"},
+    "Gwen2026": {"role": "event", "name": "Gwen", "redirect": "/workspace/gwen"},
+    "Kaige2026": {"role": "press", "name": "Kaige-Jean", "redirect": "/workspace/kaige"},
+    "Alirio2026": {"role": "business", "name": "Alirio", "redirect": "/workspace/alirio"},
+    "Wudy2026": {"role": "finance", "name": "Wudy", "redirect": "/workspace/wudy"},
+    "Fabrice2026": {"role": "captions", "name": "Fabrice", "redirect": "/workspace/fabrice"},
+    "DataCC2026": {"role": "analyst", "name": "Data Analyst", "redirect": "/workspace/analyst"}
+}
+
+class WorkspaceLoginRequest(BaseModel):
+    password: str
+
+class WorkspaceLog(BaseModel):
+    user: str
+    role: str
+    action: str
+    details: Optional[str] = None
+    timestamp: Optional[str] = None
+
 class StatusUpdate(BaseModel):
     status: str
 
@@ -1894,6 +1918,173 @@ async def verify_admin(admin: AdminVerify):
     if admin.password == "CC2026admin":
         return {"success": True}
     raise HTTPException(status_code=401, detail="Invalid password")
+
+# ================== WORKSPACE LOGIN & LOGS ==================
+
+@api_router.post("/workspace/login")
+async def workspace_login(request: WorkspaceLoginRequest):
+    """
+    Workspace login - returns user info and redirect based on password
+    Also logs the connection to MongoDB
+    """
+    if request.password not in WORKSPACE_CREDENTIALS:
+        raise HTTPException(status_code=401, detail="Mot de passe invalide")
+    
+    user_info = WORKSPACE_CREDENTIALS[request.password]
+    
+    # Log the connection
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "user": user_info["name"],
+        "role": user_info["role"],
+        "action": "login",
+        "details": f"Connexion workspace {user_info['role']}",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "session_start": datetime.now(timezone.utc).isoformat()
+    }
+    await db.workspace_logs.insert_one(log_entry)
+    
+    return {
+        "success": True,
+        "user": user_info["name"],
+        "role": user_info["role"],
+        "redirect": user_info["redirect"]
+    }
+
+@api_router.post("/workspace/log")
+async def add_workspace_log(log: WorkspaceLog):
+    """Add a workspace activity log entry"""
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "user": log.user,
+        "role": log.role,
+        "action": log.action,
+        "details": log.details,
+        "timestamp": log.timestamp or datetime.now(timezone.utc).isoformat()
+    }
+    await db.workspace_logs.insert_one(log_entry)
+    return {"success": True, "log_id": log_entry["id"]}
+
+@api_router.get("/workspace/logs")
+async def get_workspace_logs(limit: int = 100, user: Optional[str] = None):
+    """Get workspace activity logs (for admin dashboard)"""
+    query = {}
+    if user:
+        query["user"] = user
+    
+    logs = await db.workspace_logs.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    return {"logs": logs}
+
+@api_router.get("/workspace/sessions")
+async def get_workspace_sessions():
+    """Get all active/recent sessions grouped by user"""
+    # Get login events from last 30 days
+    thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    
+    pipeline = [
+        {"$match": {"action": "login", "timestamp": {"$gte": thirty_days_ago}}},
+        {"$group": {
+            "_id": "$user",
+            "last_login": {"$max": "$timestamp"},
+            "total_logins": {"$sum": 1},
+            "role": {"$first": "$role"}
+        }},
+        {"$sort": {"last_login": -1}}
+    ]
+    
+    sessions = await db.workspace_logs.aggregate(pipeline).to_list(100)
+    
+    return {"sessions": sessions}
+
+@api_router.post("/workspace/logout")
+async def workspace_logout(log: WorkspaceLog):
+    """Log workspace logout"""
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "user": log.user,
+        "role": log.role,
+        "action": "logout",
+        "details": "Deconnexion",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await db.workspace_logs.insert_one(log_entry)
+    return {"success": True}
+
+# ================== AI ASSISTANT FOR ALIRIO ==================
+
+CC2026_CONTEXT = """
+Tu es l'assistant IA de Culture Connect 2026 (CC2026), le premier marche professionnel des industries culturelles afro-descendantes.
+
+INFORMATIONS CLES:
+- Date: 22 Mai 2026
+- Lieu: La Savane, Fort-de-France, Martinique
+- Organisateur: CVLN (Laurent Coeurvolan, Fondateur)
+- Site web: kiltikonet.fr
+
+PARTENAIRES OFFICIELS:
+- CTM (Collectivite Territoriale de Martinique)
+- SACEM
+- ISCA
+- SKILLFOR
+
+PROGRAMME:
+- Conferences et masterclasses
+- Marche professionnel
+- Concert "Chimin Savann" en soiree
+- Networking et B2B
+
+EQUIPE CC2026:
+- Laurent Coeurvolan (LC) - Fondateur
+- Twina - Design
+- Gwen - Evenementiel / Concert
+- Kaige-Jean - Attachee de presse
+- Alirio - Relations business & Secretariat
+- Wudy - Comptabilite
+- Fabrice - Captions live
+
+OBJECTIFS:
+- Connecter les professionnels des industries culturelles afro-descendantes
+- Promouvoir la culture caribbeenne et africaine
+- Creer des opportunites economiques et artistiques
+
+Tu dois repondre de maniere professionnelle, concise et utile aux questions d'Alirio concernant le projet CC2026.
+"""
+
+class AIAssistantRequest(BaseModel):
+    message: str
+    user: str
+    context: Optional[str] = None
+
+@api_router.post("/ai/assistant")
+async def ai_assistant(request: AIAssistantRequest):
+    """AI assistant endpoint using Claude for CC2026 project questions"""
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        api_key = os.environ.get("EMERGENT_LLM_KEY")
+        if not api_key:
+            return {"response": "Service IA temporairement indisponible. Contactez Laurent."}
+        
+        # Create chat instance with Claude
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"cc2026_assistant_{request.user}",
+            system_message=CC2026_CONTEXT
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        
+        # Send message
+        user_message = UserMessage(text=request.message)
+        response = await chat.send_message(user_message)
+        
+        return {"response": response, "success": True}
+        
+    except Exception as e:
+        print(f"AI Assistant error: {e}")
+        return {"response": f"Desole, je n'ai pas pu traiter votre demande. Erreur: {str(e)[:100]}", "success": False}
 
 @api_router.get("/countries")
 async def get_countries():

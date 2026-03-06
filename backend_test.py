@@ -7,7 +7,7 @@ from io import BytesIO
 from urllib.parse import urlencode
 
 class CultureConnectAPITester:
-    def __init__(self, base_url="https://cinematic-globe.preview.emergentagent.com"):
+    def __init__(self, base_url="https://badge-scan-portal.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_base = f"{base_url}/api"
         self.tests_run = 0
