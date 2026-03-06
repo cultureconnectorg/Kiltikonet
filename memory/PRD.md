@@ -1,204 +1,125 @@
-# Culture Connect 2026 (CC2026) - PRD
+# Culture Connect 2026 - Product Requirements Document
 
-## Project Overview
-Premier marché professionnel des industries culturelles afro-descendantes.
-- **Date**: 22 Mai 2026
-- **Lieu**: La Savane, Fort-de-France, Martinique
-- **Site**: kiltikonet.fr
-- **Organisateur**: CVLN (Laurent Coeurvolan)
+## Overview
+Culture Connect 2026 est le premier marché professionnel des industries culturelles afro-caribéennes. La plateforme comprend un site public cinématique avec globe 3D interactif, un système CMS complet, une gestion des accréditations, et des espaces de travail dédiés pour chaque membre de l'équipe.
 
-## Core Features Implemented
+## Core Features
 
-### 1. Public Website (kiltikonet.fr) ✅
-- Landing page cinématique avec animations scroll
+### 1. Public Website
+- Landing page cinématique avec animations
 - Globe 3D interactif (react-globe.gl)
-- Carousel partenaires animé
-- Programme détaillé (/programme)
-- Formulaire d'inscription avec paiement Stripe
-- Catalogue des participants
-- Pages légales (CGU, RGPD, Cookies)
-- SEO complet (meta tags, JSON-LD, sitemap)
+- Pages : Accueil, Programme, Tarifs, Partenariat, Catalogue
+- Formulaire d'inscription
+- Pages légales (CGU, Mentions légales, etc.)
 
-### 2. Admin Dashboard (/admin) ✅
-- Authentification par mot de passe (CC2026admin)
-- Gestion des inscriptions (CRUD)
-- Validation/approbation des participants
-- Export CSV des données
-- Statistiques temps réel
-- Envoi d'emails (Resend)
+### 2. Admin Dashboard (/admin)
+- **Accès** : Mot de passe `CC2026admin`
+- Gestion des accréditations participants
+- Statistiques et insights (conversion, profils, territoires)
+- Export CSV
+- Gestion des partenaires
+- Accès CMS et Smart Engine
 
-### 3. CMS Admin (/admin/cms) ✅
-- Gestion du contenu du site
-- Upload médias (Cloudinary)
-- Configuration thème et couleurs
-- Gestion partenaires
+### 3. CMS System (/admin/cms)
+- Gestion des médias (hero, logo, venue, gallery)
+- Gestion des intervenants et partenaires
+- Éditeur de contenu (pages, programme)
+- Thème et design
+- Éditeur visuel (iframe - issue connue avec cross-origin)
 
-### 4. Système d'Accréditation (/admin/accreditation) ✅
-- Intégration Baserow (Table 865847)
-- Liste participants avec CRUD complet
-- Générateur de badges professionnels (design CC2026)
-- QR Code intégré pour validation
-- Export CSV liste + Export PDF badge format événement
-- Auto-validation présence sur scan (/badge/:id)
+### 4. Workspace System (NEW - March 2026)
+Multi-user workspace platform with role-specific tools:
 
-### 5. Système Multi-Workspaces ✅ (COMPLET)
+| Password | User | Role | Route |
+|----------|------|------|-------|
+| CC2026admin | Admin | admin | /admin |
+| LC2026 | Laurent Coeurvolan | founder | /workspace/laurent |
+| Twina2026 | Twina | design | /workspace/twina |
+| Gwen2026 | Gwen | event | /workspace/gwen |
+| Kaige2026 | Kaige-Jean | press | /workspace/kaige |
+| Alirio2026 | Alirio | business | /workspace/alirio |
+| Wudy2026 | Wudy | finance | /workspace/wudy |
+| Fabrice2026 | Fabrice | captions | /workspace/fabrice |
+| DataCC2026 | Data Analyst | analyst | /workspace/analyst |
 
-| Membre | Mot de passe | Workspace | Fonctionnalités |
-|--------|-------------|-----------|-----------------|
-| **Admin** | CC2026admin | /admin | Dashboard admin existant |
-| **Laurent (LC)** | LC2026 | /workspace/laurent | Vue d'ensemble, alertes temps réel, logs connexion, historique modifications, statut chantiers, accès rapide workspaces |
-| **Twina** | Twina2026 | /workspace/twina | CMS visuel dédié, gestion visuels, section Hero/Partenaires/Programme |
-| **Gwen** | Gwen2026 | /workspace/gwen | Gestion artistes (Kathy confirmée), formalités, planning jour J, logistique, notes production |
-| **Kaïge-Jean** | Kaige2026 | /workspace/kaige | Communiqués de presse, carnet contacts médias, accréditations presse, couverture médiatique |
-| **Alirio** | Alirio2026 | /workspace/alirio | **IA Claude intégrée**, registre partenaires, agenda, notes réunion, contacts |
-| **Wudy** | Wudy2026 | /workspace/wudy | Budget prévisionnel (97 750€), dépenses réelles, documents financiers |
-| **Fabrice** | Fabrice2026 | /workspace/fabrice | Régie live captions, séquenceur écrans, captation vidéo, photos |
-| **Data Analyst** | DataCC2026 | /workspace/analyst | Réservé (poste à pourvoir) |
+### 5. Accreditation System (/admin/accreditation)
+- Connexion Baserow (Table ID: 865847)
+- Génération de badges avec QR codes
+- Validation de présence par scan
+- Export PDF/CSV
+- Observatoire statistiques
 
-### 6. Système de Notifications Push ✅ (NOUVEAU)
-- **Notifications temps réel** vers Laurent pour chaque action importante
-- **Types de notifications** :
-  - `artiste_confirmed` : Gwen confirme un artiste → alerte LC
-  - `expense_added` : Wudy ajoute une dépense → alerte LC
-  - `communique_sent` : Kaïge envoie un communiqué → alerte LC
-  - `live_active` : Fabrice active la régie → alerte LC
-  - `partner_added` : Alirio ajoute un partenaire → alerte LC
-  - `urgent_message` : Message urgent depuis régie
-- **NotificationBell** : Badge avec compteur dans l'en-tête
-- **Logs MongoDB** : Toutes les notifications persistées
-
-### 7. Assistant IA (Alirio) ✅
-- Intégration Claude via Emergent LLM key
-- Contexte CC2026 complet injecté (équipe, budget, partenaires, dates)
-- Interface chat professionnelle avec questions suggérées
-
-## Budget CC2026 (97 750€ HT)
-
-### Revenus prévisionnels
-- Partenariat Or (x2) : 20 000€
-- Partenariat Silver (x5) : 12 500€
-- Partenariat Bronze (x10) : 10 000€
-- Subvention CTM : 25 000€
-- Subvention DAC : 10 000€
-- France Travail : 5 000€
-- Billetterie (500 places) : 7 500€
-- Stands exposants (x10) : 5 000€
-- Ventes annexes : 2 750€
-
-### Dépenses prévisionnelles
-- Cachets artistes : 25 000€
-- Location scène + backline : 15 000€
-- Sono + lumière : 12 000€
-- Sécurité + SSIAP : 8 000€
-- Communication print : 5 000€
-- Communication digitale : 3 000€
-- Logistique événement : 10 000€
-- Assurances : 3 000€
-- SACEM / GUSO : 4 000€
-- Frais administratifs : 2 000€
-- Captation vidéo : 5 000€
-- Imprévus (5%) : 5 750€
+### 6. Real-Time Features
+- Notifications entre workspaces
+- Logs d'activité et connexions
+- WebSocket pour temps réel
 
 ## Technical Stack
 
 ### Frontend
-- React 18
-- React Router DOM
+- React 18 with React Router
 - Tailwind CSS + Shadcn/UI
-- react-globe.gl (Globe 3D)
-- qrcode (QR codes)
-- axios
-- sonner (toasts)
+- react-globe.gl pour le globe 3D
+- Socket.io-client pour temps réel
+- Lucide React pour les icônes
 
 ### Backend
-- FastAPI
-- MongoDB (Motor async)
-- WebSocket/SSE
-- emergentintegrations (Claude AI)
+- FastAPI (Python)
+- MongoDB (async motor)
+- Cloudinary pour les médias
+- Baserow API pour accréditations
+- Anthropic Claude pour AI assistant (Emergent LLM Key)
 
-### External Services
-- Baserow (accréditations)
-- Cloudinary (médias)
-- Stripe (paiements)
-- Resend (emails)
-- Claude AI (assistant)
-
-## Design System
-- **Couleurs**: #1C1A14 (charbon), #C4714A (terracotta), #D4A84B (gold), #4A5D4E (forest), #8B1A4A (burgundy), #00BCD4 (teal), #9C27B0 (purple), #4CAF50 (green), #E91E63 (pink)
-- **Fonts**: Syne, Cormorant Garamond
+### External Integrations
+- **Baserow**: Accreditation database
+- **Cloudinary**: Media storage
+- **Stripe**: Payments (configured)
+- **Anthropic Claude**: AI assistant in Alirio's workspace
 
 ## API Endpoints
 
-### Workspace System
-- POST /api/workspace/login - Connexion avec redirection
-- POST /api/workspace/log - Ajout log activité
-- GET /api/workspace/logs - Récupération logs
-- GET /api/workspace/sessions - Sessions actives
-- POST /api/workspace/logout - Déconnexion
+### Authentication
+- `POST /api/workspace/login` - Unified workspace login
+- `POST /api/admin/verify` - Legacy admin verify
 
-### Notification System
-- POST /api/notifications/send - Envoyer notification
-- GET /api/notifications/{target} - Récupérer notifications
-- PATCH /api/notifications/{id}/read - Marquer comme lu
-- PATCH /api/notifications/{target}/read-all - Tout marquer lu
+### Workspace
+- `GET /api/workspace/logs` - Activity logs
+- `POST /api/workspace/log` - Add log entry
+- `GET /api/workspace/sessions` - Active sessions
 
-### AI Assistant
-- POST /api/ai/assistant - Chat avec Claude
+### Notifications
+- `POST /api/notifications` - Send notification
+- `GET /api/notifications` - Get notifications
+- `PUT /api/notifications/{id}/read` - Mark as read
 
-## Completed This Session (06/03/2026)
+### Registrations
+- `GET /api/registrations` - List participants
+- `POST /api/registrations/manual` - Add participant
+- `PATCH /api/registrations/{id}/status` - Update status
 
-### ÉTAPE 1 - Refonte Accréditation ✅
-- Nouveau design badge professionnel
-- CRUD complet avec Baserow
-- Export CSV et PDF
-- Auto-validation QR scan
+### CMS
+- `GET /api/cms/media` - Media management
+- `GET /api/cms/content` - Content management
+- `PUT /api/cms/theme` - Theme settings
 
-### ÉTAPE 2 - Système Workspaces ✅
-- 8 workspaces dédiés avec fonctionnalités complètes
-- Login unifié par mot de passe
-- IA Claude intégrée pour Alirio
-- Budget 97 750€ pour Wudy
+## Testing Status (March 2026)
+- ✅ Backend: 24/24 tests passed (100%)
+- ✅ Frontend: All flows working
+- ✅ All 9 credentials verified
+- ✅ Notifications API working
+- ✅ Workspace logs working
 
-### ÉTAPE 3 - Admin Renforcé ✅
-- Alertes récentes (notifications)
-- Sessions équipe en temps réel
-- Historique modifications
-- Statut des chantiers
+## Known Issues
+1. **Visual Editor iframe** (P1) - Cross-origin security blocks iframe content
+2. **Hydration warning** (LOW) - `<tr>` inside `<span>` in AccreditationSystem
 
-### ÉTAPE 4 - Notifications Push ✅
-- Système de notifications temps réel
-- Chaque action importante → alerte LC
-- Badge compteur dans header
-- Logs MongoDB persistés
+## Credentials for Testing
+- Admin: `CC2026admin`
+- Workspaces: `LC2026`, `Twina2026`, `Gwen2026`, `Kaige2026`, `Alirio2026`, `Wudy2026`, `Fabrice2026`, `DataCC2026`
+- Baserow Token: `BjKPCSpcpif72OtZtsmMFUbZysqlNGiK`
 
-## Backlog / Future Tasks
-
-### P1 - Priorité Haute
-- [ ] Tester synchronisation WebSocket end-to-end
-- [ ] Résoudre iframe Visual Editor (bloqué)
-
-### P2 - Priorité Moyenne
-- [ ] Refactoring CMSAdmin.jsx et server.py
-- [ ] Persistance données workspaces en MongoDB
-
-### P3 - Améliorations
-- [ ] Indicateurs présence utilisateurs temps réel
-- [ ] Export badges en masse (batch PDF)
-- [ ] Dashboard analytics pour Data Analyst
-
-## Credentials
-- **Admin**: CC2026admin
-- **Laurent**: LC2026
-- **Twina**: Twina2026
-- **Gwen**: Gwen2026
-- **Kaige**: Kaige2026
-- **Alirio**: Alirio2026
-- **Wudy**: Wudy2026
-- **Fabrice**: Fabrice2026
-- **DataAnalyst**: DataCC2026
-- **Baserow Token**: BjKPCSpcpif72OtZtsmMFUbZysqlNGiK
-- **Baserow Table**: 865847
-
-## URLs
-- **Preview**: https://role-access-hub-2.preview.emergentagent.com
-- **Production**: https://kiltikonet.fr
+## Future Tasks (Backlog)
+1. Refactor `server.py` into modules
+2. Fix Visual Editor iframe issue
+3. Refactor large React components
+4. Production deployment preparation
