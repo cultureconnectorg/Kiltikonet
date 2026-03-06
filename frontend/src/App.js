@@ -27,11 +27,14 @@ import DynamicPage from "./components/DynamicPage";
 import ProgramPage from "./components/ProgramPage";
 // Intro Sequence
 import IntroSequence, { ReturnWelcome } from "./components/IntroSequence";
+// Accreditation System
+import { AccreditationSystem } from "./components/AccreditationSystem";
+import BadgeScan from "./components/BadgeScan";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
   const location = useLocation();
-  const hideHeaderRoutes = ['/smart-engine', '/admin'];
+  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge'];
   const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
   
   return (
@@ -47,8 +50,8 @@ const AppLayout = ({ children }) => {
 const IntroWrapper = () => {
   const location = window.location.pathname;
   const [showIntro, setShowIntro] = React.useState(() => {
-    // Skip intro on admin pages
-    if (location.startsWith('/admin') || location.startsWith('/smart-engine')) {
+    // Skip intro on admin pages, badge scan page
+    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge')) {
       return false;
     }
     // Skip intro if visual editor mode
@@ -93,6 +96,8 @@ function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/cms" element={<CMSAdmin />} />
               <Route path="/admin/cms/visual-editor" element={<VisualEditor />} />
+              <Route path="/admin/accreditation" element={<AccreditationSystem />} />
+              <Route path="/badge/:id" element={<BadgeScan />} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />
               {/* Smart Engine */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />

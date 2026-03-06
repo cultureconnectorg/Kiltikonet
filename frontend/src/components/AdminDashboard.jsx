@@ -10,7 +10,7 @@ import {
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
   Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
   BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown,
-  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings
+  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode
 } from 'lucide-react';
 import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '../lib/translations';
 import axios from 'axios';
@@ -539,6 +539,13 @@ export const AdminDashboard = () => {
                   data-testid="smart-engine-button"
                 >
                   <Sparkles className="w-4 h-4 mr-2" /> Smart Engine
+                </Button>
+                <Button 
+                  onClick={() => navigate('/admin/accreditation')} 
+                  className="h-10 bg-[#8B1A4A] text-paper font-syne text-sm rounded-none" 
+                  data-testid="accreditation-button"
+                >
+                  <QrCode className="w-4 h-4 mr-2" /> Accréditation
                 </Button>
                 <Button onClick={() => setShowAddModal(true)} className="h-10 bg-sage text-paper font-syne text-sm rounded-none" data-testid="add-participant-button">
                   <Plus className="w-4 h-4 mr-2" /> {language === 'fr' ? 'Ajouter' : 'Add'}
