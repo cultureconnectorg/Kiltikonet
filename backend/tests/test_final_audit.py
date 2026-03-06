@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://badge-scan-portal.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://role-access-hub-2.preview.emergentagent.com')
 
 class TestHealthAndRoot:
     """Test basic API availability - /api root endpoint"""

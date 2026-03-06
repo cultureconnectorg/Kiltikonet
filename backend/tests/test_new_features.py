@@ -10,7 +10,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://badge-scan-portal.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://role-access-hub-2.preview.emergentagent.com')
 
 # Test participant ID provided in test info
 TEST_PARTICIPANT_ID = "4d8197f0-4276-488e-ac48-48660228dab7"

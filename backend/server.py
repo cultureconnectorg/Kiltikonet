@@ -2086,6 +2086,117 @@ async def ai_assistant(request: AIAssistantRequest):
         print(f"AI Assistant error: {e}")
         return {"response": f"Desole, je n'ai pas pu traiter votre demande. Erreur: {str(e)[:100]}", "success": False}
 
+# ================== NOTIFICATION SYSTEM ==================
+
+class NotificationCreate(BaseModel):
+    sender: str
+    sender_role: str
+    type: str  # artiste_confirmed, expense_added, communique_sent, live_active, partner_added, etc.
+    title: str
+    message: str
+    target: Optional[str] = "laurent"  # Default target is LC
+    data: Optional[dict] = None
+
+# Store active SSE connections for real-time notifications
+notification_connections: dict = {}
+
+@api_router.post("/notifications/send")
+async def send_notification(notification: NotificationCreate):
+    """Send a notification to a workspace (default: Laurent)"""
+    notif_entry = {
+        "id": str(uuid.uuid4()),
+        "sender": notification.sender,
+        "sender_role": notification.sender_role,
+        "type": notification.type,
+        "title": notification.title,
+        "message": notification.message,
+        "target": notification.target,
+        "data": notification.data,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "read": False
+    }
+    
+    # Save to database
+    await db.notifications.insert_one(notif_entry)
+    
+    # Also log the action
+    await db.workspace_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "user": notification.sender,
+        "role": notification.sender_role,
+        "action": notification.type,
+        "details": notification.title,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"success": True, "notification_id": notif_entry["id"]}
+
+@api_router.get("/notifications/{target}")
+async def get_notifications(target: str, limit: int = 50, unread_only: bool = False):
+    """Get notifications for a specific target workspace"""
+    query = {"target": target}
+    if unread_only:
+        query["read"] = False
+    
+    notifications = await db.notifications.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    unread_count = await db.notifications.count_documents({"target": target, "read": False})
+    
+    return {"notifications": notifications, "unread_count": unread_count}
+
+@api_router.patch("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str):
+    """Mark a notification as read"""
+    await db.notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"read": True}}
+    )
+    return {"success": True}
+
+@api_router.patch("/notifications/{target}/read-all")
+async def mark_all_notifications_read(target: str):
+    """Mark all notifications as read for a target"""
+    await db.notifications.update_many(
+        {"target": target},
+        {"$set": {"read": True}}
+    )
+    return {"success": True}
+
+# SSE endpoint for real-time notifications
+@api_router.get("/notifications/{target}/stream")
+async def notification_stream(target: str):
+    """SSE stream for real-time notifications"""
+    async def event_generator():
+        last_check = datetime.now(timezone.utc)
+        while True:
+            # Check for new notifications every 2 seconds
+            await asyncio.sleep(2)
+            
+            new_notifications = await db.notifications.find({
+                "target": target,
+                "read": False,
+                "timestamp": {"$gt": last_check.isoformat()}
+            }, {"_id": 0}).to_list(10)
+            
+            if new_notifications:
+                for notif in new_notifications:
+                    yield f"data: {json.dumps(notif)}\n\n"
+            
+            last_check = datetime.now(timezone.utc)
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 @api_router.get("/countries")
 async def get_countries():
     countries = await db.registrations.distinct("country")

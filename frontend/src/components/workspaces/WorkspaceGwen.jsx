@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Music, Users, FileText, CheckSquare, Square, Plus, Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { LogOut, Music, Users, FileText, CheckSquare, Square, Plus, Calendar, Clock, AlertTriangle, Upload, Save } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { useSendNotification } from './NotificationSystem';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -18,31 +19,51 @@ const COLORS = {
 
 const WorkspaceGwen = () => {
   const navigate = useNavigate();
+  const sendNotification = useSendNotification();
   const [activeTab, setActiveTab] = useState('artistes');
-  const [tasks, setTasks] = useState([
-    { id: 1, title: 'Confirmer line-up Chimin Savann', status: 'todo', priority: 'high', due: '2026-03-15' },
-    { id: 2, title: 'Contrats GUSO artistes', status: 'progress', priority: 'high', due: '2026-03-20' },
-    { id: 3, title: 'Autorisation Prefecture', status: 'todo', priority: 'critical', due: '2026-03-08' },
-    { id: 4, title: 'Dossier SACEM', status: 'done', priority: 'normal', due: '2026-02-28' },
-    { id: 5, title: 'Planning securite jour J', status: 'todo', priority: 'high', due: '2026-04-01' }
+  
+  // Artistes data
+  const [artistes, setArtistes] = useState([
+    { id: 1, name: 'Kathy', genre: 'DJ Set', status: 'Confirmé', contrat: 'Signé', cachet: '2500€', rider: true, horaire: '22h' },
+    { id: 2, name: 'Artiste 2', genre: 'Zouk', status: 'En négociation', contrat: 'Envoyé', cachet: '3000€', rider: false, horaire: 'TBD' },
+    { id: 3, name: 'Artiste 3', genre: 'Kompa', status: 'À contacter', contrat: 'Non signé', cachet: '-', rider: false, horaire: 'TBD' },
   ]);
+
+  // Checklist formalités
   const [checklist, setChecklist] = useState([
-    { id: 1, label: 'Autorisation Mairie Fort-de-France', checked: false, category: 'admin' },
-    { id: 2, label: 'Declaration Prefecture', checked: false, category: 'admin' },
-    { id: 3, label: 'Assurance RC evenementielle', checked: false, category: 'admin' },
-    { id: 4, label: 'Contrat societe securite CNAPS', checked: false, category: 'securite' },
-    { id: 5, label: 'Declaration SACEM', checked: true, category: 'legal' },
-    { id: 6, label: 'Declaration GUSO', checked: false, category: 'legal' },
-    { id: 7, label: 'Plan evacuation valide', checked: false, category: 'securite' },
-    { id: 8, label: 'Sono / Backline confirme', checked: false, category: 'technique' }
+    { id: 1, label: 'Déclaration Préfecture', checked: false, category: 'admin', date: null },
+    { id: 2, label: 'Courrier Mairie Fort-de-France', checked: false, category: 'admin', date: null },
+    { id: 3, label: 'Réponse Mairie reçue', checked: false, category: 'admin', date: null },
+    { id: 4, label: 'Dossier SACEM déposé', checked: true, category: 'legal', date: '28/02/2026' },
+    { id: 5, label: 'Dossier GUSO déposé', checked: false, category: 'legal', date: null },
+    { id: 6, label: 'Assurance RC événementielle', checked: false, category: 'admin', date: null },
+    { id: 7, label: 'Autorisation La Savane', checked: false, category: 'admin', date: null },
+    { id: 8, label: 'Contrat société sécurité CNAPS', checked: false, category: 'securite', date: null },
+    { id: 9, label: 'Plan évacuation validé', checked: false, category: 'securite', date: null },
+    { id: 10, label: 'Sono / Backline confirmé', checked: false, category: 'technique', date: null }
   ]);
+
+  // Planning jour J
+  const [planning, setPanning] = useState([
+    { time: '08:00', event: 'Arrivée équipe technique', responsable: 'Fabrice', status: 'todo' },
+    { time: '09:00', event: 'Montage scène', responsable: 'Prestataire son', status: 'todo' },
+    { time: '14:00', event: 'Installation technique', responsable: 'Fabrice', status: 'todo' },
+    { time: '16:00', event: 'Soundcheck artistes', responsable: 'Gwen', status: 'todo' },
+    { time: '18:00', event: 'Ouverture portes', responsable: 'Sécurité', status: 'todo' },
+    { time: '19:00', event: 'Début concert', responsable: 'Gwen', status: 'todo' },
+    { time: '22:00', event: 'DJ Set Kathy', responsable: 'Gwen', status: 'todo' },
+    { time: '00:00', event: 'Fin programmation', responsable: 'Gwen', status: 'todo' },
+    { time: '01:00', event: 'Démontage', responsable: 'Prestataire', status: 'todo' }
+  ]);
+
+  const [productionNotes, setProductionNotes] = useState('');
 
   useEffect(() => {
     axios.post(`${API}/workspace/log`, {
       user: 'Gwen',
       role: 'event',
-      action: 'view',
-      details: 'Acces workspace evenementiel'
+      action: 'login',
+      details: 'Accès workspace événementiel'
     });
   }, []);
 
@@ -53,20 +74,63 @@ const WorkspaceGwen = () => {
   };
 
   const toggleCheck = async (id) => {
-    setChecklist(prev => prev.map(item => 
-      item.id === id ? { ...item, checked: !item.checked } : item
+    const item = checklist.find(c => c.id === id);
+    const newChecked = !item.checked;
+    
+    setChecklist(prev => prev.map(c => 
+      c.id === id ? { ...c, checked: newChecked, date: newChecked ? new Date().toLocaleDateString('fr-FR') : null } : c
     ));
+    
     await axios.post(`${API}/workspace/log`, {
       user: 'Gwen',
       role: 'event',
       action: 'update',
-      details: `Checklist item ${id}`
+      details: `Checklist: ${item.label} - ${newChecked ? 'Fait' : 'À faire'}`
     });
+
+    // Send notification to Laurent
+    if (newChecked) {
+      await sendNotification({
+        sender: 'Gwen',
+        senderRole: 'event',
+        type: 'checklist_done',
+        title: `Formalité validée`,
+        message: `${item.label} est maintenant complété`,
+        target: 'laurent'
+      });
+    }
   };
 
-  const getPriorityColor = (priority) => {
-    const colors = { critical: '#ef4444', high: COLORS.terracotta, normal: COLORS.gold };
-    return colors[priority] || COLORS.gold;
+  const confirmArtiste = async (artiste) => {
+    setArtistes(prev => prev.map(a => 
+      a.id === artiste.id ? { ...a, status: 'Confirmé', contrat: 'Signé' } : a
+    ));
+
+    await axios.post(`${API}/workspace/log`, {
+      user: 'Gwen',
+      role: 'event',
+      action: 'artiste_confirmed',
+      details: `Artiste confirmé: ${artiste.name}`
+    });
+
+    // Send notification to Laurent
+    await sendNotification({
+      sender: 'Gwen',
+      senderRole: 'event',
+      type: 'artiste_confirmed',
+      title: `Artiste confirmé`,
+      message: `${artiste.name} (${artiste.genre}) est maintenant confirmé pour le 22 mai`,
+      target: 'laurent'
+    });
+
+    toast.success(`${artiste.name} confirmé - Notification envoyée à LC`);
+  };
+
+  const markRiderReceived = async (artiste) => {
+    setArtistes(prev => prev.map(a => 
+      a.id === artiste.id ? { ...a, rider: true } : a
+    ));
+    toast.success(`Rider technique de ${artiste.name} marqué comme reçu`);
   };
 
   const completedCount = checklist.filter(c => c.checked).length;
@@ -84,7 +148,7 @@ const WorkspaceGwen = () => {
             </div>
             <div>
               <div className="font-bold text-sm" style={{ color: COLORS.forest }}>GWEN</div>
-              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Evenementiel - Chimin Savann</div>
+              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Événementiel - Chimin Savann</div>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
@@ -94,16 +158,26 @@ const WorkspaceGwen = () => {
       </header>
 
       <main className="max-w-7xl mx-auto p-6">
-        {/* Event info */}
+        {/* Event info banner */}
         <div className="rounded-lg p-6 mb-6" style={{ background: `linear-gradient(135deg, ${COLORS.forest}20, ${COLORS.charbon})`, border: `1px solid ${COLORS.forest}30` }}>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>CHIMIN SAVANN</h1>
+              <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>CHIMIN SAVANN</h1>
               <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Concert Culture Connect 2026</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold" style={{ color: COLORS.gold }}>22 MAI 2026</div>
+              <div className="text-3xl font-bold" style={{ color: COLORS.gold }}>22 MAI 2026</div>
               <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>La Savane - Fort-de-France</div>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Music className="w-4 h-4" style={{ color: COLORS.gold }} />
+              <span className="text-sm text-white">{artistes.filter(a => a.status === 'Confirmé').length} artiste(s) confirmé(s)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-4 h-4" style={{ color: COLORS.forest }} />
+              <span className="text-sm text-white">{progress}% formalités</span>
             </div>
           </div>
         </div>
@@ -112,9 +186,10 @@ const WorkspaceGwen = () => {
         <div className="flex gap-2 mb-6">
           {[
             { id: 'artistes', label: 'Artistes', icon: Music },
-            { id: 'formalites', label: 'Formalites', icon: FileText },
-            { id: 'planning', label: 'Planning', icon: Calendar },
-            { id: 'production', label: 'Notes Prod', icon: Users }
+            { id: 'formalites', label: 'Formalités', icon: FileText },
+            { id: 'planning', label: 'Planning Jour J', icon: Calendar },
+            { id: 'technique', label: 'Logistique', icon: Users },
+            { id: 'notes', label: 'Notes Prod', icon: FileText }
           ].map(tab => (
             <button
               key={tab.id}
@@ -131,45 +206,75 @@ const WorkspaceGwen = () => {
           ))}
         </div>
 
+        {/* Content */}
         <div className="grid grid-cols-3 gap-6">
-          {/* Main content */}
           <div className="col-span-2 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
             {activeTab === 'artistes' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold" style={{ color: COLORS.forest }}>Line-up Artistes</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold" style={{ color: COLORS.forest }}>Line-up Artistes</h2>
+                  <Button style={{ background: COLORS.forest }}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter artiste
+                  </Button>
+                </div>
                 <div className="space-y-3">
-                  {[
-                    { name: 'Artiste 1', status: 'Confirme', genre: 'Zouk' },
-                    { name: 'Artiste 2', status: 'En attente', genre: 'Kompa' },
-                    { name: 'Artiste 3', status: 'Confirme', genre: 'Reggae' },
-                  ].map((artist, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: COLORS.forest }}>
-                          <Music className="w-5 h-5 text-white" />
+                  {artistes.map(artiste => (
+                    <div key={artiste.id} className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: COLORS.forest }}>
+                            <Music className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-white text-lg">{artiste.name}</div>
+                            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{artiste.genre} - {artiste.horaire}</div>
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded text-xs font-bold ${
+                          artiste.status === 'Confirmé' ? 'bg-green-500/20 text-green-400' : 
+                          artiste.status === 'En négociation' ? 'bg-yellow-500/20 text-yellow-400' : 
+                          'bg-white/10 text-white/40'
+                        }`}>
+                          {artiste.status}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <div className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Contrat</div>
+                          <div className={artiste.contrat === 'Signé' ? 'text-green-400' : 'text-yellow-400'}>{artiste.contrat}</div>
                         </div>
                         <div>
-                          <div className="font-bold text-white">{artist.name}</div>
-                          <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{artist.genre}</div>
+                          <div className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Cachet</div>
+                          <div className="text-white">{artiste.cachet}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Rider technique</div>
+                          <div className={artiste.rider ? 'text-green-400' : 'text-red-400'}>{artiste.rider ? 'Reçu' : 'En attente'}</div>
+                        </div>
+                        <div className="flex items-end gap-2">
+                          {artiste.status !== 'Confirmé' && (
+                            <Button size="sm" onClick={() => confirmArtiste(artiste)} style={{ background: COLORS.forest }}>
+                              Confirmer
+                            </Button>
+                          )}
+                          {!artiste.rider && (
+                            <Button size="sm" variant="outline" onClick={() => markRiderReceived(artiste)} style={{ borderColor: `${COLORS.gold}50`, color: COLORS.gold }}>
+                              Rider reçu
+                            </Button>
+                          )}
                         </div>
                       </div>
-                      <span className={`px-3 py-1 rounded text-xs font-bold ${artist.status === 'Confirme' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                        {artist.status}
-                      </span>
                     </div>
                   ))}
                 </div>
-                <Button style={{ background: COLORS.forest }}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Ajouter artiste
-                </Button>
               </div>
             )}
 
             {activeTab === 'formalites' && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold" style={{ color: COLORS.forest }}>Checklist Formalites</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold" style={{ color: COLORS.forest }}>Checklist Formalités</h2>
                   <div className="flex items-center gap-2">
                     <div className="w-32 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
                       <div className="h-full transition-all" style={{ width: `${progress}%`, background: COLORS.forest }} />
@@ -183,7 +288,7 @@ const WorkspaceGwen = () => {
                     <button
                       key={item.id}
                       onClick={() => toggleCheck(item.id)}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg transition-all"
+                      className="w-full flex items-center gap-3 p-4 rounded-lg transition-all hover:bg-white/5"
                       style={{ background: item.checked ? `${COLORS.forest}20` : 'rgba(255,255,255,0.05)' }}
                     >
                       {item.checked ? (
@@ -191,12 +296,15 @@ const WorkspaceGwen = () => {
                       ) : (
                         <Square className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.3)' }} />
                       )}
-                      <span className={`text-sm ${item.checked ? 'line-through' : ''}`} style={{ color: item.checked ? 'rgba(255,255,255,0.4)' : '#fff' }}>
+                      <span className={`text-sm flex-1 text-left ${item.checked ? 'line-through' : ''}`} style={{ color: item.checked ? 'rgba(255,255,255,0.4)' : '#fff' }}>
                         {item.label}
                       </span>
-                      <span className="ml-auto text-xs px-2 py-1 rounded" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
+                      <span className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
                         {item.category}
                       </span>
+                      {item.date && (
+                        <span className="text-xs" style={{ color: COLORS.forest }}>{item.date}</span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -205,55 +313,106 @@ const WorkspaceGwen = () => {
 
             {activeTab === 'planning' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold" style={{ color: COLORS.forest }}>Planning Jour J</h2>
-                <div className="space-y-3">
-                  {[
-                    { time: '14:00', event: 'Installation technique', status: 'pending' },
-                    { time: '16:00', event: 'Balances artistes', status: 'pending' },
-                    { time: '18:00', event: 'Ouverture portes', status: 'pending' },
-                    { time: '19:00', event: 'Debut concert', status: 'pending' },
-                    { time: '23:00', event: 'Fin programmation', status: 'pending' }
-                  ].map((item, idx) => (
+                <h2 className="text-lg font-bold mb-4" style={{ color: COLORS.forest }}>Planning Jour J - 22 mai 2026</h2>
+                <div className="space-y-2">
+                  {planning.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                       <div className="text-lg font-bold" style={{ color: COLORS.gold, width: '60px' }}>{item.time}</div>
+                      <div className="w-3 h-3 rounded-full" style={{ background: item.status === 'done' ? COLORS.forest : 'rgba(255,255,255,0.2)' }} />
                       <div className="flex-1 text-white">{item.event}</div>
+                      <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.responsable}</div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {activeTab === 'production' && (
+            {activeTab === 'technique' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold" style={{ color: COLORS.forest }}>Notes de Production</h2>
+                <h2 className="text-lg font-bold mb-4" style={{ color: COLORS.forest }}>Logistique Technique</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <h3 className="font-bold text-white mb-3">Prestataires</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between"><span style={{ color: 'rgba(255,255,255,0.5)' }}>Son</span><span className="text-yellow-400">Devis en attente</span></div>
+                      <div className="flex justify-between"><span style={{ color: 'rgba(255,255,255,0.5)' }}>Lumière</span><span className="text-yellow-400">Devis en attente</span></div>
+                      <div className="flex justify-between"><span style={{ color: 'rgba(255,255,255,0.5)' }}>Sécurité</span><span className="text-red-400">À contacter</span></div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <h3 className="font-bold text-white mb-3">Matériel scène</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between"><span style={{ color: 'rgba(255,255,255,0.5)' }}>Scène</span><span className="text-green-400">Confirmé</span></div>
+                      <div className="flex justify-between"><span style={{ color: 'rgba(255,255,255,0.5)' }}>Backline</span><span className="text-yellow-400">En cours</span></div>
+                      <div className="flex justify-between"><span style={{ color: 'rgba(255,255,255,0.5)' }}>Écrans LED</span><span className="text-red-400">À voir</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'notes' && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold mb-4" style={{ color: COLORS.forest }}>Notes de Production</h2>
                 <textarea 
                   className="w-full h-64 p-4 rounded-lg text-sm"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', resize: 'none' }}
                   placeholder="Ajoutez vos notes de production ici..."
+                  value={productionNotes}
+                  onChange={(e) => setProductionNotes(e.target.value)}
                 />
                 <Button style={{ background: COLORS.forest }}>
-                  Enregistrer les notes
+                  <Save className="w-4 h-4 mr-2" />
+                  Enregistrer
                 </Button>
               </div>
             )}
           </div>
 
-          {/* Sidebar - Tasks */}
-          <div className="col-span-1 rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
-            <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.gold }}>Taches urgentes</h3>
-            <div className="space-y-3">
-              {tasks.filter(t => t.status !== 'done').sort((a, b) => a.priority === 'critical' ? -1 : 1).map(task => (
-                <div key={task.id} className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', borderLeft: `3px solid ${getPriorityColor(task.priority)}` }}>
-                  <div className="text-sm text-white mb-1">{task.title}</div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.3)' }} />
-                    <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{task.due}</span>
-                    {task.priority === 'critical' && (
-                      <AlertTriangle className="w-3 h-3 ml-auto" style={{ color: '#ef4444' }} />
-                    )}
+          {/* Sidebar - Urgent tasks */}
+          <div className="col-span-1 space-y-4">
+            <div className="rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.gold }}>Tâches urgentes</h3>
+              <div className="space-y-3">
+                {[
+                  { title: 'Autorisation Préfecture', date: '2026-03-08', priority: 'critical' },
+                  { title: 'Confirmer line-up', date: '2026-03-15', priority: 'high' },
+                  { title: 'Contrats GUSO', date: '2026-03-20', priority: 'high' },
+                  { title: 'Planning sécurité', date: '2026-04-01', priority: 'normal' }
+                ].map((task, idx) => (
+                  <div key={idx} className="p-3 rounded-lg" style={{ 
+                    background: 'rgba(255,255,255,0.05)', 
+                    borderLeft: `3px solid ${task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? COLORS.terracotta : COLORS.gold}` 
+                  }}>
+                    <div className="text-sm text-white mb-1">{task.title}</div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.3)' }} />
+                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{task.date}</span>
+                      {task.priority === 'critical' && (
+                        <AlertTriangle className="w-3 h-3 ml-auto" style={{ color: '#ef4444' }} />
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
+              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.forest }}>Documents</h3>
+              <div className="space-y-2">
+                <button className="w-full p-3 rounded-lg text-left hover:bg-white/5" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="text-sm text-white">Dossier sécurité</div>
+                  <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>PDF - À uploader</div>
+                </button>
+                <button className="w-full p-3 rounded-lg text-left hover:bg-white/5" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="text-sm text-white">Plan de masse</div>
+                  <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>PDF - À uploader</div>
+                </button>
+                <Button variant="outline" className="w-full mt-2" style={{ borderColor: `${COLORS.forest}50`, color: COLORS.forest }}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Uploader document
+                </Button>
+              </div>
             </div>
           </div>
         </div>
