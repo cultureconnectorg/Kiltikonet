@@ -640,6 +640,10 @@ class WorkspaceLog(BaseModel):
     details: Optional[str] = None
     timestamp: Optional[str] = None
 
+class WorkspaceLogoutRequest(BaseModel):
+    user: str
+    role: str
+
 class StatusUpdate(BaseModel):
     status: str
 
@@ -2001,7 +2005,7 @@ async def get_workspace_sessions():
     return {"sessions": sessions}
 
 @api_router.post("/workspace/logout")
-async def workspace_logout(log: WorkspaceLog):
+async def workspace_logout(log: WorkspaceLogoutRequest):
     """Log workspace logout"""
     log_entry = {
         "id": str(uuid.uuid4()),
@@ -3487,6 +3491,130 @@ async def get_visual_editor_changes(page: str):
     
     return {"changes": changes[0] if changes else None}
 
+@app.get("/api/cms/visual-editor/proxy")
+@app.get("/api/cms/visual-editor/proxy/{full_path:path}")
+async def visual_editor_proxy(full_path: str = "", path: str = None, request: Request = None):
+    """
+    Proxy endpoint for Visual Editor - serves site content from same domain
+    to bypass X-Frame-Options / CSP restrictions
+    """
+    try:
+        # Get the frontend URL (port 3000 internally)
+        frontend_url = "http://localhost:3000"
+        
+        # Use full_path if provided (for static assets), otherwise use path query param
+        request_path = "/" + full_path if full_path else (path or "/")
+        
+        # Construct the full URL
+        full_url = f"{frontend_url}{request_path}"
+        
+        # Add visual editor params only for HTML pages (not static assets)
+        is_html_request = not any(request_path.endswith(ext) for ext in ['.js', '.css', '.png', '.jpg', '.svg', '.ico', '.json', '.map', '.woff', '.woff2', '.ttf'])
+        
+        if is_html_request and "?" not in request_path:
+            full_url += "?ve=1&skip_intro=1"
+        elif is_html_request:
+            full_url += "&ve=1&skip_intro=1"
+        
+        # Fetch the content
+        resp = requests.get(full_url, timeout=15)
+        
+        # Get content type
+        content_type = resp.headers.get('content-type', 'text/html')
+        
+        # Modify HTML to inject editor script and fix asset paths
+        if 'text/html' in content_type:
+            content = resp.text
+            
+            # Rewrite asset paths to go through our proxy
+            base_proxy_url = "/api/cms/visual-editor/proxy"
+            content = content.replace('src="/static/', f'src="{base_proxy_url}/static/')
+            content = content.replace('href="/static/', f'href="{base_proxy_url}/static/')
+            content = content.replace('src="/', f'src="{base_proxy_url}/')
+            content = content.replace('href="/', f'href="{base_proxy_url}/')
+            
+            # Inject the visual editor initialization script before </body>
+            editor_script = """
+<script>
+// Visual Editor Mode - Enable element selection
+(function() {
+    // Wait for React to render
+    setTimeout(function() {
+        document.body.style.cursor = 'crosshair';
+        
+        // Add click handler for element selection
+        document.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const target = e.target;
+            
+            // Don't select the body or html
+            if (target === document.body || target === document.documentElement) return;
+            
+            // Remove previous selection highlight
+            document.querySelectorAll('.ve-selected').forEach(el => {
+                el.classList.remove('ve-selected');
+                el.style.outline = '';
+            });
+            
+            // Highlight selected element
+            target.classList.add('ve-selected');
+            target.style.outline = '2px solid #C4714A';
+            
+            // Generate a unique ID if not present
+            if (!target.dataset.veId) {
+                target.dataset.veId = 'el-' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            // Send selection to parent
+            window.parent.postMessage({
+                type: 'element-selected',
+                element: {
+                    id: target.dataset.veId,
+                    tagName: target.tagName,
+                    content: target.tagName === 'IMG' ? target.src : target.textContent?.substring(0, 500),
+                    styles: {
+                        color: getComputedStyle(target).color,
+                        backgroundColor: getComputedStyle(target).backgroundColor,
+                        fontSize: getComputedStyle(target).fontSize,
+                    },
+                    href: target.href || null
+                }
+            }, '*');
+        }, true);
+        
+        // Add visual indicator style
+        const style = document.createElement('style');
+        style.textContent = '.ve-selected { outline: 2px solid #C4714A !important; }';
+        document.head.appendChild(style);
+        
+        // Notify parent that iframe is ready
+        window.parent.postMessage({ type: 'iframe-ready' }, '*');
+    }, 2000);
+})();
+</script>
+"""
+            content = content.replace('</body>', editor_script + '</body>')
+            
+            return Response(
+                content=content,
+                media_type='text/html'
+            )
+        else:
+            # For non-HTML content (CSS, JS, images), proxy as-is
+            return Response(
+                content=resp.content,
+                media_type=content_type
+            )
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Visual editor proxy error: {e}")
+        raise HTTPException(status_code=502, detail=f"Could not fetch page: {str(e)}")
+    except Exception as e:
+        logger.error(f"Visual editor proxy unexpected error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/cms/preview")
 async def get_cms_preview(tenant_id: str = DEFAULT_TENANT):
     """Get preview of all CMS content"""
@@ -4226,9 +4354,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
         
+        # Check if this is for visual editor proxy - allow iframe embedding
+        is_visual_editor_request = request.url.path.startswith("/api/cms/visual-editor/proxy")
+        
         # Security Headers
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        
+        # Allow iframe embedding for visual editor proxy, restrict for others
+        if is_visual_editor_request:
+            # Remove X-Frame-Options to allow embedding
+            if "X-Frame-Options" in response.headers:
+                del response.headers["X-Frame-Options"]
+        else:
+            response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
@@ -4240,19 +4379,23 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             del response.headers["x-powered-by"]
         
         # Content Security Policy (optimized for all integrations)
-        csp = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://assets.emergent.sh https://cdn.tailwindcss.com https://us.i.posthog.com https://*.posthog.com https://js.stripe.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com data:; "
-            "img-src 'self' data: blob: https: http:; "
-            "connect-src 'self' https: wss: https://api.openai.com https://api.anthropic.com https://api.stripe.com https://api.cloudinary.com; "
-            "frame-src 'self' https://js.stripe.com https://hooks.stripe.com; "
-            "frame-ancestors 'self'; "
-            "base-uri 'self'; "
-            "form-action 'self' https://checkout.stripe.com;"
-        )
-        response.headers["Content-Security-Policy"] = csp
+        if is_visual_editor_request:
+            # Skip CSP for visual editor proxy content to allow embedding
+            pass
+        else:
+            csp = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://assets.emergent.sh https://cdn.tailwindcss.com https://us.i.posthog.com https://*.posthog.com https://js.stripe.com; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "font-src 'self' https://fonts.gstatic.com data:; "
+                "img-src 'self' data: blob: https: http:; "
+                "connect-src 'self' https: wss: https://api.openai.com https://api.anthropic.com https://api.stripe.com https://api.cloudinary.com; "
+                "frame-src 'self' https://js.stripe.com https://hooks.stripe.com; "
+                "frame-ancestors 'self'; "
+                "base-uri 'self'; "
+                "form-action 'self' https://checkout.stripe.com;"
+            )
+            response.headers["Content-Security-Policy"] = csp
         
         # HSTS with extended max-age (2 years)
         response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"

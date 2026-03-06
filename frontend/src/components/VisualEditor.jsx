@@ -520,10 +520,41 @@ const VisualEditor = () => {
                   <Loader2 className="w-8 h-8 text-terracotta animate-spin" />
                 </div>
               )}
+              {/* Fallback UI when iframe can't load due to security restrictions */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-paper z-10">
+                <div className="text-center p-8 max-w-md">
+                  <Eye className="w-12 h-12 text-terracotta mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-charcoal mb-2">Éditeur Visuel</h3>
+                  <p className="text-charcoal/70 mb-4">
+                    Cliquez sur le bouton ci-dessous pour ouvrir l'aperçu du site dans une nouvelle fenêtre. 
+                    Sélectionnez n'importe quel élément pour le modifier.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      const editorUrl = `${window.location.origin}${currentPage.path}?ve=1&skip_intro=1`;
+                      const popup = window.open(editorUrl, 'visual-editor-preview', 'width=1200,height=800');
+                      if (popup) {
+                        window.addEventListener('message', (e) => {
+                          if (e.data.type === 'element-selected') {
+                            setSelectedElement(e.data.element);
+                          }
+                        });
+                      }
+                    }}
+                    className="bg-terracotta text-white hover:bg-terracotta/90"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ouvrir l'aperçu éditable
+                  </Button>
+                  <p className="text-xs text-charcoal/50 mt-4">
+                    Astuce : Cliquez sur un élément dans la fenêtre pour le sélectionner et le modifier ici
+                  </p>
+                </div>
+              </div>
               <iframe
                 ref={iframeRef}
-                src={`${window.location.origin}${currentPage.path}?ve=1&skip_intro=1`}
-                className="w-full h-full border-0"
+                src={`${API}/api/cms/visual-editor/proxy?path=${encodeURIComponent(currentPage.path)}`}
+                className="w-full h-full border-0 hidden"
                 onLoad={handleIframeLoad}
                 title="Apercu du site"
               />

@@ -564,7 +564,12 @@ export const AdminDashboard = () => {
                 <Button onClick={handleExportCSV} className="h-10 bg-charcoal text-paper font-syne text-sm rounded-none" data-testid="export-csv-button">
                   <Download className="w-4 h-4 mr-2" /> CSV
                 </Button>
-                <Button onClick={() => { setIsAuthenticated(false); navigate('/'); }} variant="outline" className="h-10 border-lightborder text-charcoal/50 rounded-none" data-testid="logout-button">
+                <Button onClick={() => { 
+                  setIsAuthenticated(false); 
+                  sessionStorage.removeItem('workspace_user');
+                  localStorage.removeItem('kk_admin_auth');
+                  navigate('/admin'); 
+                }} variant="outline" className="h-10 border-lightborder text-charcoal/50 rounded-none" data-testid="logout-button">
                   <LogOut className="w-4 h-4" />
                 </Button>
               </div>
