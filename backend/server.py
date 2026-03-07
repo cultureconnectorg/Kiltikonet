@@ -5083,6 +5083,575 @@ async def dynamic_sitemap():
     
     return Response(content=xml_content, media_type="application/xml")
 
+# ================== SECTION 2: ARCHITECTURE ROUTES & SYNCHRONISATION ==================
+# 4 sources d'entrée: achat billet, inscription site, admin manuel, scan QR
+# Synchronisation Baserow ↔ MongoDB ↔ Catalogue public
+
+BASEROW_TOKEN = os.environ.get("BASEROW_TOKEN", "BjKPCSpcpif72OtZtsmMFUbZysqlNGiK")
+BASEROW_TABLE_ID = os.environ.get("BASEROW_TABLE_ID", "865847")
+BASEROW_API_URL = "https://api.baserow.io/api"
+
+# Badge types that appear in public catalog
+PUBLIC_CATALOG_BADGE_TYPES = ["Artiste", "Exposant", "Institutionnel", "Professionnel", "Staff Artiste"]
+# Badge types that are private (not shown in catalog)
+PRIVATE_BADGE_TYPES = ["VIP", "Presse", "Benevole", "Public", "Participant", "Visiteur", "Staff", "Regie technique"]
+
+async def sync_to_baserow(participant_data: dict) -> Optional[int]:
+    """Sync a participant to Baserow table 865847"""
+    try:
+        baserow_data = {
+            "Prenom": participant_data.get("full_name", "").split(" ")[0] if participant_data.get("full_name") else "",
+            "Nom": " ".join(participant_data.get("full_name", "").split(" ")[1:]) if participant_data.get("full_name") else "",
+            "Organisation": participant_data.get("organization_name", ""),
+            "Email": participant_data.get("email", ""),
+            "Telephone": participant_data.get("phone", ""),
+            "Type de badge": participant_data.get("badge_type", "Participant"),
+            "Territoire d'origine": participant_data.get("country", "Martinique"),
+            "Secteur d'activite": participant_data.get("sector", "Autre"),
+            "Statut presence": "Absent",
+            "kiltikonet inscrit": "Oui" if participant_data.get("kiltikonet_inscrit") else "Non",
+            "Consentement RGPD": "Oui",
+            "MongoDB_ID": participant_data.get("id", "")
+        }
+        
+        async with asyncio.timeout(10):
+            response = await asyncio.to_thread(
+                requests.post,
+                f"{BASEROW_API_URL}/database/rows/table/{BASEROW_TABLE_ID}/?user_field_names=true",
+                headers={"Authorization": f"Token {BASEROW_TOKEN}", "Content-Type": "application/json"},
+                json=baserow_data
+            )
+        
+        if response.status_code in [200, 201]:
+            result = response.json()
+            logger.info(f"✅ Synced to Baserow: {participant_data.get('full_name')} -> Row {result.get('id')}")
+            return result.get("id")
+        else:
+            logger.error(f"❌ Baserow sync failed: {response.status_code} - {response.text}")
+            return None
+    except Exception as e:
+        logger.error(f"❌ Baserow sync error: {str(e)}")
+        return None
+
+async def update_baserow_presence(baserow_id: int, status: str = "Present") -> bool:
+    """Update presence status in Baserow"""
+    try:
+        heure = datetime.now(timezone.utc).strftime("%H:%M")
+        data = {
+            "Statut presence": status,
+            "Heure d'arrivee": heure if status == "Present" else ""
+        }
+        
+        async with asyncio.timeout(10):
+            response = await asyncio.to_thread(
+                requests.patch,
+                f"{BASEROW_API_URL}/database/rows/table/{BASEROW_TABLE_ID}/{baserow_id}/?user_field_names=true",
+                headers={"Authorization": f"Token {BASEROW_TOKEN}", "Content-Type": "application/json"},
+                json=data
+            )
+        
+        if response.status_code == 200:
+            logger.info(f"✅ Baserow presence updated: Row {baserow_id} -> {status}")
+            return True
+        else:
+            logger.error(f"❌ Baserow presence update failed: {response.status_code}")
+            return False
+    except Exception as e:
+        logger.error(f"❌ Baserow presence error: {str(e)}")
+        return False
+
+# ─────────────────────────────────────────────
+# ROUTE 1: POST /api/tickets/purchase - Achat billet public
+# ─────────────────────────────────────────────
+class TicketPurchaseRequest(BaseModel):
+    full_name: str
+    email: str
+    phone: Optional[str] = ""
+    ticket_type: str = "standard"  # standard, vip, early_bird
+    quantity: int = 1
+    origin_url: str
+
+@app.post("/api/tickets/purchase")
+async def purchase_ticket(request: Request, data: TicketPurchaseRequest):
+    """
+    Route 1: Achat billet public
+    - Crée entrée dans MongoDB tickets
+    - Crée entrée dans Baserow avec type PARTICIPANT
+    - Envoie email de confirmation avec QR code
+    """
+    ticket_id = str(uuid.uuid4())
+    
+    # Create ticket in MongoDB
+    ticket = {
+        "id": ticket_id,
+        "full_name": data.full_name,
+        "email": data.email,
+        "phone": data.phone,
+        "ticket_type": data.ticket_type,
+        "quantity": data.quantity,
+        "status": "pending",
+        "badge_type": "Participant",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.tickets.insert_one(ticket)
+    
+    # Sync to Baserow
+    baserow_id = await sync_to_baserow({
+        "id": ticket_id,
+        "full_name": data.full_name,
+        "email": data.email,
+        "phone": data.phone,
+        "badge_type": "Participant",
+        "country": "Martinique",
+        "kiltikonet_inscrit": False
+    })
+    
+    if baserow_id:
+        await db.tickets.update_one({"id": ticket_id}, {"$set": {"baserow_id": baserow_id}})
+    
+    # Create Stripe checkout for ticket
+    origin_url = data.origin_url.rstrip('/') if data.origin_url else BASE_URL
+    ticket_prices = {"standard": 25.00, "vip": 75.00, "early_bird": 15.00}
+    price = ticket_prices.get(data.ticket_type, 25.00) * data.quantity
+    
+    try:
+        host_url = str(request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+        
+        checkout_request = CheckoutSessionRequest(
+            amount=price,
+            currency="eur",
+            success_url=f"{origin_url}/ticket/confirmation?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{origin_url}/tickets",
+            metadata={
+                "type": "ticket",
+                "ticket_id": ticket_id,
+                "full_name": data.full_name,
+                "email": data.email,
+                "ticket_type": data.ticket_type,
+                "quantity": str(data.quantity)
+            }
+        )
+        
+        session = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        await db.tickets.update_one(
+            {"id": ticket_id},
+            {"$set": {"stripe_session_id": session.session_id}}
+        )
+        
+        logger.info(f"🎫 Ticket purchase initiated: {data.full_name} - {data.ticket_type}")
+        return {"url": session.url, "session_id": session.session_id, "ticket_id": ticket_id}
+        
+    except Exception as e:
+        logger.error(f"Ticket checkout error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Payment error: {str(e)}")
+
+# ─────────────────────────────────────────────
+# ROUTE 2: POST /api/register - Inscription kiltikonet.fr
+# ─────────────────────────────────────────────
+class SiteRegistrationRequest(BaseModel):
+    full_name: str
+    email: str
+    phone: Optional[str] = ""
+    organization_name: Optional[str] = ""
+    profile_type: str = "other"  # artist, label, booking_agency, institution, press, other
+    country: str = "Martinique"
+    bio: Optional[str] = ""
+    is_professional: bool = False
+    cc2026_interest: bool = False  # Si True, ajoute à Baserow
+
+@app.post("/api/register")
+async def register_on_site(data: SiteRegistrationRequest):
+    """
+    Route 2: Inscription sur kiltikonet.fr
+    - Crée utilisateur dans MongoDB users
+    - Si cc2026_interest=True, crée aussi dans Baserow
+    - Badge type: PUBLIC si non-pro, PRO selon profile_type si pro
+    """
+    user_id = str(uuid.uuid4())
+    
+    # Determine badge type based on profile
+    if data.is_professional:
+        badge_type_map = {
+            "artist": "Artiste",
+            "label": "Professionnel",
+            "booking_agency": "Professionnel",
+            "institution": "Institutionnel",
+            "press": "Presse",
+            "other": "Professionnel"
+        }
+        badge_type = badge_type_map.get(data.profile_type, "Professionnel")
+    else:
+        badge_type = "Public"
+    
+    # Create user in MongoDB
+    user = {
+        "id": user_id,
+        "full_name": data.full_name,
+        "email": data.email,
+        "phone": data.phone,
+        "organization_name": data.organization_name,
+        "profile_type": data.profile_type,
+        "country": data.country,
+        "bio": data.bio,
+        "is_professional": data.is_professional,
+        "badge_type": badge_type,
+        "cc2026_interest": data.cc2026_interest,
+        "kiltikonet_inscrit": True,
+        # Show in catalog only if professional type
+        "show_in_catalog": data.is_professional and badge_type in PUBLIC_CATALOG_BADGE_TYPES,
+        "status": "approved" if not data.is_professional else "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(user)
+    
+    # If interested in CC2026, sync to Baserow
+    baserow_id = None
+    if data.cc2026_interest:
+        baserow_id = await sync_to_baserow({
+            "id": user_id,
+            "full_name": data.full_name,
+            "email": data.email,
+            "phone": data.phone,
+            "organization_name": data.organization_name,
+            "badge_type": badge_type,
+            "country": data.country,
+            "sector": data.profile_type,
+            "kiltikonet_inscrit": True
+        })
+        
+        if baserow_id:
+            await db.users.update_one({"id": user_id}, {"$set": {"baserow_id": baserow_id}})
+    
+    # Broadcast registration event
+    await broadcast_event("user_registered", {
+        "id": user_id,
+        "name": data.full_name,
+        "badge_type": badge_type,
+        "cc2026": data.cc2026_interest
+    })
+    
+    logger.info(f"📝 Site registration: {data.full_name} - Badge: {badge_type} - CC2026: {data.cc2026_interest}")
+    
+    return {
+        "success": True,
+        "user_id": user_id,
+        "badge_type": badge_type,
+        "show_in_catalog": user["show_in_catalog"],
+        "baserow_synced": baserow_id is not None
+    }
+
+# ─────────────────────────────────────────────
+# ROUTE 3: POST /api/admin/accreditation - Admin ajoute manuellement
+# ─────────────────────────────────────────────
+class AdminAccreditationRequest(BaseModel):
+    prenom: str
+    nom: str
+    organisation: Optional[str] = ""
+    email: Optional[str] = ""
+    telephone: Optional[str] = ""
+    badge_type: str = "Artiste"
+    territoire: str = "Martinique"
+    secteur: str = "Autre"
+    zones_acces: Optional[str] = ""
+
+@app.post("/api/admin/accreditation")
+async def admin_add_accreditation(data: AdminAccreditationRequest):
+    """
+    Route 3: Admin ajoute participant manuellement
+    - Crée UNIQUEMENT dans Baserow (pas dans MongoDB)
+    - Génère l'ID Baserow directement
+    """
+    try:
+        baserow_data = {
+            "Prenom": data.prenom,
+            "Nom": data.nom,
+            "Organisation": data.organisation,
+            "Email": data.email,
+            "Telephone": data.telephone,
+            "Type de badge": data.badge_type,
+            "Territoire d'origine": data.territoire,
+            "Secteur d'activite": data.secteur,
+            "Zones acces": data.zones_acces,
+            "Statut presence": "Absent",
+            "kiltikonet inscrit": "Non",
+            "Consentement RGPD": "Oui"
+        }
+        
+        response = requests.post(
+            f"{BASEROW_API_URL}/database/rows/table/{BASEROW_TABLE_ID}/?user_field_names=true",
+            headers={"Authorization": f"Token {BASEROW_TOKEN}", "Content-Type": "application/json"},
+            json=baserow_data,
+            timeout=10
+        )
+        
+        if response.status_code in [200, 201]:
+            result = response.json()
+            logger.info(f"✅ Admin accreditation added: {data.prenom} {data.nom} -> Baserow Row {result.get('id')}")
+            
+            # Broadcast event
+            await broadcast_event("accreditation_added", {
+                "baserow_id": result.get("id"),
+                "name": f"{data.prenom} {data.nom}",
+                "badge_type": data.badge_type
+            })
+            
+            return {
+                "success": True,
+                "baserow_id": result.get("id"),
+                "name": f"{data.prenom} {data.nom}",
+                "badge_type": data.badge_type
+            }
+        else:
+            logger.error(f"❌ Baserow add failed: {response.status_code} - {response.text}")
+            raise HTTPException(status_code=500, detail=f"Baserow error: {response.text}")
+            
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="Baserow timeout")
+    except Exception as e:
+        logger.error(f"Admin accreditation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ─────────────────────────────────────────────
+# ROUTE 4: GET/PATCH /api/badge/:id - Scan QR validation présence
+# ─────────────────────────────────────────────
+@app.get("/api/badge/{badge_id}")
+async def get_badge_info(badge_id: str):
+    """
+    Route 4a: GET badge info for QR scan
+    - Cherche d'abord dans Baserow par ID
+    - Puis dans MongoDB si pas trouvé
+    """
+    # Try Baserow first
+    try:
+        response = requests.get(
+            f"{BASEROW_API_URL}/database/rows/table/{BASEROW_TABLE_ID}/{badge_id}/?user_field_names=true",
+            headers={"Authorization": f"Token {BASEROW_TOKEN}"},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Extract value from Single Select fields
+            def get_val(field):
+                if isinstance(field, dict) and "value" in field:
+                    return field["value"]
+                return field or ""
+            
+            return {
+                "source": "baserow",
+                "id": badge_id,
+                "prenom": data.get("Prenom", ""),
+                "nom": data.get("Nom", ""),
+                "full_name": f"{data.get('Prenom', '')} {data.get('Nom', '')}".strip(),
+                "organisation": data.get("Organisation", ""),
+                "badge_type": get_val(data.get("Type de badge")),
+                "territoire": get_val(data.get("Territoire d'origine")),
+                "statut_presence": get_val(data.get("Statut presence")),
+                "heure_arrivee": data.get("Heure d'arrivee", ""),
+                "is_present": get_val(data.get("Statut presence")) == "Present"
+            }
+    except Exception as e:
+        logger.warning(f"Baserow lookup failed for {badge_id}: {str(e)}")
+    
+    # Fallback to MongoDB
+    participant = await db.registrations.find_one({"id": badge_id}, {"_id": 0})
+    if participant:
+        return {
+            "source": "mongodb",
+            "id": badge_id,
+            "full_name": participant.get("full_name", ""),
+            "organisation": participant.get("organization_name", ""),
+            "badge_type": participant.get("tier", "professional"),
+            "statut_presence": "Present" if participant.get("checked_in") else "Absent",
+            "is_present": participant.get("checked_in", False),
+            "status": participant.get("status")
+        }
+    
+    raise HTTPException(status_code=404, detail="Badge not found")
+
+@app.patch("/api/badge/{badge_id}/validate")
+async def validate_badge_presence(badge_id: str):
+    """
+    Route 4b: PATCH to validate presence (scan QR at event)
+    - Met à jour Statut presence = Present dans Baserow
+    - Met à jour Heure d'arrivée
+    - Retourne en < 3s
+    """
+    heure = datetime.now(timezone.utc).strftime("%H:%M")
+    
+    # Try Baserow first
+    try:
+        response = requests.patch(
+            f"{BASEROW_API_URL}/database/rows/table/{BASEROW_TABLE_ID}/{badge_id}/?user_field_names=true",
+            headers={"Authorization": f"Token {BASEROW_TOKEN}", "Content-Type": "application/json"},
+            json={
+                "Statut presence": "Present",
+                "Heure d'arrivee": heure
+            },
+            timeout=3  # Must complete in < 3s per spec
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            logger.info(f"✅ Badge validated: {badge_id} at {heure}")
+            
+            # Broadcast presence update
+            await broadcast_event("presence_validated", {
+                "badge_id": badge_id,
+                "heure": heure,
+                "name": f"{data.get('Prenom', '')} {data.get('Nom', '')}".strip()
+            })
+            
+            return {
+                "success": True,
+                "badge_id": badge_id,
+                "status": "Present",
+                "heure_arrivee": heure,
+                "message": f"Présence validée à {heure}"
+            }
+    except requests.exceptions.Timeout:
+        logger.warning(f"Baserow timeout for badge {badge_id}, trying MongoDB fallback")
+    except Exception as e:
+        logger.warning(f"Baserow error for badge {badge_id}: {str(e)}")
+    
+    # Fallback: try MongoDB
+    result = await db.registrations.update_one(
+        {"id": badge_id},
+        {"$set": {"checked_in": True, "checked_in_at": heure}}
+    )
+    
+    if result.modified_count > 0:
+        return {
+            "success": True,
+            "badge_id": badge_id,
+            "status": "Present",
+            "heure_arrivee": heure,
+            "source": "mongodb"
+        }
+    
+    raise HTTPException(status_code=404, detail="Badge not found")
+
+# ─────────────────────────────────────────────
+# Catalogue public synchronisé
+# ─────────────────────────────────────────────
+@app.get("/api/catalog/sync")
+async def get_synced_catalog():
+    """
+    Catalogue public synchronisé - RÈGLES D'AFFICHAGE:
+    - ARTISTE → fiche complète
+    - EXPOSANT → fiche exposant
+    - INSTITUTIONNEL → fiche partenaire
+    - VIP, PRESSE, BÉNÉVOLE → NON affiché
+    - PUBLIC, PARTICIPANT, VISITEUR → NON affiché
+    """
+    # Get from MongoDB users (kiltikonet inscrit + approved + show_in_catalog)
+    mongo_participants = await db.users.find(
+        {
+            "kiltikonet_inscrit": True,
+            "show_in_catalog": True,
+            "badge_type": {"$in": PUBLIC_CATALOG_BADGE_TYPES}
+        },
+        {"_id": 0, "email": 0, "phone": 0}
+    ).to_list(500)
+    
+    # Also get from registrations (MongoDB legacy)
+    legacy_participants = await db.registrations.find(
+        {
+            "show_in_catalog": True,
+            "status": "approved"
+        },
+        {"_id": 0, "email": 0, "phone": 0, "payment_session_id": 0}
+    ).to_list(500)
+    
+    # Merge and dedupe by email/name
+    all_participants = []
+    seen = set()
+    
+    for p in mongo_participants + legacy_participants:
+        key = p.get("full_name", "") + p.get("organization_name", "")
+        if key and key not in seen:
+            seen.add(key)
+            all_participants.append({
+                "id": p.get("id"),
+                "full_name": p.get("full_name"),
+                "organization_name": p.get("organization_name"),
+                "profile_type": p.get("profile_type"),
+                "badge_type": p.get("badge_type", p.get("tier")),
+                "country": p.get("country"),
+                "bio": p.get("bio"),
+                "logo_url": p.get("logo_url"),
+                "expertise_tags": p.get("expertise_tags", []),
+                "website_url": p.get("website_url")
+            })
+    
+    return {
+        "participants": all_participants,
+        "total": len(all_participants),
+        "visible_types": PUBLIC_CATALOG_BADGE_TYPES
+    }
+
+# ─────────────────────────────────────────────
+# SECTION 4.1: CONTACTS ALIRIO
+# ─────────────────────────────────────────────
+class ContactAlirio(BaseModel):
+    prenom: str
+    nom: str
+    email: Optional[str] = ""
+    tel: Optional[str] = ""
+    organisation: Optional[str] = ""
+    type: str = "Personnel"  # Partenaire | Presse | Institutionnel | Personnel
+    statut: str = "Contact"  # Contact | Partenaire | En négociation
+    niveau_partenariat: Optional[str] = None  # Bronze | Silver | Or
+    notes: Optional[str] = ""
+
+@app.post("/api/contacts/alirio")
+async def create_alirio_contact(contact: ContactAlirio):
+    """Create a contact in Alirio's personal directory"""
+    contact_data = {
+        "id": str(uuid.uuid4()),
+        "owner": "alirio",
+        **contact.model_dump(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.contacts_alirio.insert_one(contact_data)
+    logger.info(f"📇 Alirio contact created: {contact.prenom} {contact.nom}")
+    
+    return {"success": True, "contact_id": contact_data["id"]}
+
+@app.get("/api/contacts/alirio")
+async def get_alirio_contacts():
+    """Get all Alirio's contacts - visible by Alirio and Laurent"""
+    contacts = await db.contacts_alirio.find(
+        {"owner": "alirio"},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    return {"contacts": contacts, "total": len(contacts)}
+
+@app.patch("/api/contacts/alirio/{contact_id}/promote")
+async def promote_contact_to_partner(contact_id: str, level: str = "Bronze"):
+    """Promote a contact to partner status"""
+    result = await db.contacts_alirio.update_one(
+        {"id": contact_id},
+        {"$set": {"statut": "Partenaire", "niveau_partenariat": level}}
+    )
+    
+    if result.modified_count > 0:
+        logger.info(f"📇 Contact promoted to partner: {contact_id} -> {level}")
+        # Notify Laurent
+        await broadcast_event("partner_promoted", {
+            "contact_id": contact_id,
+            "level": level,
+            "from": "Alirio"
+        })
+        return {"success": True}
+    
+    raise HTTPException(status_code=404, detail="Contact not found")
+
 @app.get("/robots.txt")
 async def robots_txt():
     """Serve robots.txt"""

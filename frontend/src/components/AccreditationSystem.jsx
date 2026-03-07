@@ -4,13 +4,14 @@ import {
   Users, Search, RefreshCw, CheckCircle, XCircle, Download, 
   Plus, BarChart3, QrCode, Printer, Eye, Loader2, X, Edit2, Trash2,
   MapPin, Building2, Mail, Phone, Clock, Tag, Filter, Save, FileDown,
-  FileText, ArrowLeft
+  FileText, ArrowLeft, HelpCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
+import { HelpButton } from './UserGuides';
 
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION BASEROW
@@ -383,8 +384,12 @@ export const AccreditationSystem = () => {
                 <div className="text-xs" style={{ color: COLORS.terracotta }}>Systeme Accreditation</div>
               </div>
             </div>
+            {/* Help Button */}
+            <HelpButton guideId="accreditation" />
           </div>
           <div className="flex items-center gap-4">
+            {/* Help Button Badges */}
+            <HelpButton guideId="badges" />
             {/* Stats mini */}
             <div className="hidden md:flex items-center gap-3 text-xs font-mono">
               <span style={{ color: 'rgba(255,255,255,0.5)' }}>{stats.total} inscrits</span>

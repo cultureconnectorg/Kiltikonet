@@ -41,6 +41,9 @@ import WorkspaceFabrice from "./components/workspaces/WorkspaceFabrice";
 import WorkspaceAnalyst from "./components/workspaces/WorkspaceAnalyst";
 // Protected Route with session expiration
 import { ProtectedRoute } from "./components/ProtectedRoute";
+// 3D Components - Section 3
+import Dashboard3D from "./components/admin/Dashboard3D";
+import SmartEngine3D from "./components/admin/SmartEngine3D";
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
@@ -105,6 +108,7 @@ function App() {
               <Route path="/programme" element={<ProgramPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/dashboard-3d" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard3D /></ProtectedRoute>} />
               <Route path="/admin/cms" element={<ProtectedRoute allowedRoles={['admin']}><CMSAdmin /></ProtectedRoute>} />
               <Route path="/admin/cms/visual-editor" element={<ProtectedRoute allowedRoles={['admin']}><VisualEditor /></ProtectedRoute>} />
               <Route path="/admin/accreditation" element={<ProtectedRoute allowedRoles={['admin']}><AccreditationSystem /></ProtectedRoute>} />
@@ -119,8 +123,9 @@ function App() {
               <Route path="/workspace/wudy" element={<ProtectedRoute allowedRoles={['finance']}><WorkspaceWudy /></ProtectedRoute>} />
               <Route path="/workspace/fabrice" element={<ProtectedRoute allowedRoles={['captions']}><WorkspaceFabrice /></ProtectedRoute>} />
               <Route path="/workspace/analyst" element={<ProtectedRoute allowedRoles={['analyst']}><WorkspaceAnalyst /></ProtectedRoute>} />
-              {/* Smart Engine */}
+              {/* Smart Engine - 3D version */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
+              <Route path="/smart-engine-3d" element={<SmartEngine3D />} />
               {/* Legal pages */}
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />

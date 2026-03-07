@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, MessageSquare, Calendar, FileText, Send, Loader2, Bot, User, Briefcase, Clock, Plus, Users, Search, Edit2, Save, X } from 'lucide-react';
+import { LogOut, MessageSquare, Calendar, FileText, Send, Loader2, Bot, User, Briefcase, Clock, Plus, Users, Search, Edit2, Save, X, CheckCircle, Circle, AlertCircle, ArrowUpCircle, ListTodo, UserPlus, Award, Trash2, HelpCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
+import { HelpButton } from '../UserGuides';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -52,12 +53,123 @@ const WorkspaceAlirio = () => {
     { id: 2, date: '01/03/2026', title: 'Call SACEM', participants: 'Laurent, Alirio', decisions: ['Dossier accepté'], actions: ['Alirio: Suivi versement'] }
   ]);
 
-  // Carnet de contacts global
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION 4.1: MES TÂCHES - Suivi et avancement actions
+  // ═══════════════════════════════════════════════════════════════
+  const [tasks, setTasks] = useState([
+    { id: 1, title: 'Relance dossier CTM', status: 'en_retard', deadline: '2026-03-06', priority: 'haute', category: 'Partenariat' },
+    { id: 2, title: 'Préparer présentation budget', status: 'en_cours', deadline: '2026-03-10', priority: 'haute', category: 'Admin' },
+    { id: 3, title: 'Call SACEM - suivi versement', status: 'a_faire', deadline: '2026-03-12', priority: 'moyenne', category: 'Finance' },
+    { id: 4, title: 'Envoi dossier Entreprise XYZ', status: 'a_faire', deadline: '2026-03-15', priority: 'haute', category: 'Partenariat' },
+    { id: 5, title: 'Réunion équipe logistique', status: 'fait', deadline: '2026-03-05', priority: 'moyenne', category: 'Organisation' },
+    { id: 6, title: 'Validation contrat partenaire Or', status: 'fait', deadline: '2026-03-04', priority: 'haute', category: 'Partenariat' }
+  ]);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [newTask, setNewTask] = useState({ title: '', deadline: '', priority: 'moyenne', category: 'Partenariat' });
+
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION 4.1: MES CONTACTS - Annuaire distinct de Partenaires
+  // ═══════════════════════════════════════════════════════════════
+  const [myContacts, setMyContacts] = useState([
+    { id: 1, prenom: 'Jean', nom: 'Martin', email: 'jean.martin@example.com', tel: '+596696112233', organisation: 'CTM', type: 'Institutionnel', statut: 'Contact', niveau_partenariat: null, notes: 'Contact principal pour dossier subvention' },
+    { id: 2, prenom: 'Marie', nom: 'Dubois', email: 'marie.dubois@presse.fr', tel: '+596696445566', organisation: 'France-Antilles', type: 'Presse', statut: 'Contact', niveau_partenariat: null, notes: 'Journaliste culture' },
+    { id: 3, prenom: 'Patrick', nom: 'Louis', email: 'patrick@sonolum.mq', tel: '+596596778899', organisation: 'SonoLum', type: 'Personnel', statut: 'En négociation', niveau_partenariat: null, notes: 'Devis sono en attente' },
+    { id: 4, prenom: 'Sophie', nom: 'Charles', email: 'sophie@entreprise-or.com', tel: '+596696001122', organisation: 'EntrepriseOr SARL', type: 'Partenaire', statut: 'Partenaire', niveau_partenariat: 'Or', notes: 'Partenaire confirmé, contrat signé' }
+  ]);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [editingContact, setEditingContact] = useState(null);
+  const [newContact, setNewContact] = useState({ 
+    prenom: '', nom: '', email: '', tel: '', organisation: '', 
+    type: 'Personnel', statut: 'Contact', niveau_partenariat: null, notes: '' 
+  });
+  const [contactFilter, setContactFilter] = useState('all'); // all, Partenaire, Presse, Institutionnel, Personnel
+
+  // Carnet de contacts global (legacy)
   const [contacts, setContacts] = useState([
     { id: 1, name: 'Kathy', role: 'Artiste', org: 'DJ', email: 'kathy@email.com', phone: '0696 XX XX XX' },
     { id: 2, name: 'M. Directeur CTM', role: 'Institution', org: 'CTM', email: 'dir@ctm.mq', phone: '0596 XX XX XX' },
     { id: 3, name: 'SonoCaraïbes', role: 'Prestataire', org: 'Son & Lumière', email: 'contact@sonocaraibes.fr', phone: '0596 XX XX XX' }
   ]);
+
+  // ═══ TASK HELPERS ═══
+  const taskStats = {
+    total: tasks.length,
+    fait: tasks.filter(t => t.status === 'fait').length,
+    en_cours: tasks.filter(t => t.status === 'en_cours').length,
+    a_faire: tasks.filter(t => t.status === 'a_faire').length,
+    en_retard: tasks.filter(t => t.status === 'en_retard').length,
+    progression: Math.round((tasks.filter(t => t.status === 'fait').length / tasks.length) * 100)
+  };
+
+  const updateTaskStatus = (taskId, newStatus) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    if (newStatus === 'fait') {
+      sendNotification?.('laurent', {
+        type: 'task_complete',
+        from: 'Alirio',
+        title: 'Tâche terminée',
+        message: tasks.find(t => t.id === taskId)?.title
+      });
+    }
+    toast.success(`Tâche mise à jour: ${newStatus === 'fait' ? 'Terminée' : newStatus}`);
+  };
+
+  const addTask = () => {
+    if (!newTask.title.trim()) return;
+    const task = {
+      id: Date.now(),
+      ...newTask,
+      status: 'a_faire'
+    };
+    setTasks(prev => [...prev, task]);
+    setNewTask({ title: '', deadline: '', priority: 'moyenne', category: 'Partenariat' });
+    setShowAddTask(false);
+    toast.success('Tâche ajoutée');
+  };
+
+  // ═══ CONTACT HELPERS ═══
+  const addContact = async () => {
+    if (!newContact.prenom.trim() || !newContact.nom.trim()) return;
+    const contact = {
+      id: Date.now(),
+      ...newContact,
+      owner: 'alirio',
+      created_at: new Date().toISOString()
+    };
+    
+    // Save to backend
+    try {
+      await axios.post(`${API}/contacts/alirio`, contact);
+    } catch (e) {
+      console.warn('Backend save failed, keeping local');
+    }
+    
+    setMyContacts(prev => [...prev, contact]);
+    setNewContact({ prenom: '', nom: '', email: '', tel: '', organisation: '', type: 'Personnel', statut: 'Contact', niveau_partenariat: null, notes: '' });
+    setShowAddContact(false);
+    toast.success('Contact ajouté');
+  };
+
+  const promoteToPartner = (contactId, level) => {
+    setMyContacts(prev => prev.map(c => 
+      c.id === contactId 
+        ? { ...c, statut: 'Partenaire', niveau_partenariat: level }
+        : c
+    ));
+    const contact = myContacts.find(c => c.id === contactId);
+    sendNotification?.('laurent', {
+      type: 'partner_promoted',
+      from: 'Alirio',
+      title: 'Nouveau partenaire',
+      message: `${contact?.prenom} ${contact?.nom} (${contact?.organisation}) - Niveau ${level}`
+    });
+    toast.success(`Promu en Partenaire ${level}`);
+  };
+
+  const filteredContacts = myContacts.filter(c => {
+    if (contactFilter === 'all') return true;
+    return c.type === contactFilter || c.statut === contactFilter;
+  });
 
   useEffect(() => {
     axios.post(`${API}/workspace/log`, {
@@ -198,21 +310,26 @@ Comment puis-je vous aider ?`
               <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Business & Secrétariat CC2026</div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <HelpButton guideId="contacts" />
+            <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-6">
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           {[
+            { id: 'taches', label: 'Mes tâches', icon: ListTodo },
+            { id: 'mescontacts', label: 'Mes contacts', icon: UserPlus },
             { id: 'assistant', label: 'Assistant IA', icon: Bot },
             { id: 'partenaires', label: 'Partenaires', icon: Users },
             { id: 'agenda', label: 'Agenda', icon: Calendar },
             { id: 'notes', label: 'Notes réunion', icon: FileText },
-            { id: 'contacts', label: 'Contacts', icon: Briefcase }
+            { id: 'contacts', label: 'Carnet', icon: Briefcase }
           ].map(tab => (
             <button
               key={tab.id}
@@ -222,6 +339,7 @@ Comment puis-je vous aider ?`
                 background: activeTab === tab.id ? COLORS.terracotta : 'rgba(255,255,255,0.05)',
                 color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.5)'
               }}
+              data-testid={`tab-${tab.id}`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -230,6 +348,390 @@ Comment puis-je vous aider ?`
         </div>
 
         {/* Content */}
+        
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* MES TÂCHES - Section 4.1 du PROMPT MAÎTRE */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'taches' && (
+          <div className="space-y-6">
+            {/* Progress Overview */}
+            <div className="grid grid-cols-5 gap-4">
+              <div className="col-span-2 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+                <div className="text-sm font-bold mb-4" style={{ color: COLORS.gold }}>Progression globale</div>
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl font-bold" style={{ color: COLORS.gold }}>{taskStats.progression}%</div>
+                  <div className="flex-1">
+                    <div className="h-4 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                      <div 
+                        className="h-full transition-all duration-500 rounded-full" 
+                        style={{ width: `${taskStats.progression}%`, background: `linear-gradient(90deg, ${COLORS.forest}, ${COLORS.gold})` }} 
+                      />
+                    </div>
+                    <div className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      {taskStats.fait} / {taskStats.total} tâches terminées
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {[
+                { label: 'En retard', value: taskStats.en_retard, color: '#ef4444', icon: AlertCircle },
+                { label: 'Aujourd\'hui', value: taskStats.en_cours, color: COLORS.terracotta, icon: Clock },
+                { label: 'À faire', value: taskStats.a_faire, color: 'rgba(255,255,255,0.5)', icon: Circle }
+              ].map((stat, i) => (
+                <div key={i} className="rounded-lg p-4 text-center" style={{ background: '#2A2820', border: `1px solid ${stat.color}30` }}>
+                  <stat.icon className="w-6 h-6 mx-auto mb-2" style={{ color: stat.color }} />
+                  <div className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
+                  <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Task Lists */}
+            <div className="grid grid-cols-3 gap-6">
+              {/* En retard */}
+              <div className="rounded-lg overflow-hidden" style={{ background: '#2A2820', border: '1px solid rgba(239,68,68,0.3)' }}>
+                <div className="p-4 flex items-center justify-between" style={{ background: 'rgba(239,68,68,0.1)' }}>
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" style={{ color: '#ef4444' }} />
+                    <span className="font-bold text-white">En retard</span>
+                  </div>
+                  <span className="text-sm font-bold" style={{ color: '#ef4444' }}>{taskStats.en_retard}</span>
+                </div>
+                <div className="p-4 space-y-3 max-h-64 overflow-y-auto">
+                  {tasks.filter(t => t.status === 'en_retard').map(task => (
+                    <div key={task.id} className="p-3 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)' }}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-white">{task.title}</div>
+                          <div className="text-xs mt-1" style={{ color: '#ef4444' }}>Deadline: {task.deadline}</div>
+                        </div>
+                        <button 
+                          onClick={() => updateTaskStatus(task.id, 'fait')}
+                          className="p-1 rounded hover:bg-white/10"
+                          title="Marquer comme fait"
+                        >
+                          <CheckCircle className="w-4 h-4" style={{ color: COLORS.forest }} />
+                        </button>
+                      </div>
+                      <div className="text-xs mt-2 px-2 py-1 rounded inline-block" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}>
+                        {task.category}
+                      </div>
+                    </div>
+                  ))}
+                  {taskStats.en_retard === 0 && <div className="text-sm text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucune tâche en retard</div>}
+                </div>
+              </div>
+
+              {/* À faire / En cours */}
+              <div className="rounded-lg overflow-hidden" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}30` }}>
+                <div className="p-4 flex items-center justify-between" style={{ background: `${COLORS.terracotta}15` }}>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" style={{ color: COLORS.terracotta }} />
+                    <span className="font-bold text-white">À faire</span>
+                  </div>
+                  <Button size="sm" onClick={() => setShowAddTask(true)} style={{ background: COLORS.terracotta }} data-testid="add-task-btn">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="p-4 space-y-3 max-h-64 overflow-y-auto">
+                  {tasks.filter(t => ['a_faire', 'en_cours'].includes(t.status)).map(task => (
+                    <div key={task.id} className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-white">{task.title}</div>
+                          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                            {task.deadline} • {task.priority === 'haute' ? '🔴' : task.priority === 'moyenne' ? '🟡' : '🟢'}
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <button 
+                            onClick={() => updateTaskStatus(task.id, 'en_cours')}
+                            className="p-1 rounded hover:bg-white/10"
+                            title="En cours"
+                          >
+                            <ArrowUpCircle className="w-4 h-4" style={{ color: COLORS.terracotta }} />
+                          </button>
+                          <button 
+                            onClick={() => updateTaskStatus(task.id, 'fait')}
+                            className="p-1 rounded hover:bg-white/10"
+                            title="Terminé"
+                          >
+                            <CheckCircle className="w-4 h-4" style={{ color: COLORS.forest }} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Terminées */}
+              <div className="rounded-lg overflow-hidden" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}30` }}>
+                <div className="p-4 flex items-center justify-between" style={{ background: `${COLORS.forest}15` }}>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" style={{ color: COLORS.forest }} />
+                    <span className="font-bold text-white">Terminées</span>
+                  </div>
+                  <span className="text-sm font-bold" style={{ color: COLORS.forest }}>{taskStats.fait}</span>
+                </div>
+                <div className="p-4 space-y-3 max-h-64 overflow-y-auto">
+                  {tasks.filter(t => t.status === 'fait').map(task => (
+                    <div key={task.id} className="p-3 rounded-lg opacity-70" style={{ background: `${COLORS.forest}10` }}>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" style={{ color: COLORS.forest }} />
+                        <span className="text-sm line-through text-white">{task.title}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Add Task Modal */}
+            {showAddTask && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="rounded-xl p-6 w-full max-w-md" style={{ background: '#2A2820' }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-white">Nouvelle tâche</h3>
+                    <button onClick={() => setShowAddTask(false)}><X className="w-5 h-5 text-white/50" /></button>
+                  </div>
+                  <div className="space-y-4">
+                    <Input 
+                      placeholder="Titre de la tâche"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                      data-testid="new-task-title"
+                    />
+                    <Input 
+                      type="date"
+                      value={newTask.deadline}
+                      onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    />
+                    <select 
+                      value={newTask.priority}
+                      onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    >
+                      <option value="haute">Priorité haute</option>
+                      <option value="moyenne">Priorité moyenne</option>
+                      <option value="basse">Priorité basse</option>
+                    </select>
+                    <select 
+                      value={newTask.category}
+                      onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    >
+                      <option value="Partenariat">Partenariat</option>
+                      <option value="Admin">Admin</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Organisation">Organisation</option>
+                      <option value="Communication">Communication</option>
+                    </select>
+                    <Button onClick={addTask} className="w-full" style={{ background: COLORS.terracotta }} data-testid="save-task-btn">
+                      Ajouter la tâche
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* MES CONTACTS - Section 4.1 du PROMPT MAÎTRE */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'mescontacts' && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-white">Mes Contacts</h2>
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  Annuaire personnel distinct des partenaires officiels
+                </p>
+              </div>
+              <Button onClick={() => setShowAddContact(true)} style={{ background: COLORS.terracotta }} data-testid="add-contact-btn">
+                <Plus className="w-4 h-4 mr-2" />
+                Nouveau contact
+              </Button>
+            </div>
+
+            {/* Filters */}
+            <div className="flex gap-2">
+              {['all', 'Partenaire', 'Institutionnel', 'Presse', 'Personnel'].map(filter => (
+                <button
+                  key={filter}
+                  onClick={() => setContactFilter(filter)}
+                  className="px-3 py-1 rounded-full text-sm transition-all"
+                  style={{ 
+                    background: contactFilter === filter ? COLORS.terracotta : 'rgba(255,255,255,0.05)',
+                    color: contactFilter === filter ? '#fff' : 'rgba(255,255,255,0.5)'
+                  }}
+                >
+                  {filter === 'all' ? 'Tous' : filter}
+                </button>
+              ))}
+            </div>
+
+            {/* Contact Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              {filteredContacts.map(contact => (
+                <div 
+                  key={contact.id} 
+                  className="rounded-lg p-4 relative"
+                  style={{ background: '#2A2820', border: `1px solid ${contact.statut === 'Partenaire' ? COLORS.gold : 'rgba(255,255,255,0.1)'}` }}
+                >
+                  {contact.statut === 'Partenaire' && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold" 
+                      style={{ background: COLORS.gold, color: COLORS.charbon }}>
+                      {contact.niveau_partenariat}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold"
+                      style={{ background: `${COLORS.terracotta}30`, color: COLORS.terracotta }}>
+                      {contact.prenom[0]}{contact.nom[0]}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-bold text-white">{contact.prenom} {contact.nom}</div>
+                      <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>{contact.organisation}</div>
+                      <div className="text-xs mt-1 inline-block px-2 py-0.5 rounded" 
+                        style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
+                        {contact.type}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2 text-sm">
+                    <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>Email:</span> {contact.email}
+                    </div>
+                    <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>Tél:</span> {contact.tel}
+                    </div>
+                    {contact.notes && (
+                      <div className="text-xs mt-2 p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}>
+                        {contact.notes}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-4 pt-3 flex gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    {contact.statut !== 'Partenaire' && (
+                      <div className="flex gap-1">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => promoteToPartner(contact.id, 'Bronze')}
+                          style={{ color: '#CD7F32' }}
+                          title="Promouvoir Bronze"
+                        >
+                          <Award className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => promoteToPartner(contact.id, 'Silver')}
+                          style={{ color: '#C0C0C0' }}
+                          title="Promouvoir Silver"
+                        >
+                          <Award className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => promoteToPartner(contact.id, 'Or')}
+                          style={{ color: COLORS.gold }}
+                          title="Promouvoir Or"
+                        >
+                          <Award className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Contact Modal */}
+            {showAddContact && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="rounded-xl p-6 w-full max-w-md" style={{ background: '#2A2820' }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-white">Nouveau contact</h3>
+                    <button onClick={() => setShowAddContact(false)}><X className="w-5 h-5 text-white/50" /></button>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input 
+                        placeholder="Prénom"
+                        value={newContact.prenom}
+                        onChange={(e) => setNewContact({ ...newContact, prenom: e.target.value })}
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                        data-testid="contact-prenom"
+                      />
+                      <Input 
+                        placeholder="Nom"
+                        value={newContact.nom}
+                        onChange={(e) => setNewContact({ ...newContact, nom: e.target.value })}
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                        data-testid="contact-nom"
+                      />
+                    </div>
+                    <Input 
+                      placeholder="Email"
+                      type="email"
+                      value={newContact.email}
+                      onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    />
+                    <Input 
+                      placeholder="Téléphone"
+                      value={newContact.tel}
+                      onChange={(e) => setNewContact({ ...newContact, tel: e.target.value })}
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    />
+                    <Input 
+                      placeholder="Organisation"
+                      value={newContact.organisation}
+                      onChange={(e) => setNewContact({ ...newContact, organisation: e.target.value })}
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    />
+                    <select 
+                      value={newContact.type}
+                      onChange={(e) => setNewContact({ ...newContact, type: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    >
+                      <option value="Partenaire">Partenaire</option>
+                      <option value="Presse">Presse</option>
+                      <option value="Institutionnel">Institutionnel</option>
+                      <option value="Personnel">Personnel</option>
+                    </select>
+                    <textarea 
+                      placeholder="Notes..."
+                      value={newContact.notes}
+                      onChange={(e) => setNewContact({ ...newContact, notes: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg h-20"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    />
+                    <Button onClick={addContact} className="w-full" style={{ background: COLORS.terracotta }} data-testid="save-contact-btn">
+                      Ajouter le contact
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'assistant' && (
           <div className="grid grid-cols-3 gap-6">
             {/* Chat panel */}
