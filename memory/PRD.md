@@ -4,98 +4,73 @@
 Culture Connect 2026 - Premier marché professionnel des industries culturelles afro-caribéennes.
 Plateforme multi-workspace avec messagerie temps réel, système d'accréditation, et CMS.
 
-**Date du rapport**: 6 Mars 2026
-**Jour J prévu**: 22 Mai 2026 (J-77)
+**Date du rapport**: 7 Mars 2026
+**Jour J prévu**: 22 Mai 2026 (J-76)
 
 ---
 
-## RAPPORT TESTS COMPLETS - TOUS BLOCS PASS ✅
+## STATUT ACTUEL: SECTION 1 P0 BUGS - TERMINÉE ✅
 
-### RÉSULTAT GLOBAL: 30/30 TESTS PASS ✅
+### BUGS P0 CORRIGÉS (7 Mars 2026)
 
-### BLOC 1 - AUTHENTIFICATION & SÉCURITÉ ✅
-| Test | Résultat |
-|------|----------|
-| 1.1 Accès direct URLs sans auth | ✅ PASS |
-| 1.2 Accès croisé workspaces | ✅ PASS |
-| 1.3 Rate limiting | ✅ PASS (5 tentatives, 5min blocage) |
-| 1.4 SessionStorage | ✅ PASS |
-| 1.5 Bouton retour après logout | ✅ PASS |
-| 1.6 Expiration session 8h | ✅ PASS (CORRIGÉ) |
+| Bug | Status | Description |
+|-----|--------|-------------|
+| **BUG 1.1.a** | ✅ CORRIGÉ | Mapping Baserow - Helper `getFieldValue()` normalise les champs Single Select |
+| **BUG 1.1.b** | ✅ CORRIGÉ | Filtres présence avec compteurs (Tous/Présents/Absents) + localStorage persistant |
+| **BUG 1.1.c** | ✅ CORRIGÉ | 17 types de badges incluant PUBLIC, PARTICIPANT, VISITEUR |
+| **BUG 1.1.d** | ✅ CORRIGÉ | CSS dropdown dark mode - texte lisible sur fond sombre |
+| **BUG 1.1.e** | ✅ CORRIGÉ | Format impression badges 85mm × 54mm (carte ID standard) |
+| **BUG 1.1.f** | 🟡 PARTIEL | Synchronisation catalogue public (à finaliser Section 2) |
+| **BUG 1.2** | ✅ CORRIGÉ | Observatoire temps réel avec polling 30s, LIVE indicator, Export CSV |
 
-### BLOC 2 - SYNCHRONISATION TEMPS RÉEL ✅
-| Test | Résultat |
-|------|----------|
-| 2.1 Latence notification | ✅ PASS (627ms) |
-| 2.2 Sync accréditation live | ✅ PASS (564ms) |
-| 2.3 Modifications simultanées | ✅ PASS |
-| 2.4 Volume notifications | ✅ PASS |
-
-### BLOC 3 - RÉSILIENCE RÉSEAU ✅
-| Test | Résultat |
-|------|----------|
-| 3.1 Reconnexion WebSocket auto | ✅ PASS |
-| 3.2 Réseau lent | ✅ PASS |
-| 3.3 Transaction atomique | ✅ PASS |
-| 3.4 Heartbeat/Keep-alive | ✅ PASS |
-
-### BLOC 4 - CHARGE ET PERFORMANCE ✅
-| Test | Résultat |
-|------|----------|
-| 4.1 8 connexions simultanées | ✅ PASS |
-| 4.2 Stress messages | ✅ PASS |
-| 4.3 API sous charge | ✅ PASS |
-| 4.4 Performance tablette | ✅ PASS |
-
-### BLOC 5 - INTÉGRITÉ DES DONNÉES ✅
-| Test | Résultat |
-|------|----------|
-| 5.1 Cohérence Baserow | ✅ PASS |
-| 5.2 Export CSV | ✅ PASS |
-| 5.3 Logs exhaustifs | ✅ PASS |
-
-### BLOC 6 - SCÉNARIO JOUR J ✅
-| Étape | Résultat |
-|-------|----------|
-| 1-6 Dashboard/Artistes/Régie | ✅ PASS |
-| 7. Alirio question IA Claude | ✅ PASS (CORRIGÉ) |
-| 8-10 Captions/Activités/Logout | ✅ PASS |
+### Fichiers modifiés:
+- `/app/frontend/src/components/AccreditationSystem.jsx` - Helper getFieldValue(), filtres, Observatoire live
+- `/app/frontend/src/App.css` - CSS dark mode dropdowns, styles impression badges
 
 ---
 
-## Correctifs Appliqués (6 Mars 2026)
+## PROCHAINES ÉTAPES (PROMPT MAÎTRE)
 
-### ✅ Expiration Session 8h
-- Timestamp `createdAt` et `lastActivity` ajoutés à la session
-- Vérification automatique dans ProtectedRoute
-- Message "Session expirée, reconnectez-vous" après 8h d'inactivité
-- Fichiers modifiés:
-  - `/app/frontend/src/components/ProtectedRoute.jsx`
-  - `/app/frontend/src/components/AdminLogin.jsx`
-  - `/app/frontend/src/App.js`
+### Section 2 - Architecture & Synchronisation (P1)
+- [ ] 4 routes d'entrée utilisateur (achat billet, inscription, admin manuel, scan QR)
+- [ ] Synchronisation Baserow ↔ Catalogue public ↔ Admin
+- [ ] Routes backend: POST /api/tickets/purchase, POST /api/register, POST /api/admin/accreditation
 
-### ✅ API Claude pour Alirio
-- Endpoint `/api/ai/assistant` fonctionnel
-- Clé Emergent LLM configurée: `EMERGENT_LLM_KEY`
-- Modèle: `claude-sonnet-4-5-20250929`
-- Réponse testée: "CC2026 compte 4 partenaires officiels: CTM, SACEM, ISCA, SKILLFOR"
+### Section 3 - Vue 3D (P1)
+- [ ] Dashboard admin 3D (Three.js panneaux flottants)
+- [ ] Smart Engine v2 avec graphe de nœuds interconnectés
+- [ ] Catalogue public CSS 3D
+
+### Section 4 - Workspace Alirio (P1)
+- [ ] Section "Mes tâches" avec progression
+- [ ] Section "Mes contacts" (collection MongoDB contacts_alirio)
+- [ ] Interconnexion admins secondaires avec notifications Laurent
+
+### Section 5 - Guides Utilisateur (P2)
+- [ ] Guide Accréditation
+- [ ] Guide Badges
+- [ ] Guide Contacts (Alirio)
+- [ ] Guide Smart Engine
+- [ ] Guide Workspaces
+- [ ] Guide Jour J
+
+### Section 6 - Validation (P2)
+- [ ] BLOC 1: Badges et accréditation
+- [ ] BLOC 2: Synchronisation routes
+- [ ] BLOC 3: Vue 3D performance
+- [ ] BLOC 4: Workspace Alirio
+- [ ] BLOC 5: Interconnexion admins
+- [ ] BLOC 6: Guides
 
 ---
 
-## Features Complètes
+## ARCHITECTURE TECHNIQUE
 
-### Messagerie Interne
-- Chat temps réel WebSocket
-- 5 canaux: #général, #urgences, #logistique, #communication, #presse
-- Messages privés 1-to-1
-- Pièces jointes images/PDF
-- Laurent voit TOUT
-
-### Sécurité
-- Routes protégées avec expiration 8h
-- Rate limiting (5 tentatives)
-- SessionStorage non persistant
-- Cross-workspace access bloqué
+### Stack
+- Frontend: React + Tailwind CSS + Three.js (à venir)
+- Backend: FastAPI (Python) + WebSocket
+- Bases de données: MongoDB + Baserow (Table 865847)
+- Intégrations: Stripe, Cloudinary, Resend, Claude AI
 
 ### Workspaces
 | Password | User | Role |
@@ -110,15 +85,31 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 | Fabrice2026 | Fabrice | captions |
 | DataCC2026 | Analyst | analyst |
 
----
-
-## Credentials
-- Baserow Table: `865847`
-- Baserow Token: `BjKPCSpcpif72OtZtsmMFUbZysqlNGiK`
-- Emergent LLM Key: Configurée dans backend/.env
+### Credentials
+- **Baserow Table**: 865847
+- **Baserow Token**: BjKPCSpcpif72OtZtsmMFUbZysqlNGiK
+- **Emergent LLM Key**: Configurée dans backend/.env
 
 ---
 
-## 🎯 PRÊT POUR JOUR J: OUI ✓
+## HISTORIQUE DES TESTS
 
-Tous les 30 tests passent. La plateforme est prête pour le 22 mai 2026.
+### Iteration 16 (7 Mars 2026) - Section 1 P0 Bugs
+- ✅ 100% Frontend tests passés
+- ✅ Filtres présence avec compteurs
+- ✅ 17 types de badges disponibles
+- ✅ CSS dark mode dropdowns
+- ✅ Observatoire temps réel
+
+### Iterations 1-15 (Précédentes)
+- ✅ Messagerie interne temps réel
+- ✅ Routes protégées avec expiration 8h
+- ✅ Rate limiting login
+- ✅ Visual Editor workaround
+- ✅ Claude AI assistant fonctionnel
+
+---
+
+## 🎯 PRÊT POUR SECTION 2: OUI
+
+Tous les bugs P0 de la Section 1 sont corrigés. Prêt pour l'architecture des routes et la synchronisation.
