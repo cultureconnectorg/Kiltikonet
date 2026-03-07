@@ -227,6 +227,94 @@ body > div:last-child:not(.App):not(#root) {
   display: none !important;
 }
 
+/* ═══════════ DARK MODE SELECT DROPDOWNS (BUG 1.1.d) ═══════════ */
+/* Force readable text in dark mode dropdowns */
+select,
+select option {
+  background-color: #1E1E35 !important;
+  color: #E8E8F0 !important;
+}
+
+select:focus {
+  outline: none;
+  border-color: #8B1A4A !important;
+}
+
+/* Radix Select component dark mode styling */
+.select-dark [data-radix-select-trigger],
+.select-dark button[role="combobox"] {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
+.select-content-dark [data-radix-select-content],
+.select-content-dark [role="listbox"] {
+  background-color: #1E1E35 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.select-content-dark [data-radix-select-item],
+.select-content-dark [role="option"] {
+  background-color: #1E1E35 !important;
+  color: #E8E8F0 !important;
+}
+
+.select-content-dark [data-radix-select-item]:hover,
+.select-content-dark [role="option"]:hover,
+.select-content-dark [data-highlighted] {
+  background-color: rgba(139, 26, 74, 0.3) !important;
+  color: #fff !important;
+}
+
+/* SelectItem text color fix */
+[data-radix-select-viewport] [role="option"] span {
+  color: #E8E8F0 !important;
+}
+
+/* ═══════════ BADGE PRINT STYLES (BUG 1.1.e) ═══════════ */
+/* Standard ID card format: 85mm × 54mm (CR-80 ISO/IEC 7810 ID-1) */
+@media print {
+  /* Hide everything except badge */
+  body * {
+    visibility: hidden !important;
+  }
+  
+  .badge-print-zone,
+  .badge-print-zone * {
+    visibility: visible !important;
+  }
+  
+  .badge-print-zone {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 85mm !important;
+    height: 54mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    page-break-after: always;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  @page {
+    size: 85mm 54mm;
+    margin: 0;
+  }
+}
+
 /* Print styles for admin */
 @media print {
   .no-print {

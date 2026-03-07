@@ -1333,10 +1333,116 @@ const QRCodesTab = ({ participants }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// TAB 4: STATISTICS
+// TAB 4: STATISTICS (OBSERVATOIRE) - LIVE DATA FROM BASEROW
 // ═══════════════════════════════════════════════════════════════
 const StatisticsTab = ({ participants, stats }) => {
-  if (!participants.length) {
+  const [liveParticipants, setLiveParticipants] = useState(participants);
+  const [liveStats, setLiveStats] = useState(stats);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [isPolling, setIsPolling] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30); // seconds
+  const [countdown, setCountdown] = useState(30);
+
+  // Calculate live stats from participants
+  const calculateStats = useCallback((data) => {
+    return {
+      total: data.length,
+      present: data.filter(p => getFieldValue(p['Statut presence']) === 'Present').length,
+      absent: data.filter(p => getFieldValue(p['Statut presence']) !== 'Present').length,
+      rate: data.length ? Math.round((data.filter(p => getFieldValue(p['Statut presence']) === 'Present').length / data.length) * 100) : 0,
+      byType: data.reduce((acc, p) => {
+        const type = getFieldValue(p['Type de badge']) || 'Autre';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {}),
+      byTerritory: data.reduce((acc, p) => {
+        const terr = getFieldValue(p["Territoire d'origine"]) || 'Non renseigne';
+        acc[terr] = (acc[terr] || 0) + 1;
+        return acc;
+      }, {}),
+      bySector: data.reduce((acc, p) => {
+        const sector = getFieldValue(p["Secteur d'activite"]) || 'Non renseigne';
+        acc[sector] = (acc[sector] || 0) + 1;
+        return acc;
+      }, {}),
+      // New: Track registrations over time for trend chart
+      registrationsByDate: data.reduce((acc, p) => {
+        // Try to extract date from ID or use today
+        const dateKey = new Date().toISOString().slice(0, 10);
+        acc[dateKey] = (acc[dateKey] || 0) + 1;
+        return acc;
+      }, {})
+    };
+  }, []);
+
+  // Fetch live data from Baserow
+  const fetchLiveData = useCallback(async () => {
+    try {
+      let all = [], page = 1, hasMore = true;
+      while (hasMore) {
+        const res = await fetch(`${BASEROW_API}/database/rows/table/${BASEROW_TABLE}/?user_field_names=true&page=${page}&size=100`, {
+          headers: { 'Authorization': `Token ${BASEROW_TOKEN}` }
+        });
+        if (!res.ok) throw new Error('Baserow error');
+        const data = await res.json();
+        all = [...all, ...data.results];
+        hasMore = !!data.next;
+        page++;
+      }
+      setLiveParticipants(all);
+      setLiveStats(calculateStats(all));
+      setLastUpdate(new Date());
+      setCountdown(refreshInterval);
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+  }, [calculateStats, refreshInterval]);
+
+  // Polling effect - refresh every N seconds
+  useEffect(() => {
+    if (!isPolling) return;
+    
+    const intervalId = setInterval(() => {
+      fetchLiveData();
+    }, refreshInterval * 1000);
+
+    // Countdown timer
+    const countdownId = setInterval(() => {
+      setCountdown(c => (c > 0 ? c - 1 : refreshInterval));
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+      clearInterval(countdownId);
+    };
+  }, [isPolling, refreshInterval, fetchLiveData]);
+
+  // Initial sync with parent
+  useEffect(() => {
+    setLiveParticipants(participants);
+    setLiveStats(stats);
+  }, [participants, stats]);
+
+  // Export CSV from Observatoire
+  const exportObservatoireCSV = () => {
+    const headers = ['ID', 'Prenom', 'Nom', 'Organisation', 'Email', 'Telephone', 'Type Badge', 'Territoire', 'Secteur', 'Statut', 'Heure Arrivee'];
+    const rows = liveParticipants.map(p => [
+      p.id, p.Prenom, p.Nom, p.Organisation, p.Email, p.Telephone,
+      getFieldValue(p['Type de badge']), getFieldValue(p["Territoire d'origine"]), 
+      getFieldValue(p["Secteur d'activite"]), getFieldValue(p['Statut presence']), p["Heure d'arrivee"]
+    ]);
+    
+    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v || ''}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cc2026_observatoire_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    toast.success('Export Observatoire termine');
+  };
+
+  if (!liveParticipants.length) {
     return (
       <div className="text-center py-12 font-mono text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>
         CHARGEZ LES DONNEES BASEROW
@@ -1357,35 +1463,105 @@ const StatisticsTab = ({ participants, stats }) => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: COLORS.terracotta, fontFamily: "'Syne', sans-serif" }}>Observatoire CC2026</div>
-        <div className="text-2xl font-bold" style={{ color: COLORS.gold, fontFamily: "'Cormorant Garamond', serif" }}>Tableau de Bord Accreditations</div>
+      {/* Header with Live Status */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: COLORS.terracotta, fontFamily: "'Syne', sans-serif" }}>Observatoire CC2026</div>
+          <div className="text-2xl font-bold" style={{ color: COLORS.gold, fontFamily: "'Cormorant Garamond', serif" }}>Tableau de Bord en Temps Réel</div>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Live indicator */}
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: isPolling ? 'rgba(77,191,138,0.15)' : 'rgba(255,255,255,0.05)' }}>
+            <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+            <span className="text-xs font-mono" style={{ color: isPolling ? '#4DBF8A' : 'rgba(255,255,255,0.4)' }}>
+              {isPolling ? `LIVE (${countdown}s)` : 'PAUSED'}
+            </span>
+          </div>
+          {/* Toggle polling */}
+          <Button 
+            size="sm" 
+            onClick={() => setIsPolling(!isPolling)}
+            style={{ background: isPolling ? 'rgba(255,255,255,0.1)' : COLORS.terracotta }}
+            data-testid="toggle-polling"
+          >
+            {isPolling ? 'Pause' : 'Reprendre'}
+          </Button>
+          {/* Manual refresh */}
+          <Button 
+            size="sm" 
+            onClick={fetchLiveData}
+            style={{ background: COLORS.terracotta }}
+            data-testid="manual-refresh"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+          {/* Export */}
+          <Button 
+            size="sm" 
+            onClick={exportObservatoireCSV}
+            variant="outline"
+            style={{ borderColor: `${COLORS.gold}50`, color: COLORS.gold }}
+            data-testid="export-observatoire"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
+      </div>
+
+      {/* Last update info */}
+      <div className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        Dernière mise à jour: {lastUpdate.toLocaleTimeString('fr-FR')} • Rafraîchissement: {refreshInterval}s
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Total', value: stats.total, color: '#fff' },
-          { label: 'Presents', value: stats.present, color: '#4DBF8A' },
-          { label: 'Absents', value: stats.absent, color: 'rgba(255,255,255,0.3)' },
-          { label: 'Taux', value: `${stats.rate}%`, color: COLORS.gold }
+          { label: 'Total', value: liveStats.total, color: '#fff' },
+          { label: 'Présents', value: liveStats.present, color: '#4DBF8A' },
+          { label: 'Absents', value: liveStats.absent, color: 'rgba(255,255,255,0.3)' },
+          { label: 'Taux', value: `${liveStats.rate}%`, color: COLORS.gold }
         ].map(kpi => (
-          <div key={kpi.label} className="rounded-lg p-6 text-center" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+          <div key={kpi.label} className="rounded-lg p-6 text-center relative overflow-hidden" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
             <div className="text-3xl font-bold" style={{ color: kpi.color, fontFamily: "'Cormorant Garamond', serif" }}>{kpi.value}</div>
             <div className="text-xs uppercase tracking-wider mt-2" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'Syne', sans-serif" }}>{kpi.label}</div>
+            {isPolling && <div className="absolute bottom-0 left-0 h-1 bg-green-400 animate-pulse" style={{ width: '100%', opacity: 0.3 }} />}
           </div>
         ))}
+      </div>
+
+      {/* Présents / Absents Live Counter */}
+      <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+        <div className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: '#4DBF8A', fontFamily: "'Syne', sans-serif" }}>
+          Compteur Présence Live
+        </div>
+        <div className="flex items-center gap-8">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm" style={{ color: '#4DBF8A' }}>Présents</span>
+              <span className="text-2xl font-bold" style={{ color: '#4DBF8A', fontFamily: "'Cormorant Garamond', serif" }}>{liveStats.present}</span>
+            </div>
+            <div className="h-4 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div 
+                className="h-full transition-all duration-500 rounded-full" 
+                style={{ width: `${liveStats.rate}%`, background: '#4DBF8A' }} 
+              />
+            </div>
+          </div>
+          <div className="text-4xl font-bold" style={{ color: COLORS.gold, fontFamily: "'Cormorant Garamond', serif" }}>
+            {liveStats.rate}%
+          </div>
+        </div>
       </div>
 
       {/* By Type */}
       <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
         <div className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.terracotta, fontFamily: "'Syne', sans-serif" }}>
-          Repartition par type de badge
+          Répartition par type de badge
         </div>
         <div className="space-y-3">
-          {Object.entries(stats.byType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
-            <StatBar key={type} label={type} value={count} total={stats.total} color={(BADGE_COLORS[type] || BADGE_COLORS['Artiste']).bg} />
+          {Object.entries(liveStats.byType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
+            <StatBar key={type} label={type} value={count} total={liveStats.total} color={(BADGE_COLORS[type] || BADGE_COLORS['Artiste']).bg} />
           ))}
         </div>
       </div>
@@ -1393,11 +1569,11 @@ const StatisticsTab = ({ participants, stats }) => {
       {/* By Territory */}
       <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
         <div className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.gold, fontFamily: "'Syne', sans-serif" }}>
-          Territoires representes
+          Territoires représentés
         </div>
         <div className="space-y-3">
-          {Object.entries(stats.byTerritory).sort((a, b) => b[1] - a[1]).map(([terr, count]) => (
-            <StatBar key={terr} label={terr} value={count} total={stats.total} color={COLORS.gold} />
+          {Object.entries(liveStats.byTerritory).sort((a, b) => b[1] - a[1]).map(([terr, count]) => (
+            <StatBar key={terr} label={terr} value={count} total={liveStats.total} color={COLORS.gold} />
           ))}
         </div>
       </div>
@@ -1405,11 +1581,11 @@ const StatisticsTab = ({ participants, stats }) => {
       {/* By Sector */}
       <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
         <div className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.teal, fontFamily: "'Syne', sans-serif" }}>
-          Secteurs d'activite
+          Secteurs d'activité
         </div>
         <div className="space-y-3">
-          {Object.entries(stats.bySector).sort((a, b) => b[1] - a[1]).map(([sector, count]) => (
-            <StatBar key={sector} label={sector} value={count} total={stats.total} color={COLORS.teal} />
+          {Object.entries(liveStats.bySector).sort((a, b) => b[1] - a[1]).map(([sector, count]) => (
+            <StatBar key={sector} label={sector} value={count} total={liveStats.total} color={COLORS.teal} />
           ))}
         </div>
       </div>

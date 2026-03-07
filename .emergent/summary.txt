@@ -1,159 +1,153 @@
 <analysis>Here is a detailed handover summary for the next agent:
 
-**original_problem_statement**: The user initially requested a new AI-powered module, KiltiKonet Smart Engine, for their  platform. This included a Node.js/Express backend, a React frontend, profile indexing with OpenAI embeddings, profile recommendations, and an AI assistant using RAG with the Claude model.
+**original_problem_statement**: The user has provided a new, comprehensive master prompt for refactoring and enhancing the entire Culture Connect 2026 application. This prompt supersedes all previous plans and must be treated as the new source of truth.
 
-However, the user provided a new, long-term Vision 2026-2031 which fundamentally changed the project's scope. The goal is now to build a scalable, multi-tenant, strategic data infrastructure for Afro-diasporic cultural markets. This includes advanced data logging, an intelligence API, a verifiable certification engine, and a white-label-ready design.
-
-Subsequently, the user requested a comprehensive Content Management System (CMS) to make the entire public-facing website (theme, content, pages) editable without code.
+The mission is to **CLEAN, FIX, and IMPROVE** the existing system, not rebuild it. The work is divided into 7 sequential sections:
+1.  **Section 1 (P0): Fix 7 critical bugs** related to the badge/accreditation system and the data observatory.
+2.  **Section 2: Refactor Architecture & Sync**: Clarify the 4 data entry routes (ticket purchase, site registration, admin manual entry, QR scan) and ensure data synchronizes correctly between Baserow, the public catalog, and the admin panel.
+3.  **Section 3: Implement 3D UI**: Overhaul the main admin dashboard, the Smart Engine, and the public catalog to use 3D navigation and views (using Three.js and CSS 3D Transforms).
+4.  **Section 4: Enhance Team Workspaces**: Fix issues in Alirio's workspace (add task tracking, a dedicated contacts directory) and improve the real-time interconnections for all other secondary admin workspaces.
+5.  **Section 5: Create User Guides**: Build 6 distinct, in-app user guides accessible from the relevant interfaces.
+6.  **Section 6: Run Validation Tests**: Execute a new, comprehensive 6-block test plan to validate all fixes and new features before deployment.
+7.  **Section 7**: Await user confirmation.
 
 **User's preferred language**: French. The next agent MUST respond in French.
 
 **what currently exists?**
-The KiltiKonet Smart Engine has been completely re-architected and implemented according to the user's Vision 2026-2031.
-
-- **Architecture**: A hybrid stack with a main FastAPI (Python) backend and a Node.js/Express microservice for the Smart Engine. The Python app proxies all requests to the Node.js service and handles all LLM calls via the  library.
-- **Matching Logic**: The core recommendation feature has been pivoted from vector search to a more advanced semantic matching system. It now uses the Claude API to compare two profiles and generate a rich JSON object containing a compatibility score, a detailed match reason in French, and other metadata.
-- **Data Infrastructure**: A multi-tenant MongoDB schema has been implemented. The system now logs every matching event and territorial data flow to power a new Intelligence API and dashboard.
-- **Certification Engine**: A feature to export recommendations as an official PDF attestation is complete. The PDF includes a unique ID and a verifiable QR code.
-- **Admin Dashboards**: The React frontend features two key admin areas:
-    1.  : A dashboard to view strategic intelligence data (territorial flows, sector heatmaps, conversion rates).
-    2.  : A Content Management System to manage media (via Cloudinary), exhibitor profiles, speakers, and partners.
-- **Backend APIs**: All backend endpoints for the new architecture (Intelligence, Certification, initial CMS) have been created and are functional.
+*   **Backend (FastAPI)**: A monolithic  handles all logic, including APIs for workspaces, accreditation, a new real-time internal messaging system (chat), notifications, logging, and an AI assistant proxy. It now includes rate-limiting on the login endpoint.
+*   **Frontend (React)**:
+    *   A public-facing site, an admin login, and a full suite of role-specific workspaces.
+    *   A new **real-time internal chat system** () has been integrated into all workspaces, featuring channels and direct messages.
+    *   A  component now secures all workspace routes, checking for a valid session on the client side.
+    *   Session management has been enhanced with an 8-hour automatic expiration feature.
+    *   The **Visual Editor** at  has a functional workaround; it now uses a  popup to display the editable site, bypassing the original  cross-origin issue.
+*   **Databases**: MongoDB and Baserow (Table ID ) remain the primary data stores.
 
 **Last working item**:
--   **Last item agent was working**: Implementing three advanced sections for the CMS at  as requested by the user:
-    1.  **Section A**: A visual theme editor.
-    2.  **Section B**: A rich text editor for site-wide editorial content.
-    3.  **Section C**: A system to create and manage dynamic custom pages.
-    The agent successfully created the required backend database models (, , ) and the corresponding API endpoints in . Work on the frontend component  has begun but is incomplete.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N (Backend APIs were created but not connected to or tested with the frontend UI).
--   **Which testing method agent to use?**: frontend testing agent. After completing the CMS UI, the testing agent should be used to verify all functionalities: creating/editing content, changing the site theme, creating/publishing dynamic pages, and ensuring the public site renders the changes correctly.
--   **User Testing Done**: N
+*   **Last item agent was working**: Actively implementing the **P0 bug fixes** from **Section 1** of the new . The agent was primarily modifying .
+    *   **Fixes started/completed**:
+        *   BUG 1.1.a (Baserow Mapping): A  helper was created and applied to normalize data. (DONE)
+        *   BUG 1.1.b (Presence Filter): UI with Tous, Présents, Absents filters and live counters was added. (DONE)
+        *   BUG 1.1.c (New Badge Types): New types were added to the UI dropdown. (DONE)
+        *   BUG 1.1.d (Dropdown CSS): CSS was added to ensure text is readable in dark mode. (DONE)
+        *   BUG 1.1.e (Print Format):  styles were added to format badges correctly. (IN PROGRESS)
+*   **Status**: IN PROGRESS
+*   **Agent Testing Done**: Y (Manual screenshot verification for the completed fixes).
+*   **Which testing method agent to use?**: frontend testing agent. Once all P0 bugs from Section 1 are resolved, run the tests specified in **BLOC 1** of the new validation plan (from message #385).
+*   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-There are no known bugs or blocking issues. The primary focus is completing the task in progress.
+*   **Issue 1: Finish P0 Bugs from New Master Prompt (Priority: P0)**
+    *   **Description**: The user has provided a list of critical bugs in Section 1 of the new prompt that must be fixed immediately.
+    *   **Status**: IN PROGRESS
+*   **Issue 2: Visual Editor Iframe Blockage (Priority: P2)**
+    *   **Description**: The root cause of the visual editor's  being blocked (cross-origin security headers from the environment) is still unresolved. A functional  workaround is in place, but it's not the ideal solution.
+    *   **Status**: NOT STARTED (Workaround exists)
+
+**Issues Detail**:
+*   **Issue 1: Finish P0 Bugs from New Master Prompt**
+    *   **Attempted fixes**: The agent has already fixed bugs 1.1.a, 1.1.b, 1.1.c, and 1.1.d, and started 1.1.e.
+    *   **Next debug checklist**:
+        1.  Complete the CSS for badge printing ().
+        2.  Fix : Ensure the public catalog on the main site is correctly synchronized with the accreditation system in Baserow.
+        3.  Fix : Rework the Observatoire component to use live data from Baserow with polling or WebSockets, instead of mocked data.
+    *   **Why fix this issue and what will be achieved with the fix?**: To stabilize the core accreditation functionality as per the user's top priority.
+    *   **Status**: IN PROGRESS
+    *   **Is recurring issue?**: N
+    *   **Should Test frontend/backend/both after fix?**: Both.
+    *   **Blocked on other issue**: No.
 
 **In progress Task List**:
--   **Task 1: Complete the Advanced CMS Implementation (Priority: P0)**
-    -   **Description**: The user requested a significant expansion of the CMS to allow full control over the site's design, content, and pages. The backend APIs are ready; the next step is to build the frontend interface.
-    -   **Where to resume**:
-        1.  Continue developing the  component. Implement the UI for the three new tabs: Design, Contenu, and Pages.
-        2.  For the Design tab, add color pickers and a font selector that will update the  table.
-        3.  For the Contenu tab, integrate a rich text editor and create forms to edit the content of the Homepage, Program, and About pages, saving data to the  table.
-        4.  For the Pages tab, build the interface for creating, editing, and publishing new dynamic pages, saving data to the  table.
-        5.  Update the public-facing components (Homepage, etc.) to fetch their theme and content from the new CMS endpoints instead of using hardcoded values.
-        6.  Complete the  component to correctly render dynamic pages from the CMS based on their URL slug ().
-    -   **What will be achieved with this?**: The platform will be fully manageable through a user-friendly CMS, empowering the client to update the website's look, feel, and content without any developer intervention.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Both. The frontend UI will be the primary testbed for the already-created backend endpoints.
-    -   **Blocked on something**: Nothing.
+*   **Task 1: Complete Section 1 Bug Fixes (Priority: P0)**
+    *   **Where to resume**: Continue working on the remaining bugs from Section 1 of the . Focus on files , , and creating the logic for the Observatoire.
+    *   **What will be achieved with this?**: A fully functional and bug-free accreditation system, ready for the next phase of enhancements.
+    *   **Status**: IN PROGRESS
+    *   **Should Test frontend/backend/both after fix?**: Both.
+    *   **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
-- **Deployment**: Guide the user through the deployment process once all features are complete and verified.
-- **Custom Domain Finalization**: Follow up on DNS configuration for .
+*   **Upcoming Tasks (P1)**:
+    *   **Architecture & Sync (Section 2)**: Implement the backend routes and synchronization logic to handle the 4 distinct user entry points.
+    *   **3D UI Refactor (Section 3)**: Begin replacing the admin dashboard, Smart Engine, and public catalog with 3D views using Three.js and CSS transforms.
+    *   **Workspace Enhancements (Section 4)**: Rework Alirio's workspace to include Mes tâches and Mes contacts sections. Enhance real-time notifications for all other workspaces.
+*   **Future Tasks (P2)**:
+    *   **User Guides (Section 5)**: Create the 6 required in-app user guides.
+    *   **Final Validation (Section 6)**: Execute the full 6-block test plan from the new master prompt.
 
 **Completed work in this session**
-- **Bug Fix**: Resolved a critical bug where the Insight Management section of the admin dashboard was not scrollable.
-- **UX Improvement**: Enhanced the Admin Dashboard with more descriptive toast notifications for user actions.
-- **LLM Functionality Restored**: Verified that the user's Emergent LLM Key budget was refilled, unblocking all AI features.
-- **Major Architectural Rework (Vision 2026-2031)**:
-    - Replaced vector embeddings with a superior Claude-based semantic matching system.
-    - Implemented a multi-tenant database schema and data logging for all key interactions.
-    - Deployed a full suite of Intelligence APIs and a corresponding Intelligence Stratégique admin dashboard.
-    - Built a Certification Engine that generates verifiable PDF attestations with QR codes.
-- **CMS Implementation (Part 1)**: Built the foundational CMS for managing media (Cloudinary), exhibitor profiles, speakers, and partners.
-- **CMS Implementation (Part 2 - In Progress)**: Built the backend APIs for advanced CMS features (theme, content, dynamic pages).
-
-**Earlier issues found/mentioned but not fixed**
-- N/A. All previously identified issues (incorrect recommendation scores, depleted LLM budget) were resolved in this session.
-
-**Known issue recurrence from previous fork**
-- N/A
+-   **New Feature**: Implemented a complete, real-time **Internal Messaging System** (chat) with channels and direct messaging, integrated into all workspaces.
+-   **Security Hardening**:
+    -   Implemented client-side **Route Protection** for all workspaces ().
+    -   Added **Rate Limiting** to the backend login endpoint to prevent brute-force attacks.
+    -   Implemented an **8-hour automatic session expiration** feature.
+-   **Bug Fixes & Validation**:
+    -   Investigated and confirmed the original admin dashboard was not broken, contrary to the user's initial report.
+    -   Fixed a critical **Logout Bug** where  was not being cleared.
+    -   Fixed a React **Hydration Warning** caused by the  toast component.
+    -   Implemented a functional **Workaround for the Visual Editor** using a popup window.
+    -   Verified that the **Claude AI assistant** for Alirio's workspace is fully operational.
+-   **Testing**: Successfully executed a massive, multi-block expert test plan () validating security, real-time sync, resilience, and performance.
+-   **Started New Prompt**: Began work on the new PROMPT MAÎTRE, fixing several P0 bugs in the Accreditation System.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend Stacks**: Hybrid of FastAPI (Python) and Node.js/Express.
-- **Frontend**: React, React Router, Tailwind CSS, ,  (toasts).
-- **AI/LLM**: Shifted from vector search to a generative matching approach using the Claude API via  to produce rich, semantic compatibility scores and reasons.
-- **Database**: MongoDB, with a new, extended schema supporting multi-tenancy (), event logging (, ), and a full CMS (, , ).
-- **Media Management**: Cloudinary for all image uploads, managed through the CMS.
-- **PDF Generation**:  and  libraries in the Node.js service for creating verifiable attestations.
-
-**key DB schema**
-- ****: { tenant_id, event_name, primary_color, logo_url, etc. }
-- ****: { tenant_id, name, type, embedding, etc. } (Embedding field is no longer used for matching).
-- ****: { tenant_id, profile_a_id, profile_b_id, score, match_reason, was_exported, etc. }
-- ****: { tenant_id, from_territory, to_territory, flow_count, avg_score, etc. }
-- ****: { tenant_id, matching_event_id, outcome_type, etc. }
-- ****: { id, tenant_id, matching_event_id, etc. }
-- ****, ****, ****: Collections for CMS assets.
-- ****: { tenant_id, page, section, content: JSON }
-- ****: { tenant_id, title, slug, content: HTML, published }
-
-**changes in tech stack**
-- Added  and  to the  service for PDF generation.
+*   **Role-Based Access Control (RBAC)**: Custom password-only auth directing to role-specific workspaces.
+*   **Real-Time APIs**: Extensive use of WebSockets (Socket.IO) for notifications, activity logging, and the new internal chat system.
+*   **Security**: Client-side route protection, backend rate-limiting, and timestamp-based session expiration.
+*   **External API Integration**: Baserow (accreditation), Anthropic Claude (AI assistant).
 
 **All files of reference**
-- **/app/backend/server.py**: Heavily modified to add all CMS and intelligence proxy endpoints.
-- **/app/smart-engine/server.js**: Completely rewritten to implement the new Vision 2026-2031 architecture.
-- **/app/frontend/src/pages/CMSAdmin.jsx**: New, in-progress component for the CMS.
-- **/app/frontend/src/components/smart-engine/SmartEngineDashboard.jsx**: New component for the intelligence dashboard.
-- **/app/frontend/src/pages/PublicPage.jsx**: New, in-progress component for rendering dynamic CMS pages.
-- **/app/frontend/src/App.js**: Modified to add routes for the CMS () and dynamic pages ().
-
-**Areas that need refactoring**:
-- The  file is over 1400 lines long and could benefit from being broken down into smaller, more manageable components.
-
-**key api endpoints**
-- : A full suite of GET/POST/PUT/DELETE endpoints for managing all aspects of the CMS.
-- : The main recommendation endpoint, now powered by Claude.
-- : Creates the PDF attestation.
-- : A suite of GET endpoints providing strategic data insights.
-- : A public endpoint to verify the authenticity of a PDF attestation.
+*   : **The new primary source of truth for all tasks.** (This is a virtual file from user prompt #385)
+*   : File currently being modified for P0 bug fixes.
+*   : Contains all backend logic, including new chat and security features.
+*   : Contains the new protected routing logic.
+*   : The new component for securing routes.
+*   : The new chat component.
 
 **Critical Info for New Agent**
-- **New Architecture is Key**: The project's core logic has fundamentally shifted from simple vector matching to a sophisticated data intelligence platform using Claude for semantic analysis. You must work within this new paradigm.
-- **Complete the CMS Frontend**: Your immediate priority is to build out the UI for the advanced CMS features in . The backend APIs for this are already complete and waiting to be connected.
-- **Multi-Tenancy is Mandatory**: Every new database query or record must include and filter by .
-- **Proxy System**: Remember that the frontend communicates with the Python backend, which then proxies requests to the Node.js  service. If you add new top-level API routes in the Node.js service, you must also add a corresponding proxy route in .
+*   **PIVOT**: The user has supplied a new, massive PROMPT MAÎTRE () that completely redefines the project's priorities. **You must follow this new prompt exclusively.** All previous plans and completed test reports are now context for what exists, but the new prompt dictates all future work.
+*   **Order of Operations**: Follow the sections in the new prompt strictly. Start by finishing all bugs in Section 1 before moving to Section 2, and so on.
+*   **User Language**: The user is a native French speaker. All communication must be in professional, clear French.
 
 **documents and test reports created in this job**
--  (Updated with the new architecture and CMS requirements)
+*   
+*   
+*   
+*    (updated multiple times with test results)
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. User defines the Vision 2026-2031, a massive architectural overhaul for long-term data strategy and scalability.
-9. Agent asks for confirmation and clarification on how to handle the now-incompatible embedding approach.
-8. User confirms the new vision and specifies using Claude for semantic matching instead of vector embeddings.
-7. Agent begins implementing Phase 1 (Foundation) of the new architecture.
-6. Agent completes all 4 phases of the new architecture, including the intelligence APIs and certification engine.
-5. User requests a new feature: a simple CMS admin panel for managing photos and featured exhibitors.
-4. Agent asks clarifying questions about the CMS implementation.
-3. User provides detailed requirements for the CMS, expanding its scope to include media for the event, speakers, and partner logos.
-2. Agent builds the requested CMS panel.
-1. User provides another large set of requirements to further expand the CMS with a visual theme editor, a rich text editor for all site content, and a dynamic page creator, making the entire site editable. (This is the current task in progress).
+1.  **User (LATEST)**: Provided a massive, multi-page PROMPT MAÎTRE DE REFONTE SYSTÈME that redefines the entire project with a new 7-step plan of bug fixes, refactoring, and features. (Status: **IN PROGRESS**)
+2.  **User**: Sent a confusing message about a .frek.json file, which the agent correctly identified as an error. (Status: Ignored)
+3.  **User**: Requested two final fixes: implement an 8-hour session expiration and verify the Claude API key. (Status: Completed)
+4.  **User**: Instructed the agent to run all remaining test blocks (2-6) from the PROMPT TEST EXPERT without stopping. (Status: Completed)
+5.  **User**: Provided detailed requirements for a new internal messaging system and instructed the agent to build it in parallel with running security tests. (Status: Completed)
+6.  **User**: Requested a new feature: an internal messaging system between workspaces, and provided a massive new PROMPT TEST EXPERT test plan. (Status: Actioned)
+7.  **User**: Reported 3 new issues to fix: a logout bug, a React hydration warning, and the visual editor iframe. (Status: Completed)
+8.  **User**: Agreed to let the agent proceed with testing after the agent proved the original admin dashboard was not broken. (Status: Completed)
+9.  **User**: Claimed the agent broke the original admin dashboard and demanded its restoration before any testing. (Status: Resolved; was a false alarm)
 
 **Project Health Check:**
-- **Broken**: None
-- **Mocked**: None
+*   **Broken**:
+    *   The core accreditation system has several bugs as identified in the user's new master prompt (currently being fixed).
+    *   The Observatoire component uses mocked data and is not functional.
+*   **Mocked**: The Visual Editor uses a  workaround, which is not the final intended implementation.
 
 **3rd Party Integrations**
-- **Anthropic (Claude)**: Core of the recommendation engine. Uses Emergent LLM Key.
-- **Cloudinary**: For all CMS media and image uploads. Uses User API Key.
-- **Stripe**: For payments in the main app. Uses User API Key.
-- **Resend**: For emails in the main app. Uses User API Key.
-- **OpenAI**: No longer used for embeddings, but the proxy infrastructure remains.
+*   **Baserow**: Accreditation database. Requires User API Key.
+*   **Anthropic Claude**: AI Assistant. Uses Emergent LLM Key. (Verified working)
+*   **Stripe**: Payments.
+*   **Cloudinary**: Media/image uploads.
 
 **Testing status**
-- **Testing agent used after significant changes**: NO
-- **Troubleshoot agent used after agent stuck in loop**: NO
-- **Test files created**: None.
-- **Known regressions**: None.
+*   **Testing agent used after significant changes**: YES. The agent was used multiple times to validate security, new features, and bug fixes.
+*   **Troubleshoot agent used after agent stuck in loop**: NO
+*   **Test files created**: None.
+*   **Known regressions**: None.
 
 **Credentials to test flow:**
-- **Admin Password**: 
-
-**What agent forgot to execute**
-- The agent has been following the user's requests sequentially and is in the middle of the last requested feature. Nothing appears to have been forgotten.</analysis>
+*   **Admin Password**: 
+*   **Workspace Passwords**: , , , , , , , .
+*   **Baserow Token**: 
+*   **Baserow Table ID**: </analysis>
