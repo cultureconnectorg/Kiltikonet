@@ -26,9 +26,26 @@ const BADGE_COLORS = {
   'Presse': { bg: COLORS.teal, text: '#fff' },
   'Exposant': { bg: COLORS.gold, text: COLORS.charbon },
   'Artiste': { bg: COLORS.terracotta, text: '#fff' },
+  'Staff Artiste': { bg: COLORS.terracotta, text: '#fff' },
   'Benevole': { bg: COLORS.forest, text: '#fff' },
   'Institutionnel': { bg: '#5B9BD5', text: '#fff' },
-  'Staff': { bg: COLORS.charbon, text: COLORS.gold }
+  'Staff': { bg: COLORS.charbon, text: COLORS.gold },
+  'Regie technique': { bg: '#333', text: COLORS.gold },
+  'Emergent': { bg: '#6B46C1', text: '#fff' },
+  'Professionnel': { bg: '#2D5A7B', text: '#fff' },
+  'Public': { bg: '#6B7280', text: '#fff' },
+  'Visiteur': { bg: '#9CA3AF', text: COLORS.charbon },
+  'Participant': { bg: '#4B5563', text: '#fff' },
+  'Partenaire Or': { bg: COLORS.gold, text: COLORS.charbon },
+  'Partenaire Silver': { bg: '#C0C0C0', text: COLORS.charbon },
+  'Partenaire Bronze': { bg: '#CD7F32', text: '#fff' }
+};
+
+// Helper to extract value from Baserow Single Select fields
+const getFieldValue = (field) => {
+  if (field === null || field === undefined) return '';
+  if (typeof field === 'object' && field.value !== undefined) return field.value;
+  return String(field);
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -61,7 +78,8 @@ const BadgeScan = () => {
         setParticipant(data);
 
         // Auto-validate presence if not already present (PATCH to Baserow)
-        if (data['Statut presence'] !== 'Present') {
+        const currentPresence = getFieldValue(data['Statut presence']);
+        if (currentPresence !== 'Present') {
           setValidating(true);
           const heure = new Date().toTimeString().slice(0, 5);
           
@@ -106,8 +124,10 @@ const BadgeScan = () => {
     return ((p.Prenom || '?')[0] + (p.Nom || '?')[0]).toUpperCase();
   };
 
-  const isPresent = participant?.['Statut presence'] === 'Present';
-  const colors = BADGE_COLORS[participant?.['Type de badge']] || BADGE_COLORS['Artiste'];
+  const badgeType = getFieldValue(participant?.['Type de badge']);
+  const presenceStatus = getFieldValue(participant?.['Statut presence']);
+  const isPresent = presenceStatus === 'Present';
+  const colors = BADGE_COLORS[badgeType] || BADGE_COLORS['Artiste'];
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
@@ -187,7 +207,7 @@ const BadgeScan = () => {
                     className="inline-block mt-2 px-3 py-1 rounded text-xs font-bold"
                     style={{ background: `${colors.bg}30`, color: colors.bg === COLORS.gold ? COLORS.charbon : colors.text, border: `1px solid ${colors.bg}` }}
                   >
-                    {participant['Type de badge'] || 'PARTICIPANT'}
+                    {badgeType || 'PARTICIPANT'}
                   </div>
                 </div>
               </div>
@@ -196,11 +216,11 @@ const BadgeScan = () => {
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-3" style={{ color: 'rgba(255,255,255,0.7)' }}>
                   <MapPin className="w-5 h-5" style={{ color: COLORS.terracotta }} />
-                  <span>{participant["Territoire d'origine"] || '-'}</span>
+                  <span>{getFieldValue(participant["Territoire d'origine"]) || '-'}</span>
                 </div>
                 <div className="flex items-center gap-3" style={{ color: 'rgba(255,255,255,0.7)' }}>
                   <Tag className="w-5 h-5" style={{ color: COLORS.terracotta }} />
-                  <span>{participant["Secteur d'activite"] || '-'}</span>
+                  <span>{getFieldValue(participant["Secteur d'activite"]) || '-'}</span>
                 </div>
                 {participant.Email && (
                   <div className="flex items-center gap-3" style={{ color: 'rgba(255,255,255,0.7)' }}>

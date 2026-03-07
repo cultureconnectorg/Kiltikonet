@@ -228,10 +228,85 @@ body > div:last-child:not(.App):not(#root) {
   color: var(--paper-white);
 }
 
-/* Print styles */
+/* ═══════════════════════════════════════════════════════════════
+   FIX: Dropdown/Select dark theme - texte blanc sur fond sombre
+   ═══════════════════════════════════════════════════════════════ */
+select,
+select option,
+.select-dark,
+.select-dark option,
+[data-radix-popper-content-wrapper] [role="listbox"],
+[data-radix-popper-content-wrapper] [role="option"] {
+  background-color: #1E1E35 !important;
+  color: #E8E8F0 !important;
+}
+
+select:focus,
+.select-dark:focus {
+  outline: none;
+  border-color: #8B1A4A !important;
+}
+
+/* Radix Select Content */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+.select-content-dark,
+.select-content-dark [role="option"] {
+  background-color: #1E1E35 !important;
+  color: #E8E8F0 !important;
+}
+
+.select-content-dark [role="option"]:hover,
+.select-content-dark [role="option"][data-highlighted] {
+  background-color: #2A2A45 !important;
+  color: #fff !important;
+}
+
+.select-content-dark [role="option"][data-state="checked"] {
+  background-color: #8B1A4A !important;
+  color: #fff !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Badge Print Styles - Format carte ID 85mm × 54mm
+   ═══════════════════════════════════════════════════════════════ */
 @media print {
   body {
     background: white;
     color: black;
+  }
+  
+  body * {
+    visibility: hidden !important;
+  }
+  
+  .badge-print-zone,
+  .badge-print-zone * {
+    visibility: visible !important;
+  }
+  
+  .badge-print-zone {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 85mm !important;
+    height: 54mm !important;
+    padding: 4mm !important;
+    margin: 0 !important;
+    page-break-after: always;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .badge-print-zone .badge-qr {
+    width: 25mm !important;
+    height: 25mm !important;
+  }
+  
+  .no-print {
+    display: none !important;
   }
 }

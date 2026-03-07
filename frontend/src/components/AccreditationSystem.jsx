@@ -80,18 +80,41 @@ const baserowDelete = async (endpoint) => {
 // ═══════════════════════════════════════════════════════════════
 // BADGE TYPES & COLORS
 // ═══════════════════════════════════════════════════════════════
-const BADGE_TYPES = ['VIP', 'Presse', 'Exposant', 'Artiste', 'Benevole', 'Institutionnel', 'Staff'];
+const BADGE_TYPES = [
+  'VIP', 'Presse', 'Exposant', 'Artiste', 'Staff Artiste', 'Benevole', 
+  'Institutionnel', 'Emergent', 'Professionnel', 'Public', 'Staff', 
+  'Regie technique', 'Visiteur', 'Participant',
+  'Partenaire Or', 'Partenaire Silver', 'Partenaire Bronze'
+];
 const TERRITORIES = ['Martinique', 'Guadeloupe', 'Guyane', 'Haiti', 'France hexagonale', 'Afrique', 'Autre'];
 const SECTORS = ['Musique', 'Arts visuels', 'Audiovisuel', 'Danse', 'Numerique', 'Education', 'Institutionnel', 'Autre'];
+
+// Helper function to extract value from Baserow Single Select fields
+// Baserow returns {id, value, color} for Single Select, but sometimes just a string
+const getFieldValue = (field) => {
+  if (field === null || field === undefined) return '';
+  if (typeof field === 'object' && field.value !== undefined) return field.value;
+  return String(field);
+};
 
 const BADGE_COLORS = {
   'VIP': { bg: COLORS.burgundy, text: '#fff', accent: COLORS.gold },
   'Presse': { bg: COLORS.teal, text: '#fff', accent: COLORS.cream },
   'Exposant': { bg: COLORS.gold, text: COLORS.charbon, accent: COLORS.terracotta },
   'Artiste': { bg: COLORS.terracotta, text: '#fff', accent: COLORS.gold },
+  'Staff Artiste': { bg: COLORS.terracotta, text: '#fff', accent: COLORS.gold },
   'Benevole': { bg: COLORS.forest, text: '#fff', accent: COLORS.gold },
   'Institutionnel': { bg: '#5B9BD5', text: '#fff', accent: COLORS.cream },
-  'Staff': { bg: COLORS.charbon, text: COLORS.gold, accent: COLORS.terracotta }
+  'Staff': { bg: COLORS.charbon, text: COLORS.gold, accent: COLORS.terracotta },
+  'Regie technique': { bg: '#333', text: COLORS.gold, accent: COLORS.terracotta },
+  'Emergent': { bg: '#6B46C1', text: '#fff', accent: COLORS.gold },
+  'Professionnel': { bg: '#2D5A7B', text: '#fff', accent: COLORS.gold },
+  'Public': { bg: '#6B7280', text: '#fff', accent: COLORS.cream },
+  'Visiteur': { bg: '#9CA3AF', text: COLORS.charbon, accent: COLORS.cream },
+  'Participant': { bg: '#4B5563', text: '#fff', accent: COLORS.cream },
+  'Partenaire Or': { bg: COLORS.gold, text: COLORS.charbon, accent: COLORS.burgundy },
+  'Partenaire Silver': { bg: '#C0C0C0', text: COLORS.charbon, accent: COLORS.teal },
+  'Partenaire Bronze': { bg: '#CD7F32', text: '#fff', accent: COLORS.charbon }
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -104,8 +127,11 @@ export const AccreditationSystem = () => {
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterBadge, setFilterBadge] = useState('');
-  const [filterPresence, setFilterPresence] = useState('');
+  const [filterBadge, setFilterBadge] = useState('all');
+  // Initialize presence filter from localStorage for persistence
+  const [filterPresence, setFilterPresence] = useState(() => {
+    return localStorage.getItem('cc2026_filter_presence') || 'all';
+  });
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState(null);
@@ -148,39 +174,39 @@ export const AccreditationSystem = () => {
   }, [loadAll]);
 
   // ─────────────────────────────────────────────
-  // Statistics (real-time)
+  // Statistics (real-time) - using normalized field values
   // ─────────────────────────────────────────────
   const stats = {
     total: participants.length,
-    present: participants.filter(p => p['Statut presence'] === 'Present').length,
-    absent: participants.filter(p => p['Statut presence'] !== 'Present').length,
-    rate: participants.length ? Math.round((participants.filter(p => p['Statut presence'] === 'Present').length / participants.length) * 100) : 0,
+    present: participants.filter(p => getFieldValue(p['Statut presence']) === 'Present').length,
+    absent: participants.filter(p => getFieldValue(p['Statut presence']) !== 'Present').length,
+    rate: participants.length ? Math.round((participants.filter(p => getFieldValue(p['Statut presence']) === 'Present').length / participants.length) * 100) : 0,
     byType: participants.reduce((acc, p) => {
-      const type = p['Type de badge'] || 'Autre';
+      const type = getFieldValue(p['Type de badge']) || 'Autre';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {}),
     byTerritory: participants.reduce((acc, p) => {
-      const terr = p["Territoire d'origine"] || 'Non renseigne';
+      const terr = getFieldValue(p["Territoire d'origine"]) || 'Non renseigne';
       acc[terr] = (acc[terr] || 0) + 1;
       return acc;
     }, {}),
     bySector: participants.reduce((acc, p) => {
-      const sector = p["Secteur d'activite"] || 'Non renseigne';
+      const sector = getFieldValue(p["Secteur d'activite"]) || 'Non renseigne';
       acc[sector] = (acc[sector] || 0) + 1;
       return acc;
     }, {})
   };
 
   // ─────────────────────────────────────────────
-  // Filter participants
+  // Filter participants - with normalized values
   // ─────────────────────────────────────────────
   const filteredParticipants = participants.filter(p => {
     const searchMatch = searchQuery === '' || 
       `${p.Prenom || ''} ${p.Nom || ''} ${p.Organisation || ''}`.toLowerCase().includes(searchQuery.toLowerCase());
-    const badgeMatch = filterBadge === '' || filterBadge === 'all' || p['Type de badge'] === filterBadge;
+    const badgeMatch = filterBadge === '' || filterBadge === 'all' || getFieldValue(p['Type de badge']) === filterBadge;
     const presenceMatch = filterPresence === '' || filterPresence === 'all' ||
-      (filterPresence === 'present' ? p['Statut presence'] === 'Present' : p['Statut presence'] !== 'Present');
+      (filterPresence === 'present' ? getFieldValue(p['Statut presence']) === 'Present' : getFieldValue(p['Statut presence']) !== 'Present');
     return searchMatch && badgeMatch && presenceMatch;
   });
 
@@ -491,7 +517,39 @@ const AccreditationsTab = ({
           ))}
         </div>
 
-        {/* Search & Filters */}
+        {/* Presence filter buttons with counters */}
+        <div className="flex gap-2 mb-4">
+          {[
+            { value: 'all', label: 'Tous', count: stats.total, color: 'rgba(255,255,255,0.7)' },
+            { value: 'present', label: 'Présents', count: stats.present, color: '#4DBF8A' },
+            { value: 'absent', label: 'Absents', count: stats.absent, color: 'rgba(255,255,255,0.3)' }
+          ].map(btn => (
+            <button
+              key={btn.value}
+              onClick={() => {
+                setFilterPresence(btn.value);
+                localStorage.setItem('cc2026_filter_presence', btn.value);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                filterPresence === btn.value 
+                  ? 'ring-2 ring-offset-2 ring-offset-[#1E1E35]' 
+                  : 'opacity-70 hover:opacity-100'
+              }`}
+              style={{ 
+                background: filterPresence === btn.value ? `${btn.color}20` : 'rgba(255,255,255,0.05)',
+                color: btn.color,
+                borderColor: btn.color,
+                border: `1px solid ${filterPresence === btn.value ? btn.color : 'rgba(255,255,255,0.1)'}`,
+                ringColor: btn.color
+              }}
+              data-testid={`filter-presence-${btn.value}`}
+            >
+              {btn.label} <span className="ml-1 font-bold">({btn.count})</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search & Badge Filter */}
         <div className="flex gap-3 mb-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(255,255,255,0.3)' }} />
@@ -505,24 +563,14 @@ const AccreditationsTab = ({
             />
           </div>
           <Select value={filterBadge} onValueChange={setFilterBadge}>
-            <SelectTrigger className="w-36" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="filter-badge">
-              <SelectValue placeholder="Badge" />
+            <SelectTrigger className="w-44 select-dark" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="filter-badge">
+              <SelectValue placeholder="Type de badge" />
             </SelectTrigger>
-            <SelectContent style={{ background: '#2A2820', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <SelectItem value="all">Tous</SelectItem>
+            <SelectContent className="select-content-dark" style={{ background: '#1E1E35', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <SelectItem value="all" className="text-white">Tous les badges</SelectItem>
               {BADGE_TYPES.map(type => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
+                <SelectItem key={type} value={type} className="text-white">{type}</SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-          <Select value={filterPresence} onValueChange={setFilterPresence}>
-            <SelectTrigger className="w-32" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="filter-presence">
-              <SelectValue placeholder="Statut" />
-            </SelectTrigger>
-            <SelectContent style={{ background: '#2A2820', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <SelectItem value="all">Tous</SelectItem>
-              <SelectItem value="present">Presents</SelectItem>
-              <SelectItem value="absent">Absents</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={() => setShowAddForm(true)} style={{ background: COLORS.burgundy }} className="hover:opacity-90" data-testid="add-participant-btn">
@@ -544,8 +592,10 @@ const AccreditationsTab = ({
             </thead>
             <tbody>
               {participants.map(p => {
-                const isPresent = p['Statut presence'] === 'Present';
-                const colors = BADGE_COLORS[p['Type de badge']] || BADGE_COLORS['Artiste'];
+                const badgeType = getFieldValue(p['Type de badge']);
+                const presenceStatus = getFieldValue(p['Statut presence']);
+                const isPresent = presenceStatus === 'Present';
+                const colors = BADGE_COLORS[badgeType] || BADGE_COLORS['Artiste'];
                 
                 return (
                   <tr 
@@ -568,7 +618,7 @@ const AccreditationsTab = ({
                     </td>
                     <td className="p-3">
                       <span className="px-2 py-1 rounded text-xs font-semibold" style={{ background: `${colors.bg}30`, color: colors.bg === COLORS.gold ? COLORS.charbon : colors.text, border: `1px solid ${colors.bg}` }}>
-                        {p['Type de badge'] || '-'}
+                        {badgeType || '-'}
                       </span>
                     </td>
                     <td className="p-3">
@@ -908,15 +958,33 @@ const BadgeGeneratorTab = ({
         <title>Badge CC2026 - ${badgeData.name}</title>
         <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
         <style>
-          @page { size: 85mm 130mm; margin: 0; }
+          /* Format carte ID standard: 85mm × 54mm */
+          @page { 
+            size: 85mm 54mm; 
+            margin: 0; 
+          }
           @media print {
-            body { margin: 0; padding: 0; }
-            .badge-container { page-break-after: always; }
+            html, body { 
+              margin: 0; 
+              padding: 0;
+              width: 85mm;
+              height: 54mm;
+            }
+            .badge-container { 
+              page-break-after: always;
+              box-shadow: none !important;
+            }
+            .print-btn { display: none !important; }
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           body { 
             margin: 0; 
             padding: 20px;
             display: flex; 
+            flex-direction: column;
             justify-content: center; 
             align-items: center; 
             min-height: 100vh; 
@@ -924,13 +992,19 @@ const BadgeGeneratorTab = ({
             font-family: 'Syne', sans-serif;
           }
           .badge-container { 
-            width: 320px;
+            width: 85mm;
+            height: 54mm;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+          }
+          .print-info {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
           }
           .print-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
+            margin-top: 20px;
             padding: 12px 24px;
             background: ${COLORS.terracotta};
             color: white;
@@ -938,13 +1012,15 @@ const BadgeGeneratorTab = ({
             cursor: pointer;
             font-family: 'Syne', sans-serif;
             font-weight: bold;
+            border-radius: 4px;
           }
-          @media print { .print-btn { display: none; } }
+          .print-btn:hover { opacity: 0.9; }
         </style>
       </head>
       <body>
-        <button class="print-btn" onclick="window.print()">IMPRIMER / PDF</button>
-        <div class="badge-container">${badgeHtml}</div>
+        <div class="badge-container badge-print-zone">${badgeHtml}</div>
+        <div class="print-info">Format carte ID: 85mm × 54mm</div>
+        <button class="print-btn no-print" onclick="window.print()">IMPRIMER / PDF</button>
       </body>
       </html>
     `);
