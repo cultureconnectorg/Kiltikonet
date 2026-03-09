@@ -7362,6 +7362,8 @@ async def create_artiste(artiste: ArtisteModel):
     artiste_doc["updated_at"] = artiste_doc["created_at"]
     
     await db.artistes.insert_one(artiste_doc)
+    # Remove MongoDB _id before returning
+    artiste_doc.pop("_id", None)
     return {"success": True, "artiste": artiste_doc}
 
 @app.patch("/api/shared/artistes/{artiste_id}")
@@ -7408,6 +7410,8 @@ async def create_prestataire(prestataire: PrestataireModel):
     presta_doc["updated_at"] = presta_doc["created_at"]
     
     await db.prestataires.insert_one(presta_doc)
+    # Remove MongoDB _id before returning
+    presta_doc.pop("_id", None)
     return {"success": True, "prestataire": presta_doc}
 
 @app.patch("/api/shared/prestataires/{prestataire_id}")
@@ -7455,6 +7459,8 @@ async def create_task(task: TaskModel):
     task_doc["updated_at"] = task_doc["created_at"]
     
     await db.shared_tasks.insert_one(task_doc)
+    # Remove MongoDB _id before returning
+    task_doc.pop("_id", None)
     return {"success": True, "task": task_doc}
 
 @app.patch("/api/shared/tasks/{task_id}")
@@ -7501,6 +7507,8 @@ async def create_partner(partner: PartnerModel):
     partner_doc["updated_at"] = partner_doc["created_at"]
     
     await db.partners.insert_one(partner_doc)
+    # Remove MongoDB _id before returning
+    partner_doc.pop("_id", None)
     return {"success": True, "partner": partner_doc}
 
 @app.patch("/api/shared/partners/{partner_id}")
@@ -7544,6 +7552,8 @@ async def create_expense(expense: ExpenseModel):
     expense_doc["date"] = expense_doc.get("date") or datetime.now(timezone.utc).strftime("%d/%m/%Y")
     
     await db.expenses.insert_one(expense_doc)
+    # Remove MongoDB _id before returning
+    expense_doc.pop("_id", None)
     return {"success": True, "expense": expense_doc}
 
 @app.patch("/api/shared/expenses/{expense_id}")
@@ -7591,6 +7601,8 @@ async def create_contact(contact: ContactModel):
     contact_doc["created_at"] = datetime.now(timezone.utc).isoformat()
     
     await db.contacts.insert_one(contact_doc)
+    # Remove MongoDB _id before returning
+    contact_doc.pop("_id", None)
     return {"success": True, "contact": contact_doc}
 
 @app.patch("/api/shared/contacts/{contact_id}")
@@ -7634,6 +7646,8 @@ async def create_planning_item(item: PlanningItemModel):
     item_doc["created_at"] = datetime.now(timezone.utc).isoformat()
     
     await db.planning.insert_one(item_doc)
+    # Remove MongoDB _id before returning
+    item_doc.pop("_id", None)
     return {"success": True, "item": item_doc}
 
 @app.patch("/api/shared/planning/{item_id}")

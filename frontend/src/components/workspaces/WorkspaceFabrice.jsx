@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
+import { useSharedData } from '../../contexts/SharedDataContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -33,6 +34,9 @@ const WorkspaceFabrice = () => {
   const [currentCaption, setCurrentCaption] = useState('');
   const [isLive, setIsLive] = useState(false);
   const [activeTab, setActiveTab] = useState('regie');
+  
+  // Shared data from context (synchronized) - for live artiste names
+  const { artistes, planning } = useSharedData();
   
   // Quick captions
   const [captions, setCaptions] = useState([

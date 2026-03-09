@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
+import { SharedDataProvider } from "./contexts/SharedDataContext";
 import { Header } from "./components/Header";
 import { LandingPage } from "./components/LandingPage";
 import { PricingPage } from "./components/PricingPage";
@@ -114,6 +115,7 @@ const IntroWrapper = () => {
 function App() {
   return (
     <LanguageProvider>
+      <SharedDataProvider>
       <div className="App">
         {/* Intro Sequence - only on first visit, not on admin pages */}
         <IntroWrapper />
@@ -192,6 +194,7 @@ function App() {
           }}
         />
       </div>
+      </SharedDataProvider>
     </LanguageProvider>
   );
 }

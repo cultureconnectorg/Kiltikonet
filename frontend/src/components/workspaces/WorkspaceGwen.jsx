@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LogOut, Music, Users, FileText, CheckSquare, Square, Plus, Calendar, Clock, 
@@ -10,7 +10,7 @@ import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
 import WorkspaceHeader from './WorkspaceHeader';
-import { artistesService, prestatairesService, planningService } from '../../services/SharedDataService';
+import { useSharedData } from '../../contexts/SharedDataContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -28,7 +28,6 @@ const WorkspaceGwen = () => {
   const navigate = useNavigate();
   const sendNotification = useSendNotification();
   const [activeTab, setActiveTab] = useState('artistes');
-  const [loading, setLoading] = useState(true);
   
   // Modal states
   const [showAddArtiste, setShowAddArtiste] = useState(false);
@@ -42,10 +41,13 @@ const WorkspaceGwen = () => {
   const [newPrestataire, setNewPrestataire] = useState({ name: '', type: '', devis: '', contact: '', email: '' });
   const [newPlanningItem, setNewPlanningItem] = useState({ time: '', event: '', responsable: '' });
   
-  // Data from API (synchronized)
-  const [artistes, setArtistes] = useState([]);
-  const [prestataires, setPrestataires] = useState([]);
-  const [planning, setPlanning] = useState([]);
+  // Shared data from context (synchronized across all workspaces)
+  const {
+    artistes, prestataires, planning, loading,
+    addArtiste, updateArtiste, deleteArtiste,
+    addPrestataire, updatePrestataire, deletePrestataire,
+    addPlanningItem: addPlanningItemCtx, updatePlanningItem, deletePlanningItem: deletePlanningItemCtx
+  } = useSharedData();
 
   // Budget tracking (local for now)
   const [budget, setBudget] = useState({
@@ -74,37 +76,15 @@ const WorkspaceGwen = () => {
   // Planning jour J
   const [productionNotes, setProductionNotes] = useState('');
 
-  // Load data from API
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [artistesData, prestatairesData, planningData] = await Promise.all([
-        artistesService.getAll(),
-        prestatairesService.getAll(),
-        planningService.getAll()
-      ]);
-      
-      setArtistes(artistesData);
-      setPrestataires(prestatairesData);
-      setPlanning(planningData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-      toast.error('Erreur de chargement des données');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Log login
   useEffect(() => {
-    loadData();
-    
     axios.post(`${API}/workspace/log`, {
       user: 'Gwen',
       role: 'event',
       action: 'login',
       details: 'Accès workspace événementiel'
     });
-  }, [loadData]);
+  }, []);
 
   const handleLogout = async () => {
     await axios.post(`${API}/workspace/logout`, { user: 'Gwen', role: 'event' });
@@ -142,10 +122,7 @@ const WorkspaceGwen = () => {
 
   const confirmArtiste = async (artiste) => {
     try {
-      await artistesService.update(artiste.id, { status: 'Confirmé', contrat: 'Signé' });
-      setArtistes(prev => prev.map(a => 
-        a.id === artiste.id ? { ...a, status: 'Confirmé', contrat: 'Signé' } : a
-      ));
+      await updateArtiste(artiste.id, { status: 'Confirmé', contrat: 'Signé' });
 
       await axios.post(`${API}/workspace/log`, {
         user: 'Gwen',
@@ -154,7 +131,6 @@ const WorkspaceGwen = () => {
         details: `Artiste confirmé: ${artiste.name}`
       });
 
-      // Send notification to Laurent
       await sendNotification({
         sender: 'Gwen',
         senderRole: 'event',
@@ -172,10 +148,7 @@ const WorkspaceGwen = () => {
 
   const markRiderReceived = async (artiste) => {
     try {
-      await artistesService.update(artiste.id, { rider: true });
-      setArtistes(prev => prev.map(a => 
-        a.id === artiste.id ? { ...a, rider: true } : a
-      ));
+      await updateArtiste(artiste.id, { rider: true });
       toast.success(`Rider technique de ${artiste.name} marqué comme reçu`);
     } catch (error) {
       toast.error('Erreur');
@@ -190,7 +163,7 @@ const WorkspaceGwen = () => {
     }
     
     try {
-      const artiste = {
+      const artisteData = {
         ...newArtiste,
         status: 'À contacter',
         contrat: 'Non signé',
@@ -200,8 +173,7 @@ const WorkspaceGwen = () => {
         created_by: 'Gwen'
       };
       
-      const result = await artistesService.create(artiste);
-      setArtistes(prev => [...prev, result.artiste]);
+      await addArtiste(artisteData);
       setNewArtiste({ name: '', genre: '', cachet: '', horaire: '' });
       setShowAddArtiste(false);
       
@@ -209,10 +181,10 @@ const WorkspaceGwen = () => {
         user: 'Gwen',
         role: 'event',
         action: 'artiste_added',
-        details: `Nouvel artiste ajouté: ${artiste.name}`
+        details: `Nouvel artiste ajouté: ${artisteData.name}`
       });
       
-      toast.success(`${artiste.name} ajouté au line-up (synchronisé)`);
+      toast.success(`${artisteData.name} ajouté au line-up (synchronisé)`);
     } catch (error) {
       toast.error('Erreur lors de l\'ajout');
     }
@@ -221,8 +193,7 @@ const WorkspaceGwen = () => {
   const handleDeleteArtiste = async (artiste) => {
     if (window.confirm(`Supprimer ${artiste.name} du line-up ?`)) {
       try {
-        await artistesService.delete(artiste.id);
-        setArtistes(prev => prev.filter(a => a.id !== artiste.id));
+        await deleteArtiste(artiste.id);
         toast.success(`${artiste.name} supprimé (synchronisé)`);
       } catch (error) {
         toast.error('Erreur lors de la suppression');
@@ -232,10 +203,7 @@ const WorkspaceGwen = () => {
 
   const sendContrat = async (artiste) => {
     try {
-      await artistesService.update(artiste.id, { contrat: 'Envoyé', status: 'En négociation' });
-      setArtistes(prev => prev.map(a => 
-        a.id === artiste.id ? { ...a, contrat: 'Envoyé', status: 'En négociation' } : a
-      ));
+      await updateArtiste(artiste.id, { contrat: 'Envoyé', status: 'En négociation' });
       
       await sendNotification({
         sender: 'Gwen',
@@ -260,19 +228,18 @@ const WorkspaceGwen = () => {
     }
     
     try {
-      const prestataire = {
+      const prestataireData = {
         ...newPrestataire,
         status: 'À contacter',
         validated: false,
         created_by: 'Gwen'
       };
       
-      const result = await prestatairesService.create(prestataire);
-      setPrestataires(prev => [...prev, result.prestataire]);
+      await addPrestataire(prestataireData);
       setNewPrestataire({ name: '', type: '', devis: '', contact: '', email: '' });
       setShowAddPrestataire(false);
       
-      toast.success(`Prestataire ${prestataire.name} ajouté (synchronisé)`);
+      toast.success(`Prestataire ${prestataireData.name} ajouté (synchronisé)`);
     } catch (error) {
       toast.error('Erreur lors de l\'ajout');
     }
@@ -280,10 +247,7 @@ const WorkspaceGwen = () => {
 
   const validateDevis = async (prestataire) => {
     try {
-      await prestatairesService.update(prestataire.id, { validated: true, status: 'Validé' });
-      setPrestataires(prev => prev.map(p => 
-        p.id === prestataire.id ? { ...p, validated: true, status: 'Validé' } : p
-      ));
+      await updatePrestataire(prestataire.id, { validated: true, status: 'Validé' });
       
       await sendNotification({
         sender: 'Gwen',
@@ -302,10 +266,7 @@ const WorkspaceGwen = () => {
 
   const contactPrestataire = async (prestataire) => {
     try {
-      await prestatairesService.update(prestataire.id, { status: 'Contacté' });
-      setPrestataires(prev => prev.map(p => 
-        p.id === prestataire.id ? { ...p, status: 'Contacté' } : p
-      ));
+      await updatePrestataire(prestataire.id, { status: 'Contacté' });
       toast.success(`${prestataire.name} marqué comme contacté`);
     } catch (error) {
       toast.error('Erreur');
@@ -327,10 +288,7 @@ const WorkspaceGwen = () => {
         created_by: 'Gwen'
       };
       
-      const result = await planningService.create(item);
-      // Re-fetch to get sorted list
-      const planningData = await planningService.getAll();
-      setPlanning(planningData);
+      await addPlanningItemCtx(item);
       setNewPlanningItem({ time: '', event: '', responsable: '' });
       setShowAddPlanning(false);
       
@@ -343,19 +301,15 @@ const WorkspaceGwen = () => {
   const togglePlanningStatus = async (item) => {
     try {
       const newStatus = item.status === 'done' ? 'todo' : 'done';
-      await planningService.update(item.id, { status: newStatus });
-      setPlanning(prev => prev.map(p => 
-        p.id === item.id ? { ...p, status: newStatus } : p
-      ));
+      await updatePlanningItem(item.id, { status: newStatus });
     } catch (error) {
       toast.error('Erreur');
     }
   };
 
-  const deletePlanningItem = async (item) => {
+  const handleDeletePlanningItem = async (item) => {
     try {
-      await planningService.delete(item.id);
-      setPlanning(prev => prev.filter(p => p.id !== item.id));
+      await deletePlanningItemCtx(item.id);
       toast.success('Créneau supprimé (synchronisé)');
     } catch (error) {
       toast.error('Erreur lors de la suppression');
@@ -672,7 +626,7 @@ const WorkspaceGwen = () => {
                       </div>
                       <div className={`flex-1 text-sm sm:text-base ${item.status === 'done' ? 'text-white/50 line-through' : 'text-white'}`}>{item.event}</div>
                       <div className="text-xs hidden sm:block" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.responsable}</div>
-                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); deletePlanningItem(item); }} className="text-red-400 hover:text-red-300 p-1 h-auto">
+                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleDeletePlanningItem(item); }} className="text-red-400 hover:text-red-300 p-1 h-auto">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

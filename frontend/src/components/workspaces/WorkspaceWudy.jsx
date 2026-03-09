@@ -9,6 +9,7 @@ import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
 import WorkspaceHeader from './WorkspaceHeader';
+import { useSharedData } from '../../contexts/SharedDataContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -30,7 +31,14 @@ const WorkspaceWudy = () => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [newExpense, setNewExpense] = useState({ label: '', montant: '', category: 'Production scène', fournisseur: '' });
 
-  // Budget data - FULL as per prompt (97 750€ HT)
+  // Shared data from context (synchronized across all workspaces)
+  const {
+    expenses: sharedExpenses,
+    addExpense: addExpenseCtx, updateExpense: updateExpenseCtx, deleteExpense: deleteExpenseCtx,
+    artistes, prestataires, partners
+  } = useSharedData();
+
+  // Budget data - FULL as per prompt (97 750€ HT) - previsionnel stays local (fixed plan)
   const [budget, setBudget] = useState({
     previsionnel: {
       revenus: [
@@ -58,17 +66,10 @@ const WorkspaceWudy = () => {
         { id: 11, label: 'Captation vidéo', montant: 5000, category: 'Technique' },
         { id: 12, label: 'Imprévus (5%)', montant: 5750, category: 'Divers' }
       ]
-    },
-    reel: {
-      revenus: [],
-      depenses: [
-        { id: 1, label: 'Acompte prestataire sono', montant: 3000, category: 'Technique', date: '01/03/2026', fournisseur: 'SonoCaraïbes', justificatif: false },
-        { id: 2, label: 'Design graphique - phase 1', montant: 1500, category: 'Communication', date: '15/02/2026', fournisseur: 'Twina Design', justificatif: true }
-      ]
     }
   });
 
-  // Documents financiers
+  // Documents financiers (local)
   const [documents, setDocuments] = useState([
     { id: 1, name: 'Devis sono SonoCaraïbes', type: 'Devis', status: 'Reçu', date: '20/02/2026' },
     { id: 2, name: 'Facture graphisme', type: 'Facture', status: 'Payé', date: '15/02/2026' }
@@ -93,8 +94,8 @@ const WorkspaceWudy = () => {
   const totalDepensesPrev = budget.previsionnel.depenses.reduce((sum, d) => sum + d.montant, 0);
   const soldePrev = totalRevenusPrev - totalDepensesPrev;
   
-  const totalRevenusReel = budget.reel.revenus.reduce((sum, r) => sum + r.montant, 0);
-  const totalDepensesReel = budget.reel.depenses.reduce((sum, d) => sum + d.montant, 0);
+  const totalRevenusReel = 0; // Real revenues tracked via partners (confirmé)
+  const totalDepensesReel = sharedExpenses.reduce((sum, d) => sum + (d.montant || 0), 0);
   const soldeReel = totalRevenusReel - totalDepensesReel;
 
   const formatMontant = (montant) => {
@@ -108,71 +109,61 @@ const WorkspaceWudy = () => {
     }
 
     const expense = {
-      id: Date.now(),
       label: newExpense.label,
       montant: parseFloat(newExpense.montant),
       category: newExpense.category,
       date: new Date().toLocaleDateString('fr-FR'),
       fournisseur: newExpense.fournisseur,
-      justificatif: false
+      justificatif: false,
+      created_by: 'Wudy'
     };
 
-    setBudget(prev => ({
-      ...prev,
-      reel: {
-        ...prev.reel,
-        depenses: [...prev.reel.depenses, expense]
-      }
-    }));
+    try {
+      await addExpenseCtx(expense);
 
-    // Log action
-    await axios.post(`${API}/workspace/log`, {
-      user: 'Wudy',
-      role: 'finance',
-      action: 'expense_added',
-      details: `Dépense: ${expense.label} - ${formatMontant(expense.montant)}`
-    });
+      await axios.post(`${API}/workspace/log`, {
+        user: 'Wudy',
+        role: 'finance',
+        action: 'expense_added',
+        details: `Dépense: ${expense.label} - ${formatMontant(expense.montant)}`
+      });
 
-    // Send notification to Laurent
-    await sendNotification({
-      sender: 'Wudy',
-      senderRole: 'finance',
-      type: 'expense_added',
-      title: 'Nouvelle dépense enregistrée',
-      message: `${expense.label}: ${formatMontant(expense.montant)} (${expense.category})`,
-      target: 'laurent'
-    });
+      await sendNotification({
+        sender: 'Wudy',
+        senderRole: 'finance',
+        type: 'expense_added',
+        title: 'Nouvelle dépense enregistrée',
+        message: `${expense.label}: ${formatMontant(expense.montant)} (${expense.category})`,
+        target: 'laurent'
+      });
 
-    toast.success(`Dépense ajoutée - Notification envoyée à LC`);
-    setShowAddExpense(false);
-    setNewExpense({ label: '', montant: '', category: 'Production scène', fournisseur: '' });
+      toast.success(`Dépense ajoutée (synchronisée) - LC notifié`);
+      setShowAddExpense(false);
+      setNewExpense({ label: '', montant: '', category: 'Production scène', fournisseur: '' });
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout');
+    }
   };
 
   // === GESTION DES DÉPENSES ===
   const deleteExpense = async (expense) => {
     if (window.confirm(`Supprimer la dépense "${expense.label}" ?`)) {
-      setBudget(prev => ({
-        ...prev,
-        reel: {
-          ...prev.reel,
-          depenses: prev.reel.depenses.filter(d => d.id !== expense.id)
-        }
-      }));
-      toast.success('Dépense supprimée');
+      try {
+        await deleteExpenseCtx(expense.id);
+        toast.success('Dépense supprimée (synchronisée)');
+      } catch (error) {
+        toast.error('Erreur');
+      }
     }
   };
 
   const markJustificatifReceived = async (expense) => {
-    setBudget(prev => ({
-      ...prev,
-      reel: {
-        ...prev.reel,
-        depenses: prev.reel.depenses.map(d => 
-          d.id === expense.id ? { ...d, justificatif: true } : d
-        )
-      }
-    }));
-    toast.success(`Justificatif reçu pour "${expense.label}"`);
+    try {
+      await updateExpenseCtx(expense.id, { justificatif: true });
+      toast.success(`Justificatif reçu pour "${expense.label}"`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   // === GESTION DES REVENUS ===
@@ -407,7 +398,7 @@ const WorkspaceWudy = () => {
             </div>
             
             <div className="space-y-3">
-              {budget.reel.depenses.map(expense => (
+              {sharedExpenses.map(expense => (
                 <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                   <div className="flex items-center gap-3 sm:gap-4">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${COLORS.red}20` }}>

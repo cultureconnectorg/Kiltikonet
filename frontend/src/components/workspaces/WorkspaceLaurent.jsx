@@ -11,6 +11,7 @@ import { Button } from '../ui/button';
 import { NotificationBell, useNotifications } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
 import FounderControlCenter from './FounderControlCenter';
+import { useSharedData } from '../../contexts/SharedDataContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -40,6 +41,9 @@ const WorkspaceLaurent = () => {
   const [pendingValidations, setPendingValidations] = useState([]);
   const [showControlCenter, setShowControlCenter] = useState(false);
   const { notifications, unreadCount, markAsRead } = useNotifications('laurent', 3000);
+
+  // Shared data from context (synchronized across all workspaces)
+  const { artistes, partners, tasks, expenses, prestataires } = useSharedData();
 
   // Chantiers status
   const [chantiers, setChantiers] = useState({
@@ -261,9 +265,9 @@ const WorkspaceLaurent = () => {
                   <span className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Artistes</span>
                 </div>
                 <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.purple, fontFamily: "'Cormorant Garamond', serif" }}>
-                  1
+                  {artistes.length}
                 </div>
-                <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Kathy confirmée</div>
+                <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{artistes.filter(a => a.status === 'Confirmé').length} confirmé(s)</div>
               </div>
               <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
                 <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">

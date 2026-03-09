@@ -7,6 +7,7 @@ import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
 import WorkspaceHeader from './WorkspaceHeader';
 import { HelpButton } from '../UserGuides';
+import { useSharedData } from '../../contexts/SharedDataContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -32,7 +33,15 @@ const WorkspaceAlirio = () => {
   const [searchPartners, setSearchPartners] = useState('');
   const messagesEndRef = useRef(null);
 
-  // Agenda
+  // Shared data from context (synchronized across all workspaces)
+  const {
+    partners, tasks, contacts: sharedContacts,
+    addPartner: addPartnerCtx, updatePartner: updatePartnerCtx, deletePartner: deletePartnerCtx,
+    addTask: addTaskCtx, updateTask: updateTaskCtx, deleteTask: deleteTaskCtx,
+    addContact: addContactCtx, deleteContact: deleteContactCtx
+  } = useSharedData();
+
+  // Agenda (local - specific to Alirio's schedule)
   const [agenda, setAgenda] = useState([
     { id: 1, title: 'Réunion équipe CC2026', date: '2026-03-10', time: '10:00', type: 'reunion', participants: 'Toute l\'équipe' },
     { id: 2, title: 'Call CTM - Subvention', date: '2026-03-11', time: '14:00', type: 'call', participants: 'Laurent, Alirio' },
@@ -40,57 +49,27 @@ const WorkspaceAlirio = () => {
     { id: 4, title: 'Rendez-vous partenaire Or', date: '2026-03-18', time: '11:00', type: 'rdv', participants: 'Laurent, Alirio' }
   ]);
 
-  // Registre partenaires
-  const [partners, setPartners] = useState([
-    { id: 1, name: 'CTM', type: 'Institutionnel', status: 'En négociation', contact: 'M. Directeur', email: 'contact@ctm.mq', phone: '0596 XX XX XX', lastAction: '05/03/2026', nextAction: 'Relance dossier' },
-    { id: 2, name: 'SACEM', type: 'Institutionnel', status: 'Signé', contact: 'Responsable Antilles', email: 'antilles@sacem.fr', phone: '', lastAction: '01/03/2026', nextAction: 'Versement' },
-    { id: 3, name: 'Entreprise XYZ', type: 'Or', status: 'Prospect', contact: 'DG', email: 'dg@xyz.com', phone: '0696 XX XX XX', lastAction: null, nextAction: 'Premier contact' },
-    { id: 4, name: 'Société ABC', type: 'Silver', status: 'Contacté', contact: 'Resp. Com', email: 'com@abc.fr', phone: '', lastAction: '28/02/2026', nextAction: 'Envoi dossier' }
-  ]);
-
-  // Notes de réunion
+  // Notes de réunion (local)
   const [notes, setNotes] = useState([
     { id: 1, date: '05/03/2026', title: 'Réunion équipe - Point budget', participants: 'Laurent, Gwen, Wudy', decisions: ['Budget validé', 'Artiste Kathy confirmée'], actions: ['Wudy: Mise à jour fichier dépenses', 'Gwen: Confirmer sono'] },
     { id: 2, date: '01/03/2026', title: 'Call SACEM', participants: 'Laurent, Alirio', decisions: ['Dossier accepté'], actions: ['Alirio: Suivi versement'] }
   ]);
 
-  // ═══════════════════════════════════════════════════════════════
-  // SECTION 4.1: MES TÂCHES - Suivi et avancement actions
-  // ═══════════════════════════════════════════════════════════════
-  const [tasks, setTasks] = useState([
-    { id: 1, title: 'Relance dossier CTM', status: 'en_retard', deadline: '2026-03-06', priority: 'haute', category: 'Partenariat' },
-    { id: 2, title: 'Préparer présentation budget', status: 'en_cours', deadline: '2026-03-10', priority: 'haute', category: 'Admin' },
-    { id: 3, title: 'Call SACEM - suivi versement', status: 'a_faire', deadline: '2026-03-12', priority: 'moyenne', category: 'Finance' },
-    { id: 4, title: 'Envoi dossier Entreprise XYZ', status: 'a_faire', deadline: '2026-03-15', priority: 'haute', category: 'Partenariat' },
-    { id: 5, title: 'Réunion équipe logistique', status: 'fait', deadline: '2026-03-05', priority: 'moyenne', category: 'Organisation' },
-    { id: 6, title: 'Validation contrat partenaire Or', status: 'fait', deadline: '2026-03-04', priority: 'haute', category: 'Partenariat' }
-  ]);
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', deadline: '', priority: 'moyenne', category: 'Partenariat' });
-
-  // ═══════════════════════════════════════════════════════════════
-  // SECTION 4.1: MES CONTACTS - Annuaire distinct de Partenaires
-  // ═══════════════════════════════════════════════════════════════
-  const [myContacts, setMyContacts] = useState([
-    { id: 1, prenom: 'Jean', nom: 'Martin', email: 'jean.martin@example.com', tel: '+596696112233', organisation: 'CTM', type: 'Institutionnel', statut: 'Contact', niveau_partenariat: null, notes: 'Contact principal pour dossier subvention' },
-    { id: 2, prenom: 'Marie', nom: 'Dubois', email: 'marie.dubois@presse.fr', tel: '+596696445566', organisation: 'France-Antilles', type: 'Presse', statut: 'Contact', niveau_partenariat: null, notes: 'Journaliste culture' },
-    { id: 3, prenom: 'Patrick', nom: 'Louis', email: 'patrick@sonolum.mq', tel: '+596596778899', organisation: 'SonoLum', type: 'Personnel', statut: 'En négociation', niveau_partenariat: null, notes: 'Devis sono en attente' },
-    { id: 4, prenom: 'Sophie', nom: 'Charles', email: 'sophie@entreprise-or.com', tel: '+596696001122', organisation: 'EntrepriseOr SARL', type: 'Partenaire', statut: 'Partenaire', niveau_partenariat: 'Or', notes: 'Partenaire confirmé, contrat signé' }
-  ]);
+  // Contact management state
   const [showAddContact, setShowAddContact] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
   const [newContact, setNewContact] = useState({ 
     prenom: '', nom: '', email: '', tel: '', organisation: '', 
     type: 'Personnel', statut: 'Contact', niveau_partenariat: null, notes: '' 
   });
-  const [contactFilter, setContactFilter] = useState('all'); // all, Partenaire, Presse, Institutionnel, Personnel
+  const [contactFilter, setContactFilter] = useState('all');
 
-  // Carnet de contacts global (legacy)
-  const [contacts, setContacts] = useState([
-    { id: 1, name: 'Kathy', role: 'Artiste', org: 'DJ', email: 'kathy@email.com', phone: '0696 XX XX XX' },
-    { id: 2, name: 'M. Directeur CTM', role: 'Institution', org: 'CTM', email: 'dir@ctm.mq', phone: '0596 XX XX XX' },
-    { id: 3, name: 'SonoCaraïbes', role: 'Prestataire', org: 'Son & Lumière', email: 'contact@sonocaraibes.fr', phone: '0596 XX XX XX' }
-  ]);
+  // Task management state
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [newTask, setNewTask] = useState({ title: '', deadline: '', priority: 'moyenne', category: 'Partenariat' });
+
+  // Filter contacts owned by Alirio
+  const myContacts = sharedContacts.filter(c => c.owner === 'alirio' || !c.owner);
 
   // ═══ TASK HELPERS ═══
   const taskStats = {
@@ -99,77 +78,104 @@ const WorkspaceAlirio = () => {
     en_cours: tasks.filter(t => t.status === 'en_cours').length,
     a_faire: tasks.filter(t => t.status === 'a_faire').length,
     en_retard: tasks.filter(t => t.status === 'en_retard').length,
-    progression: Math.round((tasks.filter(t => t.status === 'fait').length / tasks.length) * 100)
+    progression: tasks.length > 0 ? Math.round((tasks.filter(t => t.status === 'fait').length / tasks.length) * 100) : 0
   };
 
-  const updateTaskStatus = (taskId, newStatus) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
-    if (newStatus === 'fait') {
-      sendNotification?.('laurent', {
-        type: 'task_complete',
-        from: 'Alirio',
-        title: 'Tâche terminée',
-        message: tasks.find(t => t.id === taskId)?.title
-      });
+  const updateTaskStatus = async (taskId, newStatus) => {
+    try {
+      await updateTaskCtx(taskId, { status: newStatus });
+      if (newStatus === 'fait') {
+        sendNotification?.({
+          sender: 'Alirio',
+          senderRole: 'business',
+          type: 'task_complete',
+          title: 'Tâche terminée',
+          message: tasks.find(t => t.id === taskId)?.title,
+          target: 'laurent'
+        });
+      }
+      toast.success(`Tâche mise à jour: ${newStatus === 'fait' ? 'Terminée' : newStatus}`);
+    } catch (error) {
+      toast.error('Erreur de mise à jour');
     }
-    toast.success(`Tâche mise à jour: ${newStatus === 'fait' ? 'Terminée' : newStatus}`);
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     if (!newTask.title.trim()) return;
-    const task = {
-      id: Date.now(),
-      ...newTask,
-      status: 'a_faire'
-    };
-    setTasks(prev => [...prev, task]);
-    setNewTask({ title: '', deadline: '', priority: 'moyenne', category: 'Partenariat' });
-    setShowAddTask(false);
-    toast.success('Tâche ajoutée');
+    try {
+      await addTaskCtx({
+        ...newTask,
+        status: 'a_faire',
+        assigned_to: 'alirio',
+        created_by: 'Alirio'
+      });
+      setNewTask({ title: '', deadline: '', priority: 'moyenne', category: 'Partenariat' });
+      setShowAddTask(false);
+      toast.success('Tâche ajoutée (synchronisée)');
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   // ═══ CONTACT HELPERS ═══
   const addContact = async () => {
     if (!newContact.prenom.trim() || !newContact.nom.trim()) return;
-    const contact = {
-      id: Date.now(),
-      ...newContact,
-      owner: 'alirio',
-      created_at: new Date().toISOString()
-    };
-    
-    // Save to backend
     try {
-      await axios.post(`${API}/contacts/alirio`, contact);
-    } catch (e) {
-      console.warn('Backend save failed, keeping local');
+      await addContactCtx({
+        prenom: newContact.prenom,
+        nom: newContact.nom,
+        email: newContact.email,
+        phone: newContact.tel,
+        organisation: newContact.organisation,
+        categorie: newContact.type,
+        statut: newContact.statut,
+        notes: newContact.notes,
+        owner: 'alirio'
+      });
+      setNewContact({ prenom: '', nom: '', email: '', tel: '', organisation: '', type: 'Personnel', statut: 'Contact', niveau_partenariat: null, notes: '' });
+      setShowAddContact(false);
+      toast.success('Contact ajouté (synchronisé)');
+    } catch (error) {
+      toast.error('Erreur');
     }
-    
-    setMyContacts(prev => [...prev, contact]);
-    setNewContact({ prenom: '', nom: '', email: '', tel: '', organisation: '', type: 'Personnel', statut: 'Contact', niveau_partenariat: null, notes: '' });
-    setShowAddContact(false);
-    toast.success('Contact ajouté');
   };
 
-  const promoteToPartner = (contactId, level) => {
-    setMyContacts(prev => prev.map(c => 
-      c.id === contactId 
-        ? { ...c, statut: 'Partenaire', niveau_partenariat: level }
-        : c
-    ));
+  const promoteToPartner = async (contactId, level) => {
+    // Find the contact to get details
     const contact = myContacts.find(c => c.id === contactId);
-    sendNotification?.('laurent', {
-      type: 'partner_promoted',
-      from: 'Alirio',
-      title: 'Nouveau partenaire',
-      message: `${contact?.prenom} ${contact?.nom} (${contact?.organisation}) - Niveau ${level}`
-    });
-    toast.success(`Promu en Partenaire ${level}`);
+    if (!contact) return;
+    
+    // Add as partner in shared data
+    try {
+      await addPartnerCtx({
+        name: `${contact.prenom} ${contact.nom}`,
+        type: level,
+        status: 'Prospect',
+        contact: contact.prenom,
+        email: contact.email || '',
+        phone: contact.phone || contact.tel || '',
+        lastAction: new Date().toLocaleDateString('fr-FR'),
+        nextAction: 'Premier contact',
+        created_by: 'Alirio'
+      });
+      
+      sendNotification?.({
+        sender: 'Alirio',
+        senderRole: 'business',
+        type: 'partner_promoted',
+        title: 'Nouveau partenaire',
+        message: `${contact.prenom} ${contact.nom} (${contact.organisation}) - Niveau ${level}`,
+        target: 'laurent'
+      });
+      toast.success(`Promu en Partenaire ${level} (synchronisé)`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   const filteredContacts = myContacts.filter(c => {
     if (contactFilter === 'all') return true;
-    return c.type === contactFilter || c.statut === contactFilter;
+    return c.categorie === contactFilter || c.type === contactFilter || c.statut === contactFilter;
   });
 
   useEffect(() => {
@@ -243,102 +249,121 @@ Comment puis-je vous aider ?`
       return;
     }
 
-    const partner = {
-      id: Date.now(),
-      ...newPartner,
-      status: 'Prospect',
-      lastAction: new Date().toLocaleDateString('fr-FR'),
-      nextAction: 'Premier contact'
-    };
+    try {
+      await addPartnerCtx({
+        ...newPartner,
+        status: 'Prospect',
+        lastAction: new Date().toLocaleDateString('fr-FR'),
+        nextAction: 'Premier contact',
+        created_by: 'Alirio'
+      });
 
-    setPartners(prev => [...prev, partner]);
+      await axios.post(`${API}/workspace/log`, {
+        user: 'Alirio',
+        role: 'business',
+        action: 'partner_added',
+        details: `Nouveau partenaire: ${newPartner.name} (${newPartner.type})`
+      });
 
-    await axios.post(`${API}/workspace/log`, {
-      user: 'Alirio',
-      role: 'business',
-      action: 'partner_added',
-      details: `Nouveau partenaire: ${partner.name} (${partner.type})`
-    });
+      await sendNotification({
+        sender: 'Alirio',
+        senderRole: 'business',
+        type: 'partner_added',
+        title: 'Nouveau partenaire ajouté',
+        message: `${newPartner.name} - Type: ${newPartner.type}`,
+        target: 'laurent'
+      });
 
-    // Send notification to Laurent
-    await sendNotification({
-      sender: 'Alirio',
-      senderRole: 'business',
-      type: 'partner_added',
-      title: 'Nouveau partenaire ajouté',
-      message: `${partner.name} - Type: ${partner.type}`,
-      target: 'laurent'
-    });
-
-    toast.success(`Partenaire ajouté - LC notifié`);
-    setShowAddPartner(false);
-    setNewPartner({ name: '', type: 'Bronze', contact: '', email: '', phone: '' });
+      toast.success(`Partenaire ajouté (synchronisé) - LC notifié`);
+      setShowAddPartner(false);
+      setNewPartner({ name: '', type: 'Bronze', contact: '', email: '', phone: '' });
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   // === GESTION DES PARTENAIRES ===
-  const deletePartner = (partner) => {
+  const deletePartner = async (partner) => {
     if (window.confirm(`Supprimer ${partner.name} ?`)) {
-      setPartners(prev => prev.filter(p => p.id !== partner.id));
-      toast.success(`${partner.name} supprimé`);
+      try {
+        await deletePartnerCtx(partner.id);
+        toast.success(`${partner.name} supprimé (synchronisé)`);
+      } catch (error) {
+        toast.error('Erreur');
+      }
     }
   };
 
   const updatePartnerStatus = async (partner, newStatus) => {
-    setPartners(prev => prev.map(p => 
-      p.id === partner.id ? { ...p, status: newStatus, lastAction: new Date().toLocaleDateString('fr-FR') } : p
-    ));
+    try {
+      await updatePartnerCtx(partner.id, { status: newStatus, lastAction: new Date().toLocaleDateString('fr-FR') });
 
-    if (newStatus === 'Signé') {
-      await sendNotification({
-        sender: 'Alirio',
-        senderRole: 'business',
-        type: 'partner_signed',
-        title: 'Partenaire signé !',
-        message: `${partner.name} (${partner.type}) a signé son contrat`,
-        target: 'all'
-      });
+      if (newStatus === 'Signé') {
+        await sendNotification({
+          sender: 'Alirio',
+          senderRole: 'business',
+          type: 'partner_signed',
+          title: 'Partenaire signé !',
+          message: `${partner.name} (${partner.type}) a signé son contrat`,
+          target: 'all'
+        });
+      }
+
+      toast.success(`${partner.name}: ${newStatus} (synchronisé)`);
+    } catch (error) {
+      toast.error('Erreur');
     }
-
-    toast.success(`${partner.name}: ${newStatus}`);
   };
 
   const contactPartner = async (partner) => {
-    setPartners(prev => prev.map(p => 
-      p.id === partner.id ? { ...p, status: 'Contacté', lastAction: new Date().toLocaleDateString('fr-FR') } : p
-    ));
-    toast.success(`${partner.name} marqué comme contacté`);
+    try {
+      await updatePartnerCtx(partner.id, { status: 'Contacté', lastAction: new Date().toLocaleDateString('fr-FR') });
+      toast.success(`${partner.name} marqué comme contacté (synchronisé)`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   const sendDossier = async (partner) => {
-    setPartners(prev => prev.map(p => 
-      p.id === partner.id ? { ...p, status: 'Dossier envoyé', lastAction: new Date().toLocaleDateString('fr-FR'), nextAction: 'Relance' } : p
-    ));
+    try {
+      await updatePartnerCtx(partner.id, { status: 'Dossier envoyé', lastAction: new Date().toLocaleDateString('fr-FR'), nextAction: 'Relance' });
 
-    await sendNotification({
-      sender: 'Alirio',
-      senderRole: 'business',
-      type: 'dossier_sent',
-      title: 'Dossier partenariat envoyé',
-      message: `Dossier envoyé à ${partner.name} (${partner.type})`,
-      target: 'laurent'
-    });
+      await sendNotification({
+        sender: 'Alirio',
+        senderRole: 'business',
+        type: 'dossier_sent',
+        title: 'Dossier partenariat envoyé',
+        message: `Dossier envoyé à ${partner.name} (${partner.type})`,
+        target: 'laurent'
+      });
 
-    toast.success(`Dossier envoyé à ${partner.name}`);
+      toast.success(`Dossier envoyé à ${partner.name} (synchronisé)`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   // === GESTION DES TÂCHES ===
-  const deleteTask = (task) => {
+  const deleteTask = async (task) => {
     if (window.confirm(`Supprimer "${task.title}" ?`)) {
-      setTasks(prev => prev.filter(t => t.id !== task.id));
-      toast.success('Tâche supprimée');
+      try {
+        await deleteTaskCtx(task.id);
+        toast.success('Tâche supprimée (synchronisée)');
+      } catch (error) {
+        toast.error('Erreur');
+      }
     }
   };
 
   // === GESTION DES CONTACTS ===
-  const deleteContact = (contact) => {
+  const deleteContact = async (contact) => {
     if (window.confirm(`Supprimer ${contact.prenom} ${contact.nom} ?`)) {
-      setMyContacts(prev => prev.filter(c => c.id !== contact.id));
-      toast.success('Contact supprimé');
+      try {
+        await deleteContactCtx(contact.id);
+        toast.success('Contact supprimé (synchronisé)');
+      } catch (error) {
+        toast.error('Erreur');
+      }
     }
   };
 
