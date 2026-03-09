@@ -5,7 +5,7 @@ import {
   FileText, Settings, Calendar, CheckCircle,
   TrendingUp, AlertCircle, RefreshCw, Music, DollarSign,
   Newspaper, Briefcase, Palette, Radio, ChevronRight,
-  Check, X, Shield
+  Check, X, Shield, Brain
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { NotificationBell, useNotifications } from './NotificationSystem';
@@ -178,6 +178,10 @@ const WorkspaceLaurent = () => {
             <Button variant="outline" size="sm" onClick={() => navigate('/admin/performance')} style={{ borderColor: `${COLORS.teal}50`, color: COLORS.teal }}>
               <TrendingUp className="w-4 h-4 mr-2" />
               Performances
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/smart-engine')} style={{ borderColor: `${COLORS.gold}50`, color: COLORS.gold }}>
+              <Brain className="w-4 h-4 mr-2" />
+              Smart Engine
             </Button>
             <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
               <LogOut className="w-4 h-4" />

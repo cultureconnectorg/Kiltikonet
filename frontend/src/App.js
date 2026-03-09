@@ -15,8 +15,8 @@ import { ParticipantProfile } from "./components/ParticipantProfile";
 import { Toaster } from "./components/ui/sonner";
 // Legal pages
 import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner } from "./components/legal";
-// Smart Engine
-import SmartEngineDashboard from "./components/SmartEngineDashboard";
+// Smart Engine - NEW Admin Dashboard
+import SmartEngineDashboard from "./pages/Admin/SmartEngineDashboard";
 // CMS Admin
 import CMSAdmin from "./components/CMSAdmin";
 // Visual Editor

@@ -6848,3 +6848,502 @@ def get_complementary_types(profile_type):
         "institution": ["artist", "label", "agent", "media"]
     }
     return complementary.get(profile_type, [])
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SMART ENGINE - Intelligence système & Notifications automatiques
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class SmartAlertRule(BaseModel):
+    """Smart alert rule for automatic notifications"""
+    id: Optional[str] = None
+    name: str
+    condition_type: str  # traffic_spike, low_engagement, deadline_approaching, anomaly
+    threshold: float
+    comparison: str  # gt, lt, eq
+    notification_target: str = "laurent"
+    notification_priority: str = "medium"
+    enabled: bool = True
+    cooldown_minutes: int = 60  # Minimum time between alerts
+
+class SmartEngineStats(BaseModel):
+    """Smart engine statistics response"""
+    total_events_24h: int
+    active_sessions: int
+    alerts_triggered: int
+    recommendations_generated: int
+    top_actions: list
+    anomalies_detected: list
+
+# Default alert rules
+DEFAULT_ALERT_RULES = [
+    {
+        "id": "traffic_spike",
+        "name": "Pic de trafic",
+        "condition_type": "traffic_spike",
+        "threshold": 200,  # 200% of normal
+        "comparison": "gt",
+        "notification_target": "laurent",
+        "notification_priority": "medium",
+        "enabled": True,
+        "cooldown_minutes": 60
+    },
+    {
+        "id": "low_conversion",
+        "name": "Conversion faible",
+        "condition_type": "low_conversion",
+        "threshold": 10,  # Below 10%
+        "comparison": "lt",
+        "notification_target": "laurent",
+        "notification_priority": "high",
+        "enabled": True,
+        "cooldown_minutes": 240
+    },
+    {
+        "id": "deadline_24h",
+        "name": "Deadline J-1",
+        "condition_type": "deadline_approaching",
+        "threshold": 24,  # 24 hours before
+        "comparison": "lt",
+        "notification_target": "all",
+        "notification_priority": "high",
+        "enabled": True,
+        "cooldown_minutes": 1440
+    },
+    {
+        "id": "new_registration_batch",
+        "name": "Vague d'inscriptions",
+        "condition_type": "registration_batch",
+        "threshold": 10,  # 10+ in 1 hour
+        "comparison": "gt",
+        "notification_target": "laurent",
+        "notification_priority": "medium",
+        "enabled": True,
+        "cooldown_minutes": 120
+    },
+    {
+        "id": "error_spike",
+        "name": "Pic d'erreurs",
+        "condition_type": "error_spike",
+        "threshold": 5,  # 5+ errors in 10 minutes
+        "comparison": "gt",
+        "notification_target": "laurent",
+        "notification_priority": "critical",
+        "enabled": True,
+        "cooldown_minutes": 30
+    }
+]
+
+@app.get("/api/smart-engine/stats")
+async def get_smart_engine_stats():
+    """Get Smart Engine statistics and health"""
+    now = datetime.now(timezone.utc)
+    yesterday = now - timedelta(days=1)
+    last_hour = now - timedelta(hours=1)
+    
+    # Total events in 24h
+    total_events = await db.analytics_events.count_documents({
+        "created_at": {"$gte": yesterday.isoformat()}
+    })
+    
+    # Active sessions (events in last hour)
+    active_sessions_pipeline = [
+        {"$match": {"created_at": {"$gte": last_hour.isoformat()}}},
+        {"$group": {"_id": "$session_id"}},
+        {"$count": "total"}
+    ]
+    active_result = await db.analytics_events.aggregate(active_sessions_pipeline).to_list(1)
+    active_sessions = active_result[0]["total"] if active_result else 0
+    
+    # Alerts triggered today
+    alerts_today = await db.team_notifications.count_documents({
+        "created_at": {"$gte": now.replace(hour=0, minute=0, second=0).isoformat()},
+        "type": {"$in": ["anomaly_detected", "traffic_spike", "deadline_alert"]}
+    })
+    
+    # Recommendations generated
+    recommendations = await db.analytics_events.count_documents({
+        "event_type": "recommendation_served",
+        "created_at": {"$gte": yesterday.isoformat()}
+    })
+    
+    # Top actions
+    top_actions_pipeline = [
+        {"$match": {"created_at": {"$gte": yesterday.isoformat()}}},
+        {"$group": {"_id": "$event_type", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    top_actions = await db.analytics_events.aggregate(top_actions_pipeline).to_list(10)
+    
+    # Recent anomalies
+    anomalies = await db.analytics_events.find(
+        {"event_type": "anomaly", "created_at": {"$gte": yesterday.isoformat()}},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    return {
+        "total_events_24h": total_events,
+        "active_sessions": active_sessions,
+        "alerts_triggered": alerts_today,
+        "recommendations_generated": recommendations,
+        "top_actions": [{"type": a["_id"], "count": a["count"]} for a in top_actions],
+        "anomalies_detected": anomalies,
+        "engine_status": "healthy",
+        "last_check": now.isoformat()
+    }
+
+@app.get("/api/smart-engine/alerts/rules")
+async def get_alert_rules():
+    """Get all alert rules"""
+    rules = await db.smart_alert_rules.find({}, {"_id": 0}).to_list(100)
+    if not rules:
+        # Initialize with defaults
+        for rule in DEFAULT_ALERT_RULES:
+            await db.smart_alert_rules.insert_one(rule)
+        return DEFAULT_ALERT_RULES
+    return rules
+
+@app.post("/api/smart-engine/alerts/rules")
+async def create_alert_rule(rule: SmartAlertRule):
+    """Create a new alert rule"""
+    rule_doc = rule.dict()
+    rule_doc["id"] = rule_doc.get("id") or str(uuid.uuid4())
+    rule_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.smart_alert_rules.insert_one(rule_doc)
+    return {"success": True, "rule": rule_doc}
+
+@app.patch("/api/smart-engine/alerts/rules/{rule_id}")
+async def update_alert_rule(rule_id: str, enabled: bool = None):
+    """Update an alert rule (enable/disable)"""
+    update = {}
+    if enabled is not None:
+        update["enabled"] = enabled
+    
+    if update:
+        await db.smart_alert_rules.update_one(
+            {"id": rule_id},
+            {"$set": update}
+        )
+    return {"success": True}
+
+@app.post("/api/smart-engine/check-alerts")
+async def check_and_trigger_alerts():
+    """Check all alert conditions and trigger notifications"""
+    now = datetime.now(timezone.utc)
+    alerts_triggered = []
+    
+    rules = await db.smart_alert_rules.find({"enabled": True}, {"_id": 0}).to_list(100)
+    
+    for rule in rules:
+        # Check cooldown
+        last_alert = await db.smart_alert_history.find_one(
+            {"rule_id": rule["id"]},
+            sort=[("triggered_at", -1)]
+        )
+        
+        if last_alert:
+            cooldown_end = datetime.fromisoformat(last_alert["triggered_at"]) + timedelta(minutes=rule.get("cooldown_minutes", 60))
+            if now < cooldown_end:
+                continue
+        
+        # Check condition
+        triggered = False
+        details = {}
+        
+        if rule["condition_type"] == "traffic_spike":
+            # Compare last hour to average
+            last_hour_count = await db.analytics_events.count_documents({
+                "created_at": {"$gte": (now - timedelta(hours=1)).isoformat()}
+            })
+            avg_count = await db.analytics_events.count_documents({
+                "created_at": {"$gte": (now - timedelta(days=7)).isoformat()}
+            }) / (7 * 24)  # Average per hour
+            
+            if avg_count > 0 and (last_hour_count / avg_count * 100) > rule["threshold"]:
+                triggered = True
+                details = {"current": last_hour_count, "average": round(avg_count, 1), "ratio": round(last_hour_count / avg_count * 100, 1)}
+        
+        elif rule["condition_type"] == "low_conversion":
+            # Check registration to approval ratio
+            total_regs = await db.registrations.count_documents({})
+            approved = await db.registrations.count_documents({"status": "approved"})
+            conversion = (approved / total_regs * 100) if total_regs > 0 else 0
+            
+            if conversion < rule["threshold"]:
+                triggered = True
+                details = {"conversion_rate": round(conversion, 1), "total": total_regs, "approved": approved}
+        
+        elif rule["condition_type"] == "registration_batch":
+            # Check registrations in last hour
+            recent_regs = await db.registrations.count_documents({
+                "created_at": {"$gte": (now - timedelta(hours=1)).isoformat()}
+            })
+            
+            if recent_regs >= rule["threshold"]:
+                triggered = True
+                details = {"count": recent_regs, "period": "1 hour"}
+        
+        elif rule["condition_type"] == "error_spike":
+            # Check errors in last 10 minutes
+            error_count = await db.analytics_events.count_documents({
+                "event_type": "error",
+                "created_at": {"$gte": (now - timedelta(minutes=10)).isoformat()}
+            })
+            
+            if error_count >= rule["threshold"]:
+                triggered = True
+                details = {"error_count": error_count, "period": "10 minutes"}
+        
+        elif rule["condition_type"] == "deadline_approaching":
+            # Check tasks with deadlines in threshold hours
+            deadline_threshold = now + timedelta(hours=rule["threshold"])
+            # This would check dashboard tasks - simplified for now
+            details = {"threshold_hours": rule["threshold"]}
+        
+        if triggered:
+            # Create notification
+            notification = {
+                "id": str(uuid.uuid4()),
+                "type": f"smart_alert_{rule['condition_type']}",
+                "title": f"🔔 {rule['name']}",
+                "message": format_alert_message(rule["condition_type"], details),
+                "data": details,
+                "priority": rule["notification_priority"],
+                "rule_id": rule["id"],
+                "read": False,
+                "read_by": [],
+                "created_at": now.isoformat()
+            }
+            
+            await db.team_notifications.insert_one(notification)
+            
+            # Log alert history
+            await db.smart_alert_history.insert_one({
+                "rule_id": rule["id"],
+                "triggered_at": now.isoformat(),
+                "details": details
+            })
+            
+            alerts_triggered.append({
+                "rule": rule["name"],
+                "details": details
+            })
+    
+    return {"alerts_triggered": len(alerts_triggered), "details": alerts_triggered}
+
+def format_alert_message(condition_type, details):
+    """Format alert message based on condition type"""
+    messages = {
+        "traffic_spike": f"Trafic {details.get('ratio', 0)}% au-dessus de la normale ({details.get('current', 0)} événements)",
+        "low_conversion": f"Taux de conversion à {details.get('conversion_rate', 0)}% ({details.get('approved', 0)}/{details.get('total', 0)})",
+        "registration_batch": f"{details.get('count', 0)} nouvelles inscriptions en {details.get('period', '1h')}",
+        "error_spike": f"{details.get('error_count', 0)} erreurs en {details.get('period', '10min')} - Vérifier les logs",
+        "deadline_approaching": f"Deadline dans moins de {details.get('threshold_hours', 24)}h"
+    }
+    return messages.get(condition_type, "Alerte déclenchée")
+
+@app.get("/api/smart-engine/insights")
+async def get_smart_insights():
+    """Get AI-generated insights from analytics data"""
+    now = datetime.now(timezone.utc)
+    week_ago = now - timedelta(days=7)
+    
+    # Engagement trends
+    daily_events_pipeline = [
+        {"$match": {"created_at": {"$gte": week_ago.isoformat()}}},
+        {"$addFields": {
+            "date": {"$dateToString": {"format": "%Y-%m-%d", "date": {"$dateFromString": {"dateString": "$created_at"}}}}
+        }},
+        {"$group": {"_id": "$date", "count": {"$sum": 1}}},
+        {"$sort": {"_id": 1}}
+    ]
+    daily_events = await db.analytics_events.aggregate(daily_events_pipeline).to_list(7)
+    
+    # User retention
+    returning_users_pipeline = [
+        {"$match": {"created_at": {"$gte": week_ago.isoformat()}, "user_id": {"$ne": None}}},
+        {"$group": {
+            "_id": "$user_id",
+            "sessions": {"$addToSet": "$session_id"},
+            "days": {"$addToSet": {"$dateToString": {"format": "%Y-%m-%d", "date": {"$dateFromString": {"dateString": "$created_at"}}}}}
+        }},
+        {"$project": {
+            "user_id": "$_id",
+            "session_count": {"$size": "$sessions"},
+            "active_days": {"$size": "$days"}
+        }},
+        {"$match": {"active_days": {"$gt": 1}}}
+    ]
+    returning_users = await db.analytics_events.aggregate(returning_users_pipeline).to_list(100)
+    
+    # Peak hours
+    hourly_pipeline = [
+        {"$match": {"created_at": {"$gte": week_ago.isoformat()}}},
+        {"$addFields": {
+            "hour": {"$hour": {"$dateFromString": {"dateString": "$created_at"}}}
+        }},
+        {"$group": {"_id": "$hour", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ]
+    peak_hours = await db.analytics_events.aggregate(hourly_pipeline).to_list(5)
+    
+    # Pro space funnel
+    pro_registrations = await db.registrations.count_documents({})
+    pro_approved = await db.registrations.count_documents({"status": "approved"})
+    pro_connections = await db.analytics_events.count_documents({
+        "event_type": "pro_connection",
+        "created_at": {"$gte": week_ago.isoformat()}
+    })
+    pro_messages = await db.analytics_events.count_documents({
+        "event_type": {"$regex": "message"},
+        "created_at": {"$gte": week_ago.isoformat()}
+    })
+    
+    # Generate insights
+    insights = []
+    
+    # Trend insight
+    if len(daily_events) >= 2:
+        recent_avg = sum(d["count"] for d in daily_events[-3:]) / 3 if len(daily_events) >= 3 else daily_events[-1]["count"]
+        older_avg = sum(d["count"] for d in daily_events[:3]) / 3 if len(daily_events) >= 3 else daily_events[0]["count"]
+        if older_avg > 0:
+            trend = ((recent_avg - older_avg) / older_avg) * 100
+            if trend > 20:
+                insights.append({
+                    "type": "positive",
+                    "icon": "trending_up",
+                    "title": "Engagement en hausse",
+                    "message": f"L'activité a augmenté de {abs(trend):.0f}% cette semaine"
+                })
+            elif trend < -20:
+                insights.append({
+                    "type": "warning",
+                    "icon": "trending_down",
+                    "title": "Engagement en baisse",
+                    "message": f"L'activité a diminué de {abs(trend):.0f}% cette semaine"
+                })
+    
+    # Retention insight
+    retention_rate = (len(returning_users) / pro_approved * 100) if pro_approved > 0 else 0
+    if retention_rate > 30:
+        insights.append({
+            "type": "positive",
+            "icon": "users",
+            "title": "Bonne rétention",
+            "message": f"{retention_rate:.0f}% des utilisateurs reviennent régulièrement"
+        })
+    elif retention_rate < 10 and pro_approved > 10:
+        insights.append({
+            "type": "warning",
+            "icon": "user_x",
+            "title": "Rétention faible",
+            "message": "Peu d'utilisateurs reviennent - envisager des emails de relance"
+        })
+    
+    # Peak hours insight
+    if peak_hours:
+        top_hours = [h["_id"] for h in peak_hours[:2]]
+        insights.append({
+            "type": "info",
+            "icon": "clock",
+            "title": "Heures de pointe",
+            "message": f"Activité maximale entre {min(top_hours)}h et {max(top_hours)+1}h"
+        })
+    
+    # Conversion insight
+    conversion = (pro_approved / pro_registrations * 100) if pro_registrations > 0 else 0
+    if conversion < 50 and pro_registrations > 10:
+        insights.append({
+            "type": "action",
+            "icon": "alert",
+            "title": "Inscriptions en attente",
+            "message": f"{pro_registrations - pro_approved} profils en attente d'approbation"
+        })
+    
+    return {
+        "insights": insights,
+        "metrics": {
+            "daily_trend": daily_events,
+            "peak_hours": peak_hours,
+            "retention_rate": round(retention_rate, 1),
+            "conversion_rate": round(conversion, 1),
+            "returning_users": len(returning_users)
+        },
+        "funnel": {
+            "registrations": pro_registrations,
+            "approved": pro_approved,
+            "connections": pro_connections,
+            "messages": pro_messages
+        },
+        "generated_at": now.isoformat()
+    }
+
+@app.get("/api/team/notifications")
+async def get_team_notifications(limit: int = 50, unread_only: bool = False):
+    """Get team-wide notifications (Smart Engine alerts)"""
+    query = {}
+    if unread_only:
+        query["read"] = False
+    
+    notifications = await db.team_notifications.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    unread_count = await db.team_notifications.count_documents({"read": False})
+    
+    return {
+        "notifications": notifications,
+        "unread_count": unread_count
+    }
+
+@app.post("/api/team/notifications/create")
+async def create_manual_team_notification(
+    title: str,
+    message: str,
+    priority: str = "medium",
+    target: str = "all"
+):
+    """Create a manual team notification"""
+    notification = {
+        "id": str(uuid.uuid4()),
+        "type": "manual",
+        "title": title,
+        "message": message,
+        "priority": priority,
+        "target": target,
+        "read": False,
+        "read_by": [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.team_notifications.insert_one(notification)
+    return {"success": True, "notification": notification}
+
+@app.post("/api/team/notifications/mark-all-read")
+async def mark_all_team_notifications_read(user_id: str = "admin"):
+    """Mark all team notifications as read"""
+    await db.team_notifications.update_many(
+        {},
+        {"$addToSet": {"read_by": user_id}, "$set": {"read": True}}
+    )
+    return {"success": True}
+
+@app.patch("/api/team/notifications/{notification_id}/read")
+async def mark_team_notification_read(notification_id: str, user_id: str = "admin"):
+    """Mark a specific team notification as read"""
+    await db.team_notifications.update_one(
+        {"id": notification_id},
+        {"$addToSet": {"read_by": user_id}}
+    )
+    return {"success": True}
+
+# Background task to check alerts periodically (call via cron or scheduler)
+@app.post("/api/smart-engine/cron/check")
+async def smart_engine_cron_check():
+    """Cron endpoint to check alerts - call every 15 minutes"""
+    result = await check_and_trigger_alerts()
+    return {"success": True, "result": result}
