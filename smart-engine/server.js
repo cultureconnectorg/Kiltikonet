@@ -22,7 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 8002;
 
 // Backend API URL for LLM services
-const BACKEND_API = 'http://localhost:8001/api/v1';
+const BACKEND_API = process.env.BACKEND_API_URL || 'http://localhost:8001/api/v1';
 
 // Default tenant
 const DEFAULT_TENANT = 'culture-connect-2026';
