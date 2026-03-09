@@ -2082,6 +2082,44 @@ async def workspace_logout(log: WorkspaceLogoutRequest):
     await db.workspace_logs.insert_one(log_entry)
     return {"success": True}
 
+# ================== WORKSPACE PASSWORD MANAGEMENT ==================
+
+class UpdatePasswordRequest(BaseModel):
+    workspace_id: str
+    new_password: str
+    updated_by: str
+
+@api_router.post("/workspace/update-password")
+async def update_workspace_password(request: UpdatePasswordRequest):
+    """Update workspace password (founder only)"""
+    # Store password update in database
+    password_entry = {
+        "workspace_id": request.workspace_id,
+        "password": request.new_password,
+        "updated_by": request.updated_by,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Upsert the password
+    await db.workspace_passwords.update_one(
+        {"workspace_id": request.workspace_id},
+        {"$set": password_entry},
+        upsert=True
+    )
+    
+    # Log the action
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "user": request.updated_by,
+        "role": "founder",
+        "action": "password_update",
+        "details": f"Mot de passe mis à jour pour {request.workspace_id}",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await db.workspace_logs.insert_one(log_entry)
+    
+    return {"success": True, "message": f"Mot de passe mis à jour pour {request.workspace_id}"}
+
 # ================== INTERNAL MESSAGING SYSTEM ==================
 
 class ChatMessage(BaseModel):

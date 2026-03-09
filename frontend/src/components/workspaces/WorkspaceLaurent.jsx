@@ -5,11 +5,12 @@ import {
   FileText, Settings, Calendar, CheckCircle,
   TrendingUp, AlertCircle, RefreshCw, Music, DollarSign,
   Newspaper, Briefcase, Palette, Radio, ChevronRight,
-  Check, X
+  Check, X, Shield
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { NotificationBell, useNotifications } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
+import FounderControlCenter from './FounderControlCenter';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -37,6 +38,7 @@ const WorkspaceLaurent = () => {
   const [stats, setStats] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [pendingValidations, setPendingValidations] = useState([]);
+  const [showControlCenter, setShowControlCenter] = useState(false);
   const { notifications, unreadCount, markAsRead } = useNotifications('laurent', 3000);
 
   // Chantiers status
@@ -151,6 +153,16 @@ const WorkspaceLaurent = () => {
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell target="laurent" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowControlCenter(true)} 
+              style={{ borderColor: `${COLORS.burgundy}80`, color: COLORS.burgundy, fontWeight: 'bold' }}
+              data-testid="founder-control-center-btn"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Contrôle
+            </Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/dashboard-cc2026/laurent')} style={{ borderColor: `${COLORS.gold}80`, color: COLORS.gold, fontWeight: 'bold' }}>
               <Calendar className="w-4 h-4 mr-2" />
               CC2026
@@ -473,6 +485,11 @@ const WorkspaceLaurent = () => {
         }} 
         isFounder={true} 
       />
+      
+      {/* Centre de Contrôle Fondateur */}
+      {showControlCenter && (
+        <FounderControlCenter onClose={() => setShowControlCenter(false)} />
+      )}
     </div>
   );
 };

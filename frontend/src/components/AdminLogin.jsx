@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Checkbox } from './ui/checkbox';
 import { Lock, Loader2 } from 'lucide-react';
+import { saveSession } from './ProtectedRoute';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -21,6 +23,7 @@ const COLORS = {
 export const AdminLogin = ({ onLogin }) => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   
@@ -34,14 +37,19 @@ export const AdminLogin = ({ onLogin }) => {
       const response = await axios.post(`${API}/workspace/login`, { password });
       
       if (response.data.success) {
-        // Store user info in sessionStorage with timestamp for expiration
+        // Store user info with new saveSession function
         const sessionData = {
           name: response.data.user,
           role: response.data.role,
-          createdAt: Date.now(),
-          lastActivity: Date.now()
         };
-        sessionStorage.setItem('workspace_user', JSON.stringify(sessionData));
+        saveSession(sessionData, rememberMe);
+        
+        // Show toast for persistent session
+        if (rememberMe) {
+          toast.success(`Bienvenue ${response.data.user} ! Session mémorisée pour 30 jours.`);
+        } else {
+          toast.success(`Bienvenue ${response.data.user} !`);
+        }
         
         // If admin, use the existing onLogin callback
         if (response.data.role === 'admin') {
@@ -124,6 +132,24 @@ export const AdminLogin = ({ onLogin }) => {
                   Mot de passe invalide
                 </p>
               )}
+            </div>
+            
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center gap-3">
+              <Checkbox 
+                id="rememberMe"
+                checked={rememberMe}
+                onCheckedChange={setRememberMe}
+                className="border-white/30 data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                style={{ '--tw-ring-color': COLORS.gold }}
+              />
+              <label 
+                htmlFor="rememberMe" 
+                className="text-sm cursor-pointer select-none"
+                style={{ color: 'rgba(255,255,255,0.6)' }}
+              >
+                Se souvenir de moi <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>(30 jours)</span>
+              </label>
             </div>
             
             <Button

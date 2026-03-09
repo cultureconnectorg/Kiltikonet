@@ -65,6 +65,19 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 - ✅ Boutons "?" accessibles dans chaque interface
 - ✅ Guide Accréditation, Badges, Contacts, Smart Engine, Workspaces, Jour J
 
+### CENTRE DE CONTRÔLE FONDATEUR (9 Mars 2026) ✅
+- ✅ Navigation inter-workspaces (accès direct à 8 workspaces)
+- ✅ Gestion des mots de passe (afficher/masquer/modifier)
+- ✅ Logs d'activité de toute l'équipe
+- ✅ Gestion des inscriptions site public (voir/supprimer)
+- ✅ Accès rapides: Dashboard CC2026, Accréditations, CMS
+
+### PERSISTANCE DES SESSIONS (9 Mars 2026) ✅
+- ✅ Option "Se souvenir de moi" (30 jours)
+- ✅ Sessions stockées dans localStorage
+- ✅ Expiration automatique configurable
+- ✅ Backward compatible avec sessionStorage
+
 ### AUDIT & OPTIMISATION UX (9 Mars 2026) ✅
 - ✅ Création d'un système de design tokens partagés (`/app/frontend/src/lib/design-tokens.js`)
 - ✅ Création d'un composant Header unifié (`WorkspaceHeader.jsx`)
