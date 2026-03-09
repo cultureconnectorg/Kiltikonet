@@ -130,21 +130,9 @@ export const AdminDashboard = () => {
     if (session) {
       if (session.role === 'admin') {
         setIsAuthenticated(true);
-      } else {
-        // Non-admin user with valid session - redirect to their workspace
-        const workspaceRoutes = {
-          founder: '/workspace/laurent',
-          event: '/workspace/gwen',
-          press: '/workspace/kaige',
-          design: '/workspace/twina',
-          business: '/workspace/alirio',
-          finance: '/workspace/wudy',
-          captions: '/workspace/fabrice',
-          analyst: '/workspace/analyst',
-        };
-        const redirectPath = workspaceRoutes[session.role] || '/workspace/laurent';
-        navigate(redirectPath, { replace: true });
       }
+      // For non-admin users, show admin login instead of redirecting
+      // This allows workspace users to login as admin if needed
     } else {
       // Check old localStorage auth
       const adminAuth = localStorage.getItem('kk_admin_auth');
