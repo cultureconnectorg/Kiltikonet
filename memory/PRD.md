@@ -136,14 +136,25 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 
 ## TÂCHES FUTURES (BACKLOG)
 
-### P2 - Vue 3D
-- [ ] Résoudre incompatibilité React 19 / Three.js
-- [ ] Réactiver Dashboard3D et SmartEngine3D
+### P1 - Mode Hors-Ligne Dashboard CC2026 (Mi-Avril 2026)
+- [ ] Cache local des tâches avec IndexedDB ou localStorage
+- [ ] Sync différée quand connexion rétablie
+- [ ] Indicateur visuel mode offline/online
+- **Raison** : Connexion potentiellement instable sur le terrain à La Savane
+
+### P2 - Vue 3D (Prochaine session)
+- [ ] Vérifier si solution React 19 / Three.js disponible
+- [ ] SI solution disponible → Réactiver Dashboard3D et SmartEngine3D
+- [ ] SINON → Conserver fallback 2D actuel
+- **Note** : Ne pas forcer la 3D si incompatibilité persiste
 
 ### P2 - Visual Editor
 - [ ] Résoudre blocage iframe cross-origin
 - [ ] Remplacer window.open par intégration iframe
 
 ---
+
+## 📅 SESSION TERMINÉE - 9 Mars 2026
+**Prochaine session** : Réactivation 3D uniquement si solution React 19 / Three.js disponible
 
 ## 🎯 PRÊT POUR PRODUCTION (Mobile + Desktop)
