@@ -556,56 +556,61 @@ export const AdminDashboard = () => {
   }
   
   return (
-    <div className="min-h-screen bg-paper pt-20">
+    <div className="min-h-screen bg-paper pt-20 pb-20 sm:pb-0">
       <div className="flex h-[calc(100vh-5rem)]">
         {/* Main Content */}
         <div className={`flex-1 flex flex-col overflow-hidden ${selectedReg ? 'lg:mr-[420px]' : ''}`}>
           {/* Header */}
-          <div className="border-b border-lightborder bg-cream px-6 py-4">
-            <div className="flex items-center justify-between">
+          <div className="border-b border-lightborder bg-cream px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h1 className="font-serif text-2xl text-charcoal">
+                <h1 className="font-serif text-xl sm:text-2xl text-charcoal">
                   {language === 'fr' ? 'Gestion des accréditations' : 'Accreditation Management'}
                 </h1>
-                <p className="text-sm text-charcoal/50 mt-1">Culture Connect 2026</p>
+                <p className="text-xs sm:text-sm text-charcoal/50 mt-1">Culture Connect 2026</p>
               </div>
-              <div className="flex items-center gap-3">
+              {/* Boutons principaux - affichés en grille sur mobile */}
+              <div className="flex flex-wrap items-center gap-2">
                 <Button 
                   onClick={() => navigate('/smart-engine')} 
-                  className="h-10 bg-terracotta text-paper font-syne text-sm rounded-none" 
+                  className="h-9 sm:h-10 bg-terracotta text-paper font-syne text-xs sm:text-sm rounded-none" 
                   data-testid="smart-engine-button"
                 >
-                  <Sparkles className="w-4 h-4 mr-2" /> Smart Engine
+                  <Sparkles className="w-4 h-4 sm:mr-2" /> 
+                  <span className="hidden sm:inline">Smart Engine</span>
                 </Button>
                 <Button 
                   onClick={() => navigate('/admin/accreditation')} 
-                  className="h-10 bg-[#8B1A4A] text-paper font-syne text-sm rounded-none" 
+                  className="h-9 sm:h-10 bg-[#8B1A4A] text-paper font-syne text-xs sm:text-sm rounded-none" 
                   data-testid="accreditation-button"
                 >
-                  <QrCode className="w-4 h-4 mr-2" /> Accréditation
+                  <QrCode className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Accréditation</span>
                 </Button>
-                <Button onClick={() => setShowAddModal(true)} className="h-10 bg-sage text-paper font-syne text-sm rounded-none" data-testid="add-participant-button">
-                  <Plus className="w-4 h-4 mr-2" /> {language === 'fr' ? 'Ajouter' : 'Add'}
+                <Button onClick={() => setShowAddModal(true)} className="h-9 sm:h-10 bg-sage text-paper font-syne text-xs sm:text-sm rounded-none" data-testid="add-participant-button">
+                  <Plus className="w-4 h-4 sm:mr-2" /> 
+                  <span className="hidden sm:inline">{language === 'fr' ? 'Ajouter' : 'Add'}</span>
                 </Button>
                 <Button 
                   onClick={() => navigate('/admin/cms')} 
                   variant="outline"
-                  className="h-10 border-gold text-gold hover:bg-gold/10 font-syne text-sm rounded-none" 
+                  className="h-9 sm:h-10 border-gold text-gold hover:bg-gold/10 font-syne text-xs sm:text-sm rounded-none hidden sm:flex" 
                   data-testid="cms-button"
                 >
                   <Settings className="w-4 h-4 mr-2" /> CMS
                 </Button>
                 <Button 
                   onClick={() => navigate('/dashboard-cc2026')} 
-                  className="h-10 bg-[#0D0B08] text-[#C9933A] border border-[#C9933A] hover:bg-[#C9933A]/10 font-syne text-sm rounded-none" 
+                  className="h-9 sm:h-10 bg-[#0D0B08] text-[#C9933A] border border-[#C9933A] hover:bg-[#C9933A]/10 font-syne text-xs sm:text-sm rounded-none" 
                   data-testid="dashboard-cc2026-button"
                 >
-                  <Calendar className="w-4 h-4 mr-2" /> CC2026
+                  <Calendar className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">CC2026</span>
                 </Button>
-                <Button onClick={fetchRegistrations} variant="outline" className="h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none">
+                <Button onClick={fetchRegistrations} variant="outline" className="h-9 sm:h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none">
                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>
-                <Button onClick={handleExportCSV} className="h-10 bg-charcoal text-paper font-syne text-sm rounded-none" data-testid="export-csv-button">
+                <Button onClick={handleExportCSV} className="h-9 sm:h-10 bg-charcoal text-paper font-syne text-xs sm:text-sm rounded-none hidden sm:flex" data-testid="export-csv-button">
                   <Download className="w-4 h-4 mr-2" /> CSV
                 </Button>
                 <Button onClick={() => { 
@@ -613,7 +618,7 @@ export const AdminDashboard = () => {
                   sessionStorage.removeItem('workspace_user');
                   localStorage.removeItem('kk_admin_auth');
                   navigate('/admin'); 
-                }} variant="outline" className="h-10 border-lightborder text-charcoal/50 rounded-none" data-testid="logout-button">
+                }} variant="outline" className="h-9 sm:h-10 border-lightborder text-charcoal/50 rounded-none" data-testid="logout-button">
                   <LogOut className="w-4 h-4" />
                 </Button>
               </div>
