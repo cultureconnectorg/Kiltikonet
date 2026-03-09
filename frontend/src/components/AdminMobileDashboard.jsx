@@ -1,6 +1,7 @@
 /**
- * Admin Mobile Dashboard - CC2026
- * Dashboard adaptatif avec Scanner QR et dernières inscriptions
+ * Admin Mobile Dashboard - CC2026 Mode Terrain
+ * Dashboard avec Scanner QR, Affluence temps réel, Recherche rapide
+ * Optimisé pour l'utilisation sur le terrain pendant l'événement
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -8,10 +9,12 @@ import { useNavigate } from 'react-router-dom';
 import { 
   QrCode, Camera, X, Users, Bell, Activity, 
   ChevronRight, Clock, CheckCircle, AlertCircle,
-  RefreshCw, Settings, LogOut, Home
+  RefreshCw, Settings, LogOut, Home, Search,
+  UserCheck, TrendingUp, Zap
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
@@ -26,23 +29,27 @@ const COLORS = {
   textMuted: '#6B6B6B',
   accent: '#D4A84B',
   terracotta: '#C4714A',
-  success: '#4CAF50',
+  success: '#22C55E',
+  warning: '#F59E0B',
+  error: '#EF4444',
   border: '#E5E0D8',
 };
 
 // ═══════════════════════════════════════════════════════════════
-// QR CODE SCANNER COMPONENT
+// QR CODE SCANNER COMPONENT (Optimisé batterie)
 // ═══════════════════════════════════════════════════════════════
-const QRScanner = ({ onScan, onClose }) => {
-  const scannerRef = useRef(null);
+const QRScanner = ({ onScan, onClose, isActive }) => {
   const html5QrCodeRef = useRef(null);
   const [error, setError] = useState(null);
   const [isStarting, setIsStarting] = useState(true);
 
+  // Start/Stop scanner based on isActive prop (battery optimization)
   useEffect(() => {
     let mounted = true;
     
     const startScanner = async () => {
+      if (!isActive) return;
+      
       try {
         const html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCodeRef.current = html5QrCode;
@@ -58,13 +65,12 @@ const QRScanner = ({ onScan, onClose }) => {
           config,
           (decodedText) => {
             if (mounted) {
+              // Vibrate on successful scan
+              if (navigator.vibrate) navigator.vibrate(100);
               onScan(decodedText);
-              html5QrCode.stop().catch(console.error);
             }
           },
-          (errorMessage) => {
-            // Ignore scan errors
-          }
+          () => {} // Ignore scan errors
         );
         
         if (mounted) setIsStarting(false);
@@ -79,19 +85,31 @@ const QRScanner = ({ onScan, onClose }) => {
 
     startScanner();
 
+    // Cleanup - IMPORTANT for battery optimization
     return () => {
       mounted = false;
       if (html5QrCodeRef.current) {
         html5QrCodeRef.current.stop().catch(() => {});
+        html5QrCodeRef.current = null;
       }
     };
-  }, [onScan]);
+  }, [onScan, isActive]);
+
+  // Stop scanner when component closes
+  useEffect(() => {
+    if (!isActive && html5QrCodeRef.current) {
+      html5QrCodeRef.current.stop().catch(() => {});
+      html5QrCodeRef.current = null;
+    }
+  }, [isActive]);
+
+  if (!isActive) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black/80">
-        <h2 className="text-white font-bold">Scanner un badge</h2>
+      <div className="flex items-center justify-between p-4 bg-black/80 safe-area-top">
+        <h2 className="text-white font-bold text-lg">Scanner un badge</h2>
         <button 
           onClick={onClose}
           className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
@@ -119,7 +137,6 @@ const QRScanner = ({ onScan, onClose }) => {
           <div className="w-full max-w-sm">
             <div 
               id="qr-reader" 
-              ref={scannerRef}
               className="rounded-2xl overflow-hidden"
               style={{ width: '100%' }}
             />
@@ -130,10 +147,10 @@ const QRScanner = ({ onScan, onClose }) => {
         )}
       </div>
 
-      {/* Instructions */}
-      <div className="p-6 bg-black/80 text-center">
+      {/* Info */}
+      <div className="p-6 bg-black/80 text-center safe-area-bottom">
         <p className="text-white/60 text-sm">
-          Scannez le QR code présent sur le badge d'accréditation
+          Le scan s'arrête automatiquement pour économiser la batterie
         </p>
       </div>
     </div>
@@ -141,74 +158,106 @@ const QRScanner = ({ onScan, onClose }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// SCAN RESULT MODAL
+// SCAN RESULT MODAL - Visual feedback Vert/Orange/Rouge
 // ═══════════════════════════════════════════════════════════════
-const ScanResultModal = ({ data, onClose, onValidate }) => {
-  if (!data) return null;
+const ScanResultModal = ({ result, onClose, onRetry }) => {
+  const colorMap = {
+    green: { bg: 'bg-green-100', icon: 'text-green-600', border: 'border-green-200' },
+    orange: { bg: 'bg-orange-100', icon: 'text-orange-600', border: 'border-orange-200' },
+    red: { bg: 'bg-red-100', icon: 'text-red-600', border: 'border-red-200' },
+  };
 
-  const isValid = data.status === 'approved';
+  const colors = result ? (colorMap[result.color] || colorMap.red) : colorMap.red;
+  const isSuccess = result?.color === 'green';
+  const isWarning = result?.color === 'orange';
+
+  // Auto-close success after 3 seconds
+  useEffect(() => {
+    if (isSuccess && result) {
+      const timer = setTimeout(onClose, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, onClose, result]);
+
+  if (!result) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div 
-        className="w-full max-w-sm rounded-2xl p-6"
+        className={`w-full max-w-sm rounded-2xl p-6 ${colors.bg} ${colors.border} border-2`}
         style={{ background: COLORS.card }}
       >
         {/* Status Icon */}
-        <div className={`w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center ${isValid ? 'bg-green-100' : 'bg-red-100'}`}>
-          {isValid ? (
-            <CheckCircle className="w-10 h-10 text-green-600" />
+        <div className={`w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center ${colors.bg}`}>
+          {isSuccess ? (
+            <CheckCircle className={`w-14 h-14 ${colors.icon}`} />
+          ) : isWarning ? (
+            <AlertCircle className={`w-14 h-14 ${colors.icon}`} />
           ) : (
-            <AlertCircle className="w-10 h-10 text-red-600" />
+            <X className={`w-14 h-14 ${colors.icon}`} />
           )}
         </div>
 
         {/* Status Text */}
-        <h3 className={`text-xl font-bold text-center mb-2 ${isValid ? 'text-green-700' : 'text-red-700'}`}>
-          {isValid ? 'Badge Valide' : 'Badge Non Valide'}
+        <h3 className={`text-2xl font-bold text-center mb-2 ${
+          isSuccess ? 'text-green-700' : isWarning ? 'text-orange-700' : 'text-red-700'
+        }`}>
+          {result.message}
         </h3>
 
         {/* Person Info */}
-        {data.full_name && (
-          <div className="text-center mb-4">
-            <p className="text-lg font-semibold" style={{ color: COLORS.text }}>{data.full_name}</p>
-            <p className="text-sm" style={{ color: COLORS.textMuted }}>{data.organization_name}</p>
-            <p className="text-xs mt-1" style={{ color: COLORS.textMuted }}>{data.profile_type}</p>
+        {result.person && (
+          <div className="text-center mb-4 p-4 rounded-xl" style={{ background: COLORS.background }}>
+            <p className="text-xl font-bold" style={{ color: COLORS.text }}>
+              {result.person.full_name}
+            </p>
+            <p className="text-sm" style={{ color: COLORS.textMuted }}>
+              {result.person.organization_name}
+            </p>
+            <div className="flex justify-center gap-2 mt-2">
+              <span 
+                className="px-3 py-1 text-xs rounded-full font-medium"
+                style={{ 
+                  background: result.person.tier === 'premium' ? `${COLORS.accent}20` : '#eee',
+                  color: result.person.tier === 'premium' ? COLORS.accent : COLORS.textMuted
+                }}
+              >
+                {(result.person.tier || 'standard').toUpperCase()}
+              </span>
+              <span className="px-3 py-1 text-xs rounded-full" style={{ background: '#eee', color: COLORS.textMuted }}>
+                {result.person.profile_type}
+              </span>
+            </div>
           </div>
         )}
 
-        {/* Tier Badge */}
-        {data.tier && (
-          <div className="flex justify-center mb-4">
-            <span 
-              className="px-4 py-1 rounded-full text-sm font-medium"
-              style={{ 
-                background: data.tier === 'premium' ? `${COLORS.accent}20` : '#eee',
-                color: data.tier === 'premium' ? COLORS.accent : COLORS.textMuted
-              }}
-            >
-              {data.tier.toUpperCase()}
-            </span>
-          </div>
+        {/* Scan time for duplicates */}
+        {result.scanned_at && isWarning && (
+          <p className="text-center text-sm mb-4" style={{ color: COLORS.textMuted }}>
+            Scanné à {new Date(result.scanned_at).toLocaleTimeString('fr-FR')}
+          </p>
         )}
 
         {/* Actions */}
         <div className="flex gap-3">
           <Button 
             onClick={onClose}
-            variant="outline"
             className="flex-1"
-            style={{ borderColor: COLORS.border, color: COLORS.text }}
+            style={{ 
+              background: isSuccess ? COLORS.success : COLORS.textMuted, 
+              color: '#fff' 
+            }}
           >
-            Fermer
+            {isSuccess ? 'Suivant' : 'Fermer'}
           </Button>
-          {isValid && (
+          {!isSuccess && (
             <Button 
-              onClick={() => onValidate(data)}
+              onClick={onRetry}
+              variant="outline"
               className="flex-1"
-              style={{ background: COLORS.accent, color: '#fff' }}
+              style={{ borderColor: COLORS.border }}
             >
-              Valider entrée
+              Réessayer
             </Button>
           )}
         </div>
@@ -218,88 +267,252 @@ const ScanResultModal = ({ data, onClose, onValidate }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// RECENT REGISTRATION CARD
+// AFFLUENCE WIDGET - Temps réel
 // ═══════════════════════════════════════════════════════════════
-const RegistrationCard = ({ registration, onClick }) => {
-  const timeAgo = (date) => {
-    const now = new Date();
-    const then = new Date(date);
-    const diff = Math.floor((now - then) / 1000);
-    
-    if (diff < 60) return 'À l\'instant';
-    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
-    return `Il y a ${Math.floor(diff / 86400)} j`;
-  };
+const AffluenceWidget = ({ data, onRefresh }) => {
+  if (!data) return null;
+
+  const percentage = data.percentage || 0;
 
   return (
-    <button
-      onClick={onClick}
-      className="w-full p-4 rounded-xl flex items-center gap-4 transition-all hover:shadow-md"
+    <div 
+      className="p-5 rounded-2xl"
       style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
     >
-      <img
-        src={registration.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(registration.full_name || 'U')}&background=D4A84B&color=fff`}
-        alt={registration.full_name}
-        className="w-12 h-12 rounded-full object-cover"
-      />
-      <div className="flex-1 text-left min-w-0">
-        <p className="font-semibold truncate" style={{ color: COLORS.text }}>
-          {registration.full_name}
-        </p>
-        <p className="text-sm truncate" style={{ color: COLORS.textMuted }}>
-          {registration.organization_name || registration.profile_type}
-        </p>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${COLORS.success}15` }}>
+            <TrendingUp className="w-5 h-5" style={{ color: COLORS.success }} />
+          </div>
+          <div>
+            <h3 className="font-bold" style={{ color: COLORS.text }}>Affluence en direct</h3>
+            <p className="text-xs" style={{ color: COLORS.textMuted }}>Mise à jour auto</p>
+          </div>
+        </div>
+        <button onClick={onRefresh} className="p-2 rounded-full hover:bg-gray-100">
+          <RefreshCw className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+        </button>
       </div>
-      <div className="text-right">
-        <span className="text-xs" style={{ color: COLORS.textMuted }}>
-          {timeAgo(registration.created_at)}
-        </span>
-        <ChevronRight className="w-5 h-5 ml-auto mt-1" style={{ color: COLORS.textMuted }} />
+
+      {/* Main Counter */}
+      <div className="text-center py-4">
+        <div className="flex items-baseline justify-center gap-1">
+          <span className="text-5xl font-bold" style={{ color: COLORS.success }}>{data.present_count}</span>
+          <span className="text-2xl" style={{ color: COLORS.textMuted }}>/ {data.total_registered}</span>
+        </div>
+        <p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>personnes présentes</p>
       </div>
-    </button>
+
+      {/* Progress Bar */}
+      <div className="h-3 rounded-full overflow-hidden mb-4" style={{ background: '#E5E5E5' }}>
+        <div 
+          className="h-full rounded-full transition-all duration-500"
+          style={{ 
+            width: `${percentage}%`,
+            background: `linear-gradient(90deg, ${COLORS.success}, ${COLORS.accent})`
+          }}
+        />
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="p-2 rounded-lg" style={{ background: COLORS.background }}>
+          <p className="text-lg font-bold" style={{ color: COLORS.text }}>{percentage}%</p>
+          <p className="text-xs" style={{ color: COLORS.textMuted }}>Taux</p>
+        </div>
+        <div className="p-2 rounded-lg" style={{ background: COLORS.background }}>
+          <p className="text-lg font-bold" style={{ color: COLORS.text }}>{data.remaining}</p>
+          <p className="text-xs" style={{ color: COLORS.textMuted }}>Restants</p>
+        </div>
+        <div className="p-2 rounded-lg" style={{ background: COLORS.background }}>
+          <p className="text-lg font-bold" style={{ color: COLORS.terracotta }}>{data.recent_scans_1h || 0}</p>
+          <p className="text-xs" style={{ color: COLORS.textMuted }}>Cette heure</p>
+        </div>
+      </div>
+    </div>
   );
 };
 
 // ═══════════════════════════════════════════════════════════════
-// STATS CARD
+// QUICK SEARCH - Recherche rapide par nom
 // ═══════════════════════════════════════════════════════════════
-const StatsCard = ({ icon: Icon, label, value, color }) => (
-  <div 
-    className="p-4 rounded-xl"
-    style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
-  >
-    <div className="flex items-center gap-3">
-      <div 
-        className="w-10 h-10 rounded-lg flex items-center justify-center"
-        style={{ background: `${color}15` }}
-      >
-        <Icon className="w-5 h-5" style={{ color }} />
+const QuickSearch = ({ onCheckin }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimeout = useRef(null);
+
+  const handleSearch = useCallback(async (q) => {
+    if (!q || q.length < 2) {
+      setResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const res = await fetch(`${API}/api/terrain/search?q=${encodeURIComponent(q)}&limit=8`);
+      if (res.ok) {
+        const data = await res.json();
+        setResults(data.results || []);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => handleSearch(query), 300);
+    return () => clearTimeout(searchTimeout.current);
+  }, [query, handleSearch]);
+
+  const handleManualCheckin = async (participant) => {
+    try {
+      const res = await fetch(`${API}/api/terrain/manual-checkin/${participant.id}`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      
+      if (data.status === 'success') {
+        toast.success(`${participant.full_name} enregistré !`);
+        onCheckin();
+        setQuery('');
+        setResults([]);
+      } else if (data.status === 'already_present') {
+        toast.warning('Déjà enregistré comme présent');
+      }
+    } catch (error) {
+      toast.error('Erreur lors du pointage');
+    }
+  };
+
+  return (
+    <div 
+      className="p-4 rounded-2xl"
+      style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Search className="w-5 h-5" style={{ color: COLORS.textMuted }} />
+        <h3 className="font-bold" style={{ color: COLORS.text }}>Recherche rapide</h3>
       </div>
-      <div>
-        <p className="text-2xl font-bold" style={{ color: COLORS.text }}>{value}</p>
-        <p className="text-xs" style={{ color: COLORS.textMuted }}>{label}</p>
+      
+      <div className="relative">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Nom ou organisation..."
+          className="w-full pr-10"
+          style={{ background: COLORS.background, border: `1px solid ${COLORS.border}` }}
+        />
+        {searching && (
+          <RefreshCw className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin" style={{ color: COLORS.textMuted }} />
+        )}
       </div>
+
+      {/* Results */}
+      {results.length > 0 && (
+        <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
+          {results.map((p) => (
+            <div 
+              key={p.id}
+              className="flex items-center justify-between p-3 rounded-xl"
+              style={{ background: COLORS.background }}
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <img
+                  src={p.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.full_name)}&background=D4A84B&color=fff&size=40`}
+                  alt=""
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                />
+                <div className="min-w-0">
+                  <p className="font-medium truncate" style={{ color: COLORS.text }}>{p.full_name}</p>
+                  <p className="text-xs truncate" style={{ color: COLORS.textMuted }}>{p.organization_name}</p>
+                </div>
+              </div>
+              
+              {p.presence_status === 'present' ? (
+                <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: `${COLORS.success}15`, color: COLORS.success }}>
+                  <CheckCircle className="w-3 h-3" /> Présent
+                </span>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => handleManualCheckin(p)}
+                  style={{ background: COLORS.accent, color: '#fff' }}
+                >
+                  <UserCheck className="w-4 h-4 mr-1" /> Pointer
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {query.length >= 2 && results.length === 0 && !searching && (
+        <p className="text-center py-4 text-sm" style={{ color: COLORS.textMuted }}>
+          Aucun résultat pour "{query}"
+        </p>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 // ═══════════════════════════════════════════════════════════════
-// MAIN ADMIN MOBILE DASHBOARD
+// LAST SCANS - Derniers scans
+// ═══════════════════════════════════════════════════════════════
+const LastScans = ({ scans }) => {
+  if (!scans || scans.length === 0) return null;
+
+  return (
+    <div 
+      className="p-4 rounded-2xl"
+      style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Zap className="w-5 h-5" style={{ color: COLORS.accent }} />
+        <h3 className="font-bold" style={{ color: COLORS.text }}>Derniers scans</h3>
+      </div>
+      
+      <div className="space-y-2">
+        {scans.map((scan, i) => (
+          <div key={scan.id || i} className="flex items-center gap-3 py-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: `${COLORS.success}15` }}>
+              <CheckCircle className="w-4 h-4" style={{ color: COLORS.success }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm truncate" style={{ color: COLORS.text }}>
+                {scan.person?.full_name || 'Participant'}
+              </p>
+              <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                {scan.person?.organization_name}
+              </p>
+            </div>
+            <span className="text-xs" style={{ color: COLORS.textMuted }}>
+              {new Date(scan.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN ADMIN MOBILE DASHBOARD - Mode Terrain
 // ═══════════════════════════════════════════════════════════════
 const AdminMobileDashboard = () => {
   const navigate = useNavigate();
   const [showScanner, setShowScanner] = useState(false);
   const [scanResult, setScanResult] = useState(null);
-  const [recentRegistrations, setRecentRegistrations] = useState([]);
-  const [stats, setStats] = useState({ total: 0, today: 0, pending: 0 });
-  const [notifications, setNotifications] = useState([]);
+  const [affluence, setAffluence] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   // Check admin role
   const getAdminSession = () => {
-    // Check persistent session
     try {
       const persistent = localStorage.getItem('cc2026_session');
       if (persistent) {
@@ -309,71 +522,45 @@ const AdminMobileDashboard = () => {
         }
       }
     } catch {}
-    
-    // Check temp session
     try {
       const temp = sessionStorage.getItem('workspace_user');
       if (temp) return JSON.parse(temp);
     } catch {}
-    
     return {};
   };
   
   const session = getAdminSession();
-  const isAdmin = session.role === 'admin' || session.role === 'founder' || session.workspace;
 
-  // Fetch data
-  const fetchData = useCallback(async () => {
+  // Fetch affluence data
+  const fetchAffluence = useCallback(async () => {
     try {
-      // Fetch recent registrations
-      const regRes = await fetch(`${API}/api/registrations?limit=10`);
-      if (regRes.ok) {
-        const regData = await regRes.json();
-        setRecentRegistrations(regData.registrations || []);
-        
-        // Calculate stats
-        const today = new Date().toDateString();
-        const todayCount = (regData.registrations || []).filter(
-          r => new Date(r.created_at).toDateString() === today
-        ).length;
-        const pendingCount = (regData.registrations || []).filter(
-          r => r.status === 'pending'
-        ).length;
-        
-        setStats({
-          total: regData.count || regData.registrations?.length || 0,
-          today: todayCount,
-          pending: pendingCount
-        });
-      }
-
-      // Fetch team notifications
-      const notifRes = await fetch(`${API}/api/team/notifications?limit=5`);
-      if (notifRes.ok) {
-        const notifData = await notifRes.json();
-        setNotifications(notifData.notifications || []);
+      const res = await fetch(`${API}/api/terrain/affluence`);
+      if (res.ok) {
+        const data = await res.json();
+        setAffluence(data);
       }
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error('Failed to fetch affluence:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
+  // Initial fetch + auto-refresh every 10 seconds
   useEffect(() => {
-    fetchData();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchData, 30000);
+    fetchAffluence();
+    const interval = setInterval(fetchAffluence, 10000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchAffluence]);
 
   // Handle QR scan
   const handleScan = async (decodedText) => {
+    // Stop scanner immediately after scan
     setShowScanner(false);
     
     try {
-      // Parse QR data (could be JSON or just an ID)
+      // Parse QR data
       let badgeId;
       try {
         const parsed = JSON.parse(decodedText);
@@ -382,47 +569,56 @@ const AdminMobileDashboard = () => {
         badgeId = decodedText;
       }
 
-      // Fetch badge/registration info
-      const res = await fetch(`${API}/api/registrations/${badgeId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setScanResult(data);
-      } else {
-        setScanResult({ status: 'invalid', message: 'Badge non trouvé' });
+      // Validate badge via API
+      const res = await fetch(`${API}/api/terrain/validate-badge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          badge_id: badgeId,
+          validator_id: session.id || session.workspace,
+          location: 'Entrée principale'
+        })
+      });
+
+      const data = await res.json();
+      setScanResult(data);
+
+      // Refresh affluence on successful scan
+      if (data.color === 'green') {
+        fetchAffluence();
       }
     } catch (error) {
       console.error('Scan error:', error);
-      setScanResult({ status: 'error', message: 'Erreur de lecture' });
-    }
-  };
-
-  // Validate entry
-  const handleValidateEntry = async (data) => {
-    try {
-      await fetch(`${API}/api/accreditation/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registration_id: data.id })
+      setScanResult({
+        status: 'error',
+        code: 'NETWORK_ERROR',
+        message: 'Erreur de connexion',
+        color: 'red'
       });
-      toast.success('Entrée validée !');
-      setScanResult(null);
-    } catch (error) {
-      toast.error('Erreur de validation');
     }
   };
 
-  // Refresh
+  // Close result and optionally retry
+  const handleCloseResult = () => setScanResult(null);
+  const handleRetry = () => {
+    setScanResult(null);
+    setShowScanner(true);
+  };
+
+  // Manual refresh
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchData();
+    fetchAffluence();
+  };
+
+  // On checkin from search
+  const handleCheckinFromSearch = () => {
+    fetchAffluence();
   };
 
   if (loading) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: COLORS.background }}
-      >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.background }}>
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: COLORS.accent }} />
           <p style={{ color: COLORS.textMuted }}>Chargement...</p>
@@ -441,10 +637,8 @@ const AdminMobileDashboard = () => {
       <header className="sticky top-0 z-30 px-4 py-4 safe-area-top" style={{ background: COLORS.background }}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold" style={{ color: COLORS.text }}>Admin CC2026</h1>
-            <p className="text-sm" style={{ color: COLORS.textMuted }}>
-              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
+            <h1 className="text-xl font-bold" style={{ color: COLORS.text }}>Mode Terrain</h1>
+            <p className="text-sm" style={{ color: COLORS.textMuted }}>CC2026 • Scanner & Pointage</p>
           </div>
           <div className="flex items-center gap-2">
             <button 
@@ -456,119 +650,42 @@ const AdminMobileDashboard = () => {
               <RefreshCw className="w-5 h-5" style={{ color: COLORS.textMuted }} />
             </button>
             <button 
-              onClick={() => navigate('/admin/settings')}
+              onClick={() => navigate('/admin')}
               className="p-2 rounded-full"
               style={{ background: COLORS.card }}
             >
-              <Settings className="w-5 h-5" style={{ color: COLORS.textMuted }} />
+              <Home className="w-5 h-5" style={{ color: COLORS.textMuted }} />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="px-4 space-y-6">
-        {/* QR Scanner Button */}
+      <main className="px-4 space-y-4">
+        {/* Big Scanner Button */}
         <button
           onClick={() => setShowScanner(true)}
-          className="w-full p-6 rounded-2xl flex items-center justify-center gap-4 transition-transform active:scale-98"
-          style={{ background: COLORS.accent }}
+          className="w-full p-6 rounded-2xl flex items-center justify-center gap-4 transition-transform active:scale-98 shadow-lg"
+          style={{ background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.terracotta})` }}
           data-testid="scan-qr-button"
         >
-          <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <QrCode className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center">
+            <QrCode className="w-10 h-10 text-white" />
           </div>
           <div className="text-left">
-            <p className="text-lg font-bold text-white">Scanner un badge</p>
-            <p className="text-sm text-white/80">Valider une accréditation</p>
+            <p className="text-xl font-bold text-white">Scanner un badge</p>
+            <p className="text-sm text-white/80">Appuyez pour activer la caméra</p>
           </div>
-          <Camera className="w-6 h-6 text-white/60 ml-auto" />
+          <Camera className="w-8 h-8 text-white/60 ml-auto" />
         </button>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <StatsCard 
-            icon={Users} 
-            label="Total" 
-            value={stats.total} 
-            color={COLORS.accent}
-          />
-          <StatsCard 
-            icon={Activity} 
-            label="Aujourd'hui" 
-            value={stats.today} 
-            color={COLORS.terracotta}
-          />
-          <StatsCard 
-            icon={Clock} 
-            label="En attente" 
-            value={stats.pending} 
-            color="#FF9800"
-          />
-        </div>
+        {/* Affluence Widget */}
+        <AffluenceWidget data={affluence} onRefresh={handleRefresh} />
 
-        {/* Notifications */}
-        {notifications.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold" style={{ color: COLORS.text }}>Notifications</h2>
-              <Bell className="w-5 h-5" style={{ color: COLORS.textMuted }} />
-            </div>
-            <div 
-              className="p-4 rounded-xl space-y-3"
-              style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
-            >
-              {notifications.slice(0, 3).map((notif, i) => (
-                <div key={notif.id || i} className="flex items-start gap-3">
-                  <div 
-                    className="w-2 h-2 rounded-full mt-2"
-                    style={{ background: notif.read ? COLORS.textMuted : COLORS.accent }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: COLORS.text }}>
-                      {notif.title}
-                    </p>
-                    <p className="text-xs truncate" style={{ color: COLORS.textMuted }}>
-                      {notif.message}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Quick Search */}
+        <QuickSearch onCheckin={handleCheckinFromSearch} />
 
-        {/* Recent Registrations */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold" style={{ color: COLORS.text }}>Dernières inscriptions</h2>
-            <button 
-              onClick={() => navigate('/admin/registrations')}
-              className="text-sm"
-              style={{ color: COLORS.accent }}
-            >
-              Voir tout
-            </button>
-          </div>
-          <div className="space-y-3">
-            {recentRegistrations.length === 0 ? (
-              <div 
-                className="p-6 rounded-xl text-center"
-                style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
-              >
-                <Users className="w-12 h-12 mx-auto mb-2" style={{ color: COLORS.textMuted }} />
-                <p style={{ color: COLORS.textMuted }}>Aucune inscription récente</p>
-              </div>
-            ) : (
-              recentRegistrations.slice(0, 5).map((reg) => (
-                <RegistrationCard 
-                  key={reg.id} 
-                  registration={reg}
-                  onClick={() => navigate(`/admin/participant/${reg.id}`)}
-                />
-              ))
-            )}
-          </div>
-        </div>
+        {/* Last Scans */}
+        <LastScans scans={affluence?.last_scans} />
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3 pb-4">
@@ -577,13 +694,14 @@ const AdminMobileDashboard = () => {
             className="p-4 rounded-xl flex items-center gap-3"
             style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
           >
-            <Home className="w-5 h-5" style={{ color: COLORS.accent }} />
+            <Activity className="w-5 h-5" style={{ color: COLORS.accent }} />
             <span className="text-sm font-medium" style={{ color: COLORS.text }}>Dashboard</span>
           </button>
           <button
             onClick={() => {
-              localStorage.removeItem('cc2026_admin_session');
-              navigate('/admin/login');
+              localStorage.removeItem('cc2026_session');
+              sessionStorage.removeItem('workspace_user');
+              navigate('/admin');
             }}
             className="p-4 rounded-xl flex items-center gap-3"
             style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
@@ -594,22 +712,19 @@ const AdminMobileDashboard = () => {
         </div>
       </main>
 
-      {/* QR Scanner Modal */}
-      {showScanner && (
-        <QRScanner 
-          onScan={handleScan}
-          onClose={() => setShowScanner(false)}
-        />
-      )}
+      {/* QR Scanner Modal - Only active when showScanner is true (battery optimization) */}
+      <QRScanner 
+        isActive={showScanner}
+        onScan={handleScan}
+        onClose={() => setShowScanner(false)}
+      />
 
       {/* Scan Result Modal */}
-      {scanResult && (
-        <ScanResultModal
-          data={scanResult}
-          onClose={() => setScanResult(null)}
-          onValidate={handleValidateEntry}
-        />
-      )}
+      <ScanResultModal
+        result={scanResult}
+        onClose={handleCloseResult}
+        onRetry={handleRetry}
+      />
     </div>
   );
 };

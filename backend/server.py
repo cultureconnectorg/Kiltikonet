@@ -6231,6 +6231,245 @@ async def get_public_catalog():
     return {"registrations": registrations, "count": len(registrations)}
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# MODE TERRAIN - Validation QR & Affluence Temps Réel
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class QRValidationRequest(BaseModel):
+    badge_id: str
+    validator_id: Optional[str] = None
+    location: Optional[str] = "Entrée principale"
+
+@app.post("/api/terrain/validate-badge")
+async def validate_badge(request: QRValidationRequest):
+    """Validate a badge via QR scan - Mark as Present"""
+    # Find registration by ID or badge_id
+    registration = await db.registrations.find_one(
+        {"$or": [{"id": request.badge_id}, {"badge_id": request.badge_id}]},
+        {"_id": 0}
+    )
+    
+    if not registration:
+        return {
+            "status": "error",
+            "code": "NOT_FOUND",
+            "message": "Badge non trouvé dans le système",
+            "color": "red"
+        }
+    
+    # Check if already scanned
+    if registration.get("presence_status") == "present":
+        scanned_at = registration.get("scanned_at", "")
+        return {
+            "status": "already_scanned",
+            "code": "DUPLICATE",
+            "message": "Badge déjà scanné",
+            "scanned_at": scanned_at,
+            "person": {
+                "full_name": registration.get("full_name"),
+                "organization_name": registration.get("organization_name"),
+                "profile_type": registration.get("profile_type"),
+                "tier": registration.get("tier")
+            },
+            "color": "orange"
+        }
+    
+    # Check if registration is approved
+    if registration.get("status") != "approved":
+        return {
+            "status": "error",
+            "code": "NOT_APPROVED",
+            "message": "Inscription non approuvée (statut: " + str(registration.get('status', 'unknown')) + ")",
+            "color": "red"
+        }
+    
+    # Mark as present
+    scan_time = datetime.now(timezone.utc).isoformat()
+    await db.registrations.update_one(
+        {"id": registration["id"]},
+        {
+            "$set": {
+                "presence_status": "present",
+                "scanned_at": scan_time,
+                "scanned_by": request.validator_id,
+                "scan_location": request.location
+            }
+        }
+    )
+    
+    # Log the scan event
+    scan_event = {
+        "id": str(uuid.uuid4()),
+        "type": "badge_scan",
+        "registration_id": registration["id"],
+        "validator_id": request.validator_id,
+        "location": request.location,
+        "timestamp": scan_time
+    }
+    await db.scan_events.insert_one(scan_event)
+    
+    return {
+        "status": "success",
+        "code": "VALIDATED",
+        "message": "Entrée validée !",
+        "scanned_at": scan_time,
+        "person": {
+            "id": registration["id"],
+            "full_name": registration.get("full_name"),
+            "organization_name": registration.get("organization_name"),
+            "profile_type": registration.get("profile_type"),
+            "tier": registration.get("tier"),
+            "country": registration.get("country")
+        },
+        "color": "green"
+    }
+
+@app.get("/api/terrain/affluence")
+async def get_affluence():
+    """Get real-time attendance count"""
+    # Total approved registrations
+    total_approved = await db.registrations.count_documents({"status": "approved"})
+    
+    # Present (scanned) count
+    present_count = await db.registrations.count_documents({
+        "status": "approved",
+        "presence_status": "present"
+    })
+    
+    # Recent scans (last hour)
+    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    recent_scans = await db.scan_events.count_documents({
+        "timestamp": {"$gte": one_hour_ago}
+    })
+    
+    # Last 5 scans
+    last_scans = await db.scan_events.find(
+        {},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(5).to_list(5)
+    
+    # Enrich last scans with person info
+    enriched_scans = []
+    for scan in last_scans:
+        reg = await db.registrations.find_one(
+            {"id": scan.get("registration_id")},
+            {"_id": 0, "full_name": 1, "organization_name": 1, "tier": 1}
+        )
+        if reg:
+            scan["person"] = reg
+            enriched_scans.append(scan)
+    
+    return {
+        "total_registered": total_approved,
+        "present_count": present_count,
+        "remaining": total_approved - present_count,
+        "percentage": round((present_count / total_approved * 100) if total_approved > 0 else 0, 1),
+        "recent_scans_1h": recent_scans,
+        "last_scans": enriched_scans,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.get("/api/terrain/search")
+async def search_participants(q: str, limit: int = 10):
+    """Quick search for participants by name (for manual check-in)"""
+    if not q or len(q) < 2:
+        return {"results": [], "count": 0}
+    
+    # Search by name or organization (case-insensitive)
+    query = {
+        "status": "approved",
+        "$or": [
+            {"full_name": {"$regex": q, "$options": "i"}},
+            {"organization_name": {"$regex": q, "$options": "i"}}
+        ]
+    }
+    
+    results = await db.registrations.find(
+        query,
+        {
+            "_id": 0,
+            "id": 1,
+            "full_name": 1,
+            "organization_name": 1,
+            "profile_type": 1,
+            "tier": 1,
+            "presence_status": 1,
+            "scanned_at": 1,
+            "image": 1
+        }
+    ).limit(limit).to_list(limit)
+    
+    return {"results": results, "count": len(results)}
+
+@app.post("/api/terrain/manual-checkin/{registration_id}")
+async def manual_checkin(registration_id: str, validator_id: str = None):
+    """Manual check-in for participants without QR code"""
+    registration = await db.registrations.find_one(
+        {"id": registration_id},
+        {"_id": 0}
+    )
+    
+    if not registration:
+        raise HTTPException(status_code=404, detail="Participant non trouvé")
+    
+    if registration.get("presence_status") == "present":
+        return {
+            "status": "already_present",
+            "message": "Déjà enregistré comme présent",
+            "scanned_at": registration.get("scanned_at")
+        }
+    
+    # Mark as present (manual)
+    scan_time = datetime.now(timezone.utc).isoformat()
+    await db.registrations.update_one(
+        {"id": registration_id},
+        {
+            "$set": {
+                "presence_status": "present",
+                "scanned_at": scan_time,
+                "scanned_by": validator_id,
+                "scan_location": "Manuel"
+            }
+        }
+    )
+    
+    # Log the scan event
+    scan_event = {
+        "id": str(uuid.uuid4()),
+        "type": "manual_checkin",
+        "registration_id": registration_id,
+        "validator_id": validator_id,
+        "location": "Manuel",
+        "timestamp": scan_time
+    }
+    await db.scan_events.insert_one(scan_event)
+    
+    return {
+        "status": "success",
+        "message": "Entrée validée manuellement",
+        "scanned_at": scan_time
+    }
+
+@app.delete("/api/terrain/reset-presence/{registration_id}")
+async def reset_presence(registration_id: str):
+    """Reset presence status (admin only - for corrections)"""
+    result = await db.registrations.update_one(
+        {"id": registration_id},
+        {
+            "$unset": {
+                "presence_status": "",
+                "scanned_at": "",
+                "scanned_by": "",
+                "scan_location": ""
+            }
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Participant non trouvé")
+    
+    return {"status": "success", "message": "Présence réinitialisée"}
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SMART ANALYTICS - Cerveau Expert Analyst
