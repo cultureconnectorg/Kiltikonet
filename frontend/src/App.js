@@ -48,6 +48,10 @@ import ProSpaceDashboard, { ProSpaceLogin } from "./components/ProSpaceDashboard
 // PWA Components
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import MobileBottomNav from "./components/MobileBottomNav";
+// Admin Mobile Dashboard
+import AdminMobileDashboard from "./components/AdminMobileDashboard";
+// Device Detection Hook
+import useDeviceDetect from "./hooks/useDeviceDetect";
 // 3D Components - LAZY LOADED to avoid React 19 compatibility issues
 const Dashboard3D = lazy(() => import("./components/admin/Dashboard3D"));
 const SmartEngine3D = lazy(() => import("./components/admin/SmartEngine3D"));
@@ -65,21 +69,18 @@ const Loading3D = () => (
 // Layout wrapper that conditionally shows Header and Mobile Nav
 const AppLayout = ({ children }) => {
   const location = useLocation();
+  
+  // Routes where header should be hidden
   const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace', '/dashboard-cc2026', '/espace-pro'];
   const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
-  
-  // Check if user is in pro space for nav type
-  const isProSpace = location.pathname.startsWith('/espace-pro') && !location.pathname.includes('/connexion');
-  const proSession = localStorage.getItem('cc2026_pro_session');
-  const userType = isProSpace && proSession ? 'pro' : 'public';
   
   return (
     <>
       {showHeader && <Header />}
-      <div className="pb-16 md:pb-0"> {/* Add padding for mobile nav */}
+      <div className="pb-16 md:pb-0"> {/* Add padding for mobile nav on mobile only */}
         {children}
       </div>
-      <MobileBottomNav userType={userType} />
+      <MobileBottomNav />
       <PWAInstallPrompt />
       <CookieBanner />
     </>
@@ -138,6 +139,8 @@ function App() {
               <Route path="/admin/cms" element={<ProtectedRoute allowedRoles={['admin']}><CMSAdmin /></ProtectedRoute>} />
               <Route path="/admin/cms/visual-editor" element={<ProtectedRoute allowedRoles={['admin']}><VisualEditor /></ProtectedRoute>} />
               <Route path="/admin/accreditation" element={<ProtectedRoute allowedRoles={['admin']}><AccreditationSystem /></ProtectedRoute>} />
+              {/* Admin Mobile Dashboard */}
+              <Route path="/admin/mobile" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><AdminMobileDashboard /></ProtectedRoute>} />
               <Route path="/badge/:id" element={<BadgeScan />} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />
               {/* Workspaces - Protected */}
