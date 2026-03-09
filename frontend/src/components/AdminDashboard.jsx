@@ -558,6 +558,13 @@ export const AdminDashboard = () => {
                 >
                   <Settings className="w-4 h-4 mr-2" /> CMS
                 </Button>
+                <Button 
+                  onClick={() => navigate('/dashboard-cc2026')} 
+                  className="h-10 bg-[#0D0B08] text-[#C9933A] border border-[#C9933A] hover:bg-[#C9933A]/10 font-syne text-sm rounded-none" 
+                  data-testid="dashboard-cc2026-button"
+                >
+                  <Calendar className="w-4 h-4 mr-2" /> CC2026
+                </Button>
                 <Button onClick={fetchRegistrations} variant="outline" className="h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none">
                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>

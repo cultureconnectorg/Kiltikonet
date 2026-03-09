@@ -60,7 +60,7 @@ const Loading3D = () => (
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
   const location = useLocation();
-  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace'];
+  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace', '/dashboard-cc2026'];
   const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
   
   return (

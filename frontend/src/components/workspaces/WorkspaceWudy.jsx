@@ -161,9 +161,20 @@ const WorkspaceWudy = () => {
               <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Comptabilité CC2026</div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/dashboard-cc2026/wudy')}
+              style={{ color: '#C9933A', border: '1px solid #C9933A40' }}
+              data-testid="dashboard-cc2026-link"
+            >
+              CC2026
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 

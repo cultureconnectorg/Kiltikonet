@@ -214,58 +214,73 @@ const getCurrentWeek = () => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// TASK CARD COMPONENT
+// TASK CARD COMPONENT (Mobile-responsive)
 // ═══════════════════════════════════════════════════════════════
 const TaskCard = ({ task, done, onToggle, canEdit, readOnly }) => {
   const pole = POLES[task.pole];
   
   return (
     <div 
-      className={`task-card flex items-start gap-3 p-4 rounded-lg transition-all ${task.urgent ? 'border-l-4' : ''} ${done ? 'opacity-60' : ''}`}
+      className={`task-card flex flex-col sm:flex-row items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg transition-all ${task.urgent ? 'border-l-4' : ''} ${done ? 'opacity-60' : ''}`}
       style={{ 
         background: task.urgent && !done ? 'rgba(232,90,79,0.08)' : COLORS.card,
         borderColor: task.urgent ? COLORS.urgent : 'transparent'
       }}
       data-testid={`task-${task.id}`}
     >
-      {/* Checkbox */}
-      <button 
-        onClick={() => !readOnly && canEdit && onToggle(task.id)}
-        disabled={readOnly || !canEdit}
-        className={`mt-1 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${!readOnly && canEdit ? 'cursor-pointer hover:border-current' : 'cursor-default opacity-50'}`}
-        style={{ 
-          borderColor: done ? COLORS.success : COLORS.textMuted,
-          background: done ? COLORS.success : 'transparent'
-        }}
-      >
-        {done && <CheckCircle className="w-3 h-3 text-white" />}
-      </button>
-      
-      {/* Pole indicator */}
-      <div 
-        className="w-3 h-3 rounded-full mt-1.5 flex-shrink-0"
-        style={{ background: pole.color }}
-      />
+      {/* Mobile: Top row with checkbox, pole dot, and badges */}
+      <div className="flex items-center gap-2 w-full sm:w-auto sm:contents">
+        {/* Checkbox */}
+        <button 
+          onClick={() => !readOnly && canEdit && onToggle(task.id)}
+          disabled={readOnly || !canEdit}
+          className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${!readOnly && canEdit ? 'cursor-pointer hover:border-current' : 'cursor-default opacity-50'}`}
+          style={{ 
+            borderColor: done ? COLORS.success : COLORS.textMuted,
+            background: done ? COLORS.success : 'transparent'
+          }}
+        >
+          {done && <CheckCircle className="w-3 h-3 text-white" />}
+        </button>
+        
+        {/* Pole indicator */}
+        <div 
+          className="w-3 h-3 rounded-full flex-shrink-0"
+          style={{ background: pole.color }}
+        />
+        
+        {/* Mobile: Badges inline */}
+        <div className="flex sm:hidden flex-wrap gap-1 ml-auto">
+          {task.urgent && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium" style={{ background: COLORS.urgent, color: '#fff' }}>
+              Urgent
+            </span>
+          )}
+          <span className="px-1.5 py-0.5 rounded text-[10px]" style={{ background: `${pole.color}20`, color: pole.color }}>
+            {pole.icon}
+          </span>
+        </div>
+      </div>
       
       {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className={`text-sm ${task.urgent ? 'font-semibold' : ''} ${done ? 'line-through' : ''}`} style={{ color: COLORS.text }}>
+      <div className="flex-1 min-w-0 w-full sm:w-auto">
+        <div className={`text-xs sm:text-sm ${task.urgent ? 'font-semibold' : ''} ${done ? 'line-through' : ''}`} style={{ color: COLORS.text }}>
           {task.text}
           {task.sent && (
-            <span className="ml-2 text-xs italic" style={{ color: COLORS.success }}>
-              ✓ envoyé — relancer
+            <span className="ml-2 text-[10px] sm:text-xs italic" style={{ color: COLORS.success }}>
+              ✓ envoyé
             </span>
           )}
         </div>
         {task.sub && (
-          <div className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
+          <div className="text-[10px] sm:text-xs mt-1 line-clamp-2 sm:line-clamp-none" style={{ color: COLORS.textMuted }}>
             {task.sub}
           </div>
         )}
       </div>
       
-      {/* Badges */}
-      <div className="flex flex-wrap gap-1 flex-shrink-0">
+      {/* Desktop: Badges */}
+      <div className="hidden sm:flex flex-wrap gap-1 flex-shrink-0">
         {task.urgent && (
           <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: COLORS.urgent, color: '#fff' }}>
             Urgent
@@ -280,7 +295,7 @@ const TaskCard = ({ task, done, onToggle, canEdit, readOnly }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// WEEK SECTION COMPONENT
+// WEEK SECTION COMPONENT (Mobile-responsive)
 // ═══════════════════════════════════════════════════════════════
 const WeekSection = ({ week, tasks, taskStatus, onToggle, canEditPoles, readOnly, isCurrentWeek }) => {
   const [isOpen, setIsOpen] = useState(isCurrentWeek);
@@ -290,45 +305,61 @@ const WeekSection = ({ week, tasks, taskStatus, onToggle, canEditPoles, readOnly
   const deadline = DEADLINES[week.id];
   const checkpoint = CHECKPOINTS[week.id];
   
-  const phaseLabel = week.phase === 'metro' ? '📍 Métropole' : week.phase === 'mq' ? '🇲🇶 Martinique' : '⭐ Événement';
+  const phaseLabel = week.phase === 'metro' ? '📍 Métro' : week.phase === 'mq' ? '🇲🇶 MQ' : '⭐';
+  const phaseLabelFull = week.phase === 'metro' ? '📍 Métropole' : week.phase === 'mq' ? '🇲🇶 Martinique' : '⭐ Événement';
   
   return (
-    <div className="mb-4">
-      {/* Week Header */}
+    <div className="mb-3 sm:mb-4">
+      {/* Week Header - Mobile optimized */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all ${isCurrentWeek ? 'ring-2' : ''}`}
+        className={`w-full flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg transition-all ${isCurrentWeek ? 'ring-2' : ''}`}
         style={{ 
           background: COLORS.card,
           ringColor: COLORS.gold
         }}
       >
-        <span className="text-lg font-bold" style={{ color: COLORS.gold }}>{week.id.toUpperCase()}</span>
-        <span className="text-sm" style={{ color: COLORS.textMuted }}>{week.dates}</span>
-        <span className="text-sm flex-1 text-left" style={{ color: COLORS.text }}>
-          {week.label} — <em style={{ color: COLORS.textMuted }}>{phaseLabel}</em>
+        {/* Mobile: Compact row */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="text-base sm:text-lg font-bold" style={{ color: COLORS.gold }}>{week.id.toUpperCase()}</span>
+          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{week.dates}</span>
+          <span className="sm:hidden text-[10px] ml-auto px-1.5 py-0.5 rounded" style={{ background: `${COLORS.gold}20`, color: COLORS.gold }}>
+            {phaseLabel}
+          </span>
+          <span className="text-xs sm:text-sm font-mono" style={{ color: COLORS.textMuted }}>
+            {doneCount}/{weekTasks.length}
+          </span>
+          {isOpen ? <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.textMuted }} /> : <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.textMuted }} />}
+        </div>
+        
+        {/* Desktop: Full label */}
+        <span className="hidden sm:block text-sm flex-1 text-left" style={{ color: COLORS.text }}>
+          {week.label} — <em style={{ color: COLORS.textMuted }}>{phaseLabelFull}</em>
         </span>
+        
+        {/* Mobile: Label on second row if current week */}
         {isCurrentWeek && (
-          <span className="px-2 py-1 rounded text-xs font-medium" style={{ background: COLORS.gold, color: COLORS.bg }}>
-            Semaine en cours
+          <span className="w-full sm:w-auto mt-1 sm:mt-0 text-xs text-left sm:text-center truncate" style={{ color: COLORS.text }}>
+            <span className="sm:hidden">{week.label}</span>
+            <span className="hidden sm:inline px-2 py-1 rounded text-xs font-medium" style={{ background: COLORS.gold, color: COLORS.bg }}>
+              Semaine en cours
+            </span>
           </span>
         )}
-        <span className="text-sm font-mono" style={{ color: COLORS.textMuted }}>
-          {doneCount}/{weekTasks.length}
-        </span>
-        {isOpen ? <ChevronDown className="w-5 h-5" style={{ color: COLORS.textMuted }} /> : <ChevronRight className="w-5 h-5" style={{ color: COLORS.textMuted }} />}
+        
+        {/* Desktop: "Semaine en cours" badge is inside the desktop span above */}
       </button>
       
       {/* Week Tasks */}
       {isOpen && (
         <div className="mt-2 space-y-2">
-          {/* Deadline banner */}
+          {/* Deadline banner - Mobile optimized */}
           {deadline && (
-            <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'rgba(232,90,79,0.1)', border: `1px solid ${COLORS.urgent}40` }}>
-              <span className="px-2 py-1 rounded text-xs font-bold" style={{ background: COLORS.urgent, color: '#fff' }}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg" style={{ background: 'rgba(232,90,79,0.1)', border: `1px solid ${COLORS.urgent}40` }}>
+              <span className="px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-bold whitespace-nowrap" style={{ background: COLORS.urgent, color: '#fff' }}>
                 {deadline.date}
               </span>
-              <span className="text-sm" style={{ color: COLORS.urgent }}>{deadline.text}</span>
+              <span className="text-xs sm:text-sm" style={{ color: COLORS.urgent }}>{deadline.text}</span>
             </div>
           )}
           
@@ -344,11 +375,11 @@ const WeekSection = ({ week, tasks, taskStatus, onToggle, canEditPoles, readOnly
             />
           ))}
           
-          {/* Checkpoint */}
+          {/* Checkpoint - Mobile optimized */}
           {checkpoint && (
-            <div className="p-4 rounded-lg mt-4" style={{ background: `${COLORS.gold}15`, border: `1px solid ${COLORS.gold}40` }}>
-              <div className="font-bold" style={{ color: COLORS.gold }}>{checkpoint.title}</div>
-              <div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>{checkpoint.sub}</div>
+            <div className="p-3 sm:p-4 rounded-lg mt-3 sm:mt-4" style={{ background: `${COLORS.gold}15`, border: `1px solid ${COLORS.gold}40` }}>
+              <div className="font-bold text-sm sm:text-base" style={{ color: COLORS.gold }}>{checkpoint.title}</div>
+              <div className="text-[11px] sm:text-sm mt-1" style={{ color: COLORS.textMuted }}>{checkpoint.sub}</div>
             </div>
           )}
         </div>
@@ -358,7 +389,7 @@ const WeekSection = ({ week, tasks, taskStatus, onToggle, canEditPoles, readOnly
 };
 
 // ═══════════════════════════════════════════════════════════════
-// POLE STATS CARD
+// POLE STATS CARD (Mobile-responsive)
 // ═══════════════════════════════════════════════════════════════
 const PoleStatsCard = ({ poleId, tasks, taskStatus }) => {
   const pole = POLES[poleId];
@@ -367,10 +398,13 @@ const PoleStatsCard = ({ poleId, tasks, taskStatus }) => {
   const pct = poleTasks.length > 0 ? Math.round((doneCount / poleTasks.length) * 100) : 0;
   
   return (
-    <div className="p-4 rounded-lg" style={{ background: COLORS.card }}>
-      <div className="text-2xl font-bold" style={{ color: pole.color }}>{pct}%</div>
-      <div className="text-sm" style={{ color: COLORS.text }}>{pole.icon} {pole.label}</div>
-      <div className="text-xs" style={{ color: COLORS.textMuted }}>{doneCount}/{poleTasks.length} tâches</div>
+    <div className="p-2 sm:p-4 rounded-lg flex flex-col items-center sm:items-start" style={{ background: COLORS.card }}>
+      <div className="text-lg sm:text-2xl font-bold" style={{ color: pole.color }}>{pct}%</div>
+      <div className="text-[10px] sm:text-sm text-center sm:text-left" style={{ color: COLORS.text }}>
+        <span className="sm:hidden">{pole.icon}</span>
+        <span className="hidden sm:inline">{pole.icon} {pole.label}</span>
+      </div>
+      <div className="text-[9px] sm:text-xs" style={{ color: COLORS.textMuted }}>{doneCount}/{poleTasks.length}</div>
     </div>
   );
 };
@@ -473,34 +507,41 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
   
   return (
     <div className="min-h-screen" style={{ background: COLORS.bg, fontFamily: "'Barlow', sans-serif" }}>
-      {/* Top Bar */}
+      {/* Top Bar - Mobile responsive */}
       <div className="border-b" style={{ borderColor: COLORS.border, background: COLORS.card }}>
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="text-xs uppercase tracking-wider" style={{ color: COLORS.textMuted }}>Dashboard Opérationnel — CC2026</div>
-            <div className="text-xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.text }}>
-              Chimin <span style={{ color: COLORS.gold }}>Savann</span> — 22 Mai 2026
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3">
+          {/* Mobile: Stacked layout */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            {/* Title section */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="hidden sm:block text-xs uppercase tracking-wider" style={{ color: COLORS.textMuted }}>Dashboard Opérationnel — CC2026</div>
+              <div className="text-lg sm:text-xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.text }}>
+                Chimin <span style={{ color: COLORS.gold }}>Savann</span>
+                <span className="hidden sm:inline"> — 22 Mai 2026</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.gold }}>{stats.days}</div>
-              <div className="text-xs" style={{ color: COLORS.textMuted }}>Jours restants</div>
-            </div>
-            <div className="w-px h-8" style={{ background: COLORS.border }} />
-            <div className="text-center">
-              <div className="text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.text }}>{stats.pct}%</div>
-              <div className="text-xs" style={{ color: COLORS.textMuted }}>Accompli</div>
-            </div>
-            <div className="w-px h-8" style={{ background: COLORS.border }} />
-            <div className="text-center">
-              <div className="text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.urgent }}>{stats.urgent}</div>
-              <div className="text-xs" style={{ color: COLORS.textMuted }}>Urgences</div>
-            </div>
-            <div className="w-px h-8" style={{ background: COLORS.border }} />
-            <div className="text-center">
-              <div className="text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.text }}>{stats.remaining}</div>
-              <div className="text-xs" style={{ color: COLORS.textMuted }}>Tâches restantes</div>
+            
+            {/* Stats row - horizontal scroll on mobile */}
+            <div className="flex items-center gap-3 sm:gap-6 overflow-x-auto pb-1 sm:pb-0 -mx-3 px-3 sm:mx-0 sm:px-0">
+              <div className="text-center flex-shrink-0">
+                <div className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.gold }}>{stats.days}</div>
+                <div className="text-[10px] sm:text-xs whitespace-nowrap" style={{ color: COLORS.textMuted }}>Jours</div>
+              </div>
+              <div className="w-px h-6 sm:h-8 flex-shrink-0" style={{ background: COLORS.border }} />
+              <div className="text-center flex-shrink-0">
+                <div className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.text }}>{stats.pct}%</div>
+                <div className="text-[10px] sm:text-xs whitespace-nowrap" style={{ color: COLORS.textMuted }}>Accompli</div>
+              </div>
+              <div className="w-px h-6 sm:h-8 flex-shrink-0" style={{ background: COLORS.border }} />
+              <div className="text-center flex-shrink-0">
+                <div className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.urgent }}>{stats.urgent}</div>
+                <div className="text-[10px] sm:text-xs whitespace-nowrap" style={{ color: COLORS.textMuted }}>Urgences</div>
+              </div>
+              <div className="w-px h-6 sm:h-8 flex-shrink-0" style={{ background: COLORS.border }} />
+              <div className="text-center flex-shrink-0">
+                <div className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.text }}>{stats.remaining}</div>
+                <div className="text-[10px] sm:text-xs whitespace-nowrap" style={{ color: COLORS.textMuted }}>Restantes</div>
+              </div>
             </div>
           </div>
         </div>
@@ -511,24 +552,24 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
       </div>
       
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* View Toggle */}
-        <div className="flex items-center justify-between mb-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        {/* View Toggle - Mobile responsive */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
           <div className="flex gap-2">
             <button
               onClick={() => setView('pole')}
-              className={`px-4 py-2 rounded-lg text-sm transition-all ${view === 'pole' ? 'font-bold' : ''}`}
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-all ${view === 'pole' ? 'font-bold' : ''}`}
               style={{ 
                 background: view === 'pole' ? COLORS.gold : COLORS.card,
                 color: view === 'pole' ? COLORS.bg : COLORS.text
               }}
               data-testid="view-pole"
             >
-              Mon Pôle ({myTasks.length} tâches)
+              Mon Pôle <span className="hidden sm:inline">({myTasks.length} tâches)</span>
             </button>
             <button
               onClick={() => setView('global')}
-              className={`px-4 py-2 rounded-lg text-sm transition-all ${view === 'global' ? 'font-bold' : ''}`}
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-all ${view === 'global' ? 'font-bold' : ''}`}
               style={{ 
                 background: view === 'global' ? COLORS.gold : COLORS.card,
                 color: view === 'global' ? COLORS.bg : COLORS.text
@@ -538,15 +579,15 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
               Vue Globale
             </button>
           </div>
-          <div className="text-xs" style={{ color: COLORS.textMuted }}>
-            {lastSync && `Dernière sync: ${lastSync.toLocaleTimeString('fr-FR')}`}
+          <div className="text-[10px] sm:text-xs text-right" style={{ color: COLORS.textMuted }}>
+            {lastSync && `Sync: ${lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
             <span className="ml-2 inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: COLORS.success }} />
           </div>
         </div>
         
-        {/* Pole Stats (global view only) */}
+        {/* Pole Stats - Mobile: 5 columns grid instead of 9 */}
         {view === 'global' && (
-          <div className="grid grid-cols-9 gap-2 mb-6">
+          <div className="grid grid-cols-5 sm:grid-cols-9 gap-1 sm:gap-2 mb-4 sm:mb-6 overflow-x-auto">
             {Object.keys(POLES).map(poleId => (
               <PoleStatsCard key={poleId} poleId={poleId} tasks={TASKS} taskStatus={taskStatus} />
             ))}
@@ -569,16 +610,18 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
           ))}
         </div>
         
-        {/* Jour J Banner */}
-        <div className="mt-8 p-8 rounded-xl text-center" style={{ background: `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.card})`, border: `2px solid ${COLORS.gold}` }}>
-          <div className="text-sm uppercase tracking-widest mb-2" style={{ color: COLORS.textMuted }}>
-            Vendredi 22 Mai 2026 — Fort-de-France, Martinique
+        {/* Jour J Banner - Mobile responsive */}
+        <div className="mt-6 sm:mt-8 p-4 sm:p-8 rounded-xl text-center" style={{ background: `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.card})`, border: `2px solid ${COLORS.gold}` }}>
+          <div className="text-[10px] sm:text-sm uppercase tracking-widest mb-1 sm:mb-2" style={{ color: COLORS.textMuted }}>
+            <span className="sm:hidden">22 Mai 2026 — Fort-de-France</span>
+            <span className="hidden sm:inline">Vendredi 22 Mai 2026 — Fort-de-France, Martinique</span>
           </div>
-          <div className="text-4xl font-bold mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.gold }}>
+          <div className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", color: COLORS.gold }}>
             ★ CHIMIN SAVANN ★
           </div>
-          <div className="text-sm" style={{ color: COLORS.textMuted }}>
-            6 000 spectateurs · Parc de La Savane · Commémoration Abolition de l'Esclavage
+          <div className="text-[10px] sm:text-sm" style={{ color: COLORS.textMuted }}>
+            <span className="sm:hidden">6 000 spectateurs · La Savane</span>
+            <span className="hidden sm:inline">6 000 spectateurs · Parc de La Savane · Commémoration Abolition de l'Esclavage</span>
           </div>
         </div>
       </div>
