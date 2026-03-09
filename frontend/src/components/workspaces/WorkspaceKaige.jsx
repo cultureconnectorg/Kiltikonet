@@ -169,59 +169,61 @@ const WorkspaceKaige = () => {
         showNotifications={false}
       />
 
-      <main className="max-w-7xl mx-auto p-6">
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.teal}20` }}>
-            <div className="text-2xl font-bold" style={{ color: COLORS.teal }}>{communiques.length}</div>
-            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Communiqués</div>
+      <main className="max-w-7xl mx-auto p-3 sm:p-6">
+        {/* Stats - Responsive grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.teal}20` }}>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.teal }}>{communiques.length}</div>
+            <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Communiqués</div>
           </div>
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-            <div className="text-2xl font-bold" style={{ color: COLORS.gold }}>{contacts.length}</div>
-            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Contacts médias</div>
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.gold }}>{contacts.length}</div>
+            <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Contacts médias</div>
           </div>
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid rgba(77,191,138,0.3)` }}>
-            <div className="text-2xl font-bold text-green-400">{communiques.filter(c => c.status === 'Envoyé').length}</div>
-            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Envoyés</div>
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid rgba(77,191,138,0.3)` }}>
+            <div className="text-xl sm:text-2xl font-bold text-green-400">{communiques.filter(c => c.status === 'Envoyé').length}</div>
+            <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Envoyés</div>
           </div>
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
-            <div className="text-2xl font-bold" style={{ color: COLORS.terracotta }}>{coverage.length}</div>
-            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Retombées</div>
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.terracotta }}>{coverage.length}</div>
+            <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Retombées</div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        {/* Tabs - Scroll horizontal sur mobile */}
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
           {[
-            { id: 'communiques', label: 'Communiqués', icon: Newspaper },
-            { id: 'contacts', label: 'Contacts Médias', icon: Users },
-            { id: 'accreditations', label: 'Accréditations Presse', icon: FileText },
-            { id: 'couverture', label: 'Couverture', icon: Eye }
+            { id: 'communiques', label: 'Communiqués', shortLabel: 'CP', icon: Newspaper },
+            { id: 'contacts', label: 'Contacts Médias', shortLabel: 'Contacts', icon: Users },
+            { id: 'accreditations', label: 'Accréditations', shortLabel: 'Accrédits', icon: FileText },
+            { id: 'couverture', label: 'Couverture', shortLabel: 'Media', icon: Eye }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-1 sm:gap-2 transition-all flex-shrink-0 whitespace-nowrap"
               style={{ 
                 background: activeTab === tab.id ? COLORS.teal : 'rgba(255,255,255,0.05)',
                 color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.5)'
               }}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden text-xs">{tab.shortLabel}</span>
             </button>
           ))}
         </div>
 
         {/* Content */}
-        <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.teal}20` }}>
+        <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.teal}20` }}>
           {activeTab === 'communiques' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold" style={{ color: COLORS.teal }}>Communiqués de Presse</h2>
-                <Button onClick={() => setShowNewCommunique(true)} style={{ background: COLORS.teal }}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nouveau communiqué
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-base sm:text-lg font-bold" style={{ color: COLORS.teal }}>Communiqués de Presse</h2>
+                <Button onClick={() => setShowNewCommunique(true)} size="sm" style={{ background: COLORS.teal }}>
+                  <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Nouveau communiqué</span>
+                  <span className="sm:hidden">Nouveau</span>
                 </Button>
               </div>
               

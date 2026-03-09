@@ -151,58 +151,58 @@ const WorkspaceGwen = () => {
         notificationTarget="gwen"
       />
 
-      <main className="max-w-7xl mx-auto p-6">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Event info banner */}
-        <div className="rounded-lg p-6 mb-6" style={{ background: `linear-gradient(135deg, ${COLORS.forest}20, ${COLORS.charbon})`, border: `1px solid ${COLORS.forest}30` }}>
-          <div className="flex items-center justify-between">
+        <div className="rounded-lg p-4 sm:p-6 mb-4 sm:mb-6" style={{ background: `linear-gradient(135deg, ${COLORS.forest}20, ${COLORS.charbon})`, border: `1px solid ${COLORS.forest}30` }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>CHIMIN SAVANN</h1>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Concert Culture Connect 2026</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>CHIMIN SAVANN</h1>
+              <p className="text-xs sm:text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Concert Culture Connect 2026</p>
             </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold" style={{ color: COLORS.gold }}>22 MAI 2026</div>
+            <div className="text-left sm:text-right">
+              <div className="text-xl sm:text-3xl font-bold" style={{ color: COLORS.gold }}>22 MAI 2026</div>
               <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>La Savane - Fort-de-France</div>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-6">
+          <div className="mt-3 sm:mt-4 flex flex-wrap items-center gap-3 sm:gap-6">
             <div className="flex items-center gap-2">
               <Music className="w-4 h-4" style={{ color: COLORS.gold }} />
-              <span className="text-sm text-white">{artistes.filter(a => a.status === 'Confirmé').length} artiste(s) confirmé(s)</span>
+              <span className="text-xs sm:text-sm text-white">{artistes.filter(a => a.status === 'Confirmé').length} artiste(s) confirmé(s)</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckSquare className="w-4 h-4" style={{ color: COLORS.forest }} />
-              <span className="text-sm text-white">{progress}% formalités</span>
+              <span className="text-xs sm:text-sm text-white">{progress}% formalités</span>
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        {/* Tabs - Scroll horizontal sur mobile */}
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
           {[
             { id: 'artistes', label: 'Artistes', icon: Music },
             { id: 'formalites', label: 'Formalités', icon: FileText },
-            { id: 'planning', label: 'Planning Jour J', icon: Calendar },
+            { id: 'planning', label: 'Planning', icon: Calendar },
             { id: 'technique', label: 'Logistique', icon: Users },
-            { id: 'notes', label: 'Notes Prod', icon: FileText }
+            { id: 'notes', label: 'Notes', icon: FileText }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0"
               style={{ 
                 background: activeTab === tab.id ? COLORS.forest : 'rgba(255,255,255,0.05)',
                 color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.5)'
               }}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span className="text-xs sm:text-sm">{tab.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Content */}
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
+        {/* Content - Mobile: single column, Desktop: 3 columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-2 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
             {activeTab === 'artistes' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
@@ -363,8 +363,8 @@ const WorkspaceGwen = () => {
             )}
           </div>
 
-          {/* Sidebar - Urgent tasks */}
-          <div className="col-span-1 space-y-4">
+          {/* Sidebar - Urgent tasks - En bas sur mobile, à droite sur desktop */}
+          <div className="lg:col-span-1 space-y-4 order-first lg:order-last">
             <div className="rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
               <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.gold }}>Tâches urgentes</h3>
               <div className="space-y-3">

@@ -162,16 +162,16 @@ const MobileBottomNav = () => {
   }
 
   // Public navigation (fond clair)
+  // NOTE: Le Mode Terrain (/admin/mobile) est PRIVÉ et n'apparaît PAS dans la nav publique
+  // Les admins doivent se connecter via /admin pour y accéder
   const publicNav = [
     { id: 'home', icon: Home, label: 'Accueil', path: '/' },
     { id: 'catalogue', icon: Users, label: 'Catalogue', path: '/catalogue' },
     { id: 'programme', icon: Calendar, label: 'Programme', path: '/programme' },
   ];
 
-  // Add admin or pro link based on role
-  if (isAdmin) {
-    publicNav.push({ id: 'admin', icon: QrCode, label: 'Admin', path: '/admin/mobile' });
-  } else if (isPro) {
+  // Lien vers Espace Pro pour les utilisateurs (pas de lien admin public)
+  if (isPro) {
     publicNav.push({ id: 'pro', icon: Briefcase, label: 'Espace Pro', path: '/espace-pro' });
   } else {
     publicNav.push({ id: 'pro', icon: Briefcase, label: 'Espace Pro', path: '/espace-pro/connexion' });

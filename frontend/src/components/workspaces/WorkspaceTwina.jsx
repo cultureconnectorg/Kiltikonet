@@ -93,44 +93,46 @@ const WorkspaceTwina = () => {
         }
       />
 
-      <main className="max-w-7xl mx-auto p-6">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Info banner */}
-        <div className="rounded-lg p-4 mb-6 flex items-center gap-3" style={{ background: `${COLORS.pink}15`, border: `1px solid ${COLORS.pink}30` }}>
-          <Palette className="w-5 h-5" style={{ color: COLORS.pink }} />
+        <div className="rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start sm:items-center gap-3" style={{ background: `${COLORS.pink}15`, border: `1px solid ${COLORS.pink}30` }}>
+          <Palette className="w-5 h-5 flex-shrink-0 mt-0.5 sm:mt-0" style={{ color: COLORS.pink }} />
           <div>
             <div className="text-sm font-bold text-white">Espace Design</div>
             <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              Modifiez les visuels du site directement sans passer par Canva. Toutes les modifications sont enregistrees automatiquement.
+              Modifiez les visuels du site directement. Toutes les modifications sont enregistrees automatiquement.
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-6">
-          {/* Sidebar - Sections */}
-          <div className="col-span-1 space-y-2">
-            {sections.map(section => (
-              <button
-                key={section.id}
-                onClick={() => {
-                  setActiveSection(section.id);
-                  logAction('navigate', `Section ${section.label}`);
-                }}
-                className="w-full p-3 rounded-lg flex items-center gap-3 transition-all"
-                style={{ 
-                  background: activeSection === section.id ? `${COLORS.pink}20` : 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${activeSection === section.id ? COLORS.pink : 'rgba(255,255,255,0.1)'}` 
-                }}
-              >
-                <section.icon className="w-4 h-4" style={{ color: activeSection === section.id ? COLORS.pink : 'rgba(255,255,255,0.4)' }} />
-                <span className="text-sm" style={{ color: activeSection === section.id ? COLORS.pink : 'rgba(255,255,255,0.6)' }}>
-                  {section.label}
-                </span>
-              </button>
-            ))}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
+          {/* Sidebar - Sections - En haut horizontal sur mobile */}
+          <div className="md:col-span-1">
+            <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 md:space-y-2 scrollbar-hide">
+              {sections.map(section => (
+                <button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveSection(section.id);
+                    logAction('navigate', `Section ${section.label}`);
+                  }}
+                  className="flex-shrink-0 p-3 rounded-lg flex items-center gap-3 transition-all whitespace-nowrap"
+                  style={{ 
+                    background: activeSection === section.id ? `${COLORS.pink}20` : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${activeSection === section.id ? COLORS.pink : 'rgba(255,255,255,0.1)'}` 
+                  }}
+                >
+                  <section.icon className="w-4 h-4" style={{ color: activeSection === section.id ? COLORS.pink : 'rgba(255,255,255,0.4)' }} />
+                  <span className="text-xs sm:text-sm" style={{ color: activeSection === section.id ? COLORS.pink : 'rgba(255,255,255,0.6)' }}>
+                    {section.label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Main content */}
-          <div className="col-span-3 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.pink}20` }}>
+          <div className="md:col-span-3 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.pink}20` }}>
             {loading ? (
               <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}>
                 Chargement...

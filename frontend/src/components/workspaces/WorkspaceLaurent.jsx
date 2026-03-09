@@ -137,21 +137,22 @@ const WorkspaceLaurent = () => {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
-      {/* Header */}
-      <header className="sticky top-0 z-50 px-6 py-4" style={{ background: '#2A2820', borderBottom: `1px solid ${COLORS.gold}30` }}>
+    <div className="min-h-screen pb-16 md:pb-0" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
+      {/* Header - Responsive */}
+      <header className="sticky top-0 z-50 px-3 sm:px-6 py-3 sm:py-4 safe-area-top" style={{ background: '#2A2820', borderBottom: `1px solid ${COLORS.gold}30` }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold"
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-sm sm:text-lg font-bold"
               style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.burgundy})`, color: '#fff' }}>
               LC
             </div>
             <div>
-              <div className="font-bold text-sm tracking-wide" style={{ color: COLORS.gold }}>LAURENT COEURVOLAN</div>
-              <div className="text-xs" style={{ color: COLORS.terracotta }}>Fondateur CVLN - Vue d'ensemble</div>
+              <div className="font-bold text-xs sm:text-sm tracking-wide" style={{ color: COLORS.gold }}>LAURENT COEURVOLAN</div>
+              <div className="text-[10px] sm:text-xs hidden xs:block" style={{ color: COLORS.terracotta }}>Fondateur - Vue d'ensemble</div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          {/* Desktop Actions */}
+          <div className="hidden lg:flex items-center gap-3">
             <NotificationBell target="laurent" />
             <Button 
               variant="outline" 
@@ -178,94 +179,111 @@ const WorkspaceLaurent = () => {
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
+          {/* Mobile Actions */}
+          <div className="flex lg:hidden items-center gap-2">
+            <NotificationBell target="laurent" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowControlCenter(true)} 
+              style={{ borderColor: `${COLORS.burgundy}80`, color: COLORS.burgundy }}
+              data-testid="founder-control-center-btn-mobile"
+            >
+              <Shield className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Tabs */}
+      {/* Tabs - Scroll horizontal sur mobile */}
       <div style={{ background: '#2A2820', borderBottom: `1px solid ${COLORS.gold}20` }}>
-        <div className="max-w-7xl mx-auto flex">
+        <div className="max-w-7xl mx-auto flex overflow-x-auto scrollbar-hide">
           {[
-            { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
-            { id: 'logs', label: 'Activité équipe', icon: Activity },
-            { id: 'workspaces', label: 'Workspaces', icon: Eye },
-            { id: 'briefs', label: 'Briefs', icon: FileText }
+            { id: 'overview', label: 'Vue d\'ensemble', shortLabel: 'Vue', icon: BarChart3 },
+            { id: 'logs', label: 'Activité équipe', shortLabel: 'Activité', icon: Activity },
+            { id: 'workspaces', label: 'Workspaces', shortLabel: 'Espaces', icon: Eye },
+            { id: 'briefs', label: 'Briefs', shortLabel: 'Briefs', icon: FileText }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="px-5 py-3 text-xs font-bold tracking-wider uppercase flex items-center gap-2 border-b-2 transition-all"
+              className="px-3 sm:px-5 py-3 text-[10px] sm:text-xs font-bold tracking-wider uppercase flex items-center gap-1 sm:gap-2 border-b-2 transition-all flex-shrink-0 whitespace-nowrap"
               style={{
                 color: activeTab === tab.id ? COLORS.gold : 'rgba(255,255,255,0.3)',
                 borderColor: activeTab === tab.id ? COLORS.gold : 'transparent'
               }}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <tab.icon className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.shortLabel}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto p-6">
+      <main className="max-w-7xl mx-auto p-3 sm:p-6">
         {activeTab === 'overview' && (
           <>
-            {/* KPI Cards */}
-            <div className="grid grid-cols-5 gap-4 mb-6">
-              <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-4 h-4" style={{ color: COLORS.terracotta }} />
-                  <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Participants</span>
+            {/* KPI Cards - Grid responsive */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.terracotta }} />
+                  <span className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Participants</span>
                 </div>
-                <div className="text-2xl font-bold" style={{ color: '#fff', fontFamily: "'Cormorant Garamond', serif" }}>
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: '#fff', fontFamily: "'Cormorant Garamond', serif" }}>
                   {stats?.summary?.total_registrations || 44}
                 </div>
               </div>
-              <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-4 h-4" style={{ color: COLORS.forest }} />
-                  <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Approuvés</span>
+              <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.forest }} />
+                  <span className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Approuvés</span>
                 </div>
-                <div className="text-2xl font-bold" style={{ color: COLORS.forest, fontFamily: "'Cormorant Garamond', serif" }}>
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.forest, fontFamily: "'Cormorant Garamond', serif" }}>
                   {stats?.by_status?.approved || 32}
                 </div>
               </div>
-              <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Music className="w-4 h-4" style={{ color: COLORS.purple }} />
-                  <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Artistes</span>
+              <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Music className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.purple }} />
+                  <span className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Artistes</span>
                 </div>
-                <div className="text-2xl font-bold" style={{ color: COLORS.purple, fontFamily: "'Cormorant Garamond', serif" }}>
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.purple, fontFamily: "'Cormorant Garamond', serif" }}>
                   1
                 </div>
-                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Kathy confirmée</div>
+                <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Kathy confirmée</div>
               </div>
-              <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-4 h-4" style={{ color: COLORS.gold }} />
-                  <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Équipe active</span>
+              <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Activity className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.gold }} />
+                  <span className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Équipe</span>
                 </div>
-                <div className="text-2xl font-bold" style={{ color: COLORS.gold, fontFamily: "'Cormorant Garamond', serif" }}>
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.gold, fontFamily: "'Cormorant Garamond', serif" }}>
                   {sessions.length}
                 </div>
               </div>
-              <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.burgundy}20` }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="w-4 h-4" style={{ color: COLORS.burgundy }} />
-                  <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>J-</span>
+              <div className="rounded-lg p-3 sm:p-4 col-span-2 sm:col-span-1" style={{ background: '#2A2820', border: `1px solid ${COLORS.burgundy}20` }}>
+                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.burgundy }} />
+                  <span className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>J-</span>
                 </div>
-                <div className="text-2xl font-bold" style={{ color: COLORS.burgundy, fontFamily: "'Cormorant Garamond', serif" }}>
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.burgundy, fontFamily: "'Cormorant Garamond', serif" }}>
                   {daysUntilEvent}
                 </div>
-                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>22 mai 2026</div>
+                <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>22 mai 2026</div>
               </div>
             </div>
 
-            {/* Chantiers status */}
-            <div className="rounded-lg p-5 mb-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-              <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.gold }}>
+            {/* Chantiers status - Scroll horizontal sur mobile */}
+            <div className="rounded-lg p-3 sm:p-5 mb-4 sm:mb-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+              <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider mb-3 sm:mb-4" style={{ color: COLORS.gold }}>
                 Statut des chantiers
               </h2>
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
                 {Object.entries(chantiers).map(([key, chantier]) => {
                   const statusColors = {
                     green: COLORS.forest,
@@ -273,12 +291,12 @@ const WorkspaceLaurent = () => {
                     red: '#ef4444'
                   };
                   return (
-                    <div key={key} className="p-3 rounded-lg" style={{ background: `${statusColors[chantier.status]}15`, border: `1px solid ${statusColors[chantier.status]}30` }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold text-white">{chantier.label}</span>
-                        <div className="w-3 h-3 rounded-full" style={{ background: statusColors[chantier.status] }} />
+                    <div key={key} className="p-2 sm:p-3 rounded-lg" style={{ background: `${statusColors[chantier.status]}15`, border: `1px solid ${statusColors[chantier.status]}30` }}>
+                      <div className="flex items-center justify-between mb-1 sm:mb-2">
+                        <span className="text-xs sm:text-sm font-bold text-white truncate">{chantier.label}</span>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ background: statusColors[chantier.status] }} />
                       </div>
-                      <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      <div className="text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
                         {chantier.count} éléments
                       </div>
                     </div>
@@ -287,7 +305,8 @@ const WorkspaceLaurent = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
+            {/* Grid responsive - 1 col mobile, 3 cols desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Recent notifications */}
               <div className="col-span-1 rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
                 <div className="flex items-center justify-between mb-4">
@@ -394,28 +413,28 @@ const WorkspaceLaurent = () => {
         )}
 
         {activeTab === 'logs' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-            <h2 className="text-lg font-bold mb-6" style={{ color: COLORS.gold }}>Historique complet des modifications</h2>
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+            <h2 className="text-base sm:text-lg font-bold mb-4 sm:mb-6" style={{ color: COLORS.gold }}>Historique complet des modifications</h2>
             <div className="space-y-2">
               {logs.map((log, idx) => {
                 const IconComponent = getActionIcon(log.action);
                 return (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${getRoleColor(log.role)}20` }}>
-                      <IconComponent className="w-5 h-5" style={{ color: getRoleColor(log.role) }} />
+                  <div key={idx} className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${getRoleColor(log.role)}20` }}>
+                      <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: getRoleColor(log.role) }} />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white">{log.user}</span>
-                        <span className="px-2 py-0.5 rounded text-xs" style={{ background: `${getRoleColor(log.role)}20`, color: getRoleColor(log.role) }}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                        <span className="font-bold text-white text-sm">{log.user}</span>
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs" style={{ background: `${getRoleColor(log.role)}20`, color: getRoleColor(log.role) }}>
                           {log.role}
                         </span>
                       </div>
-                      <div className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                      <div className="text-xs sm:text-sm mt-1 truncate" style={{ color: 'rgba(255,255,255,0.6)' }}>
                         {log.action} {log.details && `- ${log.details}`}
                       </div>
                     </div>
-                    <div className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <div className="text-[10px] sm:text-sm flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>
                       {formatTime(log.timestamp)}
                     </div>
                   </div>
@@ -426,22 +445,22 @@ const WorkspaceLaurent = () => {
         )}
 
         {activeTab === 'workspaces' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-            <h2 className="text-lg font-bold mb-6" style={{ color: COLORS.gold }}>Accès rapide aux workspaces</h2>
-            <div className="grid grid-cols-4 gap-4">
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+            <h2 className="text-base sm:text-lg font-bold mb-4 sm:mb-6" style={{ color: COLORS.gold }}>Accès rapide aux workspaces</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {workspaces.map(ws => (
                 <button
                   key={ws.name}
                   onClick={() => navigate(ws.path)}
-                  className="p-5 rounded-lg text-left transition-all hover:scale-[1.02] group"
+                  className="p-3 sm:p-5 rounded-lg text-left transition-all hover:scale-[1.02] group"
                   style={{ background: `${ws.color}15`, border: `1px solid ${ws.color}30` }}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <ws.icon className="w-6 h-6" style={{ color: ws.color }} />
-                    <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: ws.color }} />
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <ws.icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: ws.color }} />
+                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: ws.color }} />
                   </div>
-                  <div className="font-bold text-white">{ws.name}</div>
-                  <div className="text-xs mt-1" style={{ color: ws.color }}>{ws.role}</div>
+                  <div className="font-bold text-white text-sm sm:text-base">{ws.name}</div>
+                  <div className="text-[10px] sm:text-xs mt-1" style={{ color: ws.color }}>{ws.role}</div>
                 </button>
               ))}
             </div>
@@ -449,27 +468,27 @@ const WorkspaceLaurent = () => {
         )}
 
         {activeTab === 'briefs' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold" style={{ color: COLORS.gold }}>Briefs & Assignations</h2>
-              <Button style={{ background: COLORS.terracotta }}>
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-bold" style={{ color: COLORS.gold }}>Briefs & Assignations</h2>
+              <Button size="sm" style={{ background: COLORS.terracotta }}>
                 Nouveau brief
               </Button>
             </div>
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', borderLeft: `3px solid ${COLORS.pink}` }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-white">Visuels réseaux sociaux - Annonce artiste</span>
-                  <span className="px-2 py-1 rounded text-xs" style={{ background: `${COLORS.terracotta}20`, color: COLORS.terracotta }}>En cours</span>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', borderLeft: `3px solid ${COLORS.pink}` }}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <span className="font-bold text-white text-sm sm:text-base">Visuels réseaux sociaux - Annonce artiste</span>
+                  <span className="px-2 py-1 rounded text-xs w-fit" style={{ background: `${COLORS.terracotta}20`, color: COLORS.terracotta }}>En cours</span>
                 </div>
-                <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Assigné à Twina - Deadline: 10/03/2026</div>
+                <div className="text-xs sm:text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Assigné à Twina - Deadline: 10/03/2026</div>
               </div>
-              <div className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', borderLeft: `3px solid ${COLORS.teal}` }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-white">Communiqué de presse - Line-up</span>
-                  <span className="px-2 py-1 rounded text-xs" style={{ background: `${COLORS.forest}20`, color: COLORS.forest }}>Validé</span>
+              <div className="p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', borderLeft: `3px solid ${COLORS.teal}` }}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <span className="font-bold text-white text-sm sm:text-base">Communiqué de presse - Line-up</span>
+                  <span className="px-2 py-1 rounded text-xs w-fit" style={{ background: `${COLORS.forest}20`, color: COLORS.forest }}>Validé</span>
                 </div>
-                <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Assigné à Kaïge-Jean - Livré: 05/03/2026</div>
+                <div className="text-xs sm:text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Assigné à Kaïge-Jean - Livré: 05/03/2026</div>
               </div>
             </div>
           </div>
