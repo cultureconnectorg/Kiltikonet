@@ -64,7 +64,7 @@
 
   "test_credentials": {
     "admin_password": "CC2026admin",
-    "backend_url": "https://terrain-mode-admin.preview.emergentagent.com"
+    "backend_url": "https://event-connect-60.preview.emergentagent.com"
   },
 
   "seed_data_creation": "Manual check-in performed for Daniel Winkel (id: 42d947e4-14e1-46f6-a774-408ab048f6db) during testing",

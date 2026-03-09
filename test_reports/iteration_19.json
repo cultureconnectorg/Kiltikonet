@@ -59,8 +59,8 @@
   "test_credentials": {
     "test_email": "testpro@test.com",
     "test_user_id": "ac48d216-4300-496e-9d49-4034c1ca8fde",
-    "pro_login_url": "https://terrain-mode-admin.preview.emergentagent.com/espace-pro/connexion",
-    "pro_dashboard_url": "https://terrain-mode-admin.preview.emergentagent.com/espace-pro"
+    "pro_login_url": "https://event-connect-60.preview.emergentagent.com/espace-pro/connexion",
+    "pro_dashboard_url": "https://event-connect-60.preview.emergentagent.com/espace-pro"
   },
   
   "seed_data_creation": "Test user testpro@test.com was created by main agent with status: approved",
