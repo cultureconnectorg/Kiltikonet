@@ -6761,22 +6761,33 @@ async def get_pro_recommendations(profile_id: str, limit: int = 10):
     
     # Extract interests from interactions
     viewed_profiles = set()
-    applied_opportunity_types = set()
+    opportunity_ids_to_fetch = []
     search_criteria = {}
     
+    # First pass: collect data without N+1 queries
     for event in interactions:
         data = event.get("data", {})
         if event["event_type"] == "pro_profile_view":
             viewed_profiles.add(data.get("viewedProfileId"))
         elif event["event_type"] == "opportunity_interaction":
             if data.get("action") == "apply":
-                # Get opportunity type
-                opp = await db.pro_opportunities.find_one({"id": data.get("opportunityId")})
-                if opp:
-                    applied_opportunity_types.add(opp.get("type"))
+                opp_id = data.get("opportunityId")
+                if opp_id:
+                    opportunity_ids_to_fetch.append(opp_id)
         elif event["event_type"] == "matching_search":
             for k, v in data.get("criteria", {}).items():
                 search_criteria[k] = v
+    
+    # Batch fetch opportunities to avoid N+1
+    applied_opportunity_types = set()
+    if opportunity_ids_to_fetch:
+        opportunities = await db.pro_opportunities.find(
+            {"id": {"$in": opportunity_ids_to_fetch}},
+            {"_id": 0, "id": 1, "type": 1}
+        ).to_list(100)
+        for opp in opportunities:
+            if opp.get("type"):
+                applied_opportunity_types.add(opp.get("type"))
     
     # Build recommendation query
     profile_type = profile.get("profile_type")
