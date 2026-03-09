@@ -151,6 +151,10 @@ const WorkspaceLaurent = () => {
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell target="laurent" />
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard-cc2026/laurent')} style={{ borderColor: `${COLORS.gold}80`, color: COLORS.gold, fontWeight: 'bold' }}>
+              <Calendar className="w-4 h-4 mr-2" />
+              CC2026
+            </Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/admin')} style={{ borderColor: `${COLORS.gold}50`, color: COLORS.gold }}>
               <Settings className="w-4 h-4 mr-2" />
               Admin

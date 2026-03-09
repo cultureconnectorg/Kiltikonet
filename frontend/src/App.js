@@ -137,6 +137,7 @@ function App() {
               <Route path="/workspace/analyst" element={<ProtectedRoute allowedRoles={['analyst']}><WorkspaceAnalyst /></ProtectedRoute>} />
               {/* Dashboard CC2026 Collaboratif */}
               <Route path="/dashboard-cc2026" element={<ProtectedRoute allowedRoles={['admin']}><DashboardCC2026 workspaceId="CC2026admin" /></ProtectedRoute>} />
+              <Route path="/dashboard-cc2026/laurent" element={<ProtectedRoute allowedRoles={['founder']}><DashboardCC2026 workspaceId="LC2026" /></ProtectedRoute>} />
               <Route path="/dashboard-cc2026/gwen" element={<ProtectedRoute allowedRoles={['event']}><DashboardCC2026 workspaceId="Gwen2026" /></ProtectedRoute>} />
               <Route path="/dashboard-cc2026/fabrice" element={<ProtectedRoute allowedRoles={['captions']}><DashboardCC2026 workspaceId="Fabrice2026" /></ProtectedRoute>} />
               <Route path="/dashboard-cc2026/kaige" element={<ProtectedRoute allowedRoles={['press']}><DashboardCC2026 workspaceId="Kaige2026" /></ProtectedRoute>} />
