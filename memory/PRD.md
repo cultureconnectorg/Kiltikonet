@@ -9,7 +9,26 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 
 ---
 
-## STATUT: SECTIONS 1-5 + DASHBOARD CC2026 TERMINÉES ✅
+## STATUT: SECTIONS 1-5 + DASHBOARD CC2026 + TÂCHES 2-3 TERMINÉES ✅
+
+### TÂCHE 2 - INTÉGRATION DASHBOARD WORKSPACES (9 Mars 2026) ✅
+- ✅ Bouton "Dashboard CC2026" ajouté dans AdminDashboard header
+- ✅ Bouton "CC2026" ajouté dans GwenWorkspace header
+- ✅ Bouton "CC2026" ajouté dans FabriceWorkspace header
+- ✅ Bouton "CC2026" ajouté dans KaigeWorkspace header
+- ✅ Bouton "CC2026" ajouté dans AlirioWorkspace header
+- ✅ Bouton "CC2026" ajouté dans WudyWorkspace header
+- ✅ Tous les workspaces ont un accès direct au dashboard
+
+### TÂCHE 3 - MOBILE RESPONSIVE DASHBOARD CC2026 (9 Mars 2026) ✅
+- ✅ Top Bar condensé en mobile (stats en scroll horizontal)
+- ✅ Boutons "Mon Pôle" / "Vue Globale" adaptés
+- ✅ Week Headers compacts avec badges phase abrégés (📍 Métro)
+- ✅ Task Cards avec layout flexible (badges inline sur mobile)
+- ✅ Pole Stats en grille 5 colonnes mobile / 9 colonnes desktop
+- ✅ Header global masqué sur /dashboard-cc2026
+- ✅ Banner Jour J responsive
+- ✅ Test 100% passés (iteration_18.json)
 
 ### SECTION 1 - BUGS P0 CORRIGÉS (7 Mars 2026)
 | Bug | Status | Description |
@@ -30,10 +49,11 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 | GET/PATCH /api/badge/{id} | ✅ | Scan QR → validation présence < 3s |
 | GET /api/catalog/sync | ✅ | Catalogue public synchronisé |
 
-### SECTION 3 - VUE 3D (9 Mars 2026)
+### SECTION 3 - VUE 3D (9 Mars 2026) ⚠️ EN PAUSE
 - ✅ Dashboard3D.jsx - Panneaux 3D flottants avec Three.js (lazy loaded)
 - ✅ SmartEngine3D.jsx - Graphe de nœuds interconnectés
-- ✅ Fallback automatique si WebGL désactivé
+- ✅ Fallback automatique 2D si WebGL désactivé
+- ⚠️ BLOCAGE: Incompatibilité React 19 / Three.js - Fallback 2D actif
 
 ### SECTION 4 - WORKSPACE ALIRIO (9 Mars 2026)
 - ✅ Onglet "Mes tâches" avec progression et filtres
@@ -55,6 +75,7 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 - ✅ Checkpoints et deadlines visuelles
 - ✅ Routes protégées par workspace
 - ✅ Design fidèle au HTML de référence
+- ✅ **RESPONSIVE MOBILE** (9 Mars 2026)
 
 ---
 
@@ -89,16 +110,40 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 
 ---
 
-## TESTS VALIDATION - BLOC 1-6 PRÊTS
+## PROBLÈMES CONNUS
 
-### À valider:
-- [ ] BLOC 1: Badges et accréditation
-- [ ] BLOC 2: Synchronisation routes
-- [ ] BLOC 3: Vue 3D performance
-- [ ] BLOC 4: Workspace Alirio
-- [ ] BLOC 5: Interconnexion admins
-- [ ] BLOC 6: Guides utilisateur
+### React 19 / Three.js Incompatibilité (P2)
+- **Status**: BLOQUÉ - Contournement 2D en place
+- **Cause**: @react-three/fiber incompatible avec React 19
+- **Solution temporaire**: Fallback 2D automatique
+
+### Visual Editor iframe (P2)
+- **Status**: Contournement window.open actif
+- **Cause**: Blocage cross-origin
+- **Solution temporaire**: Ouverture dans nouvel onglet
 
 ---
 
-## 🎯 PRÊT POUR PRODUCTION
+## TESTS DE VALIDATION
+
+### Tests effectués (iteration_18.json)
+- ✅ Dashboard CC2026 Mobile (375px) - 100% passé
+- ✅ Dashboard CC2026 Desktop (1920px) - 100% passé
+- ✅ Header global masqué sur /dashboard-cc2026
+- ✅ Pole Stats responsive (5 cols mobile, 9 cols desktop)
+
+---
+
+## TÂCHES FUTURES (BACKLOG)
+
+### P2 - Vue 3D
+- [ ] Résoudre incompatibilité React 19 / Three.js
+- [ ] Réactiver Dashboard3D et SmartEngine3D
+
+### P2 - Visual Editor
+- [ ] Résoudre blocage iframe cross-origin
+- [ ] Remplacer window.open par intégration iframe
+
+---
+
+## 🎯 PRÊT POUR PRODUCTION (Mobile + Desktop)
