@@ -5828,9 +5828,13 @@ class ProVerifyToken(BaseModel):
 @app.post("/api/pro/request-access")
 async def pro_request_access(request: ProAccessRequest):
     """Request access code for Pro Space - checks if email exists in registrations"""
+    # Validate email
+    if not request.email or not request.email.strip():
+        raise HTTPException(status_code=400, detail="Email requis")
+    
     # Find user by email
     registration = await db.registrations.find_one(
-        {"email": request.email.lower(), "status": "approved"},
+        {"email": request.email.lower().strip(), "status": "approved"},
         {"_id": 0}
     )
     
