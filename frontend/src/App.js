@@ -50,6 +50,8 @@ import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import MobileBottomNav from "./components/MobileBottomNav";
 // Admin Mobile Dashboard
 import AdminMobileDashboard from "./components/AdminMobileDashboard";
+// Performance Dashboard
+import PerformanceDashboard from "./components/admin/PerformanceDashboard";
 // Device Detection Hook
 import useDeviceDetect from "./hooks/useDeviceDetect";
 // 3D Components - LAZY LOADED to avoid React 19 compatibility issues
@@ -139,6 +141,8 @@ function App() {
               <Route path="/admin/cms" element={<ProtectedRoute allowedRoles={['admin']}><CMSAdmin /></ProtectedRoute>} />
               <Route path="/admin/cms/visual-editor" element={<ProtectedRoute allowedRoles={['admin']}><VisualEditor /></ProtectedRoute>} />
               <Route path="/admin/accreditation" element={<ProtectedRoute allowedRoles={['admin']}><AccreditationSystem /></ProtectedRoute>} />
+              {/* Performance Dashboard */}
+              <Route path="/admin/performance" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><PerformanceDashboard /></ProtectedRoute>} />
               {/* Admin Mobile Dashboard */}
               <Route path="/admin/mobile" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><AdminMobileDashboard /></ProtectedRoute>} />
               <Route path="/badge/:id" element={<BadgeScan />} />

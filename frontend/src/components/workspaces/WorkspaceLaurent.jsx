@@ -175,6 +175,10 @@ const WorkspaceLaurent = () => {
             <Button variant="outline" size="sm" onClick={() => navigate('/admin/accreditation')} style={{ borderColor: `${COLORS.terracotta}50`, color: COLORS.terracotta }}>
               Accréditation
             </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin/performance')} style={{ borderColor: `${COLORS.teal}50`, color: COLORS.teal }}>
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Performances
+            </Button>
             <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
               <LogOut className="w-4 h-4" />
             </Button>
