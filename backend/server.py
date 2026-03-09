@@ -7300,29 +7300,6 @@ async def get_team_notifications(limit: int = 50, unread_only: bool = False):
         "unread_count": unread_count
     }
 
-@app.post("/api/team/notifications/create")
-async def create_manual_team_notification(
-    title: str,
-    message: str,
-    priority: str = "medium",
-    target: str = "all"
-):
-    """Create a manual team notification"""
-    notification = {
-        "id": str(uuid.uuid4()),
-        "type": "manual",
-        "title": title,
-        "message": message,
-        "priority": priority,
-        "target": target,
-        "read": False,
-        "read_by": [],
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.team_notifications.insert_one(notification)
-    return {"success": True, "notification": notification}
-
 @app.post("/api/team/notifications/mark-all-read")
 async def mark_all_team_notifications_read(user_id: str = "admin"):
     """Mark all team notifications as read"""
