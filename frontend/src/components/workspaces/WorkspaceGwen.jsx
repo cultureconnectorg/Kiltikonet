@@ -202,6 +202,7 @@ const WorkspaceGwen = () => {
 
         {/* Content - Mobile: single column, Desktop: 3 columns */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Main content - Toujours en premier sur mobile et desktop */}
           <div className="lg:col-span-2 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
             {activeTab === 'artistes' && (
               <div className="space-y-4">
@@ -363,8 +364,8 @@ const WorkspaceGwen = () => {
             )}
           </div>
 
-          {/* Sidebar - Urgent tasks - En bas sur mobile, à droite sur desktop */}
-          <div className="lg:col-span-1 space-y-4 order-first lg:order-last">
+          {/* Sidebar - Urgent tasks - Après le contenu principal sur mobile */}
+          <div className="lg:col-span-1 space-y-4">
             <div className="rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
               <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.gold }}>Tâches urgentes</h3>
               <div className="space-y-3">
