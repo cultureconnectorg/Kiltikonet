@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LogOut, Music, Users, FileText, CheckSquare, Square, Plus, Calendar, Clock, 
   AlertTriangle, Upload, Save, Truck, Edit2, Trash2, Phone, Mail, DollarSign,
-  Check, X, Send, Download, Eye, Settings, Bell
+  Check, X, Send, Download, Eye, Settings, Bell, RefreshCw
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
 import WorkspaceHeader from './WorkspaceHeader';
+import { artistesService, prestatairesService, planningService } from '../../services/SharedDataService';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -27,6 +28,7 @@ const WorkspaceGwen = () => {
   const navigate = useNavigate();
   const sendNotification = useSendNotification();
   const [activeTab, setActiveTab] = useState('artistes');
+  const [loading, setLoading] = useState(true);
   
   // Modal states
   const [showAddArtiste, setShowAddArtiste] = useState(false);
@@ -40,21 +42,12 @@ const WorkspaceGwen = () => {
   const [newPrestataire, setNewPrestataire] = useState({ name: '', type: '', devis: '', contact: '', email: '' });
   const [newPlanningItem, setNewPlanningItem] = useState({ time: '', event: '', responsable: '' });
   
-  // Artistes data
-  const [artistes, setArtistes] = useState([
-    { id: 1, name: 'Kathy', genre: 'DJ Set', status: 'Confirmé', contrat: 'Signé', cachet: '2500€', rider: true, horaire: '22h', email: 'kathy@music.com', phone: '+596 696 00 00 00' },
-    { id: 2, name: 'Artiste 2', genre: 'Zouk', status: 'En négociation', contrat: 'Envoyé', cachet: '3000€', rider: false, horaire: 'TBD', email: '', phone: '' },
-    { id: 3, name: 'Artiste 3', genre: 'Kompa', status: 'À contacter', contrat: 'Non signé', cachet: '-', rider: false, horaire: 'TBD', email: '', phone: '' },
-  ]);
+  // Data from API (synchronized)
+  const [artistes, setArtistes] = useState([]);
+  const [prestataires, setPrestataires] = useState([]);
+  const [planning, setPlanning] = useState([]);
 
-  // Prestataires data
-  const [prestataires, setPrestataires] = useState([
-    { id: 1, name: 'SonoPlus Martinique', type: 'Son', status: 'Devis en attente', devis: '4500€', contact: 'Jean-Marc', email: 'contact@sonoplus.mq', phone: '+596 696 11 11 11', validated: false },
-    { id: 2, name: 'LightShow Caraïbes', type: 'Lumière', status: 'Devis en attente', devis: '3200€', contact: 'Marie', email: 'info@lightshow.mq', phone: '+596 696 22 22 22', validated: false },
-    { id: 3, name: 'Sécurité Antilles', type: 'Sécurité', status: 'À contacter', devis: '-', contact: '', email: '', phone: '', validated: false },
-  ]);
-
-  // Budget tracking
+  // Budget tracking (local for now)
   const [budget, setBudget] = useState({
     total: 25000,
     artistes: 5500,
@@ -79,28 +72,39 @@ const WorkspaceGwen = () => {
   ]);
 
   // Planning jour J
-  const [planning, setPanning] = useState([
-    { time: '08:00', event: 'Arrivée équipe technique', responsable: 'Fabrice', status: 'todo' },
-    { time: '09:00', event: 'Montage scène', responsable: 'Prestataire son', status: 'todo' },
-    { time: '14:00', event: 'Installation technique', responsable: 'Fabrice', status: 'todo' },
-    { time: '16:00', event: 'Soundcheck artistes', responsable: 'Gwen', status: 'todo' },
-    { time: '18:00', event: 'Ouverture portes', responsable: 'Sécurité', status: 'todo' },
-    { time: '19:00', event: 'Début concert', responsable: 'Gwen', status: 'todo' },
-    { time: '22:00', event: 'DJ Set Kathy', responsable: 'Gwen', status: 'todo' },
-    { time: '00:00', event: 'Fin programmation', responsable: 'Gwen', status: 'todo' },
-    { time: '01:00', event: 'Démontage', responsable: 'Prestataire', status: 'todo' }
-  ]);
-
   const [productionNotes, setProductionNotes] = useState('');
 
+  // Load data from API
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [artistesData, prestatairesData, planningData] = await Promise.all([
+        artistesService.getAll(),
+        prestatairesService.getAll(),
+        planningService.getAll()
+      ]);
+      
+      setArtistes(artistesData);
+      setPrestataires(prestatairesData);
+      setPlanning(planningData);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      toast.error('Erreur de chargement des données');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
+    loadData();
+    
     axios.post(`${API}/workspace/log`, {
       user: 'Gwen',
       role: 'event',
       action: 'login',
       details: 'Accès workspace événementiel'
     });
-  }, []);
+  }, [loadData]);
 
   const handleLogout = async () => {
     await axios.post(`${API}/workspace/logout`, { user: 'Gwen', role: 'event' });
@@ -137,35 +141,45 @@ const WorkspaceGwen = () => {
   };
 
   const confirmArtiste = async (artiste) => {
-    setArtistes(prev => prev.map(a => 
-      a.id === artiste.id ? { ...a, status: 'Confirmé', contrat: 'Signé' } : a
-    ));
+    try {
+      await artistesService.update(artiste.id, { status: 'Confirmé', contrat: 'Signé' });
+      setArtistes(prev => prev.map(a => 
+        a.id === artiste.id ? { ...a, status: 'Confirmé', contrat: 'Signé' } : a
+      ));
 
-    await axios.post(`${API}/workspace/log`, {
-      user: 'Gwen',
-      role: 'event',
-      action: 'artiste_confirmed',
-      details: `Artiste confirmé: ${artiste.name}`
-    });
+      await axios.post(`${API}/workspace/log`, {
+        user: 'Gwen',
+        role: 'event',
+        action: 'artiste_confirmed',
+        details: `Artiste confirmé: ${artiste.name}`
+      });
 
-    // Send notification to Laurent
-    await sendNotification({
-      sender: 'Gwen',
-      senderRole: 'event',
-      type: 'artiste_confirmed',
-      title: `Artiste confirmé`,
-      message: `${artiste.name} (${artiste.genre}) est maintenant confirmé pour le 22 mai`,
-      target: 'laurent'
-    });
+      // Send notification to Laurent
+      await sendNotification({
+        sender: 'Gwen',
+        senderRole: 'event',
+        type: 'artiste_confirmed',
+        title: `Artiste confirmé`,
+        message: `${artiste.name} (${artiste.genre}) est maintenant confirmé pour le 22 mai`,
+        target: 'laurent'
+      });
 
-    toast.success(`${artiste.name} confirmé - Notification envoyée à LC`);
+      toast.success(`${artiste.name} confirmé - Notification envoyée à LC`);
+    } catch (error) {
+      toast.error('Erreur lors de la confirmation');
+    }
   };
 
   const markRiderReceived = async (artiste) => {
-    setArtistes(prev => prev.map(a => 
-      a.id === artiste.id ? { ...a, rider: true } : a
-    ));
-    toast.success(`Rider technique de ${artiste.name} marqué comme reçu`);
+    try {
+      await artistesService.update(artiste.id, { rider: true });
+      setArtistes(prev => prev.map(a => 
+        a.id === artiste.id ? { ...a, rider: true } : a
+      ));
+      toast.success(`Rider technique de ${artiste.name} marqué comme reçu`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   // === GESTION ARTISTES ===
@@ -175,45 +189,57 @@ const WorkspaceGwen = () => {
       return;
     }
     
-    const artiste = {
-      id: Date.now(),
-      ...newArtiste,
-      status: 'À contacter',
-      contrat: 'Non signé',
-      rider: false,
-      email: '',
-      phone: ''
-    };
-    
-    setArtistes(prev => [...prev, artiste]);
-    setNewArtiste({ name: '', genre: '', cachet: '', horaire: '' });
-    setShowAddArtiste(false);
-    
-    await axios.post(`${API}/workspace/log`, {
-      user: 'Gwen',
-      role: 'event',
-      action: 'artiste_added',
-      details: `Nouvel artiste ajouté: ${artiste.name}`
-    });
-    
-    toast.success(`${artiste.name} ajouté au line-up`);
+    try {
+      const artiste = {
+        ...newArtiste,
+        status: 'À contacter',
+        contrat: 'Non signé',
+        rider: false,
+        email: '',
+        phone: '',
+        created_by: 'Gwen'
+      };
+      
+      const result = await artistesService.create(artiste);
+      setArtistes(prev => [...prev, result.artiste]);
+      setNewArtiste({ name: '', genre: '', cachet: '', horaire: '' });
+      setShowAddArtiste(false);
+      
+      await axios.post(`${API}/workspace/log`, {
+        user: 'Gwen',
+        role: 'event',
+        action: 'artiste_added',
+        details: `Nouvel artiste ajouté: ${artiste.name}`
+      });
+      
+      toast.success(`${artiste.name} ajouté au line-up (synchronisé)`);
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout');
+    }
   };
 
   const handleDeleteArtiste = async (artiste) => {
     if (window.confirm(`Supprimer ${artiste.name} du line-up ?`)) {
-      setArtistes(prev => prev.filter(a => a.id !== artiste.id));
-      toast.success(`${artiste.name} supprimé`);
+      try {
+        await artistesService.delete(artiste.id);
+        setArtistes(prev => prev.filter(a => a.id !== artiste.id));
+        toast.success(`${artiste.name} supprimé (synchronisé)`);
+      } catch (error) {
+        toast.error('Erreur lors de la suppression');
+      }
     }
   };
 
   const sendContrat = async (artiste) => {
-    setArtistes(prev => prev.map(a => 
-      a.id === artiste.id ? { ...a, contrat: 'Envoyé', status: 'En négociation' } : a
-    ));
-    
-    await sendNotification({
-      sender: 'Gwen',
-      senderRole: 'event',
+    try {
+      await artistesService.update(artiste.id, { contrat: 'Envoyé', status: 'En négociation' });
+      setArtistes(prev => prev.map(a => 
+        a.id === artiste.id ? { ...a, contrat: 'Envoyé', status: 'En négociation' } : a
+      ));
+      
+      await sendNotification({
+        sender: 'Gwen',
+        senderRole: 'event',
       type: 'contract_sent',
       title: 'Contrat envoyé',
       message: `Contrat envoyé à ${artiste.name}`,
@@ -221,6 +247,9 @@ const WorkspaceGwen = () => {
     });
     
     toast.success(`Contrat envoyé à ${artiste.name}`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   // === GESTION PRESTATAIRES ===
@@ -230,74 +259,107 @@ const WorkspaceGwen = () => {
       return;
     }
     
-    const prestataire = {
-      id: Date.now(),
-      ...newPrestataire,
-      status: 'À contacter',
-      validated: false
-    };
-    
-    setPrestataires(prev => [...prev, prestataire]);
-    setNewPrestataire({ name: '', type: '', devis: '', contact: '', email: '' });
-    setShowAddPrestataire(false);
-    
-    toast.success(`Prestataire ${prestataire.name} ajouté`);
+    try {
+      const prestataire = {
+        ...newPrestataire,
+        status: 'À contacter',
+        validated: false,
+        created_by: 'Gwen'
+      };
+      
+      const result = await prestatairesService.create(prestataire);
+      setPrestataires(prev => [...prev, result.prestataire]);
+      setNewPrestataire({ name: '', type: '', devis: '', contact: '', email: '' });
+      setShowAddPrestataire(false);
+      
+      toast.success(`Prestataire ${prestataire.name} ajouté (synchronisé)`);
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout');
+    }
   };
 
   const validateDevis = async (prestataire) => {
-    setPrestataires(prev => prev.map(p => 
-      p.id === prestataire.id ? { ...p, validated: true, status: 'Validé' } : p
-    ));
-    
-    await sendNotification({
-      sender: 'Gwen',
-      senderRole: 'event',
-      type: 'devis_validated',
-      title: 'Devis validé',
-      message: `Devis ${prestataire.type} validé: ${prestataire.devis}`,
-      target: 'wudy'
-    });
-    
-    toast.success(`Devis ${prestataire.type} validé - Notification envoyée à Wudy`);
+    try {
+      await prestatairesService.update(prestataire.id, { validated: true, status: 'Validé' });
+      setPrestataires(prev => prev.map(p => 
+        p.id === prestataire.id ? { ...p, validated: true, status: 'Validé' } : p
+      ));
+      
+      await sendNotification({
+        sender: 'Gwen',
+        senderRole: 'event',
+        type: 'devis_validated',
+        title: 'Devis validé',
+        message: `Devis ${prestataire.type} validé: ${prestataire.devis}`,
+        target: 'wudy'
+      });
+      
+      toast.success(`Devis ${prestataire.type} validé - Notification envoyée à Wudy`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   const contactPrestataire = async (prestataire) => {
-    setPrestataires(prev => prev.map(p => 
-      p.id === prestataire.id ? { ...p, status: 'Contacté' } : p
-    ));
-    toast.success(`${prestataire.name} marqué comme contacté`);
+    try {
+      await prestatairesService.update(prestataire.id, { status: 'Contacté' });
+      setPrestataires(prev => prev.map(p => 
+        p.id === prestataire.id ? { ...p, status: 'Contacté' } : p
+      ));
+      toast.success(`${prestataire.name} marqué comme contacté`);
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
   // === GESTION PLANNING ===
-  const handleAddPlanningItem = () => {
+  const handleAddPlanningItem = async () => {
     if (!newPlanningItem.time || !newPlanningItem.event) {
       toast.error('Heure et événement requis');
       return;
     }
     
-    const item = {
-      ...newPlanningItem,
-      status: 'todo'
-    };
-    
-    // Insert in sorted order
-    const newPlanning = [...planning, item].sort((a, b) => a.time.localeCompare(b.time));
-    setPlanning(newPlanning);
-    setNewPlanningItem({ time: '', event: '', responsable: '' });
-    setShowAddPlanning(false);
-    
-    toast.success('Créneau ajouté au planning');
+    try {
+      const item = {
+        ...newPlanningItem,
+        status: 'todo',
+        date: '2026-05-22',
+        created_by: 'Gwen'
+      };
+      
+      const result = await planningService.create(item);
+      // Re-fetch to get sorted list
+      const planningData = await planningService.getAll();
+      setPlanning(planningData);
+      setNewPlanningItem({ time: '', event: '', responsable: '' });
+      setShowAddPlanning(false);
+      
+      toast.success('Créneau ajouté au planning (synchronisé)');
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout');
+    }
   };
 
-  const togglePlanningStatus = (index) => {
-    setPlanning(prev => prev.map((item, i) => 
-      i === index ? { ...item, status: item.status === 'done' ? 'todo' : 'done' } : item
-    ));
+  const togglePlanningStatus = async (item) => {
+    try {
+      const newStatus = item.status === 'done' ? 'todo' : 'done';
+      await planningService.update(item.id, { status: newStatus });
+      setPlanning(prev => prev.map(p => 
+        p.id === item.id ? { ...p, status: newStatus } : p
+      ));
+    } catch (error) {
+      toast.error('Erreur');
+    }
   };
 
-  const deletePlanningItem = (index) => {
-    setPlanning(prev => prev.filter((_, i) => i !== index));
-    toast.success('Créneau supprimé');
+  const deletePlanningItem = async (item) => {
+    try {
+      await planningService.delete(item.id);
+      setPlanning(prev => prev.filter(p => p.id !== item.id));
+      toast.success('Créneau supprimé (synchronisé)');
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
   };
 
   // === NOTIFICATIONS ÉQUIPE ===
@@ -597,12 +659,12 @@ const WorkspaceGwen = () => {
                 )}
 
                 <div className="space-y-2">
-                  {planning.map((item, idx) => (
+                  {planning.map((item) => (
                     <div 
-                      key={idx} 
+                      key={item.id} 
                       className="flex items-center gap-3 sm:gap-4 p-3 rounded-lg cursor-pointer transition-all hover:bg-white/10" 
                       style={{ background: item.status === 'done' ? `${COLORS.forest}15` : 'rgba(255,255,255,0.05)' }}
-                      onClick={() => togglePlanningStatus(idx)}
+                      onClick={() => togglePlanningStatus(item)}
                     >
                       <div className="text-base sm:text-lg font-bold" style={{ color: COLORS.gold, minWidth: '50px' }}>{item.time}</div>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${item.status === 'done' ? 'border-green-400 bg-green-400' : 'border-white/30'}`}>
@@ -610,7 +672,7 @@ const WorkspaceGwen = () => {
                       </div>
                       <div className={`flex-1 text-sm sm:text-base ${item.status === 'done' ? 'text-white/50 line-through' : 'text-white'}`}>{item.event}</div>
                       <div className="text-xs hidden sm:block" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.responsable}</div>
-                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); deletePlanningItem(idx); }} className="text-red-400 hover:text-red-300 p-1 h-auto">
+                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); deletePlanningItem(item); }} className="text-red-400 hover:text-red-300 p-1 h-auto">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

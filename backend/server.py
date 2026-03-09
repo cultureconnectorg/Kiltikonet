@@ -7324,3 +7324,389 @@ async def smart_engine_cron_check():
     """Cron endpoint to check alerts - call every 15 minutes"""
     result = await check_and_trigger_alerts()
     return {"success": True, "result": result}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DONNÉES PARTAGÉES - Artistes, Prestataires, Tâches, Partenaires
+# Synchronisation entre tous les workspaces
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# --- ARTISTES ---
+class ArtisteModel(BaseModel):
+    id: Optional[str] = None
+    name: str
+    genre: str
+    status: str = "À contacter"  # À contacter, En négociation, Confirmé
+    contrat: str = "Non signé"   # Non signé, Envoyé, Signé
+    cachet: str = ""
+    rider: bool = False
+    horaire: str = "TBD"
+    email: str = ""
+    phone: str = ""
+    created_by: str = ""
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+@app.get("/api/shared/artistes")
+async def get_artistes():
+    """Get all artistes"""
+    artistes = await db.artistes.find({}, {"_id": 0}).sort("name", 1).to_list(100)
+    return artistes
+
+@app.post("/api/shared/artistes")
+async def create_artiste(artiste: ArtisteModel):
+    """Create a new artiste"""
+    artiste_doc = artiste.dict()
+    artiste_doc["id"] = artiste_doc.get("id") or str(uuid.uuid4())
+    artiste_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    artiste_doc["updated_at"] = artiste_doc["created_at"]
+    
+    await db.artistes.insert_one(artiste_doc)
+    return {"success": True, "artiste": artiste_doc}
+
+@app.patch("/api/shared/artistes/{artiste_id}")
+async def update_artiste(artiste_id: str, updates: dict):
+    """Update an artiste"""
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.artistes.update_one({"id": artiste_id}, {"$set": updates})
+    updated = await db.artistes.find_one({"id": artiste_id}, {"_id": 0})
+    return {"success": True, "artiste": updated}
+
+@app.delete("/api/shared/artistes/{artiste_id}")
+async def delete_artiste(artiste_id: str):
+    """Delete an artiste"""
+    result = await db.artistes.delete_one({"id": artiste_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- PRESTATAIRES ---
+class PrestataireModel(BaseModel):
+    id: Optional[str] = None
+    name: str
+    type: str  # Son, Lumière, Sécurité, Scène, Traiteur, Autre
+    status: str = "À contacter"  # À contacter, Contacté, Devis en attente, Validé
+    devis: str = ""
+    contact: str = ""
+    email: str = ""
+    phone: str = ""
+    validated: bool = False
+    created_by: str = ""
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+@app.get("/api/shared/prestataires")
+async def get_prestataires():
+    """Get all prestataires"""
+    prestataires = await db.prestataires.find({}, {"_id": 0}).sort("name", 1).to_list(100)
+    return prestataires
+
+@app.post("/api/shared/prestataires")
+async def create_prestataire(prestataire: PrestataireModel):
+    """Create a new prestataire"""
+    presta_doc = prestataire.dict()
+    presta_doc["id"] = presta_doc.get("id") or str(uuid.uuid4())
+    presta_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    presta_doc["updated_at"] = presta_doc["created_at"]
+    
+    await db.prestataires.insert_one(presta_doc)
+    return {"success": True, "prestataire": presta_doc}
+
+@app.patch("/api/shared/prestataires/{prestataire_id}")
+async def update_prestataire(prestataire_id: str, updates: dict):
+    """Update a prestataire"""
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.prestataires.update_one({"id": prestataire_id}, {"$set": updates})
+    updated = await db.prestataires.find_one({"id": prestataire_id}, {"_id": 0})
+    return {"success": True, "prestataire": updated}
+
+@app.delete("/api/shared/prestataires/{prestataire_id}")
+async def delete_prestataire(prestataire_id: str):
+    """Delete a prestataire"""
+    result = await db.prestataires.delete_one({"id": prestataire_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- TÂCHES ---
+class TaskModel(BaseModel):
+    id: Optional[str] = None
+    title: str
+    description: str = ""
+    status: str = "a_faire"  # a_faire, en_cours, fait
+    priority: str = "moyenne"  # basse, moyenne, haute
+    deadline: str = ""
+    assigned_to: str = ""  # workspace name
+    created_by: str = ""
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+@app.get("/api/shared/tasks")
+async def get_tasks(assigned_to: str = None):
+    """Get all tasks, optionally filtered by assignee"""
+    query = {}
+    if assigned_to:
+        query["assigned_to"] = assigned_to
+    tasks = await db.shared_tasks.find(query, {"_id": 0}).sort("deadline", 1).to_list(200)
+    return tasks
+
+@app.post("/api/shared/tasks")
+async def create_task(task: TaskModel):
+    """Create a new task"""
+    task_doc = task.dict()
+    task_doc["id"] = task_doc.get("id") or str(uuid.uuid4())
+    task_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    task_doc["updated_at"] = task_doc["created_at"]
+    
+    await db.shared_tasks.insert_one(task_doc)
+    return {"success": True, "task": task_doc}
+
+@app.patch("/api/shared/tasks/{task_id}")
+async def update_task(task_id: str, updates: dict):
+    """Update a task"""
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.shared_tasks.update_one({"id": task_id}, {"$set": updates})
+    updated = await db.shared_tasks.find_one({"id": task_id}, {"_id": 0})
+    return {"success": True, "task": updated}
+
+@app.delete("/api/shared/tasks/{task_id}")
+async def delete_task(task_id: str):
+    """Delete a task"""
+    result = await db.shared_tasks.delete_one({"id": task_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- PARTENAIRES ---
+class PartnerModel(BaseModel):
+    id: Optional[str] = None
+    name: str
+    type: str = "Bronze"  # Bronze, Silver, Or, Institutionnel
+    status: str = "Prospect"  # Prospect, Contacté, Dossier envoyé, En négociation, Signé
+    contact: str = ""
+    email: str = ""
+    phone: str = ""
+    lastAction: str = ""
+    nextAction: str = "Premier contact"
+    created_by: str = ""
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+@app.get("/api/shared/partners")
+async def get_partners():
+    """Get all partners"""
+    partners = await db.partners.find({}, {"_id": 0}).sort("name", 1).to_list(200)
+    return partners
+
+@app.post("/api/shared/partners")
+async def create_partner(partner: PartnerModel):
+    """Create a new partner"""
+    partner_doc = partner.dict()
+    partner_doc["id"] = partner_doc.get("id") or str(uuid.uuid4())
+    partner_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    partner_doc["updated_at"] = partner_doc["created_at"]
+    
+    await db.partners.insert_one(partner_doc)
+    return {"success": True, "partner": partner_doc}
+
+@app.patch("/api/shared/partners/{partner_id}")
+async def update_partner(partner_id: str, updates: dict):
+    """Update a partner"""
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.partners.update_one({"id": partner_id}, {"$set": updates})
+    updated = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    return {"success": True, "partner": updated}
+
+@app.delete("/api/shared/partners/{partner_id}")
+async def delete_partner(partner_id: str):
+    """Delete a partner"""
+    result = await db.partners.delete_one({"id": partner_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- BUDGET / DÉPENSES ---
+class ExpenseModel(BaseModel):
+    id: Optional[str] = None
+    label: str
+    montant: float
+    category: str
+    fournisseur: str = ""
+    justificatif: bool = False
+    date: str = ""
+    created_by: str = ""
+    created_at: Optional[str] = None
+
+@app.get("/api/shared/expenses")
+async def get_expenses():
+    """Get all expenses"""
+    expenses = await db.expenses.find({}, {"_id": 0}).sort("date", -1).to_list(500)
+    return expenses
+
+@app.post("/api/shared/expenses")
+async def create_expense(expense: ExpenseModel):
+    """Create a new expense"""
+    expense_doc = expense.dict()
+    expense_doc["id"] = expense_doc.get("id") or str(uuid.uuid4())
+    expense_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    expense_doc["date"] = expense_doc.get("date") or datetime.now(timezone.utc).strftime("%d/%m/%Y")
+    
+    await db.expenses.insert_one(expense_doc)
+    return {"success": True, "expense": expense_doc}
+
+@app.patch("/api/shared/expenses/{expense_id}")
+async def update_expense(expense_id: str, updates: dict):
+    """Update an expense"""
+    await db.expenses.update_one({"id": expense_id}, {"$set": updates})
+    updated = await db.expenses.find_one({"id": expense_id}, {"_id": 0})
+    return {"success": True, "expense": updated}
+
+@app.delete("/api/shared/expenses/{expense_id}")
+async def delete_expense(expense_id: str):
+    """Delete an expense"""
+    result = await db.expenses.delete_one({"id": expense_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- CONTACTS PERSO ---
+class ContactModel(BaseModel):
+    id: Optional[str] = None
+    prenom: str
+    nom: str
+    email: str = ""
+    phone: str = ""
+    organisation: str = ""
+    fonction: str = ""
+    categorie: str = "Personnel"  # Partenaire, Institutionnel, Presse, Personnel
+    statut: str = "Actif"
+    notes: str = ""
+    owner: str = ""  # workspace owner
+    created_at: Optional[str] = None
+
+@app.get("/api/shared/contacts")
+async def get_contacts(owner: str = None):
+    """Get all contacts, optionally filtered by owner"""
+    query = {}
+    if owner:
+        query["owner"] = owner
+    contacts = await db.contacts.find(query, {"_id": 0}).sort("nom", 1).to_list(500)
+    return contacts
+
+@app.post("/api/shared/contacts")
+async def create_contact(contact: ContactModel):
+    """Create a new contact"""
+    contact_doc = contact.dict()
+    contact_doc["id"] = contact_doc.get("id") or str(uuid.uuid4())
+    contact_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.contacts.insert_one(contact_doc)
+    return {"success": True, "contact": contact_doc}
+
+@app.patch("/api/shared/contacts/{contact_id}")
+async def update_contact(contact_id: str, updates: dict):
+    """Update a contact"""
+    await db.contacts.update_one({"id": contact_id}, {"$set": updates})
+    updated = await db.contacts.find_one({"id": contact_id}, {"_id": 0})
+    return {"success": True, "contact": updated}
+
+@app.delete("/api/shared/contacts/{contact_id}")
+async def delete_contact(contact_id: str):
+    """Delete a contact"""
+    result = await db.contacts.delete_one({"id": contact_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- PLANNING ---
+class PlanningItemModel(BaseModel):
+    id: Optional[str] = None
+    time: str
+    event: str
+    responsable: str = ""
+    status: str = "todo"  # todo, done
+    date: str = "2026-05-22"  # Default event date
+    created_by: str = ""
+    created_at: Optional[str] = None
+
+@app.get("/api/shared/planning")
+async def get_planning(date: str = None):
+    """Get planning items"""
+    query = {}
+    if date:
+        query["date"] = date
+    items = await db.planning.find(query, {"_id": 0}).sort("time", 1).to_list(100)
+    return items
+
+@app.post("/api/shared/planning")
+async def create_planning_item(item: PlanningItemModel):
+    """Create a new planning item"""
+    item_doc = item.dict()
+    item_doc["id"] = item_doc.get("id") or str(uuid.uuid4())
+    item_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.planning.insert_one(item_doc)
+    return {"success": True, "item": item_doc}
+
+@app.patch("/api/shared/planning/{item_id}")
+async def update_planning_item(item_id: str, updates: dict):
+    """Update a planning item"""
+    await db.planning.update_one({"id": item_id}, {"$set": updates})
+    updated = await db.planning.find_one({"id": item_id}, {"_id": 0})
+    return {"success": True, "item": updated}
+
+@app.delete("/api/shared/planning/{item_id}")
+async def delete_planning_item(item_id: str):
+    """Delete a planning item"""
+    result = await db.planning.delete_one({"id": item_id})
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+# --- INIT DATA ---
+@app.post("/api/shared/init-default-data")
+async def init_default_data():
+    """Initialize default data if collections are empty"""
+    results = {}
+    
+    # Init artistes
+    if await db.artistes.count_documents({}) == 0:
+        default_artistes = [
+            {"id": "art1", "name": "Kathy", "genre": "DJ Set", "status": "Confirmé", "contrat": "Signé", "cachet": "2500€", "rider": True, "horaire": "22h", "email": "kathy@music.com", "phone": "+596 696 00 00 00"},
+            {"id": "art2", "name": "Admiral T", "genre": "Dancehall", "status": "En négociation", "contrat": "Envoyé", "cachet": "5000€", "rider": False, "horaire": "23h", "email": "", "phone": ""},
+            {"id": "art3", "name": "Kalash", "genre": "Rap", "status": "À contacter", "contrat": "Non signé", "cachet": "-", "rider": False, "horaire": "TBD", "email": "", "phone": ""},
+        ]
+        for a in default_artistes:
+            a["created_at"] = datetime.now(timezone.utc).isoformat()
+            await db.artistes.insert_one(a)
+        results["artistes"] = len(default_artistes)
+    
+    # Init prestataires
+    if await db.prestataires.count_documents({}) == 0:
+        default_prestas = [
+            {"id": "presta1", "name": "SonoPlus Martinique", "type": "Son", "status": "Devis en attente", "devis": "4500€", "contact": "Jean-Marc", "email": "contact@sonoplus.mq", "phone": "+596 696 11 11 11", "validated": False},
+            {"id": "presta2", "name": "LightShow Caraïbes", "type": "Lumière", "status": "Devis en attente", "devis": "3200€", "contact": "Marie", "email": "info@lightshow.mq", "phone": "+596 696 22 22 22", "validated": False},
+            {"id": "presta3", "name": "Sécurité Antilles", "type": "Sécurité", "status": "À contacter", "devis": "-", "contact": "", "email": "", "phone": "", "validated": False},
+        ]
+        for p in default_prestas:
+            p["created_at"] = datetime.now(timezone.utc).isoformat()
+            await db.prestataires.insert_one(p)
+        results["prestataires"] = len(default_prestas)
+    
+    # Init planning
+    if await db.planning.count_documents({}) == 0:
+        default_planning = [
+            {"id": "plan1", "time": "08:00", "event": "Arrivée équipe technique", "responsable": "Fabrice", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan2", "time": "10:00", "event": "Installation scène", "responsable": "Fabrice", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan3", "time": "14:00", "event": "Balance artistes", "responsable": "Gwen", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan4", "time": "17:00", "event": "Ouverture accueil VIP", "responsable": "Alirio", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan5", "time": "18:00", "event": "Ouverture portes public", "responsable": "Kaige", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan6", "time": "19:00", "event": "Discours ouverture", "responsable": "Laurent", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan7", "time": "20:00", "event": "Premier artiste", "responsable": "Gwen", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan8", "time": "22:00", "event": "DJ Set Kathy", "responsable": "Gwen", "status": "todo", "date": "2026-05-22"},
+            {"id": "plan9", "time": "00:00", "event": "Fin événement", "responsable": "Laurent", "status": "todo", "date": "2026-05-22"},
+        ]
+        for item in default_planning:
+            item["created_at"] = datetime.now(timezone.utc).isoformat()
+            await db.planning.insert_one(item)
+        results["planning"] = len(default_planning)
+    
+    # Init partners
+    if await db.partners.count_documents({}) == 0:
+        default_partners = [
+            {"id": "partner1", "name": "Rhum Clément", "type": "Or", "status": "Signé", "contact": "Marie Clément", "email": "partenariat@clement.mq", "phone": "+596 696 33 33 33", "lastAction": "05/03/2026", "nextAction": "Livraison produits"},
+            {"id": "partner2", "name": "Air France", "type": "Silver", "status": "En négociation", "contact": "Pierre Dubois", "email": "sponsoring@airfrance.fr", "phone": "", "lastAction": "01/03/2026", "nextAction": "Relance"},
+            {"id": "partner3", "name": "CTM", "type": "Institutionnel", "status": "Dossier envoyé", "contact": "", "email": "culture@ctm.mq", "phone": "", "lastAction": "28/02/2026", "nextAction": "Attente réponse"},
+        ]
+        for p in default_partners:
+            p["created_at"] = datetime.now(timezone.utc).isoformat()
+            await db.partners.insert_one(p)
+        results["partners"] = len(default_partners)
+    
+    return {"success": True, "initialized": results}
