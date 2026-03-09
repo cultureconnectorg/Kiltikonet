@@ -14,6 +14,7 @@ import {
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { toast } from 'sonner';
+import PermissionsManager from './PermissionsManager';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -48,6 +49,7 @@ const FounderControlCenter = ({ onClose }) => {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);
+  const [showPermissions, setShowPermissions] = useState(false);
   
   // Editing states
   const [editingWorkspace, setEditingWorkspace] = useState(null);
@@ -309,6 +311,26 @@ const FounderControlCenter = ({ onClose }) => {
                   </Button>
                 </div>
               </div>
+              
+              {/* Permissions Section */}
+              <div className="mt-6 p-4 rounded-lg" style={{ background: `${COLORS.gold}10`, border: `1px solid ${COLORS.gold}30` }}>
+                <h3 className="font-bold mb-2 flex items-center gap-2" style={{ color: COLORS.gold }}>
+                  <Shield className="w-4 h-4" />
+                  Permissions granulaires
+                </h3>
+                <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  Définissez ce que chaque membre peut voir et modifier
+                </p>
+                <Button 
+                  size="sm" 
+                  onClick={() => setShowPermissions(true)}
+                  style={{ background: COLORS.gold, color: COLORS.charbon }}
+                  data-testid="manage-permissions-btn"
+                >
+                  <Shield className="w-3 h-3 mr-2" />
+                  Gérer les permissions
+                </Button>
+              </div>
             </div>
           )}
           
@@ -399,6 +421,11 @@ const FounderControlCenter = ({ onClose }) => {
           )}
         </div>
       </div>
+      
+      {/* Permissions Manager Modal */}
+      {showPermissions && (
+        <PermissionsManager onClose={() => setShowPermissions(false)} />
+      )}
     </div>
   );
 };

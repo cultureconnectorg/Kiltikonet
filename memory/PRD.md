@@ -65,6 +65,28 @@ Plateforme multi-workspace avec messagerie temps réel, système d'accréditatio
 - ✅ Boutons "?" accessibles dans chaque interface
 - ✅ Guide Accréditation, Badges, Contacts, Smart Engine, Workspaces, Jour J
 
+### SYSTÈME DE PERMISSIONS GRANULAIRES (9 Mars 2026) ✅
+- ✅ 28 permissions définies dans 9 catégories
+- ✅ Interface de gestion pour Laurent (Fondateur)
+- ✅ Permissions par défaut par rôle
+- ✅ Personnalisation par checkbox (activer/désactiver)
+- ✅ Sauvegarde locale (localStorage)
+- ✅ Hook `usePermissions()` pour intégration facile
+- ✅ Composant `<PermissionGate>` pour rendu conditionnel
+
+**Catégories de permissions :**
+| Catégorie | Permissions |
+|-----------|-------------|
+| Données | Voir/Modifier/Supprimer inscriptions, Exporter |
+| Business | Voir/Modifier/Supprimer contacts, Promouvoir partenaires |
+| Finances | Voir/Modifier finances, Approuver dépenses |
+| Accréditations | Voir/Modifier, Imprimer/Scanner badges |
+| Événementiel | Voir/Modifier artistes, Gérer planning |
+| Communication | Communiqués, Presse, CMS |
+| Dashboard | Voir, Modifier ses tâches, Modifier toutes |
+| Administration | Activité équipe, Workspaces, Mots de passe, Messages |
+| Régie | Activer live, Sous-titres |
+
 ### CENTRE DE CONTRÔLE FONDATEUR (9 Mars 2026) ✅
 - ✅ Navigation inter-workspaces (accès direct à 8 workspaces)
 - ✅ Gestion des mots de passe (afficher/masquer/modifier)
