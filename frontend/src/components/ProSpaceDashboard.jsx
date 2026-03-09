@@ -1102,120 +1102,520 @@ const MessagesSection = ({ messages, session, onUpdate }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// OPPORTUNITIES SECTION
+// OPPORTUNITIES SECTION - Real data from API
 // ═══════════════════════════════════════════════════════════════
 const OpportunitiesSection = ({ opportunities, session }) => {
-  // Mock opportunities for demo
-  const mockOpportunities = [
-    { id: 1, title: 'Recherche artiste Zouk pour festival', type: 'Booking', author: 'Festival Carib\'Art', deadline: '2026-04-15', description: 'Nous recherchons un artiste Zouk confirmé pour notre festival annuel en Guadeloupe.' },
-    { id: 2, title: 'Distribution digitale - Partenariat', type: 'Business', author: 'DigiSound Africa', deadline: '2026-03-30', description: 'Offre de distribution pour artistes caribéens souhaitant se développer en Afrique.' },
-    { id: 3, title: 'Appel à projets - Création musicale', type: 'Subvention', author: 'DAC Martinique', deadline: '2026-05-01', description: 'Subvention disponible pour projets de création musicale caribéenne.' },
-  ];
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [applying, setApplying] = useState(null);
+  const [applicationMessage, setApplicationMessage] = useState('');
+  const [filterType, setFilterType] = useState('');
 
-  const displayOpps = opportunities.length > 0 ? opportunities : mockOpportunities;
+  const typeColors = {
+    'Booking': COLORS.terracotta,
+    'Business': COLORS.gold,
+    'Subvention': COLORS.forest,
+    'Formation': '#5B9BD5',
+    'Emploi': COLORS.burgundy,
+  };
+
+  const filteredOpps = filterType 
+    ? opportunities.filter(o => o.type === filterType)
+    : opportunities;
+
+  const handleApply = async (oppId) => {
+    if (!applicationMessage.trim()) {
+      toast.error('Veuillez ajouter un message de candidature');
+      return;
+    }
+    try {
+      await axios.post(`${API}/pro/opportunities/${oppId}/apply`, {
+        applicant_id: session.id,
+        message: applicationMessage
+      });
+      toast.success('Candidature envoyée !');
+      setApplying(null);
+      setApplicationMessage('');
+    } catch (err) {
+      toast.error('Erreur lors de l\'envoi');
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold" style={{ color: COLORS.cream }}>Opportunités</h2>
-        <Button style={{ background: COLORS.gold, color: COLORS.charbon }}>
-          <Plus className="w-4 h-4 mr-2" /> Publier une offre
-        </Button>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold" style={{ color: COLORS.cream }}>Opportunités</h2>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            {opportunities.length} offres disponibles
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="h-9 px-3 rounded-lg text-sm"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+          >
+            <option value="">Tous les types</option>
+            <option value="Booking">Booking</option>
+            <option value="Business">Business</option>
+            <option value="Subvention">Subvention</option>
+            <option value="Formation">Formation</option>
+            <option value="Emploi">Emploi</option>
+          </select>
+          <Button onClick={() => setShowCreateModal(true)} style={{ background: COLORS.gold, color: COLORS.charbon }}>
+            <Plus className="w-4 h-4 mr-2" /> Publier
+          </Button>
+        </div>
       </div>
 
+      {/* Opportunities List */}
       <div className="space-y-4">
-        {displayOpps.map(opp => (
-          <div key={opp.id} className="p-5 rounded-xl" style={{ background: COLORS.card }}>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <span className="px-2 py-1 text-xs rounded mr-2" style={{ background: `${COLORS.terracotta}20`, color: COLORS.terracotta }}>
-                  {opp.type}
-                </span>
-                <h3 className="font-bold mt-2" style={{ color: COLORS.cream }}>{opp.title}</h3>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>par {opp.author}</p>
+        {filteredOpps.length === 0 ? (
+          <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Aucune opportunité disponible
+          </div>
+        ) : (
+          filteredOpps.map(opp => {
+            const typeColor = typeColors[opp.type] || COLORS.terracotta;
+            const isExpired = opp.deadline && new Date(opp.deadline) < new Date();
+            const daysLeft = opp.deadline ? Math.ceil((new Date(opp.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : null;
+            
+            return (
+              <div key={opp.id} className="p-5 rounded-xl" style={{ background: COLORS.card, opacity: isExpired ? 0.6 : 1 }}>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="px-2 py-1 text-xs rounded font-medium" style={{ background: `${typeColor}20`, color: typeColor }}>
+                        {opp.type}
+                      </span>
+                      {opp.location && (
+                        <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                          <MapPin className="w-3 h-3" /> {opp.location}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-lg" style={{ color: COLORS.cream }}>{opp.title}</h3>
+                    <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>par {opp.author_name}</p>
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    {opp.deadline && (
+                      <div className={`text-xs ${isExpired ? 'text-red-400' : daysLeft <= 7 ? 'text-orange-400' : ''}`} style={{ color: isExpired ? undefined : daysLeft <= 7 ? undefined : 'rgba(255,255,255,0.4)' }}>
+                        <Clock className="w-4 h-4 inline mr-1" />
+                        {isExpired ? 'Expiré' : `${daysLeft} jours restants`}
+                      </div>
+                    )}
+                    <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      {new Date(opp.deadline).toLocaleDateString('fr-FR')}
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-sm mb-3" style={{ color: 'rgba(255,255,255,0.7)' }}>{opp.description}</p>
+                
+                {opp.requirements && (
+                  <div className="text-xs mb-4 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <strong style={{ color: COLORS.gold }}>Prérequis :</strong>
+                    <span style={{ color: 'rgba(255,255,255,0.6)' }}> {opp.requirements}</span>
+                  </div>
+                )}
+                
+                {applying === opp.id ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={applicationMessage}
+                      onChange={(e) => setApplicationMessage(e.target.value)}
+                      placeholder="Présentez-vous et expliquez votre intérêt..."
+                      rows={3}
+                      className="w-full p-3 rounded-lg text-sm"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => handleApply(opp.id)} style={{ background: COLORS.gold, color: COLORS.charbon }}>
+                        <Send className="w-4 h-4 mr-2" /> Envoyer
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setApplying(null); setApplicationMessage(''); }} style={{ color: 'rgba(255,255,255,0.5)' }}>
+                        Annuler
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    {!isExpired && (
+                      <Button size="sm" onClick={() => setApplying(opp.id)} style={{ background: COLORS.gold, color: COLORS.charbon }}>
+                        Postuler <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
+                    {opp.contact_email && (
+                      <Button size="sm" variant="ghost" onClick={() => window.location.href = `mailto:${opp.contact_email}`} style={{ color: 'rgba(255,255,255,0.5)' }}>
+                        <Mail className="w-4 h-4 mr-1" /> Contact
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                <Clock className="w-4 h-4" />
-                Deadline: {new Date(opp.deadline).toLocaleDateString('fr-FR')}
-              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Create Opportunity Modal */}
+      {showCreateModal && (
+        <CreateOpportunityModal session={session} onClose={() => setShowCreateModal(false)} />
+      )}
+    </div>
+  );
+};
+
+// Create Opportunity Modal
+const CreateOpportunityModal = ({ session, onClose }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'Business',
+    description: '',
+    requirements: '',
+    deadline: '',
+    location: '',
+    contact_email: session.email || ''
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.title || !formData.description) {
+      toast.error('Titre et description requis');
+      return;
+    }
+    setSaving(true);
+    try {
+      await axios.post(`${API}/pro/opportunities`, {
+        ...formData,
+        author_id: session.id,
+        author_name: session.name
+      });
+      toast.success('Opportunité publiée !');
+      onClose();
+      window.location.reload();
+    } catch (err) {
+      toast.error('Erreur lors de la publication');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
+      <div 
+        className="w-full max-w-lg rounded-xl p-6"
+        style={{ background: COLORS.charbon, border: `1px solid ${COLORS.gold}30` }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold" style={{ color: COLORS.cream }}>Publier une opportunité</h2>
+          <button onClick={onClose} className="p-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Titre *</label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              placeholder="Ex: Recherche artiste pour festival"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Type</label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
+                className="w-full h-10 px-3 rounded-lg"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+              >
+                <option value="Booking">Booking</option>
+                <option value="Business">Business</option>
+                <option value="Subvention">Subvention</option>
+                <option value="Formation">Formation</option>
+                <option value="Emploi">Emploi</option>
+              </select>
             </div>
-            <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.7)' }}>{opp.description}</p>
-            <Button size="sm" style={{ background: COLORS.gold, color: COLORS.charbon }}>
-              Postuler <ArrowRight className="w-4 h-4 ml-2" />
+            <div>
+              <label className="block text-sm mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Date limite</label>
+              <Input
+                type="date"
+                value={formData.deadline}
+                onChange={(e) => setFormData({...formData, deadline: e.target.value})}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Description *</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows={3}
+              className="w-full p-3 rounded-lg text-sm"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+              placeholder="Décrivez l'opportunité..."
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Prérequis</label>
+            <Input
+              value={formData.requirements}
+              onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+              placeholder="Ex: 3 ans d'expérience minimum"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Localisation</label>
+              <Input
+                value={formData.location}
+                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                placeholder="Ex: Fort-de-France"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Email contact</label>
+              <Input
+                type="email"
+                value={formData.contact_email}
+                onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <Button type="submit" disabled={saving} className="flex-1" style={{ background: COLORS.gold, color: COLORS.charbon }}>
+              {saving ? 'Publication...' : 'Publier l\'opportunité'}
+            </Button>
+            <Button type="button" variant="ghost" onClick={onClose} style={{ color: 'rgba(255,255,255,0.5)' }}>
+              Annuler
             </Button>
           </div>
-        ))}
+        </form>
       </div>
     </div>
   );
 };
 
 // ═══════════════════════════════════════════════════════════════
-// EVENTS SECTION (Agenda)
+// EVENTS SECTION (Agenda) - Real CC2026 Events
 // ═══════════════════════════════════════════════════════════════
 const EventsSection = ({ events, session }) => {
-  // Mock events
-  const mockEvents = [
-    { id: 1, title: 'Networking Petit-déjeuner', date: '2026-03-15', time: '09:00', location: 'Fort-de-France', type: 'Networking', attendees: 24 },
-    { id: 2, title: 'Masterclass: Export Musical', date: '2026-03-20', time: '14:00', location: 'En ligne', type: 'Formation', attendees: 89 },
-    { id: 3, title: 'Showcase CC2026', date: '2026-05-21', time: '19:00', location: 'La Savane, Fort-de-France', type: 'Concert', attendees: 156 },
-    { id: 4, title: 'CHIMIN SAVANN', date: '2026-05-22', time: '18:00', location: 'Parc de La Savane', type: 'Événement Principal', attendees: 6000 },
-  ];
+  const [registering, setRegistering] = useState(null);
+  const [myRegistrations, setMyRegistrations] = useState([]);
+  const [filterType, setFilterType] = useState('');
 
-  const displayEvents = events.length > 0 ? events : mockEvents;
+  // Check user registrations
+  useEffect(() => {
+    if (session?.id && events.length > 0) {
+      const registered = events.filter(e => e.attendees?.includes(session.id)).map(e => e.id);
+      setMyRegistrations(registered);
+    }
+  }, [session?.id, events]);
+
+  const typeColors = {
+    'Networking': COLORS.gold,
+    'Formation': '#5B9BD5',
+    'Conférence': COLORS.forest,
+    'Concert': COLORS.terracotta,
+    'Atelier': '#9C27B0',
+  };
+
+  const filteredEvents = filterType 
+    ? events.filter(e => e.type === filterType)
+    : events;
+
+  const handleRegister = async (eventId) => {
+    setRegistering(eventId);
+    try {
+      const res = await axios.post(`${API}/pro/events/${eventId}/register`, {
+        attendee_id: session.id
+      });
+      if (res.data.success) {
+        setMyRegistrations([...myRegistrations, eventId]);
+        toast.success('Inscription confirmée !');
+      } else {
+        toast.error(res.data.message || 'Erreur');
+      }
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Erreur lors de l\'inscription';
+      toast.error(msg);
+    } finally {
+      setRegistering(null);
+    }
+  };
+
+  // Group events by date
+  const eventsByDate = filteredEvents.reduce((acc, event) => {
+    const date = event.date;
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(event);
+    return acc;
+  }, {});
+
+  const sortedDates = Object.keys(eventsByDate).sort();
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold" style={{ color: COLORS.cream }}>Agenda CC2026</h2>
-
-      <div className="space-y-4">
-        {displayEvents.map(event => (
-          <div 
-            key={event.id} 
-            className="p-5 rounded-xl flex gap-4"
-            style={{ 
-              background: event.type === 'Événement Principal' ? `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.card})` : COLORS.card,
-              border: event.type === 'Événement Principal' ? `1px solid ${COLORS.gold}40` : 'none'
-            }}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold" style={{ color: COLORS.cream }}>Agenda CC2026</h2>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            {events.length} événements · 20-23 Mai 2026
+          </p>
+        </div>
+        <div className="flex gap-2 items-center">
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="h-9 px-3 rounded-lg text-sm"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
           >
-            {/* Date Badge */}
-            <div className="flex-shrink-0 w-16 text-center">
-              <div className="text-2xl font-bold" style={{ color: COLORS.gold }}>
-                {new Date(event.date).getDate()}
-              </div>
-              <div className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                {new Date(event.date).toLocaleDateString('fr-FR', { month: 'short' })}
-              </div>
-            </div>
-            
-            {/* Details */}
-            <div className="flex-1">
-              <span className="px-2 py-0.5 text-xs rounded" style={{ background: `${COLORS.forest}20`, color: COLORS.forest }}>
-                {event.type}
-              </span>
-              <h3 className="font-bold mt-1" style={{ color: COLORS.cream }}>{event.title}</h3>
-              <div className="flex flex-wrap gap-4 mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" /> {event.time}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" /> {event.location}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" /> {event.attendees} participants
-                </span>
-              </div>
-            </div>
-            
-            {/* Action */}
-            <div className="flex-shrink-0">
-              <Button size="sm" style={{ background: COLORS.gold, color: COLORS.charbon }}>
-                S'inscrire
-              </Button>
-            </div>
-          </div>
-        ))}
+            <option value="">Tous les types</option>
+            <option value="Networking">Networking</option>
+            <option value="Formation">Formation</option>
+            <option value="Conférence">Conférence</option>
+            <option value="Concert">Concert</option>
+            <option value="Atelier">Atelier</option>
+          </select>
+          {myRegistrations.length > 0 && (
+            <span className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: `${COLORS.forest}20`, color: COLORS.forest }}>
+              <Check className="w-3 h-3 inline mr-1" />
+              {myRegistrations.length} inscrit(s)
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Timeline View */}
+      <div className="space-y-8">
+        {sortedDates.map(date => {
+          const dateObj = new Date(date);
+          const dayName = dateObj.toLocaleDateString('fr-FR', { weekday: 'long' });
+          const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+          
+          return (
+            <div key={date}>
+              {/* Date Header */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-20 h-20 rounded-xl flex flex-col items-center justify-center" style={{ background: COLORS.card }}>
+                  <div className="text-3xl font-bold" style={{ color: COLORS.gold }}>
+                    {dateObj.getDate()}
+                  </div>
+                  <div className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    {dateObj.toLocaleDateString('fr-FR', { month: 'short' })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold capitalize" style={{ color: COLORS.cream }}>{dayName}</div>
+                  <div className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{dateStr}</div>
+                </div>
+              </div>
+              
+              {/* Events for this date */}
+              <div className="space-y-3 ml-0 sm:ml-24">
+                {eventsByDate[date].map(event => {
+                  const typeColor = typeColors[event.type] || COLORS.forest;
+                  const isMainEvent = event.title.includes('CHIMIN') || event.type === 'Concert';
+                  const isRegistered = myRegistrations.includes(event.id);
+                  const attendeeCount = event.attendees?.length || 0;
+                  const isFull = event.max_attendees > 0 && attendeeCount >= event.max_attendees;
+                  
+                  return (
+                    <div 
+                      key={event.id} 
+                      className="p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row gap-4"
+                      style={{ 
+                        background: isMainEvent ? `linear-gradient(135deg, ${COLORS.gold}15, ${COLORS.card})` : COLORS.card,
+                        border: isMainEvent ? `1px solid ${COLORS.gold}30` : 'none'
+                      }}
+                    >
+                      {/* Time */}
+                      <div className="flex-shrink-0 flex sm:flex-col items-center sm:items-start gap-2 sm:gap-0 sm:w-16">
+                        <div className="text-lg font-bold" style={{ color: COLORS.gold }}>{event.time}</div>
+                        {isMainEvent && (
+                          <Star className="w-4 h-4" style={{ color: COLORS.gold }} />
+                        )}
+                      </div>
+                      
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 text-xs rounded font-medium" style={{ background: `${typeColor}20`, color: typeColor }}>
+                            {event.type}
+                          </span>
+                          {isFull && !isRegistered && (
+                            <span className="px-2 py-0.5 text-xs rounded" style={{ background: 'rgba(255,100,100,0.2)', color: '#ff6b6b' }}>
+                              Complet
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-bold" style={{ color: COLORS.cream }}>{event.title}</h3>
+                        
+                        <div className="flex flex-wrap gap-3 mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" /> {event.location}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="w-4 h-4" /> 
+                            {attendeeCount}{event.max_attendees > 0 ? `/${event.max_attendees}` : ''} inscrits
+                          </span>
+                        </div>
+                        
+                        {event.description && (
+                          <p className="text-sm mt-2" style={{ color: 'rgba(255,255,255,0.6)' }}>{event.description}</p>
+                        )}
+                      </div>
+                      
+                      {/* Action */}
+                      <div className="flex-shrink-0 flex sm:flex-col gap-2">
+                        {isRegistered ? (
+                          <span className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium" style={{ background: `${COLORS.forest}20`, color: COLORS.forest }}>
+                            <Check className="w-4 h-4" /> Inscrit
+                          </span>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleRegister(event.id)}
+                            disabled={registering === event.id || isFull}
+                            style={{ 
+                              background: isFull ? 'rgba(255,255,255,0.1)' : COLORS.gold, 
+                              color: isFull ? 'rgba(255,255,255,0.4)' : COLORS.charbon 
+                            }}
+                          >
+                            {registering === event.id ? 'Inscription...' : isFull ? 'Complet' : 'S\'inscrire'}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredEvents.length === 0 && (
+        <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Aucun événement trouvé
+        </div>
+      )}
     </div>
   );
 };

@@ -5920,6 +5920,15 @@ async def pro_verify_code(request: ProVerifyCode):
     
     return {"success": True, "profile": registration}
 
+# DEV ONLY - Get code for testing (should be removed in production)
+@app.get("/api/pro/dev/get-code/{email}")
+async def dev_get_code(email: str):
+    """DEV ONLY: Get stored access code for testing"""
+    stored = pro_access_codes.get(email.lower())
+    if not stored:
+        raise HTTPException(status_code=404, detail="No code found")
+    return {"code": stored["code"], "expires": stored["expires"].isoformat()}
+
 @app.get("/api/pro/profile/{profile_id}")
 async def get_pro_profile(profile_id: str):
     """Get full professional profile"""
@@ -6049,14 +6058,154 @@ async def send_pro_message(data: dict):
 @app.get("/api/pro/opportunities")
 async def get_pro_opportunities():
     """Get available opportunities"""
-    opportunities = await db.pro_opportunities.find({}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    opportunities = await db.pro_opportunities.find({"active": True}, {"_id": 0}).sort("created_at", -1).to_list(50)
     return {"opportunities": opportunities}
+
+@app.post("/api/pro/opportunities")
+async def create_pro_opportunity(data: dict):
+    """Create a new opportunity"""
+    opportunity = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title"),
+        "type": data.get("type", "Business"),  # Booking, Business, Subvention, Formation, Emploi
+        "author_id": data.get("author_id"),
+        "author_name": data.get("author_name", "Anonyme"),
+        "description": data.get("description"),
+        "requirements": data.get("requirements", ""),
+        "deadline": data.get("deadline"),
+        "location": data.get("location", ""),
+        "contact_email": data.get("contact_email", ""),
+        "active": True,
+        "applications": [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.pro_opportunities.insert_one(opportunity)
+    return {"success": True, "opportunity": {k: v for k, v in opportunity.items() if k != "_id"}}
+
+@app.post("/api/pro/opportunities/{opportunity_id}/apply")
+async def apply_to_opportunity(opportunity_id: str, data: dict):
+    """Apply to an opportunity"""
+    applicant_id = data.get("applicant_id")
+    message = data.get("message", "")
+    
+    # Check if opportunity exists
+    opportunity = await db.pro_opportunities.find_one({"id": opportunity_id})
+    if not opportunity:
+        raise HTTPException(status_code=404, detail="Opportunité non trouvée")
+    
+    # Add application
+    application = {
+        "applicant_id": applicant_id,
+        "message": message,
+        "applied_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.pro_opportunities.update_one(
+        {"id": opportunity_id},
+        {"$push": {"applications": application}}
+    )
+    
+    return {"success": True}
 
 @app.get("/api/pro/events")
 async def get_pro_events():
     """Get CC2026 events"""
-    events = await db.pro_events.find({}, {"_id": 0}).sort("date", 1).to_list(50)
+    events = await db.pro_events.find({"active": True}, {"_id": 0}).sort("date", 1).to_list(50)
     return {"events": events}
+
+@app.post("/api/pro/events")
+async def create_pro_event(data: dict):
+    """Create a new event"""
+    event = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title"),
+        "type": data.get("type", "Networking"),  # Networking, Formation, Concert, Conférence, Atelier
+        "date": data.get("date"),
+        "time": data.get("time"),
+        "location": data.get("location"),
+        "description": data.get("description", ""),
+        "max_attendees": data.get("max_attendees", 0),
+        "attendees": [],
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.pro_events.insert_one(event)
+    return {"success": True, "event": {k: v for k, v in event.items() if k != "_id"}}
+
+@app.post("/api/pro/events/{event_id}/register")
+async def register_for_event(event_id: str, data: dict):
+    """Register for an event"""
+    attendee_id = data.get("attendee_id")
+    
+    # Check if event exists
+    event = await db.pro_events.find_one({"id": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Événement non trouvé")
+    
+    # Check capacity
+    if event.get("max_attendees", 0) > 0 and len(event.get("attendees", [])) >= event["max_attendees"]:
+        raise HTTPException(status_code=400, detail="Événement complet")
+    
+    # Check if already registered
+    if attendee_id in event.get("attendees", []):
+        return {"success": False, "message": "Déjà inscrit"}
+    
+    # Add attendee
+    await db.pro_events.update_one(
+        {"id": event_id},
+        {"$push": {"attendees": attendee_id}}
+    )
+    
+    return {"success": True}
+
+@app.get("/api/pro/connection-requests/{profile_id}")
+async def get_connection_requests(profile_id: str):
+    """Get pending connection requests"""
+    requests = await db.pro_connections.find(
+        {"to": profile_id, "status": "pending"}
+    ).to_list(100)
+    
+    # Enrich with sender info
+    enriched = []
+    for req in requests:
+        req.pop("_id", None)
+        sender = await db.registrations.find_one({"id": req["from"]}, {"_id": 0})
+        if sender:
+            req["sender"] = sender
+            enriched.append(req)
+    
+    return {"requests": enriched}
+
+@app.post("/api/pro/connection-requests/{request_id}/accept")
+async def accept_connection_request(request_id: str):
+    """Accept a connection request"""
+    result = await db.pro_connections.update_one(
+        {"id": request_id},
+        {"$set": {"status": "accepted", "accepted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Demande non trouvée")
+    return {"success": True}
+
+@app.post("/api/pro/connection-requests/{request_id}/reject")
+async def reject_connection_request(request_id: str):
+    """Reject a connection request"""
+    result = await db.pro_connections.update_one(
+        {"id": request_id},
+        {"$set": {"status": "rejected", "rejected_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Demande non trouvée")
+    return {"success": True}
+
+@app.post("/api/pro/messages/{message_id}/read")
+async def mark_message_read(message_id: str):
+    """Mark a message as read"""
+    result = await db.pro_messages.update_one(
+        {"id": message_id},
+        {"$set": {"read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": result.matched_count > 0}
 
 # Public catalog endpoint - LIMITED data for non-authenticated users
 @app.get("/api/catalog/public")
