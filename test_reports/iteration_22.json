@@ -63,7 +63,7 @@
 
   "test_credentials": {
     "admin_password": "CC2026admin",
-    "backend_url": "https://qr-attendance-hub-5.preview.emergentagent.com"
+    "backend_url": "https://terrain-mode-admin.preview.emergentagent.com"
   },
 
   "seed_data_creation": "",

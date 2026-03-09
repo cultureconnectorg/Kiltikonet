@@ -264,50 +264,51 @@ const WorkspaceFabrice = () => {
         <div className="h-px w-full" style={{ background: `linear-gradient(90deg, transparent, ${COLORS.purple}30, transparent)` }} />
       </header>
 
-      <main className="max-w-7xl mx-auto p-6">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 pb-20 sm:pb-6">
         {/* Current display preview */}
-        <div className="rounded-lg p-8 mb-6 text-center" style={{ background: '#000', border: `2px solid ${isLive ? COLORS.red : COLORS.purple}` }}>
-          <div className="text-xs uppercase tracking-widest mb-4" style={{ color: isLive ? COLORS.red : COLORS.purple }}>
+        <div className="rounded-lg p-4 sm:p-8 mb-4 sm:mb-6 text-center" style={{ background: '#000', border: `2px solid ${isLive ? COLORS.red : COLORS.purple}` }}>
+          <div className="text-xs uppercase tracking-widest mb-2 sm:mb-4" style={{ color: isLive ? COLORS.red : COLORS.purple }}>
             <Monitor className="w-4 h-4 inline mr-2" />
             {isLive ? 'ÉCRAN EN DIRECT' : 'APERÇU ÉCRAN'}
           </div>
-          <div className="text-4xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif", minHeight: '60px' }}>
+          <div className="text-xl sm:text-4xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif", minHeight: '40px' }}>
             {currentCaption || 'Aucune caption active'}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        {/* Tabs - Scroll horizontal sur mobile */}
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
           {[
-            { id: 'regie', label: 'Régie principale', icon: Monitor },
-            { id: 'sequence', label: 'Séquenceur', icon: Clock },
-            { id: 'captation', label: 'Captation', icon: Camera },
-            { id: 'photos', label: 'Photos', icon: Image }
+            { id: 'regie', label: 'Régie', fullLabel: 'Régie principale', icon: Monitor },
+            { id: 'sequence', label: 'Séquence', fullLabel: 'Séquenceur', icon: Clock },
+            { id: 'captation', label: 'Captation', fullLabel: 'Captation', icon: Camera },
+            { id: 'photos', label: 'Photos', fullLabel: 'Photos', icon: Image }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0"
               style={{ 
                 background: activeTab === tab.id ? COLORS.purple : 'rgba(255,255,255,0.05)',
                 color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.5)'
               }}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.fullLabel}</span>
+              <span className="sm:hidden text-sm">{tab.label}</span>
             </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {activeTab === 'regie' && (
             <>
               {/* Quick captions */}
-              <div className="col-span-2 rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
-                <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.purple }}>
+              <div className="lg:col-span-2 rounded-lg p-4 sm:p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
+                <h2 className="text-sm font-bold uppercase tracking-wider mb-3 sm:mb-4" style={{ color: COLORS.purple }}>
                   Captions Rapides
                 </h2>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {captions.map(caption => (
                     <button
                       key={caption.id}
@@ -369,7 +370,7 @@ const WorkspaceFabrice = () => {
               </div>
 
               {/* History */}
-              <div className="col-span-1 rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
+              <div className="lg:col-span-1 rounded-lg p-4 sm:p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
                 <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.gold }}>
                   Historique
                 </h3>
@@ -396,21 +397,24 @@ const WorkspaceFabrice = () => {
           )}
 
           {activeTab === 'sequence' && (
-            <div className="col-span-3 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: COLORS.purple }}>Séquenceur d'écrans - 22 mai 2026</h2>
-              <div className="space-y-3">
+            <div className="lg:col-span-3 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
+              <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: COLORS.purple }}>Séquenceur d'écrans - 22 mai 2026</h2>
+              <div className="space-y-2 sm:space-y-3">
                 {sequence.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <div className="text-xl font-bold" style={{ color: COLORS.gold, width: '70px' }}>{item.time}</div>
-                    <div className={`w-3 h-3 rounded-full ${item.sent ? 'bg-green-400' : 'bg-white/20'}`} />
-                    <div className="flex-1">
-                      <div className="font-bold text-white">{item.artiste}</div>
-                      <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>{item.text}</div>
+                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="text-lg sm:text-xl font-bold" style={{ color: COLORS.gold, minWidth: '60px' }}>{item.time}</div>
+                      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${item.sent ? 'bg-green-400' : 'bg-white/20'}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-white text-sm sm:text-base">{item.artiste}</div>
+                        <div className="text-xs sm:text-sm truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{item.text}</div>
+                      </div>
                     </div>
                     <Button 
                       size="sm" 
                       onClick={() => sendCaption(item.text)}
                       style={{ background: item.sent ? 'rgba(255,255,255,0.1)' : COLORS.purple }}
+                      className="w-full sm:w-auto mt-2 sm:mt-0 flex-shrink-0"
                     >
                       {item.sent ? 'Envoyé' : 'Envoyer'}
                     </Button>
@@ -421,9 +425,9 @@ const WorkspaceFabrice = () => {
           )}
 
           {activeTab === 'captation' && (
-            <div className="col-span-3 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: COLORS.purple }}>Checklist Captation</h2>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="lg:col-span-3 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
+              <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: COLORS.purple }}>Checklist Captation</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {captation.map(item => (
                   <button
                     key={item.id}
@@ -453,17 +457,17 @@ const WorkspaceFabrice = () => {
           )}
 
           {activeTab === 'photos' && (
-            <div className="col-span-3 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold" style={{ color: COLORS.purple }}>Photos officielles</h2>
-                <Button style={{ background: COLORS.purple }}>
+            <div className="lg:col-span-3 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-base sm:text-lg font-bold" style={{ color: COLORS.purple }}>Photos officielles</h2>
+                <Button style={{ background: COLORS.purple }} className="w-full sm:w-auto">
                   <Upload className="w-4 h-4 mr-2" />
                   Upload photo
                 </Button>
               </div>
-              <div className="border-2 border-dashed rounded-lg p-12 text-center" style={{ borderColor: `${COLORS.purple}40` }}>
-                <Camera className="w-12 h-12 mx-auto mb-4" style={{ color: COLORS.purple }} />
-                <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              <div className="border-2 border-dashed rounded-lg p-8 sm:p-12 text-center" style={{ borderColor: `${COLORS.purple}40` }}>
+                <Camera className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4" style={{ color: COLORS.purple }} />
+                <p className="text-sm mb-3 sm:mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   Uploadez les photos depuis le terrain
                 </p>
                 <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>

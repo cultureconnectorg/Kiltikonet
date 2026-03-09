@@ -297,7 +297,7 @@ Comment puis-je vous aider ?`
   };
 
   return (
-    <div className="min-h-screen" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
+    <div className="min-h-screen pb-16 md:pb-0" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
       {/* Header unifié */}
       <WorkspaceHeader
         userName="Alirio"
@@ -309,22 +309,22 @@ Comment puis-je vous aider ?`
         extraButtons={<HelpButton guideId="contacts" />}
       />
 
-      <main className="max-w-7xl mx-auto p-6">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap">
+      <main className="max-w-7xl mx-auto p-3 sm:p-6">
+        {/* Tabs - Scroll horizontal sur mobile */}
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
           {[
-            { id: 'taches', label: 'Mes tâches', icon: ListTodo },
-            { id: 'mescontacts', label: 'Mes contacts', icon: UserPlus },
-            { id: 'assistant', label: 'Assistant IA', icon: Bot },
-            { id: 'partenaires', label: 'Partenaires', icon: Users },
-            { id: 'agenda', label: 'Agenda', icon: Calendar },
-            { id: 'notes', label: 'Notes réunion', icon: FileText },
-            { id: 'contacts', label: 'Carnet', icon: Briefcase }
+            { id: 'taches', label: 'Tâches', shortLabel: 'Tâches', icon: ListTodo },
+            { id: 'mescontacts', label: 'Contacts', shortLabel: 'Contacts', icon: UserPlus },
+            { id: 'assistant', label: 'Assistant IA', shortLabel: 'IA', icon: Bot },
+            { id: 'partenaires', label: 'Partenaires', shortLabel: 'Partners', icon: Users },
+            { id: 'agenda', label: 'Agenda', shortLabel: 'Agenda', icon: Calendar },
+            { id: 'notes', label: 'Notes', shortLabel: 'Notes', icon: FileText },
+            { id: 'contacts', label: 'Carnet', shortLabel: 'Carnet', icon: Briefcase }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-1 sm:gap-2 transition-all flex-shrink-0 whitespace-nowrap"
               style={{ 
                 background: activeTab === tab.id ? COLORS.terracotta : 'rgba(255,255,255,0.05)',
                 color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.5)'
@@ -332,7 +332,8 @@ Comment puis-je vous aider ?`
               data-testid={`tab-${tab.id}`}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden text-xs">{tab.shortLabel}</span>
             </button>
           ))}
         </div>
@@ -343,15 +344,15 @@ Comment puis-je vous aider ?`
         {/* MES TÂCHES - Section 4.1 du PROMPT MAÎTRE */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {activeTab === 'taches' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Progress Overview */}
-            <div className="grid grid-cols-5 gap-4">
-              <div className="col-span-2 rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-                <div className="text-sm font-bold mb-4" style={{ color: COLORS.gold }}>Progression globale</div>
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl font-bold" style={{ color: COLORS.gold }}>{taskStats.progression}%</div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
+              <div className="col-span-2 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+                <div className="text-sm font-bold mb-3 sm:mb-4" style={{ color: COLORS.gold }}>Progression globale</div>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="text-2xl sm:text-4xl font-bold" style={{ color: COLORS.gold }}>{taskStats.progression}%</div>
                   <div className="flex-1">
-                    <div className="h-4 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                    <div className="h-3 sm:h-4 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
                       <div 
                         className="h-full transition-all duration-500 rounded-full" 
                         style={{ width: `${taskStats.progression}%`, background: `linear-gradient(90deg, ${COLORS.forest}, ${COLORS.gold})` }} 
@@ -369,16 +370,16 @@ Comment puis-je vous aider ?`
                 { label: 'Aujourd\'hui', value: taskStats.en_cours, color: COLORS.terracotta, icon: Clock },
                 { label: 'À faire', value: taskStats.a_faire, color: 'rgba(255,255,255,0.5)', icon: Circle }
               ].map((stat, i) => (
-                <div key={i} className="rounded-lg p-4 text-center" style={{ background: '#2A2820', border: `1px solid ${stat.color}30` }}>
-                  <stat.icon className="w-6 h-6 mx-auto mb-2" style={{ color: stat.color }} />
-                  <div className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
+                <div key={i} className="rounded-lg p-3 sm:p-4 text-center" style={{ background: '#2A2820', border: `1px solid ${stat.color}30` }}>
+                  <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2" style={{ color: stat.color }} />
+                  <div className="text-xl sm:text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
                   <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{stat.label}</div>
                 </div>
               ))}
             </div>
 
             {/* Task Lists */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {/* En retard */}
               <div className="rounded-lg overflow-hidden" style={{ background: '#2A2820', border: '1px solid rgba(239,68,68,0.3)' }}>
                 <div className="p-4 flex items-center justify-between" style={{ background: 'rgba(239,68,68,0.1)' }}>
@@ -536,28 +537,28 @@ Comment puis-je vous aider ?`
         {/* MES CONTACTS - Section 4.1 du PROMPT MAÎTRE */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {activeTab === 'mescontacts' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-white">Mes Contacts</h2>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                <h2 className="text-lg sm:text-xl font-bold text-white">Mes Contacts</h2>
+                <p className="text-xs sm:text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
                   Annuaire personnel distinct des partenaires officiels
                 </p>
               </div>
-              <Button onClick={() => setShowAddContact(true)} style={{ background: COLORS.terracotta }} data-testid="add-contact-btn">
+              <Button onClick={() => setShowAddContact(true)} style={{ background: COLORS.terracotta }} data-testid="add-contact-btn" className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Nouveau contact
               </Button>
             </div>
 
-            {/* Filters */}
-            <div className="flex gap-2">
+            {/* Filters - Scroll horizontal sur mobile */}
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
               {['all', 'Partenaire', 'Institutionnel', 'Presse', 'Personnel'].map(filter => (
                 <button
                   key={filter}
                   onClick={() => setContactFilter(filter)}
-                  className="px-3 py-1 rounded-full text-sm transition-all"
+                  className="px-3 py-1 rounded-full text-sm transition-all whitespace-nowrap flex-shrink-0"
                   style={{ 
                     background: contactFilter === filter ? COLORS.terracotta : 'rgba(255,255,255,0.05)',
                     color: contactFilter === filter ? '#fff' : 'rgba(255,255,255,0.5)'
@@ -569,7 +570,7 @@ Comment puis-je vous aider ?`
             </div>
 
             {/* Contact Cards */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {filteredContacts.map(contact => (
                 <div 
                   key={contact.id} 
@@ -723,9 +724,9 @@ Comment puis-je vous aider ?`
         )}
 
         {activeTab === 'assistant' && (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Chat panel */}
-            <div className="col-span-2 rounded-lg overflow-hidden" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
+            <div className="lg:col-span-2 rounded-lg overflow-hidden" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
               <div className="p-4" style={{ background: `${COLORS.terracotta}15`, borderBottom: `1px solid ${COLORS.terracotta}20` }}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: COLORS.terracotta }}>
@@ -783,7 +784,7 @@ Comment puis-je vous aider ?`
             </div>
 
             {/* Suggestions */}
-            <div className="col-span-1 space-y-4">
+            <div className="lg:col-span-1 space-y-4">
               <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
                 <h3 className="text-sm font-bold mb-3" style={{ color: COLORS.gold }}>Questions fréquentes</h3>
                 <div className="space-y-2">
@@ -822,21 +823,21 @@ Comment puis-je vous aider ?`
         )}
 
         {activeTab === 'partenaires' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
-            <div className="flex items-center justify-between mb-6">
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
               <h2 className="text-lg font-bold" style={{ color: COLORS.terracotta }}>Registre Partenaires</h2>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(255,255,255,0.3)' }} />
                   <Input 
                     value={searchPartners}
                     onChange={(e) => setSearchPartners(e.target.value)}
                     placeholder="Rechercher..."
-                    className="pl-10 w-48"
+                    className="pl-10 w-full sm:w-48"
                     style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
                   />
                 </div>
-                <Button onClick={() => setShowAddPartner(true)} style={{ background: COLORS.terracotta }}>
+                <Button onClick={() => setShowAddPartner(true)} style={{ background: COLORS.terracotta }} className="w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Ajouter
                 </Button>
@@ -847,22 +848,22 @@ Comment puis-je vous aider ?`
               {filteredPartners.map(partner => {
                 const statusStyle = getStatusStyle(partner.status);
                 return (
-                  <div key={partner.id} className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: `${COLORS.terracotta}20`, color: COLORS.terracotta }}>
+                  <div key={partner.id} className="p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: `${COLORS.terracotta}20`, color: COLORS.terracotta }}>
                           {partner.name.substring(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-bold text-white text-lg">{partner.name}</div>
+                          <div className="font-bold text-white text-base sm:text-lg">{partner.name}</div>
                           <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Type: {partner.type}</div>
                         </div>
                       </div>
-                      <span className="px-3 py-1 rounded text-xs font-bold" style={{ background: statusStyle.bg, color: statusStyle.color }}>
+                      <span className="px-3 py-1 rounded text-xs font-bold self-start sm:self-auto" style={{ background: statusStyle.bg, color: statusStyle.color }}>
                         {partner.status}
                       </span>
                     </div>
-                    <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
                       <div>
                         <div className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Contact</div>
                         <div className="text-white">{partner.contact || '-'}</div>
@@ -888,19 +889,19 @@ Comment puis-je vous aider ?`
         )}
 
         {activeTab === 'agenda' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-            <div className="flex items-center justify-between mb-6">
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
               <h2 className="text-lg font-bold" style={{ color: COLORS.gold }}>Agenda CC2026</h2>
-              <Button style={{ background: COLORS.gold, color: COLORS.charbon }}>
+              <Button style={{ background: COLORS.gold, color: COLORS.charbon }} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Nouvel événement
               </Button>
             </div>
             <div className="space-y-3">
               {agenda.map(item => (
-                <div key={item.id} className="flex items-center gap-4 p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <div className="w-16 text-center">
-                    <div className="text-lg font-bold" style={{ color: COLORS.gold }}>{item.time}</div>
+                <div key={item.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="flex sm:flex-col items-center gap-2 sm:w-16 sm:text-center">
+                    <div className="text-base sm:text-lg font-bold" style={{ color: COLORS.gold }}>{item.time}</div>
                     <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.date}</div>
                   </div>
                   <div className="w-3 h-3 rounded-full" style={{ 
@@ -924,25 +925,25 @@ Comment puis-je vous aider ?`
         )}
 
         {activeTab === 'notes' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
-            <div className="flex items-center justify-between mb-6">
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.forest}20` }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
               <h2 className="text-lg font-bold" style={{ color: COLORS.forest }}>Notes de réunion</h2>
-              <Button style={{ background: COLORS.forest }}>
+              <Button style={{ background: COLORS.forest }} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Nouvelle note
               </Button>
             </div>
             <div className="space-y-4">
               {notes.map(note => (
-                <div key={note.id} className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <div className="flex items-center justify-between mb-3">
+                <div key={note.id} className="p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-start sm:items-center justify-between gap-2 mb-3">
                     <div>
-                      <div className="font-bold text-white">{note.title}</div>
+                      <div className="font-bold text-white text-sm sm:text-base">{note.title}</div>
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{note.date} - {note.participants}</div>
                     </div>
-                    <Button size="sm" variant="ghost"><Edit2 className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="ghost" className="flex-shrink-0"><Edit2 className="w-4 h-4" /></Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <div className="text-xs font-bold mb-2" style={{ color: COLORS.gold }}>Décisions</div>
                       <ul className="space-y-1">
@@ -967,21 +968,21 @@ Comment puis-je vous aider ?`
         )}
 
         {activeTab === 'contacts' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
-            <h2 className="text-lg font-bold mb-6" style={{ color: COLORS.terracotta }}>Carnet de contacts global</h2>
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
+            <h2 className="text-lg font-bold mb-4 sm:mb-6" style={{ color: COLORS.terracotta }}>Carnet de contacts global</h2>
             <div className="space-y-3">
               {contacts.map(contact => (
-                <div key={contact.id} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: COLORS.terracotta, color: '#fff' }}>
+                <div key={contact.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: COLORS.terracotta, color: '#fff' }}>
                       {contact.name.substring(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-bold text-white">{contact.name}</div>
+                      <div className="font-bold text-white text-sm sm:text-base">{contact.name}</div>
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{contact.role} - {contact.org}</div>
                     </div>
                   </div>
-                  <div className="text-right text-sm">
+                  <div className="text-left sm:text-right text-xs sm:text-sm ml-12 sm:ml-0">
                     <div style={{ color: 'rgba(255,255,255,0.5)' }}>{contact.email}</div>
                     <div style={{ color: 'rgba(255,255,255,0.3)' }}>{contact.phone}</div>
                   </div>

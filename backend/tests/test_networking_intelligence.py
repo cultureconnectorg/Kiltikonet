@@ -9,7 +9,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://qr-attendance-hub-5.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://terrain-mode-admin.preview.emergentagent.com').rstrip('/')
 
 
 class TestStatsEndpoint:

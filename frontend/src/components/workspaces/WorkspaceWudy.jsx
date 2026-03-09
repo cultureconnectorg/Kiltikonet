@@ -159,14 +159,14 @@ const WorkspaceWudy = () => {
         showNotifications={false}
       />
 
-      <main className="max-w-7xl mx-auto p-6">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 pb-20 sm:pb-6">
         {/* Solde de trésorerie - Alert banner */}
-        <div className="rounded-lg p-4 mb-6 flex items-center justify-between" style={{ 
+        <div className="rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2" style={{ 
           background: soldeReel < 0 ? 'rgba(239,68,68,0.1)' : `${COLORS.green}10`, 
           border: `1px solid ${soldeReel < 0 ? 'rgba(239,68,68,0.3)' : `${COLORS.green}30`}` 
         }}>
-          <div className="flex items-center gap-4">
-            {soldeReel < 0 && <AlertTriangle className="w-6 h-6" style={{ color: COLORS.red }} />}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {soldeReel < 0 && <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: COLORS.red }} />}
             <div>
               <div className="text-sm font-bold" style={{ color: soldeReel < 0 ? COLORS.red : COLORS.green }}>
                 Solde de trésorerie
@@ -176,82 +176,83 @@ const WorkspaceWudy = () => {
               </div>
             </div>
           </div>
-          <div className="text-2xl font-bold" style={{ color: soldeReel < 0 ? COLORS.red : COLORS.green }}>
+          <div className="text-xl sm:text-2xl font-bold self-end sm:self-auto" style={{ color: soldeReel < 0 ? COLORS.red : COLORS.green }}>
             {formatMontant(soldeReel)}
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.green}20` }}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.green}20` }}>
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4" style={{ color: COLORS.green }} />
               <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Revenus prév.</span>
             </div>
-            <div className="text-xl font-bold" style={{ color: COLORS.green }}>{formatMontant(totalRevenusPrev)}</div>
+            <div className="text-lg sm:text-xl font-bold" style={{ color: COLORS.green }}>{formatMontant(totalRevenusPrev)}</div>
           </div>
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.red}20` }}>
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.red}20` }}>
             <div className="flex items-center gap-2 mb-2">
               <TrendingDown className="w-4 h-4" style={{ color: COLORS.red }} />
               <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Dépenses prév.</span>
             </div>
-            <div className="text-xl font-bold" style={{ color: COLORS.red }}>{formatMontant(totalDepensesPrev)}</div>
+            <div className="text-lg sm:text-xl font-bold" style={{ color: COLORS.red }}>{formatMontant(totalDepensesPrev)}</div>
           </div>
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-4 h-4" style={{ color: COLORS.gold }} />
               <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Solde prév.</span>
             </div>
-            <div className="text-xl font-bold" style={{ color: soldePrev >= 0 ? COLORS.green : COLORS.red }}>{formatMontant(soldePrev)}</div>
+            <div className="text-lg sm:text-xl font-bold" style={{ color: soldePrev >= 0 ? COLORS.green : COLORS.red }}>{formatMontant(soldePrev)}</div>
           </div>
-          <div className="rounded-lg p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
+          <div className="rounded-lg p-3 sm:p-4" style={{ background: '#2A2820', border: `1px solid ${COLORS.terracotta}20` }}>
             <div className="flex items-center gap-2 mb-2">
               <PieChart className="w-4 h-4" style={{ color: COLORS.terracotta }} />
               <span className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Engagé</span>
             </div>
-            <div className="text-xl font-bold" style={{ color: COLORS.terracotta }}>{formatMontant(totalDepensesReel)}</div>
+            <div className="text-lg sm:text-xl font-bold" style={{ color: COLORS.terracotta }}>{formatMontant(totalDepensesReel)}</div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        {/* Tabs - Scroll horizontal sur mobile */}
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
           {[
-            { id: 'budget', label: 'Budget Prévisionnel', icon: FileText },
-            { id: 'reel', label: 'Dépenses Réelles', icon: DollarSign },
-            { id: 'documents', label: 'Documents', icon: FileText }
+            { id: 'budget', label: 'Budget', fullLabel: 'Budget Prévisionnel', icon: FileText },
+            { id: 'reel', label: 'Dépenses', fullLabel: 'Dépenses Réelles', icon: DollarSign },
+            { id: 'documents', label: 'Documents', fullLabel: 'Documents', icon: FileText }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0"
               style={{ 
                 background: activeTab === tab.id ? COLORS.green : 'rgba(255,255,255,0.05)',
                 color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.5)'
               }}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.fullLabel}</span>
+              <span className="sm:hidden text-sm">{tab.label}</span>
             </button>
           ))}
         </div>
 
         {/* Content */}
         {activeTab === 'budget' && (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Revenus prévisionnels */}
-            <div className="rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.green}20` }}>
-              <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.green }}>
+            <div className="rounded-lg p-4 sm:p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.green}20` }}>
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-3 sm:mb-4" style={{ color: COLORS.green }}>
                 Revenus Prévisionnels
               </h2>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-2 max-h-72 sm:max-h-96 overflow-y-auto">
                 {budget.previsionnel.revenus.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <div>
-                      <div className="text-sm text-white">{item.label}</div>
+                  <div key={item.id} className="flex items-center justify-between p-2 sm:p-3 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="min-w-0 flex-1 mr-2">
+                      <div className="text-xs sm:text-sm text-white truncate">{item.label}</div>
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.type}</div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold" style={{ color: COLORS.green }}>{formatMontant(item.montant)}</div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-bold text-sm sm:text-base" style={{ color: COLORS.green }}>{formatMontant(item.montant)}</div>
                       <div className="text-xs" style={{ color: item.status === 'Confirmé' ? COLORS.green : COLORS.gold }}>
                         {item.status}
                       </div>
@@ -259,41 +260,41 @@ const WorkspaceWudy = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                <span className="font-bold text-white">TOTAL</span>
-                <span className="text-xl font-bold" style={{ color: COLORS.green }}>{formatMontant(totalRevenusPrev)}</span>
+              <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <span className="font-bold text-white text-sm sm:text-base">TOTAL</span>
+                <span className="text-lg sm:text-xl font-bold" style={{ color: COLORS.green }}>{formatMontant(totalRevenusPrev)}</span>
               </div>
             </div>
 
             {/* Dépenses prévisionnelles */}
-            <div className="rounded-lg p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.red}20` }}>
-              <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: COLORS.red }}>
+            <div className="rounded-lg p-4 sm:p-5" style={{ background: '#2A2820', border: `1px solid ${COLORS.red}20` }}>
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-3 sm:mb-4" style={{ color: COLORS.red }}>
                 Dépenses Prévisionnelles
               </h2>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-2 max-h-72 sm:max-h-96 overflow-y-auto">
                 {budget.previsionnel.depenses.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <div>
-                      <div className="text-sm text-white">{item.label}</div>
+                  <div key={item.id} className="flex items-center justify-between p-2 sm:p-3 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="min-w-0 flex-1 mr-2">
+                      <div className="text-xs sm:text-sm text-white truncate">{item.label}</div>
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.category}</div>
                     </div>
-                    <div className="font-bold" style={{ color: COLORS.red }}>{formatMontant(item.montant)}</div>
+                    <div className="font-bold text-sm sm:text-base flex-shrink-0" style={{ color: COLORS.red }}>{formatMontant(item.montant)}</div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                <span className="font-bold text-white">TOTAL</span>
-                <span className="text-xl font-bold" style={{ color: COLORS.red }}>{formatMontant(totalDepensesPrev)}</span>
+              <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <span className="font-bold text-white text-sm sm:text-base">TOTAL</span>
+                <span className="text-lg sm:text-xl font-bold" style={{ color: COLORS.red }}>{formatMontant(totalDepensesPrev)}</span>
               </div>
             </div>
           </div>
         )}
 
         {activeTab === 'reel' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.green}20` }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold" style={{ color: COLORS.green }}>Dépenses Réelles</h2>
-              <Button onClick={() => setShowAddExpense(true)} style={{ background: COLORS.green }}>
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.green}20` }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-bold" style={{ color: COLORS.green }}>Dépenses Réelles</h2>
+              <Button onClick={() => setShowAddExpense(true)} style={{ background: COLORS.green }} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Ajouter dépense
               </Button>
@@ -301,21 +302,21 @@ const WorkspaceWudy = () => {
             
             <div className="space-y-3">
               {budget.reel.depenses.map(expense => (
-                <div key={expense.id} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${COLORS.red}20` }}>
-                      <DollarSign className="w-5 h-5" style={{ color: COLORS.red }} />
+                <div key={expense.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${COLORS.red}20` }}>
+                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.red }} />
                     </div>
-                    <div>
-                      <div className="font-bold text-white">{expense.label}</div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-white text-sm sm:text-base truncate">{expense.label}</div>
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
                         {expense.fournisseur} • {expense.category} • {expense.date}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-xl font-bold" style={{ color: COLORS.red }}>{formatMontant(expense.montant)}</div>
-                    <span className={`px-2 py-1 rounded text-xs ${expense.justificatif ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 ml-11 sm:ml-0">
+                    <div className="text-lg sm:text-xl font-bold" style={{ color: COLORS.red }}>{formatMontant(expense.montant)}</div>
+                    <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${expense.justificatif ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                       {expense.justificatif ? 'Justifié' : 'Sans justif.'}
                     </span>
                   </div>
@@ -323,18 +324,18 @@ const WorkspaceWudy = () => {
               ))}
             </div>
 
-            <div className="mt-6 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-              <span className="font-bold text-white">TOTAL ENGAGÉ</span>
-              <span className="text-2xl font-bold" style={{ color: COLORS.red }}>{formatMontant(totalDepensesReel)}</span>
+            <div className="mt-4 sm:mt-6 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <span className="font-bold text-white text-sm sm:text-base">TOTAL ENGAGÉ</span>
+              <span className="text-xl sm:text-2xl font-bold" style={{ color: COLORS.red }}>{formatMontant(totalDepensesReel)}</span>
             </div>
           </div>
         )}
 
         {activeTab === 'documents' && (
-          <div className="rounded-lg p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold" style={{ color: COLORS.gold }}>Documents Financiers</h2>
-              <Button style={{ background: COLORS.gold, color: COLORS.charbon }}>
+          <div className="rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-bold" style={{ color: COLORS.gold }}>Documents Financiers</h2>
+              <Button style={{ background: COLORS.gold, color: COLORS.charbon }} className="w-full sm:w-auto">
                 <Upload className="w-4 h-4 mr-2" />
                 Upload document
               </Button>
@@ -342,15 +343,15 @@ const WorkspaceWudy = () => {
             
             <div className="space-y-3">
               {documents.map(doc => (
-                <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <div className="flex items-center gap-4">
-                    <FileText className="w-6 h-6" style={{ color: COLORS.gold }} />
-                    <div>
-                      <div className="text-white">{doc.name}</div>
+                <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: COLORS.gold }} />
+                    <div className="min-w-0">
+                      <div className="text-white text-sm sm:text-base truncate">{doc.name}</div>
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{doc.type} • {doc.date}</div>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded text-xs ${
+                  <span className={`px-3 py-1 rounded text-xs self-start sm:self-auto flex-shrink-0 ${
                     doc.status === 'Payé' ? 'bg-green-500/20 text-green-400' : 
                     doc.status === 'Validé par LC' ? 'bg-blue-500/20 text-blue-400' : 
                     'bg-yellow-500/20 text-yellow-400'
