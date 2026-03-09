@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { AdminLogin } from './AdminLogin';
+import { getSession } from './ProtectedRoute';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -122,6 +123,36 @@ export const AdminDashboard = () => {
     show_in_catalog: true,
     bio: ''
   });
+  
+  // Check for existing session on mount and redirect non-admin users
+  useEffect(() => {
+    const { session } = getSession();
+    if (session) {
+      if (session.role === 'admin') {
+        setIsAuthenticated(true);
+      } else {
+        // Non-admin user with valid session - redirect to their workspace
+        const workspaceRoutes = {
+          founder: '/workspace/laurent',
+          event: '/workspace/gwen',
+          press: '/workspace/kaige',
+          design: '/workspace/twina',
+          business: '/workspace/alirio',
+          finance: '/workspace/wudy',
+          captions: '/workspace/fabrice',
+          analyst: '/workspace/analyst',
+        };
+        const redirectPath = workspaceRoutes[session.role] || '/workspace/laurent';
+        navigate(redirectPath, { replace: true });
+      }
+    } else {
+      // Check old localStorage auth
+      const adminAuth = localStorage.getItem('kk_admin_auth');
+      if (adminAuth) {
+        setIsAuthenticated(true);
+      }
+    }
+  }, [navigate]);
   
   const fetchRegistrations = useCallback(async () => {
     setIsLoading(true);
@@ -515,7 +546,13 @@ export const AdminDashboard = () => {
   };
   
   if (!isAuthenticated) {
-    return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
+    return <AdminLogin onLogin={(role, redirectPath) => {
+      if (role === 'admin') {
+        setIsAuthenticated(true);
+      } else if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+      }
+    }} />;
   }
   
   return (

@@ -51,12 +51,12 @@ export const AdminLogin = ({ onLogin }) => {
           toast.success(`Bienvenue ${response.data.user} !`);
         }
         
-        // If admin, use the existing onLogin callback
+        // Call onLogin with role and redirect path
         if (response.data.role === 'admin') {
-          onLogin();
+          onLogin('admin', null);
         } else {
-          // Navigate to the appropriate workspace
-          navigate(response.data.redirect);
+          // For non-admin, call onLogin with redirect path
+          onLogin(response.data.role, response.data.redirect);
         }
       }
     } catch (err) {
@@ -64,7 +64,7 @@ export const AdminLogin = ({ onLogin }) => {
       try {
         const adminResponse = await axios.post(`${API}/admin/verify`, { password });
         if (adminResponse.data.success) {
-          onLogin();
+          onLogin('admin', null);
           return;
         }
       } catch (adminErr) {
