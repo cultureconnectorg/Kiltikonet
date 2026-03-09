@@ -38,6 +38,7 @@ const POLES = {
 const WORKSPACE_POLES = {
   'CC2026admin': Object.keys(POLES), // Admin can edit all
   'LC2026': Object.keys(POLES), // Founder can edit all (like admin)
+  'Twina2026': ['comm'], // Design → Communication & RS
   'Gwen2026': ['gwen'],
   'Fabrice2026': ['fabrice'],
   'Kaige2026': ['digital'],

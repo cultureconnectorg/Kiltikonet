@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Newspaper, Users, Send, FileText, Plus, Edit2, Eye, CheckCircle, Clock, Search, Filter, Save } from 'lucide-react';
+import { LogOut, Newspaper, Users, Send, FileText, Plus, Edit2, Eye, CheckCircle, Clock, Search, Filter, Save, Calendar } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
+import WorkspaceHeader from './WorkspaceHeader';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -158,35 +159,15 @@ const WorkspaceKaige = () => {
 
   return (
     <div className="min-h-screen" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
-      {/* Header */}
-      <header className="sticky top-0 z-50 px-6 py-4" style={{ background: '#2A2820', borderBottom: `1px solid ${COLORS.teal}30` }}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: COLORS.teal, color: '#fff' }}>
-              KJ
-            </div>
-            <div>
-              <div className="font-bold text-sm" style={{ color: COLORS.teal }}>KAÏGE-JEAN</div>
-              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Attachée de Presse CC2026</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate('/dashboard-cc2026/kaige')}
-              style={{ color: '#C9933A', border: '1px solid #C9933A40' }}
-              data-testid="dashboard-cc2026-link"
-            >
-              CC2026
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Header unifié */}
+      <WorkspaceHeader
+        userName="Kaïge-Jean"
+        userRole="press"
+        subtitle="Attachée de Presse CC2026"
+        dashboardPath="/dashboard-cc2026/kaige"
+        onLogout={handleLogout}
+        showNotifications={false}
+      />
 
       <main className="max-w-7xl mx-auto p-6">
         {/* Stats */}

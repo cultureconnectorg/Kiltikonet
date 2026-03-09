@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Palette, Image, FileText, Upload, Eye, Plus, Save, Trash2 } from 'lucide-react';
+import { LogOut, Palette, Image, FileText, Upload, Eye, Plus, Save, Trash2, Settings } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import InternalMessaging from '../InternalMessaging';
+import WorkspaceHeader from './WorkspaceHeader';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -70,29 +71,27 @@ const WorkspaceTwina = () => {
 
   return (
     <div className="min-h-screen" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
-      {/* Header */}
-      <header className="sticky top-0 z-50 px-6 py-4" style={{ background: '#2A2820', borderBottom: `1px solid ${COLORS.pink}30` }}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: COLORS.pink, color: '#fff' }}>
-              TW
-            </div>
-            <div>
-              <div className="font-bold text-sm" style={{ color: COLORS.pink }}>TWINA</div>
-              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Design - CMS Visuel</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => navigate('/admin/cms')} style={{ borderColor: `${COLORS.gold}50`, color: COLORS.gold }}>
-              CMS Complet
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Header unifié */}
+      <WorkspaceHeader
+        userName="Twina"
+        userRole="design"
+        subtitle="Design - CMS Visuel"
+        dashboardPath="/dashboard-cc2026"
+        onLogout={handleLogout}
+        showNotifications={false}
+        extraButtons={
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/admin/cms')} 
+            className="hidden sm:flex"
+            style={{ borderColor: `${COLORS.gold}40`, color: COLORS.gold }}
+          >
+            <Settings className="w-3.5 h-3.5 mr-2" />
+            CMS
+          </Button>
+        }
+      />
 
       <main className="max-w-7xl mx-auto p-6">
         {/* Info banner */}

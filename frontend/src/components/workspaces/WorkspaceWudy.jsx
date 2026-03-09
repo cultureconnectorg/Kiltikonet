@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
 import InternalMessaging from '../InternalMessaging';
+import WorkspaceHeader from './WorkspaceHeader';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -148,35 +149,15 @@ const WorkspaceWudy = () => {
 
   return (
     <div className="min-h-screen" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
-      {/* Header */}
-      <header className="sticky top-0 z-50 px-6 py-4" style={{ background: '#2A2820', borderBottom: `1px solid ${COLORS.green}30` }}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: COLORS.green, color: '#fff' }}>
-              WD
-            </div>
-            <div>
-              <div className="font-bold text-sm" style={{ color: COLORS.green }}>WUDY</div>
-              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Comptabilité CC2026</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate('/dashboard-cc2026/wudy')}
-              style={{ color: '#C9933A', border: '1px solid #C9933A40' }}
-              data-testid="dashboard-cc2026-link"
-            >
-              CC2026
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout} style={{ color: 'rgba(255,255,255,0.5)' }}>
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Header unifié */}
+      <WorkspaceHeader
+        userName="Wudy"
+        userRole="finance"
+        subtitle="Comptabilité CC2026"
+        dashboardPath="/dashboard-cc2026/wudy"
+        onLogout={handleLogout}
+        showNotifications={false}
+      />
 
       <main className="max-w-7xl mx-auto p-6">
         {/* Solde de trésorerie - Alert banner */}
