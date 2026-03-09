@@ -43,6 +43,8 @@ import WorkspaceAnalyst from "./components/workspaces/WorkspaceAnalyst";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 // Dashboard CC2026 Collaboratif
 import DashboardCC2026 from "./components/DashboardCC2026";
+// Pro Space (LinkedIn Culturel)
+import ProSpaceDashboard, { ProSpaceLogin } from "./components/ProSpaceDashboard";
 // 3D Components - LAZY LOADED to avoid React 19 compatibility issues
 const Dashboard3D = lazy(() => import("./components/admin/Dashboard3D"));
 const SmartEngine3D = lazy(() => import("./components/admin/SmartEngine3D"));
@@ -60,7 +62,7 @@ const Loading3D = () => (
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
   const location = useLocation();
-  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace', '/dashboard-cc2026'];
+  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace', '/dashboard-cc2026', '/espace-pro'];
   const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
   
   return (
@@ -76,8 +78,8 @@ const AppLayout = ({ children }) => {
 const IntroWrapper = () => {
   const location = window.location.pathname;
   const [showIntro, setShowIntro] = React.useState(() => {
-    // Skip intro on admin pages, badge scan page, workspace pages
-    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge') || location.startsWith('/workspace') || location.startsWith('/dashboard-cc2026')) {
+    // Skip intro on admin pages, badge scan page, workspace pages, espace-pro
+    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge') || location.startsWith('/workspace') || location.startsWith('/dashboard-cc2026') || location.startsWith('/espace-pro')) {
       return false;
     }
     // Skip intro if visual editor mode
@@ -147,6 +149,9 @@ function App() {
               {/* Smart Engine - 3D version */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
               <Route path="/smart-engine-3d" element={<Suspense fallback={<Loading3D />}><SmartEngine3D /></Suspense>} />
+              {/* Espace Pro CC2026 - LinkedIn Culturel */}
+              <Route path="/espace-pro" element={<ProSpaceDashboard />} />
+              <Route path="/espace-pro/connexion" element={<ProSpaceLogin />} />
               {/* Legal pages */}
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />

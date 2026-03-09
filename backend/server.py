@@ -5800,3 +5800,279 @@ Allow: /partenaires
 Allow: /programme
 """
     return Response(content=content, media_type="text/plain")
+
+
+
+# ================== ESPACE PRO CC2026 - LinkedIn Culturel ==================
+
+import random
+import string
+
+# Generate 6-digit access code
+def generate_access_code():
+    return ''.join(random.choices(string.digits, k=6))
+
+# Store temporary access codes
+pro_access_codes = {}
+
+class ProAccessRequest(BaseModel):
+    email: str
+
+class ProVerifyCode(BaseModel):
+    email: str
+    code: str
+
+class ProVerifyToken(BaseModel):
+    token: str
+
+@app.post("/api/pro/request-access")
+async def pro_request_access(request: ProAccessRequest):
+    """Request access code for Pro Space - checks if email exists in registrations"""
+    # Find user by email
+    registration = await db.registrations.find_one(
+        {"email": request.email.lower(), "status": "approved"},
+        {"_id": 0}
+    )
+    
+    if not registration:
+        raise HTTPException(status_code=404, detail="Email non trouvé dans les participants approuvés")
+    
+    # Generate and store access code (expires in 10 minutes)
+    code = generate_access_code()
+    pro_access_codes[request.email.lower()] = {
+        "code": code,
+        "expires": datetime.now(timezone.utc) + timedelta(minutes=10),
+        "profile_id": registration.get("id")
+    }
+    
+    # Send email with code (using Resend if configured)
+    try:
+        if resend.api_key:
+            resend.Emails.send({
+                "from": SENDER_EMAIL,
+                "to": [request.email],
+                "subject": "Votre code d'accès Espace Pro CC2026",
+                "html": f"""
+                <div style="font-family: 'Syne', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background: #1C1A14; color: #F4F1EA;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #D4A84B; margin: 0;">Espace Pro CC2026</h1>
+                        <p style="color: rgba(244,241,234,0.6); font-size: 14px;">Votre réseau professionnel culturel</p>
+                    </div>
+                    <div style="background: #2A2820; padding: 30px; border-radius: 12px; text-align: center;">
+                        <p style="margin: 0 0 20px 0;">Votre code d'accès :</p>
+                        <div style="font-size: 36px; letter-spacing: 8px; font-weight: bold; color: #D4A84B; background: rgba(212,168,75,0.1); padding: 20px; border-radius: 8px;">
+                            {code}
+                        </div>
+                        <p style="margin: 20px 0 0 0; font-size: 12px; color: rgba(244,241,234,0.4);">
+                            Ce code expire dans 10 minutes
+                        </p>
+                    </div>
+                    <p style="text-align: center; margin-top: 30px; font-size: 12px; color: rgba(244,241,234,0.4);">
+                        Culture Connect 2026 - Le premier marché professionnel des industries culturelles afro-caribéennes
+                    </p>
+                </div>
+                """
+            })
+    except Exception as e:
+        logging.warning(f"Failed to send pro access email: {e}")
+    
+    return {"success": True, "message": "Code envoyé par email"}
+
+@app.post("/api/pro/verify-code")
+async def pro_verify_code(request: ProVerifyCode):
+    """Verify access code and return profile"""
+    email = request.email.lower()
+    stored = pro_access_codes.get(email)
+    
+    if not stored:
+        raise HTTPException(status_code=400, detail="Aucun code en attente pour cet email")
+    
+    if datetime.now(timezone.utc) > stored["expires"]:
+        del pro_access_codes[email]
+        raise HTTPException(status_code=400, detail="Code expiré")
+    
+    if stored["code"] != request.code:
+        raise HTTPException(status_code=400, detail="Code invalide")
+    
+    # Code valid - get full profile
+    registration = await db.registrations.find_one(
+        {"email": email, "status": "approved"},
+        {"_id": 0}
+    )
+    
+    if not registration:
+        raise HTTPException(status_code=404, detail="Profil non trouvé")
+    
+    # Clean up used code
+    del pro_access_codes[email]
+    
+    # Log the access
+    await db.pro_access_logs.insert_one({
+        "email": email,
+        "profile_id": registration.get("id"),
+        "action": "login",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"success": True, "profile": registration}
+
+@app.get("/api/pro/profile/{profile_id}")
+async def get_pro_profile(profile_id: str):
+    """Get full professional profile"""
+    registration = await db.registrations.find_one(
+        {"id": profile_id},
+        {"_id": 0}
+    )
+    
+    if not registration:
+        raise HTTPException(status_code=404, detail="Profil non trouvé")
+    
+    # Get additional pro data
+    pro_data = await db.pro_profiles.find_one(
+        {"profile_id": profile_id},
+        {"_id": 0}
+    )
+    
+    # Merge data
+    if pro_data:
+        registration.update(pro_data)
+    
+    # Increment view count
+    await db.pro_profiles.update_one(
+        {"profile_id": profile_id},
+        {"$inc": {"views": 1}},
+        upsert=True
+    )
+    
+    return registration
+
+@app.put("/api/pro/profile/{profile_id}")
+async def update_pro_profile(profile_id: str, data: dict):
+    """Update professional profile (bio, links, seeking, offering)"""
+    allowed_fields = ["bio", "website", "linkedin", "instagram", "seeking", "offering"]
+    update_data = {k: v for k, v in data.items() if k in allowed_fields}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.pro_profiles.update_one(
+        {"profile_id": profile_id},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"success": True}
+
+@app.get("/api/pro/connections/{profile_id}")
+async def get_pro_connections(profile_id: str):
+    """Get connections for a professional"""
+    connections_data = await db.pro_connections.find(
+        {"$or": [{"from": profile_id}, {"to": profile_id}], "status": "accepted"}
+    ).to_list(1000)
+    
+    connections = []
+    for conn in connections_data:
+        other_id = conn["to"] if conn["from"] == profile_id else conn["from"]
+        other_profile = await db.registrations.find_one({"id": other_id}, {"_id": 0})
+        if other_profile:
+            connections.append(other_profile)
+    
+    return {"connections": connections}
+
+@app.post("/api/pro/connect")
+async def send_connection_request(data: dict):
+    """Send connection request"""
+    from_id = data.get("from")
+    to_id = data.get("to")
+    
+    # Check if already connected or pending
+    existing = await db.pro_connections.find_one({
+        "$or": [
+            {"from": from_id, "to": to_id},
+            {"from": to_id, "to": from_id}
+        ]
+    })
+    
+    if existing:
+        if existing.get("status") == "accepted":
+            return {"success": False, "message": "Déjà connecté"}
+        return {"success": False, "message": "Demande déjà envoyée"}
+    
+    # Create connection request
+    await db.pro_connections.insert_one({
+        "id": str(uuid.uuid4()),
+        "from": from_id,
+        "to": to_id,
+        "status": "accepted",  # Auto-accept for now
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"success": True}
+
+@app.get("/api/pro/messages/{profile_id}")
+async def get_pro_messages(profile_id: str):
+    """Get messages for a professional"""
+    messages = await db.pro_messages.find(
+        {"$or": [{"from": profile_id}, {"to": profile_id}]}
+    ).sort("timestamp", -1).to_list(500)
+    
+    # Add sender names
+    for msg in messages:
+        msg.pop("_id", None)
+        if msg.get("from") != profile_id:
+            sender = await db.registrations.find_one({"id": msg["from"]}, {"_id": 0, "full_name": 1})
+            msg["fromName"] = sender.get("full_name") if sender else "Inconnu"
+        if msg.get("to") != profile_id:
+            receiver = await db.registrations.find_one({"id": msg["to"]}, {"_id": 0, "full_name": 1})
+            msg["toName"] = receiver.get("full_name") if receiver else "Inconnu"
+    
+    return {"messages": messages}
+
+@app.post("/api/pro/messages")
+async def send_pro_message(data: dict):
+    """Send a message between professionals"""
+    message = {
+        "id": str(uuid.uuid4()),
+        "from": data.get("from"),
+        "to": data.get("to"),
+        "content": data.get("content"),
+        "read": False,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.pro_messages.insert_one(message)
+    
+    return {"success": True, "message_id": message["id"]}
+
+@app.get("/api/pro/opportunities")
+async def get_pro_opportunities():
+    """Get available opportunities"""
+    opportunities = await db.pro_opportunities.find({}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return {"opportunities": opportunities}
+
+@app.get("/api/pro/events")
+async def get_pro_events():
+    """Get CC2026 events"""
+    events = await db.pro_events.find({}, {"_id": 0}).sort("date", 1).to_list(50)
+    return {"events": events}
+
+# Public catalog endpoint - LIMITED data for non-authenticated users
+@app.get("/api/catalog/public")
+async def get_public_catalog():
+    """Get public catalog with LIMITED data (no contact info)"""
+    registrations = await db.registrations.find(
+        {"status": "approved", "show_in_catalog": True},
+        {
+            "_id": 0,
+            "id": 1,
+            "full_name": 1,
+            "organization_name": 1,
+            "profile_type": 1,
+            "country": 1,
+            "tier": 1,
+            "bio": 1,
+            "image": 1,
+            "expertise_tags": 1,
+            # Explicitly exclude contact info
+        }
+    ).to_list(1000)
+    
+    return {"registrations": registrations, "count": len(registrations)}
