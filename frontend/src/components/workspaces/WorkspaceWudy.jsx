@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, DollarSign, TrendingUp, TrendingDown, FileText, Plus, Edit2, Save, PieChart, Upload, AlertTriangle } from 'lucide-react';
+import { 
+  LogOut, DollarSign, TrendingUp, TrendingDown, FileText, Plus, Edit2, Save, 
+  PieChart, Upload, AlertTriangle, Check, X, Trash2, Send, Download, Eye
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSendNotification } from './NotificationSystem';
@@ -145,6 +148,102 @@ const WorkspaceWudy = () => {
     setNewExpense({ label: '', montant: '', category: 'Production scène', fournisseur: '' });
   };
 
+  // === GESTION DES DÉPENSES ===
+  const deleteExpense = async (expense) => {
+    if (window.confirm(`Supprimer la dépense "${expense.label}" ?`)) {
+      setBudget(prev => ({
+        ...prev,
+        reel: {
+          ...prev.reel,
+          depenses: prev.reel.depenses.filter(d => d.id !== expense.id)
+        }
+      }));
+      toast.success('Dépense supprimée');
+    }
+  };
+
+  const markJustificatifReceived = async (expense) => {
+    setBudget(prev => ({
+      ...prev,
+      reel: {
+        ...prev.reel,
+        depenses: prev.reel.depenses.map(d => 
+          d.id === expense.id ? { ...d, justificatif: true } : d
+        )
+      }
+    }));
+    toast.success(`Justificatif reçu pour "${expense.label}"`);
+  };
+
+  // === GESTION DES REVENUS ===
+  const confirmRevenu = async (revenu) => {
+    setBudget(prev => ({
+      ...prev,
+      previsionnel: {
+        ...prev.previsionnel,
+        revenus: prev.previsionnel.revenus.map(r => 
+          r.id === revenu.id ? { ...r, status: 'Confirmé' } : r
+        )
+      }
+    }));
+
+    await sendNotification({
+      sender: 'Wudy',
+      senderRole: 'finance',
+      type: 'revenu_confirmed',
+      title: 'Revenu confirmé',
+      message: `${revenu.label}: ${formatMontant(revenu.montant)} confirmé`,
+      target: 'laurent'
+    });
+
+    toast.success(`${revenu.label} confirmé - Notification envoyée`);
+  };
+
+  // === GESTION DES DOCUMENTS ===
+  const validateDocument = async (doc) => {
+    setDocuments(prev => prev.map(d => 
+      d.id === doc.id ? { ...d, status: 'Validé par LC' } : d
+    ));
+
+    await sendNotification({
+      sender: 'Wudy',
+      senderRole: 'finance',
+      type: 'document_validated',
+      title: 'Document validé',
+      message: `${doc.name} validé`,
+      target: 'laurent'
+    });
+
+    toast.success('Document validé');
+  };
+
+  const markDocumentPaid = async (doc) => {
+    setDocuments(prev => prev.map(d => 
+      d.id === doc.id ? { ...d, status: 'Payé' } : d
+    ));
+    toast.success(`${doc.name} marqué comme payé`);
+  };
+
+  // === NOTIFICATIONS ÉQUIPE ===
+  const sendBudgetAlert = async (type) => {
+    const messages = {
+      deficit: `⚠️ Alerte budget: Déficit de ${formatMontant(Math.abs(soldeReel))} sur le réel`,
+      rappel: `📋 Rappel: Merci d'envoyer vos justificatifs de dépenses`,
+      rapport: `📊 Rapport financier disponible - Prévisionnel: ${formatMontant(soldePrev)}`
+    };
+
+    await sendNotification({
+      sender: 'Wudy',
+      senderRole: 'finance',
+      type: `budget_${type}`,
+      title: 'Communication Finance',
+      message: messages[type],
+      target: 'all'
+    });
+
+    toast.success('Notification envoyée à l\'équipe');
+  };
+
   const categories = ['Production scène', 'Artistes', 'Technique', 'Logistique', 'Communication', 'Administratif', 'Divers'];
 
   return (
@@ -251,11 +350,18 @@ const WorkspaceWudy = () => {
                       <div className="text-xs sm:text-sm text-white truncate">{item.label}</div>
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.type}</div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="font-bold text-sm sm:text-base" style={{ color: COLORS.green }}>{formatMontant(item.montant)}</div>
-                      <div className="text-xs" style={{ color: item.status === 'Confirmé' ? COLORS.green : COLORS.gold }}>
-                        {item.status}
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <div className="font-bold text-sm sm:text-base" style={{ color: COLORS.green }}>{formatMontant(item.montant)}</div>
+                        <div className="text-xs" style={{ color: item.status === 'Confirmé' ? COLORS.green : COLORS.gold }}>
+                          {item.status}
+                        </div>
                       </div>
+                      {item.status !== 'Confirmé' && (
+                        <Button size="sm" onClick={() => confirmRevenu(item)} className="p-1 h-auto" style={{ background: COLORS.green }}>
+                          <Check className="w-3 h-3" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -314,11 +420,20 @@ const WorkspaceWudy = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 ml-11 sm:ml-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 ml-11 sm:ml-0">
                     <div className="text-lg sm:text-xl font-bold" style={{ color: COLORS.red }}>{formatMontant(expense.montant)}</div>
-                    <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${expense.justificatif ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                      {expense.justificatif ? 'Justifié' : 'Sans justif.'}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      {!expense.justificatif ? (
+                        <Button size="sm" onClick={() => markJustificatifReceived(expense)} className="px-2 py-1 h-auto text-xs bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30">
+                          Justif. reçu
+                        </Button>
+                      ) : (
+                        <span className="px-2 py-1 rounded text-xs bg-green-500/20 text-green-400">Justifié</span>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={() => deleteExpense(expense)} className="p-1 h-auto text-red-400 hover:text-red-300">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -351,15 +466,48 @@ const WorkspaceWudy = () => {
                       <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{doc.type} • {doc.date}</div>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded text-xs self-start sm:self-auto flex-shrink-0 ${
-                    doc.status === 'Payé' ? 'bg-green-500/20 text-green-400' : 
-                    doc.status === 'Validé par LC' ? 'bg-blue-500/20 text-blue-400' : 
-                    'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {doc.status}
-                  </span>
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <span className={`px-3 py-1 rounded text-xs flex-shrink-0 ${
+                      doc.status === 'Payé' ? 'bg-green-500/20 text-green-400' : 
+                      doc.status === 'Validé par LC' ? 'bg-blue-500/20 text-blue-400' : 
+                      'bg-yellow-500/20 text-yellow-400'
+                    }`}>
+                      {doc.status}
+                    </span>
+                    {doc.status === 'Reçu' && (
+                      <Button size="sm" onClick={() => validateDocument(doc)} className="px-2 py-1 h-auto text-xs" style={{ background: COLORS.green }}>
+                        Valider
+                      </Button>
+                    )}
+                    {doc.status === 'Validé par LC' && (
+                      <Button size="sm" onClick={() => markDocumentPaid(doc)} className="px-2 py-1 h-auto text-xs" style={{ background: COLORS.gold, color: COLORS.charbon }}>
+                        Marquer payé
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
+            </div>
+
+            {/* Actions rapides */}
+            <div className="mt-6 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <h3 className="text-sm font-bold mb-3" style={{ color: COLORS.gold }}>Actions rapides</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => sendBudgetAlert('rapport')} style={{ background: 'rgba(255,255,255,0.1)' }}>
+                  <Send className="w-4 h-4 mr-2" />
+                  Envoyer rapport
+                </Button>
+                <Button size="sm" onClick={() => sendBudgetAlert('rappel')} style={{ background: 'rgba(255,255,255,0.1)' }}>
+                  <Send className="w-4 h-4 mr-2" />
+                  Rappel justificatifs
+                </Button>
+                {soldeReel < 0 && (
+                  <Button size="sm" onClick={() => sendBudgetAlert('deficit')} style={{ background: `${COLORS.red}30`, color: COLORS.red }}>
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Alerte déficit
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         )}

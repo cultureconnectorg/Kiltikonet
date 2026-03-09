@@ -275,6 +275,86 @@ Comment puis-je vous aider ?`
     setNewPartner({ name: '', type: 'Bronze', contact: '', email: '', phone: '' });
   };
 
+  // === GESTION DES PARTENAIRES ===
+  const deletePartner = (partner) => {
+    if (window.confirm(`Supprimer ${partner.name} ?`)) {
+      setPartners(prev => prev.filter(p => p.id !== partner.id));
+      toast.success(`${partner.name} supprimé`);
+    }
+  };
+
+  const updatePartnerStatus = async (partner, newStatus) => {
+    setPartners(prev => prev.map(p => 
+      p.id === partner.id ? { ...p, status: newStatus, lastAction: new Date().toLocaleDateString('fr-FR') } : p
+    ));
+
+    if (newStatus === 'Signé') {
+      await sendNotification({
+        sender: 'Alirio',
+        senderRole: 'business',
+        type: 'partner_signed',
+        title: 'Partenaire signé !',
+        message: `${partner.name} (${partner.type}) a signé son contrat`,
+        target: 'all'
+      });
+    }
+
+    toast.success(`${partner.name}: ${newStatus}`);
+  };
+
+  const contactPartner = async (partner) => {
+    setPartners(prev => prev.map(p => 
+      p.id === partner.id ? { ...p, status: 'Contacté', lastAction: new Date().toLocaleDateString('fr-FR') } : p
+    ));
+    toast.success(`${partner.name} marqué comme contacté`);
+  };
+
+  const sendDossier = async (partner) => {
+    setPartners(prev => prev.map(p => 
+      p.id === partner.id ? { ...p, status: 'Dossier envoyé', lastAction: new Date().toLocaleDateString('fr-FR'), nextAction: 'Relance' } : p
+    ));
+
+    await sendNotification({
+      sender: 'Alirio',
+      senderRole: 'business',
+      type: 'dossier_sent',
+      title: 'Dossier partenariat envoyé',
+      message: `Dossier envoyé à ${partner.name} (${partner.type})`,
+      target: 'laurent'
+    });
+
+    toast.success(`Dossier envoyé à ${partner.name}`);
+  };
+
+  // === GESTION DES TÂCHES ===
+  const deleteTask = (task) => {
+    if (window.confirm(`Supprimer "${task.title}" ?`)) {
+      setTasks(prev => prev.filter(t => t.id !== task.id));
+      toast.success('Tâche supprimée');
+    }
+  };
+
+  // === GESTION DES CONTACTS ===
+  const deleteContact = (contact) => {
+    if (window.confirm(`Supprimer ${contact.prenom} ${contact.nom} ?`)) {
+      setMyContacts(prev => prev.filter(c => c.id !== contact.id));
+      toast.success('Contact supprimé');
+    }
+  };
+
+  // === NOTIFICATIONS ÉQUIPE ===
+  const notifyTeam = async (message, target = 'all') => {
+    await sendNotification({
+      sender: 'Alirio',
+      senderRole: 'business',
+      type: 'team_update',
+      title: 'Mise à jour Partenariats',
+      message: message,
+      target: target
+    });
+    toast.success('Notification envoyée');
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -450,6 +530,13 @@ Comment puis-je vous aider ?`
                           >
                             <CheckCircle className="w-4 h-4" style={{ color: COLORS.forest }} />
                           </button>
+                          <button 
+                            onClick={() => deleteTask(task)}
+                            className="p-1 rounded hover:bg-white/10 text-red-400 hover:text-red-300"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -614,7 +701,7 @@ Comment puis-je vous aider ?`
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-4 pt-3 flex gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div className="mt-4 pt-3 flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                     {contact.statut !== 'Partenaire' && (
                       <div className="flex gap-1">
                         <Button 
@@ -646,6 +733,16 @@ Comment puis-je vous aider ?`
                         </Button>
                       </div>
                     )}
+                    {contact.statut === 'Partenaire' && <div />}
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => deleteContact(contact)}
+                      className="text-red-400 hover:text-red-300"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -859,9 +956,19 @@ Comment puis-je vous aider ?`
                           <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Type: {partner.type}</div>
                         </div>
                       </div>
-                      <span className="px-3 py-1 rounded text-xs font-bold self-start sm:self-auto" style={{ background: statusStyle.bg, color: statusStyle.color }}>
-                        {partner.status}
-                      </span>
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <span className="px-3 py-1 rounded text-xs font-bold" style={{ background: statusStyle.bg, color: statusStyle.color }}>
+                          {partner.status}
+                        </span>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => deletePartner(partner)}
+                          className="p-1 h-auto text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
                       <div>
@@ -880,6 +987,39 @@ Comment puis-je vous aider ?`
                         <div className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Prochaine action</div>
                         <div style={{ color: COLORS.terracotta }}>{partner.nextAction}</div>
                       </div>
+                    </div>
+                    {/* Actions partenaire */}
+                    <div className="mt-3 pt-3 flex flex-wrap gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      {partner.status === 'Prospect' && (
+                        <Button size="sm" onClick={() => contactPartner(partner)} className="text-xs px-2 py-1 h-auto" style={{ background: COLORS.gold, color: COLORS.charbon }}>
+                          Contacter
+                        </Button>
+                      )}
+                      {partner.status === 'Contacté' && (
+                        <Button size="sm" onClick={() => sendDossier(partner)} className="text-xs px-2 py-1 h-auto" style={{ background: COLORS.terracotta }}>
+                          Envoyer dossier
+                        </Button>
+                      )}
+                      {partner.status === 'Dossier envoyé' && (
+                        <>
+                          <Button size="sm" onClick={() => updatePartnerStatus(partner, 'En négociation')} className="text-xs px-2 py-1 h-auto" style={{ background: COLORS.terracotta }}>
+                            Négociation
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => contactPartner(partner)} className="text-xs px-2 py-1 h-auto" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                            Relancer
+                          </Button>
+                        </>
+                      )}
+                      {partner.status === 'En négociation' && (
+                        <Button size="sm" onClick={() => updatePartnerStatus(partner, 'Signé')} className="text-xs px-2 py-1 h-auto" style={{ background: COLORS.forest }}>
+                          Marquer signé
+                        </Button>
+                      )}
+                      {partner.status === 'Signé' && (
+                        <span className="text-xs text-green-400 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Partenaire confirmé
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
