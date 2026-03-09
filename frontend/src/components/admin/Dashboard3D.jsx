@@ -1,8 +1,9 @@
-import React, { useState, useRef, Suspense, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Text, RoundedBox, OrbitControls, Environment, Float } from '@react-three/drei';
+import React, { useState } from 'react';
+// NOTE: Three.js imports disabled due to React 19 compatibility
+// import { Canvas, useFrame, useThree } from '@react-three/fiber';
+// import { Text, RoundedBox, OrbitControls, Environment, Float } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import { Badge, Users, BarChart3, Brain, Edit3, List, Settings, ChevronRight } from 'lucide-react';
 
 // ═══════════════════════════════════════════════════════════════
@@ -256,29 +257,37 @@ const Dashboard2D = ({ onPanelSelect }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// ERROR BOUNDARY FOR 3D COMPONENTS (React 19 compatibility)
+// ═══════════════════════════════════════════════════════════════
+class ThreeErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+  
+  componentDidCatch(error, errorInfo) {
+    console.warn('3D rendering failed, falling back to 2D:', error.message);
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null;
+    }
+    return this.props.children;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MAIN DASHBOARD 3D COMPONENT
 // ═══════════════════════════════════════════════════════════════
 const Dashboard3D = ({ onNavigate }) => {
-  const [webglSupported, setWebglSupported] = useState(true);
-  const [mode, setMode] = useState('3d'); // '3d' or '2d'
+  // NOTE: Three.js disabled due to React 19 compatibility issues
+  // Using 2D fallback exclusively until @react-three/fiber updates
   const navigate = useNavigate();
-  
-  // Check WebGL support
-  useEffect(() => {
-    try {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      setWebglSupported(!!gl);
-      
-      // Auto fallback on mobile
-      if (window.innerWidth < 768) {
-        setMode('2d');
-      }
-    } catch (e) {
-      setWebglSupported(false);
-      setMode('2d');
-    }
-  }, []);
   
   const handlePanelSelect = (panel) => {
     if (onNavigate) {
@@ -301,63 +310,26 @@ const Dashboard3D = ({ onNavigate }) => {
           </div>
           <div>
             <div className="font-bold text-white tracking-wider">CULTURE CONNECT 2026</div>
-            <div className="text-xs" style={{ color: COLORS.terracotta }}>Dashboard Admin 3D</div>
+            <div className="text-xs" style={{ color: COLORS.terracotta }}>Dashboard Admin</div>
           </div>
         </div>
         
-        {/* Mode toggle */}
-        {webglSupported && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setMode('3d')}
-              className={`px-4 py-2 rounded-lg text-sm transition-all ${mode === '3d' ? 'text-white' : 'text-white/50'}`}
-              style={{ background: mode === '3d' ? COLORS.burgundy : 'transparent' }}
-              data-testid="mode-3d"
-            >
-              Vue 3D
-            </button>
-            <button
-              onClick={() => setMode('2d')}
-              className={`px-4 py-2 rounded-lg text-sm transition-all ${mode === '2d' ? 'text-white' : 'text-white/50'}`}
-              style={{ background: mode === '2d' ? COLORS.burgundy : 'transparent' }}
-              data-testid="mode-2d"
-            >
-              Vue Classique
-            </button>
-          </div>
-        )}
+        {/* Note about 3D mode */}
+        <div className="text-xs px-3 py-1 rounded" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}>
+          Vue classique active
+        </div>
       </div>
       
       {/* Content */}
       <div className="h-[calc(100vh-100px)]">
-        {mode === '3d' && webglSupported ? (
-          <Suspense fallback={
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: `${COLORS.gold} transparent` }} />
-                <div style={{ color: 'rgba(255,255,255,0.5)' }}>Chargement 3D...</div>
-              </div>
-            </div>
-          }>
-            <Canvas
-              camera={{ position: [0, 2, 6], fov: 50 }}
-              style={{ background: COLORS.charbon }}
-            >
-              <Scene3D onPanelSelect={handlePanelSelect} />
-            </Canvas>
-          </Suspense>
-        ) : (
-          <Dashboard2D onPanelSelect={handlePanelSelect} />
-        )}
+        {/* 3D mode disabled due to React 19 compatibility - using 2D fallback */}
+        <Dashboard2D onPanelSelect={handlePanelSelect} />
       </div>
       
       {/* Footer hint */}
       <div className="absolute bottom-4 left-0 right-0 text-center">
         <div className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          {mode === '3d' 
-            ? 'Cliquez sur un panneau pour naviguer • Faites glisser pour tourner' 
-            : 'Cliquez sur une section pour y accéder'
-          }
+          Cliquez sur une section pour y accéder
         </div>
       </div>
     </div>
