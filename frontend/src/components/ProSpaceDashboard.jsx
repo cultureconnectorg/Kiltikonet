@@ -854,7 +854,7 @@ const NetworkSection = ({ connections, session, onConnect }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// PROFILE MODAL
+// PROFILE MODAL - Contact info visible only to connected users
 // ═══════════════════════════════════════════════════════════════
 const ProfileModal = ({ pro, onClose, session, isConnected, onConnect }) => {
   const Icon = PROFILE_ICONS[pro.profile_type] || Users;
@@ -865,6 +865,7 @@ const ProfileModal = ({ pro, onClose, session, isConnected, onConnect }) => {
         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl"
         style={{ background: COLORS.charbon, border: `1px solid ${COLORS.gold}30` }}
         onClick={e => e.stopPropagation()}
+        data-testid="profile-modal"
       >
         {/* Header */}
         <div className="relative h-32" style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}40, ${COLORS.gold}20)` }}>
@@ -872,6 +873,7 @@ const ProfileModal = ({ pro, onClose, session, isConnected, onConnect }) => {
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.3)' }}
+            data-testid="close-profile-modal"
           >
             <X className="w-5 h-5" style={{ color: '#fff' }} />
           </button>
@@ -880,7 +882,7 @@ const ProfileModal = ({ pro, onClose, session, isConnected, onConnect }) => {
         <div className="px-6 pb-6 -mt-16">
           <div className="flex flex-col sm:flex-row gap-4">
             <img
-              src={pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.full_name)}&background=D4A84B&color=1C1A14&size=200`}
+              src={pro.logo_url || pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.full_name)}&background=D4A84B&color=1C1A14&size=200`}
               alt={pro.full_name}
               className="w-32 h-32 rounded-xl object-cover border-4"
               style={{ borderColor: COLORS.charbon }}
@@ -895,28 +897,50 @@ const ProfileModal = ({ pro, onClose, session, isConnected, onConnect }) => {
             </div>
           </div>
           
-          {/* Contact Info (visible only to connected users) */}
+          {/* Contact Info - Visible ONLY to connected users */}
           <div className="mt-6 p-4 rounded-lg" style={{ background: COLORS.card }}>
             <h3 className="font-bold mb-3" style={{ color: COLORS.cream }}>Contact</h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                <Mail className="w-4 h-4" style={{ color: COLORS.gold }} />
-                <span>{pro.email}</span>
+            {isConnected ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <Mail className="w-4 h-4" style={{ color: COLORS.gold }} />
+                  <span data-testid="pro-email">{pro.email}</span>
+                </div>
+                {pro.phone && (
+                  <div className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <Phone className="w-4 h-4" style={{ color: COLORS.gold }} />
+                    <span data-testid="pro-phone">{pro.phone}</span>
+                  </div>
+                )}
+                {pro.country && (
+                  <div className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <MapPin className="w-4 h-4" style={{ color: COLORS.gold }} />
+                    <span>{pro.country}</span>
+                  </div>
+                )}
               </div>
-              {pro.phone && (
-                <div className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                  <Phone className="w-4 h-4" style={{ color: COLORS.gold }} />
-                  <span>{pro.phone}</span>
+            ) : (
+              <div className="text-center py-4" data-testid="contact-locked">
+                <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                  <Users className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.4)' }} />
                 </div>
-              )}
-              {pro.country && (
-                <div className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                  <MapPin className="w-4 h-4" style={{ color: COLORS.gold }} />
-                  <span>{pro.country}</span>
-                </div>
-              )}
-            </div>
+                <p className="text-sm mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  Connectez-vous pour voir les coordonnées
+                </p>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Email et téléphone réservés aux membres connectés
+                </p>
+              </div>
+            )}
           </div>
+          
+          {/* Public Info - Always visible */}
+          {pro.country && !isConnected && (
+            <div className="mt-2 flex items-center gap-2 px-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <MapPin className="w-4 h-4" />
+              <span className="text-sm">{pro.country}</span>
+            </div>
+          )}
           
           {/* Bio */}
           {pro.bio && (

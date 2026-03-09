@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { Globe, Menu, X } from 'lucide-react';
+import { Globe, Menu, X, Users } from 'lucide-react';
 
 export const Header = () => {
   const { language, toggleLanguage } = useLanguage();
@@ -59,6 +59,16 @@ export const Header = () => {
           
           {/* Right side */}
           <div className="flex items-center gap-4">
+            {/* Espace Pro link */}
+            <button
+              onClick={() => navigate('/espace-pro/connexion')}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-terracotta border border-terracotta/30 rounded-md hover:bg-terracotta/10 transition-colors"
+              data-testid="pro-space-button"
+            >
+              <Users className="w-4 h-4" />
+              <span>{language === 'fr' ? 'Espace Pro' : 'Pro Space'}</span>
+            </button>
+            
             {/* Language Toggle */}
             <button
               onClick={toggleLanguage}
@@ -115,6 +125,16 @@ export const Header = () => {
               className="block w-full text-left py-2 text-base text-charcoal/40"
             >
               Admin
+            </button>
+            <button
+              onClick={() => {
+                navigate('/espace-pro/connexion');
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center gap-2 w-full text-left py-2 text-base text-terracotta"
+            >
+              <Users className="w-4 h-4" />
+              {language === 'fr' ? 'Espace Pro' : 'Pro Space'}
             </button>
           </div>
         </div>
