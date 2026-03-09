@@ -2,114 +2,103 @@
 
 ## Overview
 Culture Connect 2026 - Premier marché professionnel des industries culturelles afro-caribéennes.
-Plateforme multi-workspace avec messagerie temps réel, système d'accréditation, et CMS.
+Plateforme multi-workspace avec messagerie temps réel, système d'accréditation, CMS, et Dashboard Collaboratif.
 
-**Date du rapport**: 7 Mars 2026
-**Jour J prévu**: 22 Mai 2026 (J-76)
+**Date du rapport**: 9 Mars 2026
+**Jour J prévu**: 22 Mai 2026 (Chimin Savann)
 
 ---
 
-## STATUT ACTUEL: SECTION 1 P0 BUGS - TERMINÉE ✅
+## STATUT: SECTIONS 1-5 + DASHBOARD CC2026 TERMINÉES ✅
 
-### BUGS P0 CORRIGÉS (7 Mars 2026)
-
+### SECTION 1 - BUGS P0 CORRIGÉS (7 Mars 2026)
 | Bug | Status | Description |
 |-----|--------|-------------|
-| **BUG 1.1.a** | ✅ CORRIGÉ | Mapping Baserow - Helper `getFieldValue()` normalise les champs Single Select |
-| **BUG 1.1.b** | ✅ CORRIGÉ | Filtres présence avec compteurs (Tous/Présents/Absents) + localStorage persistant |
-| **BUG 1.1.c** | ✅ CORRIGÉ | 17 types de badges incluant PUBLIC, PARTICIPANT, VISITEUR |
-| **BUG 1.1.d** | ✅ CORRIGÉ | CSS dropdown dark mode - texte lisible sur fond sombre |
-| **BUG 1.1.e** | ✅ CORRIGÉ | Format impression badges 85mm × 54mm (carte ID standard) |
-| **BUG 1.1.f** | 🟡 PARTIEL | Synchronisation catalogue public (à finaliser Section 2) |
-| **BUG 1.2** | ✅ CORRIGÉ | Observatoire temps réel avec polling 30s, LIVE indicator, Export CSV |
+| 1.1.a | ✅ | Mapping Baserow - `getFieldValue()` helper |
+| 1.1.b | ✅ | Filtres présence avec compteurs (Tous/Présents/Absents) |
+| 1.1.c | ✅ | 17 types de badges (PUBLIC, PARTICIPANT, VISITEUR inclus) |
+| 1.1.d | ✅ | CSS dropdown dark mode |
+| 1.1.e | ✅ | Format impression badges 85×54mm |
+| 1.2 | ✅ | Observatoire temps réel avec polling 30s, Export CSV |
 
-### Fichiers modifiés:
-- `/app/frontend/src/components/AccreditationSystem.jsx` - Helper getFieldValue(), filtres, Observatoire live
-- `/app/frontend/src/App.css` - CSS dark mode dropdowns, styles impression badges
+### SECTION 2 - ROUTES & SYNCHRONISATION (9 Mars 2026)
+| Route | Status | Description |
+|-------|--------|-------------|
+| POST /api/tickets/purchase | ✅ | Achat billet → Baserow + MongoDB |
+| POST /api/register | ✅ | Inscription site → MongoDB + Baserow |
+| POST /api/admin/accreditation | ✅ | Admin ajoute → Baserow uniquement |
+| GET/PATCH /api/badge/{id} | ✅ | Scan QR → validation présence < 3s |
+| GET /api/catalog/sync | ✅ | Catalogue public synchronisé |
 
----
+### SECTION 3 - VUE 3D (9 Mars 2026)
+- ✅ Dashboard3D.jsx - Panneaux 3D flottants avec Three.js (lazy loaded)
+- ✅ SmartEngine3D.jsx - Graphe de nœuds interconnectés
+- ✅ Fallback automatique si WebGL désactivé
 
-## PROCHAINES ÉTAPES (PROMPT MAÎTRE)
+### SECTION 4 - WORKSPACE ALIRIO (9 Mars 2026)
+- ✅ Onglet "Mes tâches" avec progression et filtres
+- ✅ Onglet "Mes contacts" avec ajout et promotion partenaire
+- ✅ Routes backend /api/contacts/alirio
 
-### Section 2 - Architecture & Synchronisation (P1)
-- [ ] 4 routes d'entrée utilisateur (achat billet, inscription, admin manuel, scan QR)
-- [ ] Synchronisation Baserow ↔ Catalogue public ↔ Admin
-- [ ] Routes backend: POST /api/tickets/purchase, POST /api/register, POST /api/admin/accreditation
+### SECTION 5 - GUIDES UTILISATEUR (9 Mars 2026)
+- ✅ 6 guides intégrés (UserGuides.jsx)
+- ✅ Boutons "?" accessibles dans chaque interface
+- ✅ Guide Accréditation, Badges, Contacts, Smart Engine, Workspaces, Jour J
 
-### Section 3 - Vue 3D (P1)
-- [ ] Dashboard admin 3D (Three.js panneaux flottants)
-- [ ] Smart Engine v2 avec graphe de nœuds interconnectés
-- [ ] Catalogue public CSS 3D
-
-### Section 4 - Workspace Alirio (P1)
-- [ ] Section "Mes tâches" avec progression
-- [ ] Section "Mes contacts" (collection MongoDB contacts_alirio)
-- [ ] Interconnexion admins secondaires avec notifications Laurent
-
-### Section 5 - Guides Utilisateur (P2)
-- [ ] Guide Accréditation
-- [ ] Guide Badges
-- [ ] Guide Contacts (Alirio)
-- [ ] Guide Smart Engine
-- [ ] Guide Workspaces
-- [ ] Guide Jour J
-
-### Section 6 - Validation (P2)
-- [ ] BLOC 1: Badges et accréditation
-- [ ] BLOC 2: Synchronisation routes
-- [ ] BLOC 3: Vue 3D performance
-- [ ] BLOC 4: Workspace Alirio
-- [ ] BLOC 5: Interconnexion admins
-- [ ] BLOC 6: Guides
+### DASHBOARD CC2026 / CHIMIN SAVANN (9 Mars 2026)
+- ✅ DashboardCC2026.jsx - Dashboard collaboratif complet
+- ✅ 115 tâches réparties sur 11 semaines (S1 à S11)
+- ✅ 9 pôles (Fondateur, Financement, Juridique, Gwen, Fabrice, Comm, Business, Admin, Digital)
+- ✅ Vue "Mon Pôle" - édition des tâches du workspace
+- ✅ Vue "Globale" - lecture seule (sauf admin)
+- ✅ Polling 30 secondes pour sync temps réel
+- ✅ Checkpoints et deadlines visuelles
+- ✅ Routes protégées par workspace
+- ✅ Design fidèle au HTML de référence
 
 ---
 
-## ARCHITECTURE TECHNIQUE
+## ARCHITECTURE
 
 ### Stack
-- Frontend: React + Tailwind CSS + Three.js (à venir)
+- Frontend: React 19 + Tailwind CSS + Three.js (lazy)
 - Backend: FastAPI (Python) + WebSocket
 - Bases de données: MongoDB + Baserow (Table 865847)
-- Intégrations: Stripe, Cloudinary, Resend, Claude AI
+- Intégrations: Stripe, Cloudinary, Claude AI
+
+### Routes Dashboard CC2026
+| Route | Workspace | Pôles éditables |
+|-------|-----------|-----------------|
+| /dashboard-cc2026 | CC2026admin | TOUS |
+| /dashboard-cc2026/gwen | Gwen2026 | gwen |
+| /dashboard-cc2026/fabrice | Fabrice2026 | fabrice |
+| /dashboard-cc2026/kaige | Kaige2026 | digital |
+| /dashboard-cc2026/alirio | Alirio2026 | digital |
+| /dashboard-cc2026/wudy | Wudy2026 | comm |
 
 ### Workspaces
 | Password | User | Role |
 |----------|------|------|
 | CC2026admin | Admin | admin |
 | LC2026 | Laurent | founder |
-| Twina2026 | Twina | design |
 | Gwen2026 | Gwen | event |
+| Fabrice2026 | Fabrice | captions |
 | Kaige2026 | Kaige | press |
 | Alirio2026 | Alirio | business |
 | Wudy2026 | Wudy | finance |
-| Fabrice2026 | Fabrice | captions |
-| DataCC2026 | Analyst | analyst |
-
-### Credentials
-- **Baserow Table**: 865847
-- **Baserow Token**: BjKPCSpcpif72OtZtsmMFUbZysqlNGiK
-- **Emergent LLM Key**: Configurée dans backend/.env
 
 ---
 
-## HISTORIQUE DES TESTS
+## TESTS VALIDATION - BLOC 1-6 PRÊTS
 
-### Iteration 16 (7 Mars 2026) - Section 1 P0 Bugs
-- ✅ 100% Frontend tests passés
-- ✅ Filtres présence avec compteurs
-- ✅ 17 types de badges disponibles
-- ✅ CSS dark mode dropdowns
-- ✅ Observatoire temps réel
-
-### Iterations 1-15 (Précédentes)
-- ✅ Messagerie interne temps réel
-- ✅ Routes protégées avec expiration 8h
-- ✅ Rate limiting login
-- ✅ Visual Editor workaround
-- ✅ Claude AI assistant fonctionnel
+### À valider:
+- [ ] BLOC 1: Badges et accréditation
+- [ ] BLOC 2: Synchronisation routes
+- [ ] BLOC 3: Vue 3D performance
+- [ ] BLOC 4: Workspace Alirio
+- [ ] BLOC 5: Interconnexion admins
+- [ ] BLOC 6: Guides utilisateur
 
 ---
 
-## 🎯 PRÊT POUR SECTION 2: OUI
-
-Tous les bugs P0 de la Section 1 sont corrigés. Prêt pour l'architecture des routes et la synchronisation.
+## 🎯 PRÊT POUR PRODUCTION

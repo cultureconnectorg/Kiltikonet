@@ -5652,6 +5652,93 @@ async def promote_contact_to_partner(contact_id: str, level: str = "Bronze"):
     
     raise HTTPException(status_code=404, detail="Contact not found")
 
+# ═══════════════════════════════════════════════════════════════
+# DASHBOARD COLLABORATIF CC2026 / CHIMIN SAVANN
+# ═══════════════════════════════════════════════════════════════
+
+# Workspace to pole mapping
+WORKSPACE_POLES = {
+    'CC2026admin': ['fondateur', 'financement', 'juridique', 'gwen', 'fabrice', 'comm', 'business', 'admin', 'digital'],
+    'Gwen2026': ['gwen'],
+    'Fabrice2026': ['fabrice'],
+    'Kaige2026': ['digital'],
+    'Alirio2026': ['digital'],
+    'Wudy2026': ['comm']
+}
+
+class TaskToggleRequest(BaseModel):
+    workspace_id: str
+    done: bool
+
+@app.get("/api/cc2026/tasks/status")
+async def get_all_task_status():
+    """Get all task statuses for CC2026 dashboard"""
+    statuses = await db.cc2026_tasks_status.find({}, {"_id": 0}).to_list(1000)
+    return {"statuses": statuses}
+
+@app.get("/api/cc2026/tasks/status/{workspace_id}")
+async def get_workspace_task_status(workspace_id: str):
+    """Get task statuses for a specific workspace"""
+    statuses = await db.cc2026_tasks_status.find(
+        {"workspace_id": workspace_id},
+        {"_id": 0}
+    ).to_list(500)
+    return {"statuses": statuses}
+
+@app.post("/api/cc2026/tasks/{task_id}/toggle")
+async def toggle_task_status(task_id: str, request: TaskToggleRequest):
+    """Toggle a task's done status - with workspace permission check"""
+    workspace_id = request.workspace_id
+    
+    # Check if workspace has permission for this task's pole
+    # (Frontend should enforce this too, but we double-check)
+    allowed_poles = WORKSPACE_POLES.get(workspace_id, [])
+    
+    # Extract pole from task_id (e.g., s1-g1 -> gwen, s1-f1 -> fondateur)
+    pole_prefix_map = {
+        'f': 'fondateur', 'fi': 'financement', 'ju': 'juridique',
+        'g': 'gwen', 'fa': 'fabrice', 'co': 'comm',
+        'bu': 'business', 'ad': 'admin', 'di': 'digital'
+    }
+    
+    # Parse task_id to get pole
+    task_pole = None
+    parts = task_id.split('-')
+    if len(parts) >= 2:
+        prefix = ''.join([c for c in parts[1] if c.isalpha()])
+        task_pole = pole_prefix_map.get(prefix)
+    
+    # Admin can toggle everything
+    is_admin = workspace_id == 'CC2026admin'
+    
+    if not is_admin and task_pole and task_pole not in allowed_poles:
+        raise HTTPException(status_code=403, detail="Vous n'avez pas la permission de modifier cette tâche")
+    
+    # Update or create status
+    await db.cc2026_tasks_status.update_one(
+        {"task_id": task_id},
+        {
+            "$set": {
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "done": request.done,
+                "done_at": datetime.now(timezone.utc).isoformat() if request.done else None
+            }
+        },
+        upsert=True
+    )
+    
+    # Broadcast to other workspaces for real-time sync
+    await broadcast_event("task_toggled", {
+        "task_id": task_id,
+        "done": request.done,
+        "workspace_id": workspace_id
+    })
+    
+    logger.info(f"📋 CC2026 Task toggled: {task_id} -> {'done' if request.done else 'undone'} by {workspace_id}")
+    
+    return {"success": True, "task_id": task_id, "done": request.done}
+
 @app.get("/robots.txt")
 async def robots_txt():
     """Serve robots.txt"""

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -41,9 +41,21 @@ import WorkspaceFabrice from "./components/workspaces/WorkspaceFabrice";
 import WorkspaceAnalyst from "./components/workspaces/WorkspaceAnalyst";
 // Protected Route with session expiration
 import { ProtectedRoute } from "./components/ProtectedRoute";
-// 3D Components - Section 3
-import Dashboard3D from "./components/admin/Dashboard3D";
-import SmartEngine3D from "./components/admin/SmartEngine3D";
+// Dashboard CC2026 Collaboratif
+import DashboardCC2026 from "./components/DashboardCC2026";
+// 3D Components - LAZY LOADED to avoid React 19 compatibility issues
+const Dashboard3D = lazy(() => import("./components/admin/Dashboard3D"));
+const SmartEngine3D = lazy(() => import("./components/admin/SmartEngine3D"));
+
+// 3D Loading fallback
+const Loading3D = () => (
+  <div className="min-h-screen flex items-center justify-center" style={{ background: '#1C1A14' }}>
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: '#D4A84B transparent' }} />
+      <div style={{ color: 'rgba(255,255,255,0.5)' }}>Chargement 3D...</div>
+    </div>
+  </div>
+);
 
 // Layout wrapper that conditionally shows Header
 const AppLayout = ({ children }) => {
@@ -65,7 +77,7 @@ const IntroWrapper = () => {
   const location = window.location.pathname;
   const [showIntro, setShowIntro] = React.useState(() => {
     // Skip intro on admin pages, badge scan page, workspace pages
-    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge') || location.startsWith('/workspace')) {
+    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge') || location.startsWith('/workspace') || location.startsWith('/dashboard-cc2026')) {
       return false;
     }
     // Skip intro if visual editor mode
@@ -108,7 +120,7 @@ function App() {
               <Route path="/programme" element={<ProgramPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/dashboard-3d" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard3D /></ProtectedRoute>} />
+              <Route path="/admin/dashboard-3d" element={<ProtectedRoute allowedRoles={['admin']}><Suspense fallback={<Loading3D />}><Dashboard3D /></Suspense></ProtectedRoute>} />
               <Route path="/admin/cms" element={<ProtectedRoute allowedRoles={['admin']}><CMSAdmin /></ProtectedRoute>} />
               <Route path="/admin/cms/visual-editor" element={<ProtectedRoute allowedRoles={['admin']}><VisualEditor /></ProtectedRoute>} />
               <Route path="/admin/accreditation" element={<ProtectedRoute allowedRoles={['admin']}><AccreditationSystem /></ProtectedRoute>} />
@@ -123,9 +135,16 @@ function App() {
               <Route path="/workspace/wudy" element={<ProtectedRoute allowedRoles={['finance']}><WorkspaceWudy /></ProtectedRoute>} />
               <Route path="/workspace/fabrice" element={<ProtectedRoute allowedRoles={['captions']}><WorkspaceFabrice /></ProtectedRoute>} />
               <Route path="/workspace/analyst" element={<ProtectedRoute allowedRoles={['analyst']}><WorkspaceAnalyst /></ProtectedRoute>} />
+              {/* Dashboard CC2026 Collaboratif */}
+              <Route path="/dashboard-cc2026" element={<ProtectedRoute allowedRoles={['admin']}><DashboardCC2026 workspaceId="CC2026admin" /></ProtectedRoute>} />
+              <Route path="/dashboard-cc2026/gwen" element={<ProtectedRoute allowedRoles={['event']}><DashboardCC2026 workspaceId="Gwen2026" /></ProtectedRoute>} />
+              <Route path="/dashboard-cc2026/fabrice" element={<ProtectedRoute allowedRoles={['captions']}><DashboardCC2026 workspaceId="Fabrice2026" /></ProtectedRoute>} />
+              <Route path="/dashboard-cc2026/kaige" element={<ProtectedRoute allowedRoles={['press']}><DashboardCC2026 workspaceId="Kaige2026" /></ProtectedRoute>} />
+              <Route path="/dashboard-cc2026/alirio" element={<ProtectedRoute allowedRoles={['business']}><DashboardCC2026 workspaceId="Alirio2026" /></ProtectedRoute>} />
+              <Route path="/dashboard-cc2026/wudy" element={<ProtectedRoute allowedRoles={['finance']}><DashboardCC2026 workspaceId="Wudy2026" /></ProtectedRoute>} />
               {/* Smart Engine - 3D version */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
-              <Route path="/smart-engine-3d" element={<SmartEngine3D />} />
+              <Route path="/smart-engine-3d" element={<Suspense fallback={<Loading3D />}><SmartEngine3D /></Suspense>} />
               {/* Legal pages */}
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
