@@ -3,6 +3,39 @@ import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
 
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/'
+      });
+      console.log('[PWA] Service Worker registered:', registration.scope);
+      
+      // Check for updates periodically
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New content available, show update notification
+            console.log('[PWA] New content available, please refresh');
+          }
+        });
+      });
+    } catch (error) {
+      console.log('[PWA] Service Worker registration failed:', error);
+    }
+  });
+  
+  // Listen for messages from Service Worker
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data.type === 'SYNC_REQUESTED') {
+      // Trigger sync in the app
+      window.dispatchEvent(new CustomEvent('pwa-sync-requested'));
+    }
+  });
+}
+
 // Visual Editor Mode - Enable element selection when ?ve=1 is present
 if (window.location.search.includes('ve=1')) {
   // Wait for React to render

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
+import smartAnalytics from '../services/SmartAnalytics';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -230,6 +231,13 @@ const IntroSequence = ({ onComplete }) => {
 
   // Handle identity selection
   const handleIdentitySelect = (identity) => {
+    // Track section clicked for Smart Engine
+    smartAnalytics.trackIntroSection(identity.value, {
+      label: identity.label,
+      territory: territory?.country || 'unknown'
+    });
+    smartAnalytics.trackIntroComplete(navigator.language || 'fr');
+    
     localStorage.setItem('kk_visited', 'true');
     localStorage.setItem('kk_identity', identity.value);
     
@@ -243,6 +251,12 @@ const IntroSequence = ({ onComplete }) => {
 
   // Handle skip
   const handleSkip = () => {
+    // Track skip action
+    smartAnalytics.trackIntroSection('skipped', {
+      step: step,
+      territory: territory?.country || 'unknown'
+    });
+    
     localStorage.setItem('kk_visited', 'true');
     setFadeOut(true);
     setTimeout(() => {

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { CheckCircle, Circle, AlertTriangle, Clock, ChevronDown, ChevronRight, Calendar, Users, Target, Loader2 } from 'lucide-react';
+import { CheckCircle, Circle, AlertTriangle, Clock, ChevronDown, ChevronRight, Calendar, Users, Target, Loader2, Wifi, WifiOff, RefreshCw, CloudOff } from 'lucide-react';
+import useOfflineSync from '../hooks/useOfflineSync';
+import { toast } from 'sonner';
 
 // ═══════════════════════════════════════════════════════════════
 // DASHBOARD COLLABORATIF CC2026 / CHIMIN SAVANN
@@ -418,7 +420,25 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
   const [taskStatus, setTaskStatus] = useState({});
   const [view, setView] = useState('pole'); // 'pole' or 'global'
   const [loading, setLoading] = useState(true);
-  const [lastSync, setLastSync] = useState(null);
+  
+  // Offline sync hook
+  const {
+    isOnline,
+    pendingCount,
+    lastSync,
+    syncStatus,
+    saveTaskStatus,
+    getLocalTaskStatuses,
+    updateFromServer,
+    syncPendingChanges,
+    forceRefresh
+  } = useOfflineSync((status) => {
+    if (status === 'online') {
+      toast.success('Connexion rétablie', { description: 'Synchronisation en cours...' });
+    } else {
+      toast.warning('Mode hors-ligne', { description: 'Vos modifications seront synchronisées au retour de la connexion' });
+    }
+  });
   
   // Determine which poles this workspace can edit
   const canEditPoles = useMemo(() => WORKSPACE_POLES[workspaceId] || [], [workspaceId]);
@@ -440,32 +460,56 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
     return TASKS.filter(t => canEditPoles.includes(t.pole));
   }, [canEditPoles, isAdmin]);
   
-  // Fetch task status from backend
+  // Fetch task status from backend (with offline fallback)
   const fetchStatus = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/cc2026/tasks/status`);
-      if (res.ok) {
-        const data = await res.json();
-        const statusMap = {};
-        data.statuses?.forEach(s => { statusMap[s.task_id] = s.done; });
-        setTaskStatus(statusMap);
-        setLastSync(new Date());
+      if (isOnline) {
+        const res = await fetch(`${API_URL}/api/cc2026/tasks/status`);
+        if (res.ok) {
+          const data = await res.json();
+          const statusMap = {};
+          data.statuses?.forEach(s => { statusMap[s.task_id] = s.done; });
+          setTaskStatus(statusMap);
+          
+          // Update local cache
+          await updateFromServer(data.statuses || []);
+        }
+      } else {
+        // Load from local cache when offline
+        const localStatuses = await getLocalTaskStatuses();
+        setTaskStatus(localStatuses);
       }
     } catch (e) {
       console.error('Failed to fetch task status:', e);
+      // Fallback to local cache on error
+      const localStatuses = await getLocalTaskStatuses();
+      if (Object.keys(localStatuses).length > 0) {
+        setTaskStatus(localStatuses);
+        toast.info('Données locales chargées', { description: 'Utilisation du cache hors-ligne' });
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isOnline, updateFromServer, getLocalTaskStatuses]);
   
-  // Initial fetch + polling
+  // Initial fetch + polling (less frequent when offline)
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 30000); // 30 seconds
+    const interval = setInterval(fetchStatus, isOnline ? 30000 : 60000);
     return () => clearInterval(interval);
-  }, [fetchStatus]);
+  }, [fetchStatus, isOnline]);
   
-  // Toggle task
+  // Handle manual refresh
+  const handleRefresh = useCallback(async () => {
+    if (syncStatus === 'syncing') return;
+    
+    const result = await forceRefresh(fetchStatus);
+    if (result) {
+      toast.success('Synchronisation terminée');
+    }
+  }, [forceRefresh, fetchStatus, syncStatus]);
+  
+  // Toggle task (with offline support)
   const handleToggle = useCallback(async (taskId) => {
     const task = TASKS.find(t => t.id === taskId);
     if (!task) return;
@@ -480,19 +524,23 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
     // Optimistic update
     setTaskStatus(prev => ({ ...prev, [taskId]: newDone }));
     
-    // Send to backend
-    try {
-      await fetch(`${API_URL}/api/cc2026/tasks/${taskId}/toggle`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workspace_id: workspaceId, done: newDone })
-      });
-    } catch (e) {
-      console.error('Failed to toggle task:', e);
-      // Revert on error
-      setTaskStatus(prev => ({ ...prev, [taskId]: !newDone }));
+    // Save to local cache first (always works)
+    await saveTaskStatus(taskId, newDone, workspaceId);
+    
+    // Send to backend if online
+    if (isOnline) {
+      try {
+        await fetch(`${API_URL}/api/cc2026/tasks/${taskId}/toggle`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspace_id: workspaceId, done: newDone })
+        });
+      } catch (e) {
+        console.error('Failed to toggle task:', e);
+        // Data is already saved locally, will sync later
+      }
     }
-  }, [taskStatus, workspaceId, isAdmin, canEditPoles]);
+  }, [taskStatus, workspaceId, isAdmin, canEditPoles, isOnline, saveTaskStatus]);
   
   const currentWeek = getCurrentWeek();
   
@@ -581,9 +629,45 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
               Vue Globale
             </button>
           </div>
-          <div className="text-[10px] sm:text-xs text-right" style={{ color: COLORS.textMuted }}>
-            {lastSync && `Sync: ${lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
-            <span className="ml-2 inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: COLORS.success }} />
+          {/* Offline/Online Status & Sync */}
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs" style={{ color: COLORS.textMuted }}>
+            {/* Pending changes indicator */}
+            {pendingCount > 0 && (
+              <span className="flex items-center gap-1 px-2 py-1 rounded" style={{ background: `${COLORS.urgent}20`, color: COLORS.urgent }}>
+                <CloudOff className="w-3 h-3" />
+                {pendingCount} en attente
+              </span>
+            )}
+            
+            {/* Sync button */}
+            <button
+              onClick={handleRefresh}
+              disabled={syncStatus === 'syncing' || !isOnline}
+              className="p-1.5 rounded hover:bg-white/10 transition-colors disabled:opacity-50"
+              title={isOnline ? 'Synchroniser' : 'Hors ligne'}
+            >
+              <RefreshCw className={`w-4 h-4 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} style={{ color: COLORS.textMuted }} />
+            </button>
+            
+            {/* Last sync time */}
+            <span className="hidden sm:inline">
+              {lastSync && `Sync: ${lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
+            </span>
+            
+            {/* Online/Offline indicator */}
+            <span className="flex items-center gap-1">
+              {isOnline ? (
+                <>
+                  <Wifi className="w-3 h-3" style={{ color: COLORS.success }} />
+                  <span className="hidden sm:inline" style={{ color: COLORS.success }}>En ligne</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3" style={{ color: COLORS.urgent }} />
+                  <span style={{ color: COLORS.urgent }}>Hors ligne</span>
+                </>
+              )}
+            </span>
           </div>
         </div>
         

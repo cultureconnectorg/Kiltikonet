@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -45,6 +45,9 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import DashboardCC2026 from "./components/DashboardCC2026";
 // Pro Space (LinkedIn Culturel)
 import ProSpaceDashboard, { ProSpaceLogin } from "./components/ProSpaceDashboard";
+// PWA Components
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import MobileBottomNav from "./components/MobileBottomNav";
 // 3D Components - LAZY LOADED to avoid React 19 compatibility issues
 const Dashboard3D = lazy(() => import("./components/admin/Dashboard3D"));
 const SmartEngine3D = lazy(() => import("./components/admin/SmartEngine3D"));
@@ -59,16 +62,25 @@ const Loading3D = () => (
   </div>
 );
 
-// Layout wrapper that conditionally shows Header
+// Layout wrapper that conditionally shows Header and Mobile Nav
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace', '/dashboard-cc2026', '/espace-pro'];
   const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
   
+  // Check if user is in pro space for nav type
+  const isProSpace = location.pathname.startsWith('/espace-pro') && !location.pathname.includes('/connexion');
+  const proSession = localStorage.getItem('cc2026_pro_session');
+  const userType = isProSpace && proSession ? 'pro' : 'public';
+  
   return (
     <>
       {showHeader && <Header />}
-      {children}
+      <div className="pb-16 md:pb-0"> {/* Add padding for mobile nav */}
+        {children}
+      </div>
+      <MobileBottomNav userType={userType} />
+      <PWAInstallPrompt />
       <CookieBanner />
     </>
   );

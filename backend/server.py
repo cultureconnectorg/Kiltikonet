@@ -6229,3 +6229,372 @@ async def get_public_catalog():
     ).to_list(1000)
     
     return {"registrations": registrations, "count": len(registrations)}
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SMART ANALYTICS - Cerveau Expert Analyst
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class AnalyticsEvent(BaseModel):
+    eventType: str
+    sessionId: str
+    userId: Optional[str] = None
+    timestamp: str
+    data: dict
+
+class AnalyticsBatch(BaseModel):
+    events: List[AnalyticsEvent]
+
+@app.post("/api/analytics/batch")
+async def track_analytics_batch(batch: AnalyticsBatch):
+    """Store batch of analytics events"""
+    events_to_insert = []
+    notifications_to_create = []
+    
+    for event in batch.events:
+        event_doc = {
+            "id": str(uuid.uuid4()),
+            "event_type": event.eventType,
+            "session_id": event.sessionId,
+            "user_id": event.userId,
+            "timestamp": event.timestamp,
+            "data": event.data,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        events_to_insert.append(event_doc)
+        
+        # Check for notification-worthy events
+        if event.eventType == 'data_modification':
+            if event.data.get('operation') == 'create':
+                entity = event.data.get('entity')
+                if entity == 'registration':
+                    notifications_to_create.append({
+                        "type": "new_registration",
+                        "title": "Nouvelle inscription",
+                        "message": "Un nouveau professionnel s'est inscrit",
+                        "data": event.data,
+                        "priority": "medium"
+                    })
+                elif entity == 'opportunity':
+                    notifications_to_create.append({
+                        "type": "new_opportunity",
+                        "title": "Nouvelle opportunité",
+                        "message": "Une nouvelle opportunité a été publiée",
+                        "data": event.data,
+                        "priority": "medium"
+                    })
+        
+        # Check for anomalies
+        if event.eventType == 'anomaly':
+            notifications_to_create.append({
+                "type": "anomaly_detected",
+                "title": f"Anomalie détectée: {event.data.get('type', 'unknown')}",
+                "message": str(event.data.get('details', '')),
+                "data": event.data,
+                "priority": event.data.get('severity', 'medium')
+            })
+    
+    # Batch insert events
+    if events_to_insert:
+        await db.analytics_events.insert_many(events_to_insert)
+    
+    # Create team notifications
+    for notif in notifications_to_create:
+        await create_team_notification(notif)
+    
+    return {"success": True, "count": len(events_to_insert)}
+
+async def create_team_notification(notif_data):
+    """Create notification for the team"""
+    notification = {
+        "id": str(uuid.uuid4()),
+        "type": notif_data["type"],
+        "title": notif_data["title"],
+        "message": notif_data["message"],
+        "data": notif_data.get("data", {}),
+        "priority": notif_data.get("priority", "medium"),
+        "read": False,
+        "read_by": [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.team_notifications.insert_one(notification)
+    return notification
+
+@app.get("/api/analytics/dashboard")
+async def get_analytics_dashboard(days: int = 7):
+    """Get analytics dashboard data for admin"""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    # Aggregate analytics
+    pipeline = [
+        {"$match": {"created_at": {"$gte": cutoff.isoformat()}}},
+        {"$group": {
+            "_id": "$event_type",
+            "count": {"$sum": 1}
+        }}
+    ]
+    
+    event_counts = await db.analytics_events.aggregate(pipeline).to_list(100)
+    
+    # Page views
+    page_views_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff.isoformat()}}},
+        {"$group": {
+            "_id": "$data.page",
+            "views": {"$sum": 1},
+            "unique_sessions": {"$addToSet": "$session_id"}
+        }},
+        {"$project": {
+            "page": "$_id",
+            "views": 1,
+            "unique_visitors": {"$size": "$unique_sessions"}
+        }},
+        {"$sort": {"views": -1}},
+        {"$limit": 20}
+    ]
+    
+    page_stats = await db.analytics_events.aggregate(page_views_pipeline).to_list(20)
+    
+    # User activity
+    active_users_pipeline = [
+        {"$match": {"created_at": {"$gte": cutoff.isoformat()}, "user_id": {"$ne": None}}},
+        {"$group": {
+            "_id": "$user_id",
+            "events": {"$sum": 1},
+            "last_activity": {"$max": "$created_at"}
+        }},
+        {"$sort": {"events": -1}},
+        {"$limit": 10}
+    ]
+    
+    active_users = await db.analytics_events.aggregate(active_users_pipeline).to_list(10)
+    
+    # Intro section tracking
+    intro_sections_pipeline = [
+        {"$match": {"event_type": "intro_section_click"}},
+        {"$group": {
+            "_id": "$data.section",
+            "clicks": {"$sum": 1}
+        }},
+        {"$sort": {"clicks": -1}}
+    ]
+    
+    intro_sections = await db.analytics_events.aggregate(intro_sections_pipeline).to_list(20)
+    
+    # Pro space activity
+    pro_activity_pipeline = [
+        {"$match": {
+            "event_type": {"$in": ["pro_profile_view", "pro_connection", "opportunity_interaction", "event_interaction"]},
+            "created_at": {"$gte": cutoff.isoformat()}
+        }},
+        {"$group": {
+            "_id": "$event_type",
+            "count": {"$sum": 1}
+        }}
+    ]
+    
+    pro_activity = await db.analytics_events.aggregate(pro_activity_pipeline).to_list(10)
+    
+    return {
+        "period_days": days,
+        "event_summary": {e["_id"]: e["count"] for e in event_counts},
+        "page_stats": page_stats,
+        "active_users": active_users,
+        "intro_sections": intro_sections,
+        "pro_activity": pro_activity,
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.get("/api/analytics/behavior/{user_id}")
+async def get_user_behavior(user_id: str, days: int = 30):
+    """Get detailed behavior analysis for a specific user"""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    events = await db.analytics_events.find(
+        {"user_id": user_id, "created_at": {"$gte": cutoff.isoformat()}},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    # Analyze patterns
+    event_types = {}
+    pages_visited = set()
+    total_time = 0
+    interactions = []
+    
+    for event in events:
+        event_type = event.get("event_type")
+        event_types[event_type] = event_types.get(event_type, 0) + 1
+        
+        if event_type == "page_view":
+            pages_visited.add(event.get("data", {}).get("page"))
+        elif event_type == "page_exit":
+            total_time += event.get("data", {}).get("timeSpent", 0)
+        elif event_type in ["click", "admin_action", "opportunity_interaction"]:
+            interactions.append(event)
+    
+    return {
+        "user_id": user_id,
+        "period_days": days,
+        "total_events": len(events),
+        "event_breakdown": event_types,
+        "pages_visited": list(pages_visited),
+        "total_time_ms": total_time,
+        "recent_interactions": interactions[:20],
+        "analyzed_at": datetime.now(timezone.utc).isoformat()
+    }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TEAM NOTIFICATIONS - Alertes pour l'équipe
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/team/notifications")
+async def get_team_notifications(limit: int = 50, unread_only: bool = False):
+    """Get team notifications"""
+    query = {"read": False} if unread_only else {}
+    
+    notifications = await db.team_notifications.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    
+    # Count unread
+    unread_count = await db.team_notifications.count_documents({"read": False})
+    
+    return {
+        "notifications": notifications,
+        "unread_count": unread_count
+    }
+
+@app.post("/api/team/notifications/{notification_id}/read")
+async def mark_team_notification_read(notification_id: str, user_id: str = None):
+    """Mark notification as read"""
+    update = {"read": True}
+    if user_id:
+        update["$addToSet"] = {"read_by": user_id}
+    
+    await db.team_notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True}
+
+@app.post("/api/team/notifications/mark-all-read")
+async def mark_all_team_notifications_read():
+    """Mark all notifications as read"""
+    await db.team_notifications.update_many(
+        {"read": False},
+        {"$set": {"read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True}
+
+@app.post("/api/team/notifications/create")
+async def create_manual_notification(data: dict):
+    """Create a manual team notification"""
+    notification = await create_team_notification({
+        "type": data.get("type", "manual"),
+        "title": data.get("title", "Notification"),
+        "message": data.get("message", ""),
+        "data": data.get("data", {}),
+        "priority": data.get("priority", "medium")
+    })
+    return {"success": True, "notification_id": notification["id"]}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SMART RECOMMENDATIONS - Matchmaking & Recommendations
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/pro/recommendations/{profile_id}")
+async def get_pro_recommendations(profile_id: str, limit: int = 10):
+    """Get personalized recommendations for a pro user based on behavior"""
+    
+    # Get user's profile
+    profile = await db.registrations.find_one({"id": profile_id}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Get user's interaction history
+    interactions = await db.analytics_events.find(
+        {"user_id": profile_id, "event_type": {"$in": ["opportunity_interaction", "pro_profile_view", "matching_search"]}},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Extract interests from interactions
+    viewed_profiles = set()
+    applied_opportunity_types = set()
+    search_criteria = {}
+    
+    for event in interactions:
+        data = event.get("data", {})
+        if event["event_type"] == "pro_profile_view":
+            viewed_profiles.add(data.get("viewedProfileId"))
+        elif event["event_type"] == "opportunity_interaction":
+            if data.get("action") == "apply":
+                # Get opportunity type
+                opp = await db.pro_opportunities.find_one({"id": data.get("opportunityId")})
+                if opp:
+                    applied_opportunity_types.add(opp.get("type"))
+        elif event["event_type"] == "matching_search":
+            for k, v in data.get("criteria", {}).items():
+                search_criteria[k] = v
+    
+    # Build recommendation query
+    profile_type = profile.get("profile_type")
+    country = profile.get("country")
+    expertise = profile.get("expertise_tags", [])
+    
+    # Find matching profiles (potential connections)
+    profile_query = {
+        "id": {"$ne": profile_id, "$nin": list(viewed_profiles)},
+        "status": "approved",
+        "$or": [
+            {"country": country},
+            {"expertise_tags": {"$in": expertise}},
+            {"profile_type": {"$in": get_complementary_types(profile_type)}}
+        ]
+    }
+    
+    recommended_profiles = await db.registrations.find(
+        profile_query,
+        {"_id": 0, "id": 1, "full_name": 1, "organization_name": 1, "profile_type": 1, "country": 1, "expertise_tags": 1}
+    ).limit(limit).to_list(limit)
+    
+    # Find matching opportunities
+    opp_query = {"active": True}
+    if applied_opportunity_types:
+        opp_query["type"] = {"$in": list(applied_opportunity_types)}
+    
+    recommended_opportunities = await db.pro_opportunities.find(
+        opp_query,
+        {"_id": 0}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    # Find relevant events
+    recommended_events = await db.pro_events.find(
+        {"active": True},
+        {"_id": 0}
+    ).sort("date", 1).limit(3).to_list(3)
+    
+    return {
+        "profile_id": profile_id,
+        "recommended_profiles": recommended_profiles,
+        "recommended_opportunities": recommended_opportunities,
+        "recommended_events": recommended_events,
+        "based_on": {
+            "profile_type": profile_type,
+            "expertise": expertise,
+            "interaction_count": len(interactions)
+        }
+    }
+
+def get_complementary_types(profile_type):
+    """Get complementary profile types for matchmaking"""
+    complementary = {
+        "artist": ["label", "agent", "media", "institution"],
+        "label": ["artist", "media", "agent"],
+        "agent": ["artist", "label", "institution"],
+        "media": ["artist", "label", "institution"],
+        "institution": ["artist", "label", "agent", "media"]
+    }
+    return complementary.get(profile_type, [])
