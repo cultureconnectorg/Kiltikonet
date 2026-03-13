@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Ticket, CreditCard, Wallet, ArrowRight, Shield, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const C = { bg: '#F4F0E8', card: '#FFFFFF', warm: '#E8E0D0', dark: '#1A1510', muted: '#6B6560', gold: '#C9A84C', terra: '#A65D47' };
 
 export default function JetonsPage() {
+  const navigate = useNavigate();
   const [packs, setPacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [badgeId, setBadgeId] = useState('');
@@ -29,7 +32,10 @@ export default function JetonsPage() {
   };
 
   const buyPack = async (packId) => {
-    if (!wallet?.badge_id) { alert("Entrez votre Badge ID d'abord"); return; }
+    if (!wallet?.badge_id) {
+      toast.error("Entrez votre Badge ID d'abord pour acheter");
+      return;
+    }
     setCheckoutLoading(packId);
     try {
       const res = await fetch(`${API_URL}/api/jetons/checkout`, {
@@ -37,9 +43,12 @@ export default function JetonsPage() {
         body: JSON.stringify({ badge_id: wallet.badge_id, pack: packId, origin_url: window.location.origin }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert('Erreur: ' + (data.detail || 'checkout failed'));
-    } catch { alert('Erreur de connexion'); }
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error('Erreur: ' + (data.detail || 'checkout failed'));
+      }
+    } catch { toast.error('Erreur de connexion'); }
     setCheckoutLoading('');
   };
 
