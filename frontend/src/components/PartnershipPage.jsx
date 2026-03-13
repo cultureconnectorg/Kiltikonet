@@ -218,12 +218,13 @@ export const PartnershipPage = () => {
     { icon: BarChart3, title: 'Data & Insights', desc: language === 'fr' ? 'Rapport post-événement exclusif' : 'Exclusive post-event report' }
   ];
 
+  const tierToBadgeType = { bronze: 'EXP-B', silver: 'EXP-S', gold: 'EXP-G' };
+
   const handleSelectTier = (tierId) => {
-    setSelectedTier(tierId);
-    setShowPaymentForm(true);
-    setTimeout(() => {
-      document.getElementById('payment-form')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    const tier = TIERS[tierId];
+    const badgeType = tierToBadgeType[tierId] || 'SPO';
+    const tierName = language === 'fr' ? tier.nameFr : tier.nameEn;
+    navigate('/badge-inscription', { state: { selectedType: badgeType, tierName } });
   };
 
   const handleSubmitPartnership = async (e) => {
