@@ -151,6 +151,7 @@ function App() {
               <Route path="/admin/performance" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><PerformanceDashboard /></ProtectedRoute>} />
               {/* Admin Mobile Dashboard */}
               <Route path="/admin/mobile" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><AdminMobileDashboard /></ProtectedRoute>} />
+              <Route path="/admin/terrain" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><AdminMobileDashboard /></ProtectedRoute>} />
               <Route path="/badge/:id" element={<BadgeScan />} />
               {/* CC2026 Badge & Jetons */}
               <Route path="/activer-badge/:qrToken" element={<BadgeActivation />} />

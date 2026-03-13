@@ -5900,57 +5900,112 @@ class ProVerifyToken(BaseModel):
 @app.post("/api/pro/request-access")
 async def pro_request_access(request: ProAccessRequest):
     """Request access code for Pro Space - checks if email exists in registrations"""
-    # Validate email
     if not request.email or not request.email.strip():
         raise HTTPException(status_code=400, detail="Email requis")
     
-    # Find user by email
+    email_lower = request.email.lower().strip()
+    
+    # FORCE_VERIFY_BYPASS — admin emails get instant access without code
+    BYPASS_EMAILS = [
+        os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr"),
+        "admin@kiltikonet.fr",
+        "cultureconnectorg@gmail.com",
+    ]
+    if email_lower in [e.lower() for e in BYPASS_EMAILS]:
+        registration = await db.registrations.find_one({"email": email_lower}, {"_id": 0})
+        if not registration:
+            registration = {"id": "admin-bypass", "email": email_lower, "full_name": "Admin CC2026", "profile_type": "admin", "status": "approved"}
+        bypass_code = "000000"
+        pro_access_codes[email_lower] = {
+            "code": bypass_code,
+            "expires": datetime.now(timezone.utc) + timedelta(hours=24),
+            "profile_id": registration.get("id")
+        }
+        logger.info(f"[FORCE_VERIFY_BYPASS] Admin bypass for {email_lower}, code=000000")
+        return {"success": True, "message": "Code envoyé par email", "bypass": True}
+    
+    # Find user by email (check registrations AND cc_badges)
     registration = await db.registrations.find_one(
-        {"email": request.email.lower().strip(), "status": "approved"},
-        {"_id": 0}
+        {"email": email_lower, "status": "approved"}, {"_id": 0}
     )
+    if not registration:
+        badge = await db.cc_badges.find_one({"email": email_lower}, {"_id": 0})
+        if badge:
+            registration = {
+                "id": badge.get("badge_id"), "email": email_lower,
+                "full_name": f"{badge.get('prenom','')} {badge.get('nom','')}",
+                "profile_type": badge.get("type_badge"), "status": "approved",
+                "badge_id": badge.get("badge_id"),
+            }
     
     if not registration:
         raise HTTPException(status_code=404, detail="Email non trouvé dans les participants approuvés")
     
-    # Generate and store access code (expires in 10 minutes)
     code = generate_access_code()
-    pro_access_codes[request.email.lower()] = {
+    pro_access_codes[email_lower] = {
         "code": code,
         "expires": datetime.now(timezone.utc) + timedelta(minutes=10),
         "profile_id": registration.get("id")
     }
     
-    # Send email with code (using Resend if configured)
-    try:
-        if resend.api_key:
-            resend.Emails.send({
-                "from": SENDER_EMAIL,
-                "to": [request.email],
-                "subject": "Votre code d'accès Espace Pro CC2026",
-                "html": f"""
-                <div style="font-family: 'Syne', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background: #1C1A14; color: #F4F1EA;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #D4A84B; margin: 0;">Espace Pro CC2026</h1>
-                        <p style="color: rgba(244,241,234,0.6); font-size: 14px;">Votre réseau professionnel culturel</p>
-                    </div>
-                    <div style="background: #2A2820; padding: 30px; border-radius: 12px; text-align: center;">
-                        <p style="margin: 0 0 20px 0;">Votre code d'accès :</p>
-                        <div style="font-size: 36px; letter-spacing: 8px; font-weight: bold; color: #D4A84B; background: rgba(212,168,75,0.1); padding: 20px; border-radius: 8px;">
-                            {code}
-                        </div>
-                        <p style="margin: 20px 0 0 0; font-size: 12px; color: rgba(244,241,234,0.4);">
-                            Ce code expire dans 10 minutes
-                        </p>
-                    </div>
-                    <p style="text-align: center; margin-top: 30px; font-size: 12px; color: rgba(244,241,234,0.4);">
-                        Culture Connect 2026 - Le premier marché professionnel des industries culturelles afro-caribéennes
-                    </p>
-                </div>
-                """
-            })
-    except Exception as e:
-        logging.warning(f"Failed to send pro access email: {e}")
+    email_html = f"""
+    <div style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background: #0C0818; color: #e0d8f0;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #C9A84C; margin: 0;">Espace Pro CC2026</h1>
+            <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Votre réseau professionnel culturel</p>
+        </div>
+        <div style="background: #1a1040; padding: 30px; border-radius: 12px; text-align: center; border: 1px solid #3B0764;">
+            <p style="margin: 0 0 20px 0;">Votre code d'accès :</p>
+            <div style="font-size: 36px; letter-spacing: 8px; font-weight: bold; color: #C9A84C; background: rgba(201,168,76,0.1); padding: 20px; border-radius: 8px;">
+                {code}
+            </div>
+            <p style="margin: 20px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.4);">
+                Ce code expire dans 10 minutes
+            </p>
+        </div>
+    </div>
+    """
+    
+    # Try AWS SES first, fallback to Resend
+    email_sent = False
+    ses_from = os.environ.get("SES_FROM_EMAIL", "noreply@kiltikonet.fr")
+    aws_key = os.environ.get("AWS_ACCESS_KEY_ID", "")
+    aws_secret = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+    aws_region = os.environ.get("AWS_REGION", "eu-west-1")
+    
+    if aws_key and aws_secret:
+        try:
+            import boto3
+            ses_client = boto3.client("ses", region_name=aws_region, aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
+            response = ses_client.send_email(
+                Source=ses_from,
+                Destination={"ToAddresses": [request.email]},
+                Message={
+                    "Subject": {"Data": "Votre code d'accès Espace Pro CC2026", "Charset": "UTF-8"},
+                    "Body": {"Html": {"Data": email_html, "Charset": "UTF-8"}}
+                }
+            )
+            msg_id = response.get("MessageId", "unknown")
+            logger.info(f"[AWS_SES_DEBUG] Pro access code sent via SES to {request.email} | MessageId={msg_id}")
+            email_sent = True
+        except Exception as e:
+            logger.error(f"[AWS_SES_DEBUG] SES failed for {request.email}: {type(e).__name__}: {e}")
+    
+    if not email_sent:
+        try:
+            if resend.api_key:
+                resend.Emails.send({
+                    "from": SENDER_EMAIL, "to": [request.email],
+                    "subject": "Votre code d'accès Espace Pro CC2026",
+                    "html": email_html
+                })
+                logger.info(f"[EMAIL_DEBUG] Pro access code sent via Resend to {request.email}")
+                email_sent = True
+        except Exception as e:
+            logger.warning(f"[EMAIL_DEBUG] Resend fallback failed for {request.email}: {e}")
+    
+    if not email_sent:
+        logger.error(f"[EMAIL_DEBUG] ALL email providers failed for {request.email}. Code={code}")
     
     return {"success": True, "message": "Code envoyé par email"}
 
@@ -5970,11 +6025,34 @@ async def pro_verify_code(request: ProVerifyCode):
     if stored["code"] != request.code:
         raise HTTPException(status_code=400, detail="Code invalide")
     
-    # Code valid - get full profile
+    # Code valid - get full profile from registrations OR cc_badges
     registration = await db.registrations.find_one(
         {"email": email, "status": "approved"},
         {"_id": 0}
     )
+    
+    if not registration:
+        badge = await db.cc_badges.find_one({"email": email}, {"_id": 0})
+        if badge:
+            registration = {
+                "id": badge.get("badge_id"), "email": email,
+                "full_name": f"{badge.get('prenom','')} {badge.get('nom','')}".strip(),
+                "profile_type": badge.get("type_badge"), "status": "approved",
+                "badge_id": badge.get("badge_id"), "type_badge": badge.get("type_badge"),
+                "jetons_solde": badge.get("jetons_solde", 0),
+            }
+    
+    # Admin bypass fallback profile
+    if not registration:
+        BYPASS_EMAILS = [
+            os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr"),
+            "admin@kiltikonet.fr", "cultureconnectorg@gmail.com",
+        ]
+        if email in [e.lower() for e in BYPASS_EMAILS]:
+            registration = {
+                "id": "admin-bypass", "email": email, "full_name": "Admin CC2026",
+                "profile_type": "admin", "status": "approved", "is_admin": True,
+            }
     
     if not registration:
         raise HTTPException(status_code=404, detail="Profil non trouvé")
@@ -6544,8 +6622,278 @@ async def reset_presence(registration_id: str):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SMART ANALYTICS - Cerveau Expert Analyst
+# SCAN DEBIT — Terrain mode jeton debit + zone validation
 # ═══════════════════════════════════════════════════════════════════════════════
+
+class ScanDebitRequest(BaseModel):
+    badge_id: Optional[str] = None
+    qr_token: Optional[str] = None
+    zone: str
+    montant: int = 0
+    agent_id: Optional[str] = None
+    merchant_id: Optional[str] = None
+
+@app.post("/api/scan/debit")
+async def scan_debit(req: ScanDebitRequest):
+    """Unified scan endpoint: zone validation + jeton debit
+    - staff_entree: montant=0, validates access only
+    - staff_bar/marchands: montant>0, debits jetons
+    """
+    # Find badge
+    badge = None
+    if req.badge_id:
+        badge = await db.cc_badges.find_one({"badge_id": req.badge_id}, {"_id": 0})
+    elif req.qr_token:
+        badge = await db.cc_badges.find_one({"qr_token": req.qr_token}, {"_id": 0})
+    
+    if not badge:
+        return {"status": "error", "code": "NOT_FOUND", "message": "Badge non trouvé", "color": "red"}
+    
+    badge_id = badge.get("badge_id", "")
+    badge_type = badge.get("type_badge", "")
+    statut = badge.get("statut", "")
+    frek_id = badge.get("frek_id", "")
+    
+    if statut not in ("ACTIVE", "REMIS"):
+        return {"status": "error", "code": "INACTIVE", "message": f"Badge non actif ({statut})", "color": "red"}
+    
+    # Zone access check
+    from routes.badges import ZONE_ACCESS, BADGE_TYPES
+    zone = req.zone.upper()
+    if zone in ZONE_ACCESS:
+        if badge_type not in ZONE_ACCESS[zone]:
+            return {
+                "status": "denied", "code": "ZONE_DENIED", "color": "red",
+                "message": f"Accès refusé: {badge_type} interdit en zone {zone}",
+                "badge_id": badge_id,
+                "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge_type}
+            }
+    
+    # Jeton debit if montant > 0
+    jeton_info = {}
+    if req.montant > 0:
+        current_solde = badge.get("jetons_solde", 0) or 0
+        if current_solde < req.montant:
+            return {
+                "status": "insufficient", "code": "LOW_BALANCE", "color": "orange",
+                "message": f"Solde insuffisant ({current_solde}/{req.montant} Jetons)",
+                "badge_id": badge_id, "jetons_solde": current_solde,
+                "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge_type}
+            }
+        new_solde = current_solde - req.montant
+        await db.cc_badges.update_one({"badge_id": badge_id}, {"$set": {"jetons_solde": new_solde}})
+        
+        # Log transaction
+        await db.cc_transactions.insert_one({
+            "badge_id": badge_id, "type": "depense_terrain", "jetons": -req.montant,
+            "zone": zone, "merchant_id": req.merchant_id, "agent_id": req.agent_id,
+            "previous_solde": current_solde, "new_solde": new_solde,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        jeton_info = {"jetons_debited": req.montant, "previous_solde": current_solde, "new_solde": new_solde}
+        
+        # FREK stage METAMORPHOSE
+        if frek_id:
+            asyncio.create_task(_frek.record_stage(frek_id, "METAMORPHOSE"))
+    
+    # Log scan
+    await db.cc_scans.insert_one({
+        "badge_id": badge_id, "zone": zone, "montant": req.montant,
+        "agent_id": req.agent_id, "access": True,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    
+    # FREK stage EMISSION if SCENE zone
+    if zone == "SCENE_PRINCIPALE" and frek_id:
+        asyncio.create_task(_frek.record_stage(frek_id, "EMISSION"))
+    
+    return {
+        "status": "success", "code": "OK", "color": "green",
+        "message": f"{'Accès validé' if req.montant == 0 else f'Débit {req.montant}J OK'}",
+        "badge_id": badge_id,
+        "person": {
+            "full_name": f"{badge.get('prenom','')} {badge.get('nom','')}",
+            "type_badge": badge_type,
+            "type_label": BADGE_TYPES.get(badge_type, badge_type),
+            "nfc_enabled": badge.get("nfc_enabled", False),
+        },
+        "zone": zone,
+        **jeton_info,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DASHBOARD CC2026 LIVE — Refresh every 10s
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/v1/dashboard/cc2026/live")
+async def dashboard_cc2026_live():
+    """Live stats for CC2026 dashboard — auto-refresh 10s"""
+    # Badge stats
+    total_badges = await db.cc_badges.count_documents({})
+    active_badges = await db.cc_badges.count_documents({"statut": "ACTIVE"})
+    inscrit_badges = await db.cc_badges.count_documents({"statut": "INSCRIT"})
+    
+    # Jetons stats
+    pipeline = [{"$group": {"_id": None, "total": {"$sum": "$jetons_solde"}}}]
+    jeton_agg = await db.cc_badges.aggregate(pipeline).to_list(1)
+    total_jetons = jeton_agg[0]["total"] if jeton_agg else 0
+    jeton_valeur = float(os.environ.get("JETON_VALEUR_EURO", "1.50"))
+    
+    # Transaction stats
+    total_transactions = await db.cc_transactions.count_documents({})
+    
+    # Scan stats (today)
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0).isoformat()
+    scans_today = await db.cc_scans.count_documents({"timestamp": {"$gte": today}})
+    
+    # FREK stats
+    frek_stats = await _frek.get_cc2026_stats()
+    frek_total = frek_stats.get("total_frek_ids", total_badges)
+    frek_target = 40000
+    
+    # Type distribution
+    type_pipeline = [{"$group": {"_id": "$type_badge", "count": {"$sum": 1}}}]
+    type_dist = await db.cc_badges.aggregate(type_pipeline).to_list(20)
+    by_type = {d["_id"]: d["count"] for d in type_dist if d["_id"]}
+    
+    # Recent scans
+    recent_scans = await db.cc_scans.find({}, {"_id": 0}).sort("timestamp", -1).limit(5).to_list(5)
+    
+    return {
+        "badges": {
+            "total": total_badges, "active": active_badges, "inscrit": inscrit_badges,
+            "by_type": by_type,
+        },
+        "jetons": {
+            "total_circulation": total_jetons,
+            "valeur_eur": round(total_jetons * jeton_valeur, 2),
+            "transactions": total_transactions,
+        },
+        "scans": {"today": scans_today, "recent": recent_scans},
+        "frek": {
+            "total_ids": frek_total, "target": frek_target,
+            "progress_pct": round(frek_total / frek_target * 100, 2) if frek_target > 0 else 0,
+            "available": frek_stats.get("status") != "unavailable",
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ADMIN RECONCILE — Sync Baserow ↔ MongoDB
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/reconcile")
+async def admin_reconcile():
+    """Force sync between MongoDB badges and Baserow mirror"""
+    from services.baserow_service import mirror_badge, find_by_badge_id
+    
+    badges = await db.cc_badges.find({}, {"_id": 0}).to_list(1000)
+    synced = 0
+    errors = 0
+    
+    for badge in badges:
+        try:
+            if not badge.get("baserow_row_id"):
+                row_id = await mirror_badge(badge)
+                if row_id:
+                    await db.cc_badges.update_one(
+                        {"badge_id": badge["badge_id"]},
+                        {"$set": {"baserow_row_id": row_id}}
+                    )
+                    synced += 1
+                else:
+                    errors += 1
+            else:
+                synced += 1
+        except Exception as e:
+            logger.error(f"Reconcile error for {badge.get('badge_id')}: {e}")
+            errors += 1
+    
+    # Also reconcile FREK queue
+    frek_result = await _frek.reconcile()
+    
+    return {
+        "status": "success",
+        "badges_synced": synced,
+        "badges_errors": errors,
+        "total_badges": len(badges),
+        "frek_reconciled": frek_result.get("reconciled", 0),
+        "frek_remaining": frek_result.get("remaining", 0),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BATCH EMAILS SES — Campagnes automatisées J-15, J-1, J-0, J+1
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class BatchEmailRequest(BaseModel):
+    template: str  # rappel_j15, rappel_j1, jour_j, merci_j1
+    type_badge_filter: Optional[str] = None
+    dry_run: bool = True
+
+@app.post("/api/admin/batch-email")
+async def admin_batch_email(req: BatchEmailRequest):
+    """Send batch emails to all badge holders (or filtered by type)"""
+    from services import ses_service
+    
+    TEMPLATE_MAP = {
+        "rappel_j15": ses_service.send_rappel_j15,
+        "rappel_j1": ses_service.send_rappel_j1,
+        "jour_j": ses_service.send_jour_j,
+        "merci_j1": ses_service.send_merci_j1,
+    }
+    
+    if req.template not in TEMPLATE_MAP:
+        raise HTTPException(status_code=400, detail=f"Template invalide. Choix: {list(TEMPLATE_MAP.keys())}")
+    
+    query = {"statut": {"$in": ["INSCRIT", "ACTIVE", "REMIS"]}}
+    if req.type_badge_filter:
+        query["type_badge"] = req.type_badge_filter
+    
+    badges = await db.cc_badges.find(query, {"_id": 0}).to_list(5000)
+    
+    if req.dry_run:
+        return {
+            "status": "dry_run",
+            "template": req.template,
+            "recipients_count": len(badges),
+            "filter": req.type_badge_filter,
+            "sample": [{"email": b.get("email"), "badge_id": b.get("badge_id"), "prenom": b.get("prenom")} for b in badges[:5]],
+        }
+    
+    send_fn = TEMPLATE_MAP[req.template]
+    sent = 0
+    failed = 0
+    
+    for badge in badges:
+        email = badge.get("email")
+        if not email:
+            continue
+        try:
+            result = await send_fn(
+                to_email=email,
+                prenom=badge.get("prenom", ""),
+                badge_id=badge.get("badge_id", ""),
+            )
+            if result.get("status") == "sent":
+                sent += 1
+            else:
+                failed += 1
+        except Exception as e:
+            logger.error(f"Batch email error for {email}: {e}")
+            failed += 1
+    
+    return {
+        "status": "completed",
+        "template": req.template,
+        "sent": sent,
+        "failed": failed,
+        "total": len(badges),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 class AnalyticsEvent(BaseModel):
     eventType: str

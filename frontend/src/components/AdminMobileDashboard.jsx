@@ -10,7 +10,7 @@ import {
   QrCode, Camera, X, Users, Bell, Activity, 
   ChevronRight, Clock, CheckCircle, AlertCircle,
   RefreshCw, Settings, LogOut, Home, Search,
-  UserCheck, TrendingUp, Zap
+  UserCheck, TrendingUp, Zap, Target
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Button } from './ui/button';
@@ -20,19 +20,21 @@ import { toast } from 'sonner';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 // ═══════════════════════════════════════════════════════════════
-// DESIGN TOKENS - Style élégant fond clair
+// DESIGN TOKENS - Charte Kiltikonet Terrain
 // ═══════════════════════════════════════════════════════════════
 const COLORS = {
-  background: '#F4F1EA',
+  background: '#F4F0E8',  // Cream (Fond)
   card: '#FFFFFF',
-  text: '#1A1A14',
-  textMuted: '#6B6B6B',
-  accent: '#D4A84B',
-  terracotta: '#C4714A',
+  cardWarm: '#E8E0D0',    // Warm (Cartes)
+  text: '#1A1510',         // Dark (Texte/Titres)
+  textMuted: '#6B6560',
+  accent: '#C9A84C',       // Gold (Détails/Badges)
+  terra: '#A65D47',        // Terra (Action)
   success: '#22C55E',
   warning: '#F59E0B',
   error: '#EF4444',
-  border: '#E5E0D8',
+  border: '#E8E0D0',
+  violet: '#3B0764',
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -212,22 +214,29 @@ const ScanResultModal = ({ result, onClose, onRetry }) => {
               {result.person.full_name}
             </p>
             <p className="text-sm" style={{ color: COLORS.textMuted }}>
-              {result.person.organization_name}
+              {result.person.organization_name || result.person.type_label || result.person.type_badge}
             </p>
             <div className="flex justify-center gap-2 mt-2">
               <span 
                 className="px-3 py-1 text-xs rounded-full font-medium"
                 style={{ 
-                  background: result.person.tier === 'premium' ? `${COLORS.accent}20` : '#eee',
-                  color: result.person.tier === 'premium' ? COLORS.accent : COLORS.textMuted
+                  background: result.person.tier === 'premium' || result.person.nfc_enabled ? `${COLORS.accent}20` : '#eee',
+                  color: result.person.tier === 'premium' || result.person.nfc_enabled ? COLORS.accent : COLORS.textMuted
                 }}
               >
-                {(result.person.tier || 'standard').toUpperCase()}
+                {result.person.type_badge || (result.person.tier || 'standard').toUpperCase()}
               </span>
-              <span className="px-3 py-1 text-xs rounded-full" style={{ background: '#eee', color: COLORS.textMuted }}>
-                {result.person.profile_type}
-              </span>
+              {result.person.nfc_enabled && (
+                <span className="px-3 py-1 text-xs rounded-full font-medium" style={{ background: `${COLORS.accent}20`, color: COLORS.accent }}>NFC</span>
+              )}
             </div>
+            {/* Jeton debit info */}
+            {result.jetons_debited > 0 && (
+              <div className="mt-3 p-2 rounded-lg" style={{ background: `${COLORS.accent}10`, border: `1px solid ${COLORS.accent}30` }}>
+                <p className="text-xs" style={{ color: COLORS.textMuted }}>Débit</p>
+                <p className="text-lg font-bold" style={{ color: COLORS.accent }}>-{result.jetons_debited}J → {result.new_solde}J restants</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -325,7 +334,7 @@ const AffluenceWidget = ({ data, onRefresh }) => {
           <p className="text-xs" style={{ color: COLORS.textMuted }}>Restants</p>
         </div>
         <div className="p-2 rounded-lg" style={{ background: COLORS.background }}>
-          <p className="text-lg font-bold" style={{ color: COLORS.terracotta }}>{data.recent_scans_1h || 0}</p>
+          <p className="text-lg font-bold" style={{ color: COLORS.terra }}>{data.recent_scans_1h || 0}</p>
           <p className="text-xs" style={{ color: COLORS.textMuted }}>Cette heure</p>
         </div>
       </div>
@@ -501,7 +510,7 @@ const LastScans = ({ scans }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// MAIN ADMIN MOBILE DASHBOARD - Mode Terrain
+// MAIN ADMIN MOBILE DASHBOARD - Mode Terrain CC2026
 // ═══════════════════════════════════════════════════════════════
 const AdminMobileDashboard = () => {
   const navigate = useNavigate();
@@ -510,6 +519,28 @@ const AdminMobileDashboard = () => {
   const [affluence, setAffluence] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [dashboardLive, setDashboardLive] = useState(null);
+  
+  // Zone & role state
+  const [selectedZone, setSelectedZone] = useState('ENTREE_GENERALE');
+  const [staffRole, setStaffRole] = useState('staff_entree'); // staff_entree | staff_bar | staff_vip
+  const [debitAmount, setDebitAmount] = useState(0);
+
+  const ZONES = [
+    { id: 'ENTREE_GENERALE', label: 'Entrée Générale', icon: '🚪' },
+    { id: 'SCENE_PRINCIPALE', label: 'Scène Principale', icon: '🎵' },
+    { id: 'VIP_LOUNGE', label: 'VIP Lounge', icon: '⭐' },
+    { id: 'BACKSTAGE', label: 'Backstage', icon: '🎭' },
+    { id: 'EXPOSANTS', label: 'Exposants', icon: '🏪' },
+    { id: 'PRESSE', label: 'Presse', icon: '📰' },
+    { id: 'ATELIERS_PREMIUM', label: 'Ateliers Premium', icon: '🎨' },
+  ];
+
+  const ROLES = [
+    { id: 'staff_entree', label: 'Entrée', debit: 0 },
+    { id: 'staff_bar', label: 'Bar / Food', debit: 0 },
+    { id: 'staff_vip', label: 'VIP', debit: 0 },
+  ];
 
   // Check admin role
   const getAdminSession = () => {
@@ -547,74 +578,72 @@ const AdminMobileDashboard = () => {
     }
   }, []);
 
+  // Fetch live dashboard
+  const fetchDashboard = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/v1/dashboard/cc2026/live`);
+      if (res.ok) setDashboardLive(await res.json());
+    } catch {}
+  }, []);
+
   // Initial fetch + auto-refresh every 10 seconds
   useEffect(() => {
     fetchAffluence();
-    const interval = setInterval(fetchAffluence, 10000);
-    return () => clearInterval(interval);
-  }, [fetchAffluence]);
+    fetchDashboard();
+    const i1 = setInterval(fetchAffluence, 10000);
+    const i2 = setInterval(fetchDashboard, 10000);
+    return () => { clearInterval(i1); clearInterval(i2); };
+  }, [fetchAffluence, fetchDashboard]);
 
-  // Handle QR scan
+  // Handle QR scan -> /api/scan/debit
   const handleScan = async (decodedText) => {
-    // Stop scanner immediately after scan
     setShowScanner(false);
     
     try {
-      // Parse QR data
-      let badgeId;
+      let badgeId = decodedText;
       try {
         const parsed = JSON.parse(decodedText);
-        badgeId = parsed.id || parsed.badge_id || decodedText;
-      } catch {
-        badgeId = decodedText;
+        badgeId = parsed.id || parsed.badge_id || parsed.qr_token || decodedText;
+      } catch {}
+
+      // Use /api/scan/debit with zone + montant
+      const isQrToken = badgeId.length === 32 && !badgeId.includes('-');
+      const payload = {
+        zone: selectedZone,
+        montant: staffRole === 'staff_entree' ? 0 : debitAmount,
+        agent_id: session.id || session.workspace || staffRole,
+      };
+      if (isQrToken) {
+        payload.qr_token = badgeId;
+      } else {
+        payload.badge_id = badgeId;
       }
 
-      // Validate badge via API
-      const res = await fetch(`${API}/api/terrain/validate-badge`, {
+      const res = await fetch(`${API}/api/scan/debit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          badge_id: badgeId,
-          validator_id: session.id || session.workspace,
-          location: 'Entrée principale'
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
       setScanResult(data);
 
-      // Refresh affluence on successful scan
       if (data.color === 'green') {
         fetchAffluence();
+        fetchDashboard();
       }
     } catch (error) {
-      console.error('Scan error:', error);
       setScanResult({
-        status: 'error',
-        code: 'NETWORK_ERROR',
-        message: 'Erreur de connexion',
-        color: 'red'
+        status: 'error', code: 'NETWORK_ERROR',
+        message: 'Erreur de connexion', color: 'red'
       });
     }
   };
 
-  // Close result and optionally retry
   const handleCloseResult = () => setScanResult(null);
-  const handleRetry = () => {
-    setScanResult(null);
-    setShowScanner(true);
-  };
-
-  // Manual refresh
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchAffluence();
-  };
-
-  // On checkin from search
-  const handleCheckinFromSearch = () => {
-    fetchAffluence();
-  };
+  const handleRetry = () => { setScanResult(null); setShowScanner(true); };
+  const handleRefresh = () => { setRefreshing(true); fetchAffluence(); fetchDashboard(); };
+  const handleCheckinFromSearch = () => { fetchAffluence(); };
 
   if (loading) {
     return (
@@ -634,49 +663,132 @@ const AdminMobileDashboard = () => {
       data-testid="admin-mobile-dashboard"
     >
       {/* Header */}
-      <header className="sticky top-0 z-30 px-4 py-4 safe-area-top" style={{ background: COLORS.background }}>
+      <header className="sticky top-0 z-30 px-4 py-4 safe-area-top" style={{ background: COLORS.background, borderBottom: `1px solid ${COLORS.border}` }}>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold" style={{ color: COLORS.text }}>Mode Terrain</h1>
-            <p className="text-sm" style={{ color: COLORS.textMuted }}>CC2026 • Scanner & Pointage</p>
+            <p className="text-sm" style={{ color: COLORS.textMuted }}>CC2026 · {ZONES.find(z => z.id === selectedZone)?.label}</p>
           </div>
           <div className="flex items-center gap-2">
-            <button 
-              onClick={handleRefresh}
-              className={`p-2 rounded-full ${refreshing ? 'animate-spin' : ''}`}
-              style={{ background: COLORS.card }}
-              disabled={refreshing}
-            >
+            {/* FREK Progress Mini */}
+            {dashboardLive?.frek && (
+              <div className="px-2 py-1 rounded-lg text-xs font-bold" style={{ background: `${COLORS.accent}20`, color: COLORS.accent }}>
+                {dashboardLive.frek.total_ids}/{(dashboardLive.frek.target/1000).toFixed(0)}K
+              </div>
+            )}
+            <button onClick={handleRefresh} className={`p-2 rounded-full ${refreshing ? 'animate-spin' : ''}`} style={{ background: COLORS.card }} disabled={refreshing}>
               <RefreshCw className="w-5 h-5" style={{ color: COLORS.textMuted }} />
             </button>
-            <button 
-              onClick={() => navigate('/admin')}
-              className="p-2 rounded-full"
-              style={{ background: COLORS.card }}
-            >
+            <button onClick={() => navigate('/admin')} className="p-2 rounded-full" style={{ background: COLORS.card }}>
               <Home className="w-5 h-5" style={{ color: COLORS.textMuted }} />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="px-4 space-y-4">
+      <main className="px-4 space-y-4 pt-2">
+        {/* Zone + Role Selector */}
+        <div className="p-4 rounded-2xl" style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Settings className="w-4 h-4" style={{ color: COLORS.terra }} />
+            <span className="text-sm font-bold" style={{ color: COLORS.text }}>Configuration Scan</span>
+          </div>
+          {/* Zone selector */}
+          <select
+            data-testid="zone-selector"
+            value={selectedZone}
+            onChange={(e) => setSelectedZone(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl text-sm mb-2"
+            style={{ background: COLORS.background, border: `1px solid ${COLORS.border}`, color: COLORS.text }}
+          >
+            {ZONES.map(z => <option key={z.id} value={z.id}>{z.icon} {z.label}</option>)}
+          </select>
+          {/* Role selector */}
+          <div className="flex gap-2">
+            {ROLES.map(r => (
+              <button
+                key={r.id}
+                onClick={() => { setStaffRole(r.id); if (r.id === 'staff_entree') setDebitAmount(0); }}
+                className="flex-1 py-2 rounded-xl text-xs font-medium transition-all"
+                style={{
+                  background: staffRole === r.id ? COLORS.terra : COLORS.background,
+                  color: staffRole === r.id ? '#fff' : COLORS.textMuted,
+                  border: `1px solid ${staffRole === r.id ? COLORS.terra : COLORS.border}`,
+                }}
+                data-testid={`role-${r.id}`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          {/* Debit amount for non-entree */}
+          {staffRole !== 'staff_entree' && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs" style={{ color: COLORS.textMuted }}>Jetons:</span>
+              <div className="flex gap-1">
+                {[1, 2, 3, 5, 10].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setDebitAmount(n)}
+                    className="px-3 py-1 rounded-lg text-xs font-bold transition-all"
+                    style={{
+                      background: debitAmount === n ? COLORS.accent : COLORS.background,
+                      color: debitAmount === n ? '#fff' : COLORS.textMuted,
+                      border: `1px solid ${debitAmount === n ? COLORS.accent : COLORS.border}`,
+                    }}
+                    data-testid={`debit-${n}`}
+                  >
+                    {n}J
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Big Scanner Button */}
         <button
           onClick={() => setShowScanner(true)}
           className="w-full p-6 rounded-2xl flex items-center justify-center gap-4 transition-transform active:scale-98 shadow-lg"
-          style={{ background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.terracotta})` }}
+          style={{ background: `linear-gradient(135deg, ${COLORS.terra}, ${COLORS.accent})` }}
           data-testid="scan-qr-button"
         >
           <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center">
             <QrCode className="w-10 h-10 text-white" />
           </div>
           <div className="text-left">
-            <p className="text-xl font-bold text-white">Scanner un badge</p>
-            <p className="text-sm text-white/80">Appuyez pour activer la caméra</p>
+            <p className="text-xl font-bold text-white">
+              {staffRole === 'staff_entree' ? 'Scanner Entrée' : `Scanner & Débiter ${debitAmount}J`}
+            </p>
+            <p className="text-sm text-white/80">Zone: {ZONES.find(z => z.id === selectedZone)?.label}</p>
           </div>
           <Camera className="w-8 h-8 text-white/60 ml-auto" />
         </button>
+
+        {/* FREK Progress Widget */}
+        {dashboardLive?.frek && (
+          <div className="p-4 rounded-2xl" style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5" style={{ color: COLORS.accent }} />
+                <span className="font-bold text-sm" style={{ color: COLORS.text }}>Objectif 40K FREK-IDs</span>
+              </div>
+              <span className="text-xs px-2 py-1 rounded-lg font-bold" style={{ background: `${COLORS.accent}15`, color: COLORS.accent }}>
+                {dashboardLive.frek.progress_pct}%
+              </span>
+            </div>
+            <div className="h-3 rounded-full overflow-hidden mb-2" style={{ background: COLORS.background }}>
+              <div className="h-full rounded-full transition-all duration-700" style={{
+                width: `${Math.min(dashboardLive.frek.progress_pct, 100)}%`,
+                background: `linear-gradient(90deg, ${COLORS.terra}, ${COLORS.accent})`
+              }} />
+            </div>
+            <div className="flex justify-between text-xs" style={{ color: COLORS.textMuted }}>
+              <span>{dashboardLive.frek.total_ids.toLocaleString()} IDs</span>
+              <span>{dashboardLive.badges?.total || 0} badges · {dashboardLive.jetons?.total_circulation || 0} jetons</span>
+            </div>
+          </div>
+        )}
 
         {/* Affluence Widget */}
         <AffluenceWidget data={affluence} onRefresh={handleRefresh} />
@@ -706,13 +818,13 @@ const AdminMobileDashboard = () => {
             className="p-4 rounded-xl flex items-center gap-3"
             style={{ background: COLORS.card, border: `1px solid ${COLORS.border}` }}
           >
-            <LogOut className="w-5 h-5" style={{ color: COLORS.terracotta }} />
+            <LogOut className="w-5 h-5" style={{ color: COLORS.terra }} />
             <span className="text-sm font-medium" style={{ color: COLORS.text }}>Déconnexion</span>
           </button>
         </div>
       </main>
 
-      {/* QR Scanner Modal - Only active when showScanner is true (battery optimization) */}
+      {/* QR Scanner Modal */}
       <QRScanner 
         isActive={showScanner}
         onScan={handleScan}
