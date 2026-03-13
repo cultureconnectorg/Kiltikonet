@@ -3510,6 +3510,78 @@ async def llm_chat_endpoint(request: ChatRequest):
 app.include_router(api_router)
 app.include_router(api_v1_router)
 
+# ================== CC2026 BADGE & JETONS ROUTES ==================
+from routes.badges import router as badges_router
+from routes.jetons import router as jetons_router
+app.include_router(badges_router)
+app.include_router(jetons_router)
+
+# ================== BADGE ACTIVATION (PUBLIC) ==================
+from services.frek_client import frek_client as _frek
+from services.baserow_service import mirror_badge as _br_mirror, update_mirror as _br_update_mirror
+
+@app.get("/api/activer-badge/{qr_token}")
+async def activer_badge(qr_token: str):
+    """Activate badge via QR token scan"""
+    badge = await db.cc_badges.find_one({"qr_token": qr_token}, {"_id": 0})
+    if not badge:
+        raise HTTPException(status_code=404, detail="Badge non trouve ou QR invalide")
+    
+    statut = badge.get("statut", "")
+    badge_id = badge.get("badge_id", "")
+    frek_id = badge.get("frek_id", "")
+    
+    if statut == "ACTIVE":
+        return {
+            "badge_id": badge_id, 
+            "statut": "ACTIVE", 
+            "frek_id": frek_id,
+            "type_badge": badge.get("type_badge"),
+            "prenom": badge.get("prenom"),
+            "nom": badge.get("nom"),
+            "message": "Badge deja actif"
+        }
+    if statut == "REVOQUE":
+        raise HTTPException(status_code=403, detail="Badge revoque")
+    
+    # Activate in MongoDB
+    await db.cc_badges.update_one({"badge_id": badge_id}, {"$set": {"statut": "ACTIVE"}})
+    
+    # Activate in FREK
+    frek_id = badge.get("frek_id", "")
+    frek_result = {}
+    if frek_id:
+        frek_result = await _frek.activate(frek_id)
+    
+    # Update Baserow mirror
+    baserow_id = badge.get("baserow_row_id")
+    if baserow_id:
+        badge_copy = {**badge, "statut": "ACTIVE"}
+        asyncio.create_task(_br_update_mirror(baserow_id, badge_copy))
+    
+    return {
+        "badge_id": badge_id,
+        "statut": "ACTIVE",
+        "frek_id": frek_id,
+        "frek_status": frek_result.get("status", "n/a"),
+        "type_badge": badge.get("type_badge"),
+        "prenom": badge.get("prenom"),
+        "nom": badge.get("nom"),
+        "message": "Badge active avec succes !"
+    }
+
+@app.get("/api/frek/stats")
+async def get_frek_cc2026_stats():
+    """Get FREK CC2026 stats for dashboard"""
+    stats = await _frek.get_cc2026_stats()
+    return stats
+
+@app.get("/api/frek/health")
+async def check_frek_health():
+    """Check FREK API health"""
+    is_healthy = await _frek.health()
+    return {"healthy": is_healthy, "fallback_mode": os.environ.get("FREK_FALLBACK_MODE", "true")}
+
 # ================== CMS ROUTES ==================
 
 DEFAULT_TENANT = "culture-connect-2026"

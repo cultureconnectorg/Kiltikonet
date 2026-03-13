@@ -31,6 +31,10 @@ import IntroSequence, { ReturnWelcome } from "./components/IntroSequence";
 // Accreditation System
 import { AccreditationSystem } from "./components/AccreditationSystem";
 import BadgeScan from "./components/BadgeScan";
+// CC2026 Badge & Jetons
+import BadgeActivation from "./components/BadgeActivation";
+import BadgeInscription from "./components/BadgeInscription";
+import JetonsPage from "./components/JetonsPage";
 // Workspaces
 import WorkspaceLaurent from "./components/workspaces/WorkspaceLaurent";
 import WorkspaceTwina from "./components/workspaces/WorkspaceTwina";
@@ -148,6 +152,11 @@ function App() {
               {/* Admin Mobile Dashboard */}
               <Route path="/admin/mobile" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><AdminMobileDashboard /></ProtectedRoute>} />
               <Route path="/badge/:id" element={<BadgeScan />} />
+              {/* CC2026 Badge & Jetons */}
+              <Route path="/activer-badge/:qrToken" element={<BadgeActivation />} />
+              <Route path="/badge-inscription" element={<BadgeInscription />} />
+              <Route path="/jetons" element={<JetonsPage />} />
+              <Route path="/jetons/confirmation" element={<JetonsPage />} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />
               {/* Workspaces - Protected */}
               <Route path="/workspace/laurent" element={<ProtectedRoute allowedRoles={['founder']}><WorkspaceLaurent /></ProtectedRoute>} />
