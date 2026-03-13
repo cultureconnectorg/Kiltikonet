@@ -18,6 +18,7 @@ export const Header = () => {
     { path: '/pricing', label: language === 'fr' ? 'Tarifs' : 'Pricing' },
     { path: '/partnership', label: language === 'fr' ? 'Partenariat' : 'Partnership' },
     { path: '/jetons', label: 'Jetons' },
+    { path: '/mon-espace', label: language === 'fr' ? 'Mon Espace' : 'My Space' },
     { path: '/catalogue', label: 'Catalogue' },
   ];
 

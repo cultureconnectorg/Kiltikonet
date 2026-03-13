@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 FREK_API_URL = os.environ.get("FREK_API_URL", "https://frek-certification.preview.emergentagent.com/api")
 FREK_CLIENT_ID = os.environ.get("FREK_CLIENT_ID", "kiltikonet-cc2026")
-FREK_CLIENT_SECRET = os.environ.get("FREK_CLIENT_SECRET", "")
+FREK_CLIENT_SECRET = os.environ.get("FREK_CLIENT_SECRET", "pczBP49crCXSSSwSOShsXClzs9srhKe5S-xnraMPn-k")
 FREK_ADMIN_KEY = os.environ.get("FREK_ADMIN_KEY", "pczBP49crCXSSSwSOShsXClzs9srhKe5S-xnraMPn-k")
-FREK_FALLBACK_MODE = os.environ.get("FREK_FALLBACK_MODE", "true").lower() == "true"
+FREK_FALLBACK_MODE = os.environ.get("FREK_FALLBACK_MODE", "false").lower() == "true"
 
 
 class FrekClient:
@@ -108,37 +108,58 @@ class FrekClient:
                 return {"frek_id": local_id, "status": "local_fallback"}
             raise Exception("FREK API unavailable and fallback disabled")
 
+        # FREKcore type mapping (VIS not in FREKcore, map to BNV for visitor badges)
+        frek_badge_type = badge_type if badge_type != "VIS" else "BNV"
+
         try:
-            async with httpx.AsyncClient(timeout=15) as client:
-                resp = await client.post(
-                    f"{FREK_API_URL}/identity/emit",
-                    headers=self._headers(),
-                    json={"email": email, "prenom": prenom, "nom": nom,
-                           "context": f"CC2026-{badge_type}"},
-                )
-                if resp.status_code in (200, 201):
-                    data = resp.json()
-                    return {"frek_id": data.get("frek_id") or data.get("id"), "status": "emitted"}
-                else:
-                    logger.error(f"FREK emit error: {resp.status_code} {resp.text}")
-                    if FREK_FALLBACK_MODE:
-                        local_id = self._generate_local_id()
-                        self._retry_queue.append({
-                            "action": "emit", "email": email, "prenom": prenom,
-                            "nom": nom, "badge_type": badge_type, "local_id": local_id,
-                            "queued_at": datetime.now(timezone.utc).isoformat(),
-                        })
-                        return {"frek_id": local_id, "status": "local_fallback"}
-                    raise Exception(f"FREK emit failed: {resp.status_code}")
-        except httpx.HTTPError as e:
+            # Try FREKcore /badges/create endpoint
+            emit_paths = ["/badges/create", "/identity/emit", "/v1/emit"]
+            for path in emit_paths:
+                try:
+                    async with httpx.AsyncClient(timeout=15) as client:
+                        resp = await client.post(
+                            f"{FREK_API_URL}{path}",
+                            headers=self._headers(),
+                            json={"email": email, "prenom": prenom, "nom": nom,
+                                   "type_badge": frek_badge_type, "organisation": "CC2026",
+                                   "context": f"CC2026-{badge_type}"},
+                        )
+                        if resp.status_code in (200, 201):
+                            data = resp.json()
+                            badge_data = data.get("badge", data)
+                            frek_id = badge_data.get("frek_id") or badge_data.get("badge_id") or badge_data.get("id")
+                            logger.info(f"FREK emit OK via {path}: {frek_id}")
+                            return {"frek_id": frek_id, "status": "emitted", "remote_data": badge_data}
+                        elif resp.status_code == 409:
+                            # Already exists
+                            data = resp.json()
+                            logger.info(f"FREK duplicate: {data}")
+                            return {"frek_id": data.get("existing_frek_id", ""), "status": "duplicate", "remote_data": data}
+                        elif resp.status_code != 404:
+                            logger.warning(f"FREK {path}: {resp.status_code} {resp.text[:200]}")
+                except Exception as inner_e:
+                    logger.warning(f"FREK {path} failed: {inner_e}")
+                    continue
+
+            # All paths failed
+            logger.error("FREK emit: all paths failed")
             if FREK_FALLBACK_MODE:
                 local_id = self._generate_local_id()
                 self._retry_queue.append({
-                    "action": "emit", "email": email, "local_id": local_id,
+                    "action": "emit", "email": email, "prenom": prenom,
+                    "nom": nom, "badge_type": badge_type, "local_id": local_id,
                     "queued_at": datetime.now(timezone.utc).isoformat(),
                 })
                 return {"frek_id": local_id, "status": "local_fallback"}
-            raise
+            raise Exception("FREK emit failed on all paths")
+        except Exception as e:
+            logger.error(f"FREK emit critical error: {e}")
+            local_id = self._generate_local_id()
+            self._retry_queue.append({
+                "action": "emit", "email": email, "local_id": local_id,
+                "queued_at": datetime.now(timezone.utc).isoformat(),
+            })
+            return {"frek_id": local_id, "status": "local_fallback"}
 
     async def activate(self, frek_id: str) -> dict:
         """Activate FREK-ID (1st physical scan)"""

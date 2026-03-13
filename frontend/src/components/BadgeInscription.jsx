@@ -33,7 +33,27 @@ export default function BadgeInscription() {
     setLoading(false);
   };
 
-  const copyBadgeId = () => { navigator.clipboard.writeText(result?.badge_id || ''); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const copyBadgeId = async () => {
+    const text = result?.badge_id || '';
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;left:-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      toast.success('Badge ID copié !');
+    } catch {
+      toast.error('Impossible de copier');
+    }
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   if (result) {
     return (

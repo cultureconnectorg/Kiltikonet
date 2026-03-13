@@ -38,6 +38,7 @@ import BadgeActivation from "./components/BadgeActivation";
 import BadgeInscription from "./components/BadgeInscription";
 import JetonsPage from "./components/JetonsPage";
 import JetonsAnalyticsDashboard from "./components/JetonsAnalyticsDashboard";
+import UserDashboard from "./components/UserDashboard";
 // Workspaces
 import WorkspaceLaurent from "./components/workspaces/WorkspaceLaurent";
 import WorkspaceTwina from "./components/workspaces/WorkspaceTwina";
@@ -161,6 +162,7 @@ function App() {
               <Route path="/activer-badge/:qrToken" element={<BadgeActivation />} />
               <Route path="/badge-inscription" element={<BadgeInscription />} />
               <Route path="/jetons" element={<JetonsPage />} />
+              <Route path="/mon-espace" element={<UserDashboard />} />
               <Route path="/jetons/confirmation" element={<JetonsPage />} />
               <Route path="/admin/analytics/jetons" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><JetonsAnalyticsDashboard /></ProtectedRoute>} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />

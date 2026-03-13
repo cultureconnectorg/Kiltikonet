@@ -226,11 +226,7 @@ export const PricingPage = () => {
   ];
 
   const handleSelectTier = (tier) => {
-    if (tier.price === 0) {
-      navigate('/badge-inscription', { state: { selectedType: tier.badge_type, tierName: tier.name } });
-    } else {
-      navigate('/inscription', { state: { selectedTier: tier.id, price: tier.price, badge_type: tier.badge_type } });
-    }
+    navigate('/badge-inscription', { state: { selectedType: tier.badge_type, tierName: tier.name } });
   };
 
   return (
