@@ -6921,7 +6921,9 @@ async def admin_batch_email(req: BatchEmailRequest):
     from services import ses_service
     
     TEMPLATE_MAP = {
+        "rappel_j30": ses_service.send_rappel_j30,
         "rappel_j15": ses_service.send_rappel_j15,
+        "rappel_j7": ses_service.send_rappel_j7,
         "rappel_j1": ses_service.send_rappel_j1,
         "jour_j": ses_service.send_jour_j,
         "merci_j1": ses_service.send_merci_j1,
@@ -6975,6 +6977,392 @@ async def admin_batch_email(req: BatchEmailRequest):
         "total": len(badges),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EMAIL ENDPOINTS — send, campaign, stats, qr-generate, templates
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class EmailSendRequest(BaseModel):
+    to_email: str
+    template: str
+    badge_id: Optional[str] = None
+    custom_subject: Optional[str] = None
+    custom_html: Optional[str] = None
+
+@app.post("/api/email/send")
+async def email_send(req: EmailSendRequest):
+    """Send individual email using a template or custom HTML"""
+    from services import ses_service
+    
+    if req.custom_html and req.custom_subject:
+        result = await ses_service.send_individual(req.to_email, req.custom_subject, req.custom_html)
+        return {"status": result.get("status"), "message_id": result.get("message_id")}
+    
+    if req.template not in ses_service.TEMPLATE_REGISTRY:
+        raise HTTPException(status_code=400, detail=f"Template inconnu. Choix: {list(ses_service.TEMPLATE_REGISTRY.keys())}")
+    
+    badge = None
+    if req.badge_id:
+        badge = await db.cc_badges.find_one({"badge_id": req.badge_id}, {"_id": 0})
+    elif req.to_email:
+        badge = await db.cc_badges.find_one({"email": req.to_email}, {"_id": 0})
+    
+    if not badge:
+        raise HTTPException(status_code=404, detail="Badge non trouvé pour cet email/badge_id")
+    
+    prenom = badge.get("prenom", "")
+    badge_id = badge.get("badge_id", "")
+    
+    tmpl = ses_service.TEMPLATE_REGISTRY[req.template]
+    required = tmpl["requires"]
+    
+    if set(required) <= {"prenom", "badge_id"}:
+        result = await tmpl["fn"](to_email=req.to_email, prenom=prenom, badge_id=badge_id)
+    elif "frek_id" in required:
+        result = await tmpl["fn"](to_email=req.to_email, prenom=prenom, badge_id=badge_id,
+                                   frek_id=badge.get("frek_id", ""), qr_token=badge.get("qr_token", ""))
+    else:
+        result = await tmpl["fn"](to_email=req.to_email, prenom=prenom, badge_id=badge_id)
+    
+    return {"status": result.get("status"), "template": req.template, "message_id": result.get("message_id")}
+
+
+class EmailCampaignRequest(BaseModel):
+    template: str
+    type_badge_filter: Optional[str] = None
+    statut_filter: Optional[str] = None
+    dry_run: bool = True
+
+@app.post("/api/email/campaign")
+async def email_campaign(req: EmailCampaignRequest):
+    """Launch segmented email campaign"""
+    from services import ses_service
+    
+    ALL_TEMPLATES = {**ses_service.TEMPLATE_REGISTRY}
+    if req.template not in ALL_TEMPLATES:
+        raise HTTPException(status_code=400, detail=f"Template: {list(ALL_TEMPLATES.keys())}")
+    
+    query = {"statut": {"$in": ["INSCRIT", "ACTIVE", "REMIS"]}}
+    if req.type_badge_filter:
+        query["type_badge"] = req.type_badge_filter
+    if req.statut_filter:
+        query["statut"] = req.statut_filter
+    
+    badges = await db.cc_badges.find(query, {"_id": 0}).to_list(5000)
+    
+    if req.dry_run:
+        return {
+            "status": "dry_run", "template": req.template,
+            "recipients_count": len(badges),
+            "filter": {"type_badge": req.type_badge_filter, "statut": req.statut_filter},
+            "sample": [{"email": b.get("email"), "badge_id": b.get("badge_id"), "prenom": b.get("prenom")} for b in badges[:5]],
+        }
+    
+    tmpl = ALL_TEMPLATES[req.template]
+    sent, failed = 0, 0
+    for badge in badges:
+        email = badge.get("email")
+        if not email:
+            continue
+        try:
+            kwargs = {"to_email": email, "prenom": badge.get("prenom", ""), "badge_id": badge.get("badge_id", "")}
+            if "frek_id" in tmpl["requires"]:
+                kwargs["frek_id"] = badge.get("frek_id", "")
+                kwargs["qr_token"] = badge.get("qr_token", "")
+            result = await tmpl["fn"](**kwargs)
+            if result.get("status") == "sent":
+                sent += 1
+            else:
+                failed += 1
+        except Exception as e:
+            logger.error(f"Campaign email error for {email}: {e}")
+            failed += 1
+    
+    await db.cc_email_campaigns.insert_one({
+        "template": req.template, "sent": sent, "failed": failed,
+        "total": len(badges), "filters": {"type_badge": req.type_badge_filter},
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    
+    return {"status": "completed", "template": req.template, "sent": sent, "failed": failed, "total": len(badges)}
+
+
+@app.get("/api/email/stats")
+async def email_stats():
+    """Get SES sending statistics (deliverability, bounces, etc.)"""
+    from services.ses_service import get_ses_send_stats
+    ses_stats = get_ses_send_stats()
+    
+    campaigns = await db.cc_email_campaigns.find({}, {"_id": 0}).sort("timestamp", -1).limit(20).to_list(20)
+    
+    return {"ses": ses_stats, "campaigns": campaigns}
+
+
+@app.get("/api/email/templates")
+async def email_templates():
+    """List all available email templates"""
+    from services.ses_service import TEMPLATE_REGISTRY
+    templates = []
+    for key, val in TEMPLATE_REGISTRY.items():
+        templates.append({"id": key, "subject": val["subject"], "requires": val["requires"]})
+    return {"templates": templates}
+
+
+@app.post("/api/email/qr-generate")
+async def email_qr_generate(badge_id: str = ""):
+    """Generate QR code for a badge and return base64"""
+    badge = await db.cc_badges.find_one({"badge_id": badge_id}, {"_id": 0})
+    if not badge:
+        raise HTTPException(status_code=404, detail="Badge non trouvé")
+    
+    from services.ses_service import _generate_qr_base64
+    qr_token = badge.get("qr_token", "")
+    qr_url = f"{os.environ.get('BASE_URL', 'https://kiltikonet.fr')}/activer-badge/{qr_token}"
+    qr_b64 = _generate_qr_base64(qr_url)
+    
+    return {"badge_id": badge_id, "qr_url": qr_url, "qr_base64": qr_b64[:50] + "...", "full_length": len(qr_b64)}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NFC TAP — Paiement NFC dédié
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class NfcTapRequest(BaseModel):
+    nfc_uid: Optional[str] = None
+    badge_id: Optional[str] = None
+    montant: int
+    merchant_id: Optional[str] = None
+    zone: str = "ENTREE_GENERALE"
+
+@app.post("/api/frek/nfc/tap")
+async def nfc_tap(req: NfcTapRequest):
+    """NFC tap payment — find badge by NFC UID or badge_id, debit jetons"""
+    badge = None
+    if req.nfc_uid:
+        badge = await db.cc_badges.find_one({"nfc_uid": req.nfc_uid}, {"_id": 0})
+    elif req.badge_id:
+        badge = await db.cc_badges.find_one({"badge_id": req.badge_id}, {"_id": 0})
+    
+    if not badge:
+        return {"status": "error", "code": "NOT_FOUND", "message": "Badge NFC non trouvé", "color": "red"}
+    
+    if not badge.get("nfc_enabled"):
+        return {"status": "error", "code": "NFC_DISABLED", "message": "NFC non activé sur ce badge", "color": "red"}
+    
+    statut = badge.get("statut", "")
+    if statut not in ("ACTIVE", "REMIS"):
+        return {"status": "error", "code": "INACTIVE", "message": f"Badge non actif ({statut})", "color": "red"}
+    
+    badge_id = badge.get("badge_id", "")
+    current_solde = badge.get("jetons_solde", 0) or 0
+    
+    if req.montant > 0:
+        if current_solde < req.montant:
+            return {
+                "status": "insufficient", "code": "LOW_BALANCE", "color": "orange",
+                "message": f"Solde insuffisant ({current_solde}/{req.montant}J)",
+                "badge_id": badge_id, "jetons_solde": current_solde,
+            }
+        new_solde = current_solde - req.montant
+        await db.cc_badges.update_one({"badge_id": badge_id}, {"$set": {"jetons_solde": new_solde}})
+        
+        await db.cc_transactions.insert_one({
+            "badge_id": badge_id, "type": "nfc_tap", "jetons": -req.montant,
+            "merchant_id": req.merchant_id, "zone": req.zone,
+            "previous_solde": current_solde, "new_solde": new_solde,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        
+        frek_id = badge.get("frek_id", "")
+        if frek_id:
+            asyncio.create_task(_frek.record_stage(frek_id, "METAMORPHOSE"))
+        
+        return {
+            "status": "success", "code": "OK", "color": "green",
+            "message": f"Paiement NFC {req.montant}J OK",
+            "badge_id": badge_id,
+            "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge.get("type_badge")},
+            "jetons_debited": req.montant, "new_solde": new_solde,
+        }
+    
+    return {
+        "status": "success", "code": "OK", "color": "green",
+        "message": "Badge NFC vérifié",
+        "badge_id": badge_id,
+        "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge.get("type_badge")},
+        "jetons_solde": current_solde,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REMBOURSEMENT MARCHAND — Admin
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class RemboursementRequest(BaseModel):
+    merchant_id: str
+    montant_eur: float
+    description: Optional[str] = None
+
+@app.post("/api/jetons/remboursement")
+async def jetons_remboursement(req: RemboursementRequest):
+    """Admin: enregistrer un remboursement marchand SEPA J+3"""
+    jeton_rachat = float(os.environ.get("JETON_RACHAT_EURO", "1.35"))
+    jetons_equivalent = round(req.montant_eur / jeton_rachat)
+    
+    await db.cc_remboursements.insert_one({
+        "merchant_id": req.merchant_id,
+        "montant_eur": req.montant_eur,
+        "jetons_equivalent": jetons_equivalent,
+        "jeton_rachat_eur": jeton_rachat,
+        "description": req.description,
+        "statut": "ENREGISTRE",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    
+    return {
+        "status": "success",
+        "merchant_id": req.merchant_id,
+        "montant_eur": req.montant_eur,
+        "jetons_equivalent": jetons_equivalent,
+        "jeton_rachat_eur": jeton_rachat,
+    }
+
+
+@app.get("/api/jetons/remboursements")
+async def list_remboursements():
+    """List all merchant refunds"""
+    rembs = await db.cc_remboursements.find({}, {"_id": 0}).sort("timestamp", -1).to_list(200)
+    total = sum(r.get("montant_eur", 0) for r in rembs)
+    return {"remboursements": rembs, "total_eur": round(total, 2), "count": len(rembs)}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXPORT CSV/PDF — Stats, badges, transactions
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/stats/export")
+async def stats_export(format: str = "csv"):
+    """Export all badge data as CSV for Twina batch print or reporting"""
+    import csv as csv_mod
+    
+    badges = await db.cc_badges.find({}, {"_id": 0}).to_list(5000)
+    
+    if format == "json":
+        return {"badges": badges, "total": len(badges), "exported_at": datetime.now(timezone.utc).isoformat()}
+    
+    # CSV export
+    output = io.StringIO()
+    fields = ["badge_id", "frek_id", "prenom", "nom", "email", "type_badge", "statut",
+              "nfc_enabled", "nfc_uid", "jetons_solde", "organisation", "date_emission", "imprime", "remis"]
+    writer = csv_mod.DictWriter(output, fieldnames=fields, extrasaction="ignore")
+    writer.writeheader()
+    for b in badges:
+        writer.writerow(b)
+    
+    csv_content = output.getvalue()
+    
+    from fastapi.responses import Response
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=cc2026_badges_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"}
+    )
+
+
+@app.get("/api/stats/export/transactions")
+async def export_transactions(format: str = "csv"):
+    """Export all transactions as CSV"""
+    import csv as csv_mod
+    
+    txs = await db.cc_transactions.find({}, {"_id": 0}).sort("timestamp", -1).to_list(10000)
+    
+    if format == "json":
+        return {"transactions": txs, "total": len(txs)}
+    
+    output = io.StringIO()
+    fields = ["badge_id", "type", "jetons", "zone", "merchant_id", "agent_id",
+              "previous_solde", "new_solde", "description", "timestamp"]
+    writer = csv_mod.DictWriter(output, fieldnames=fields, extrasaction="ignore")
+    writer.writeheader()
+    for tx in txs:
+        writer.writerow(tx)
+    
+    from fastapi.responses import Response
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=cc2026_transactions_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"}
+    )
+
+
+@app.get("/api/stats/export/scans")
+async def export_scans():
+    """Export all scan logs as CSV"""
+    import csv as csv_mod
+    
+    scans = await db.cc_scans.find({}, {"_id": 0}).sort("timestamp", -1).to_list(10000)
+    
+    output = io.StringIO()
+    fields = ["badge_id", "zone", "montant", "agent_id", "access", "timestamp"]
+    writer = csv_mod.DictWriter(output, fieldnames=fields, extrasaction="ignore")
+    writer.writeheader()
+    for s in scans:
+        writer.writerow(s)
+    
+    from fastapi.responses import Response
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=cc2026_scans_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"}
+    )
+
+
+@app.get("/api/stats/live")
+async def stats_live():
+    """Alias for /api/v1/dashboard/cc2026/live — backward compatible"""
+    return await dashboard_cc2026_live()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HEATMAP — Fréquentation par zone
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/stats/heatmap")
+async def stats_heatmap():
+    """Get scan frequency by zone for heatmap visualization"""
+    pipeline = [
+        {"$group": {"_id": "$zone", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+    ]
+    zone_data = await db.cc_scans.aggregate(pipeline).to_list(20)
+    
+    # Also get hourly distribution
+    hour_pipeline = [
+        {"$addFields": {"hour": {"$substr": ["$timestamp", 11, 2]}}},
+        {"$group": {"_id": {"zone": "$zone", "hour": "$hour"}, "count": {"$sum": 1}}},
+        {"$sort": {"_id.hour": 1}},
+    ]
+    hourly = await db.cc_scans.aggregate(hour_pipeline).to_list(200)
+    
+    zones = {}
+    for zd in zone_data:
+        z = zd["_id"]
+        if z:
+            zones[z] = {"total_scans": zd["count"], "hourly": {}}
+    
+    for h in hourly:
+        z = h["_id"].get("zone", "")
+        hr = h["_id"].get("hour", "")
+        if z in zones:
+            zones[z]["hourly"][hr] = h["count"]
+    
+    max_scans = max((z["total_scans"] for z in zones.values()), default=1)
+    for z in zones.values():
+        z["heat_level"] = round(z["total_scans"] / max_scans * 100) if max_scans > 0 else 0
+    
+    return {"zones": zones, "total_scans": sum(z["total_scans"] for z in zones.values())}
+
 
 class AnalyticsEvent(BaseModel):
     eventType: str

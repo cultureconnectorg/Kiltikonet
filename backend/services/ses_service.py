@@ -237,3 +237,95 @@ async def send_merci_j1(to_email: str, prenom: str, badge_id: str) -> dict:
 async def send_admin_alert(alert_type: str, details: str) -> dict:
     html = template_admin_alert(alert_type, details)
     return await _send_ses_email(ADMIN_EMAIL, f"[ALERTE] {alert_type}", html)
+
+
+# ============ TEMPLATES J-30 & J-7 ============
+
+def template_rappel_j30(prenom: str, badge_id: str) -> str:
+    return _wrap_template(f"""
+<h2 style="color:#A65D47;margin:0 0 15px;">J-30 — Le compte a rebours commence !</h2>
+<p>Bonjour {prenom},</p>
+<p>Dans <strong style="color:#A65D47;">30 jours</strong>, Culture Connect 2026 prend vie au Parc de La Savane.</p>
+<div style="background:#F4F0E8;border:1px solid #E8E0D0;border-radius:8px;padding:20px;margin:20px 0;">
+  <p style="margin:0 0 10px;">Votre badge <strong style="color:#A65D47;">{badge_id}</strong> est enregistre.</p>
+  <p style="margin:0 0 10px;">Decouvrez le programme complet et preparez votre venue :</p>
+</div>
+<a href="{APP_URL}/programme" style="display:inline-block;background:#C9A84C;color:#fff;padding:12px 30px;border-radius:6px;text-decoration:none;font-weight:bold;">
+  Voir le programme
+</a>
+<p style="color:#6B6560;font-size:13px;margin-top:20px;">Pensez a recharger vos Jetons CC pour profiter de toutes les experiences.</p>
+""")
+
+
+def template_rappel_j7(prenom: str, badge_id: str) -> str:
+    return _wrap_template(f"""
+<h2 style="color:#A65D47;margin:0 0 15px;">J-7 — Derniers preparatifs !</h2>
+<p>Bonjour {prenom},</p>
+<p>Plus que <strong style="color:#A65D47;">7 jours</strong> avant Culture Connect 2026 !</p>
+<div style="background:#F4F0E8;border:1px solid #E8E0D0;border-radius:8px;padding:20px;margin:20px 0;">
+  <p style="margin:0 0 10px;font-weight:bold;">Checklist avant le Jour J :</p>
+  <p style="margin:0 0 8px;">1. Badge <strong style="color:#A65D47;">{badge_id}</strong> active</p>
+  <p style="margin:0 0 8px;">2. Jetons CC recharges</p>
+  <p style="margin:0 0 8px;">3. QR code pret (email de bienvenue)</p>
+  <p style="margin:0;">4. Lieu: Parc de La Savane, Fort-de-France</p>
+</div>
+<a href="{APP_URL}/jetons" style="display:inline-block;background:#A65D47;color:#fff;padding:12px 30px;border-radius:6px;text-decoration:none;font-weight:bold;">
+  Preparer ma venue
+</a>
+""")
+
+
+async def send_rappel_j30(to_email: str, prenom: str, badge_id: str) -> dict:
+    html = template_rappel_j30(prenom, badge_id)
+    return await _send_ses_email(to_email, "J-30 Culture Connect 2026 — Le compte a rebours !", html)
+
+
+async def send_rappel_j7(to_email: str, prenom: str, badge_id: str) -> dict:
+    html = template_rappel_j7(prenom, badge_id)
+    return await _send_ses_email(to_email, "J-7 Culture Connect 2026 — Derniers preparatifs !", html)
+
+
+async def send_individual(to_email: str, subject: str, html_body: str) -> dict:
+    """Send individual custom email via SES"""
+    return await _send_ses_email(to_email, subject, html_body)
+
+
+# Full template registry
+TEMPLATE_REGISTRY = {
+    "bienvenue": {"fn": send_bienvenue, "subject": "Bienvenue — CC2026", "requires": ["prenom", "badge_id", "frek_id", "qr_token"]},
+    "wallet_recharge": {"fn": send_wallet_recharge, "subject": "Rechargement — CC2026", "requires": ["prenom", "badge_id", "pack_name", "jetons_ajoutes", "nouveau_solde"]},
+    "rappel_j30": {"fn": send_rappel_j30, "subject": "J-30 CC2026", "requires": ["prenom", "badge_id"]},
+    "rappel_j15": {"fn": send_rappel_j15, "subject": "J-15 CC2026", "requires": ["prenom", "badge_id"]},
+    "rappel_j7": {"fn": send_rappel_j7, "subject": "J-7 CC2026", "requires": ["prenom", "badge_id"]},
+    "rappel_j1": {"fn": send_rappel_j1, "subject": "J-1 CC2026", "requires": ["prenom", "badge_id"]},
+    "jour_j": {"fn": send_jour_j, "subject": "Jour J CC2026", "requires": ["prenom", "badge_id"]},
+    "merci_j1": {"fn": send_merci_j1, "subject": "Merci CC2026", "requires": ["prenom", "badge_id"]},
+}
+
+
+def get_ses_send_stats() -> dict:
+    """Get SES sending statistics"""
+    try:
+        ses = _get_ses_client()
+        stats = ses.get_send_statistics()
+        data_points = stats.get("SendDataPoints", [])
+        quota = ses.get_send_quota()
+        return {
+            "quota_max_24h": quota.get("Max24HourSend", 0),
+            "quota_sent_24h": quota.get("SentLast24Hours", 0),
+            "quota_send_rate": quota.get("MaxSendRate", 0),
+            "data_points": len(data_points),
+            "recent": [
+                {
+                    "timestamp": str(dp.get("Timestamp", "")),
+                    "delivery_attempts": dp.get("DeliveryAttempts", 0),
+                    "bounces": dp.get("Bounces", 0),
+                    "complaints": dp.get("Complaints", 0),
+                    "rejects": dp.get("Rejects", 0),
+                }
+                for dp in sorted(data_points, key=lambda x: x.get("Timestamp", ""), reverse=True)[:10]
+            ],
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
