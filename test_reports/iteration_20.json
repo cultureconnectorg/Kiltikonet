@@ -60,8 +60,8 @@
   "test_credentials": {
     "test_email": "testpro@test.com",
     "test_user_id": "ac48d216-4300-496e-9d49-4034c1ca8fde",
-    "pro_login_url": "https://event-connect-60.preview.emergentagent.com/espace-pro/connexion",
-    "pro_dashboard_url": "https://event-connect-60.preview.emergentagent.com/espace-pro",
+    "pro_login_url": "https://real-time-events-6.preview.emergentagent.com/espace-pro/connexion",
+    "pro_dashboard_url": "https://real-time-events-6.preview.emergentagent.com/espace-pro",
     "dev_code_endpoint": "GET /api/pro/dev/get-code/testpro@test.com"
   },
 
