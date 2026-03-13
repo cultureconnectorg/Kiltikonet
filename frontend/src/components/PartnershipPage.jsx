@@ -221,7 +221,7 @@ export const PartnershipPage = () => {
   const tierToBadgeType = { bronze: 'EXP-B', silver: 'EXP-S', gold: 'EXP-G' };
 
   const handleSelectTier = (tierId) => {
-    const tier = TIERS[tierId];
+    const tier = partnerTiersData[tierId];
     const badgeType = tierToBadgeType[tierId] || 'SPO';
     const tierName = language === 'fr' ? tier.nameFr : tier.nameEn;
     navigate('/badge-inscription', { state: { selectedType: badgeType, tierName } });
