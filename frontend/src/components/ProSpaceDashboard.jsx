@@ -96,6 +96,27 @@ export const ProSpaceLogin = () => {
     try {
       const res = await axios.post(`${API}/pro/request-access`, { email });
       if (res.data.success) {
+        // Si bypass admin -> auto-connexion immédiate sans code
+        if (res.data.bypass) {
+          try {
+            const verifyRes = await axios.post(`${API}/pro/verify-code`, { email, code: '000000' });
+            if (verifyRes.data.success) {
+              const proSession = {
+                id: verifyRes.data.profile.id,
+                email: verifyRes.data.profile.email,
+                name: verifyRes.data.profile.full_name,
+                image: verifyRes.data.profile.image,
+                type: verifyRes.data.profile.profile_type,
+                verified: true,
+                createdAt: Date.now(),
+              };
+              localStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
+              toast.success(`Bienvenue ${verifyRes.data.profile.full_name} !`);
+              navigate('/espace-pro', { replace: true });
+              return;
+            }
+          } catch {}
+        }
         setCodeSent(true);
         toast.success('Code d\'accès envoyé !', {
           description: 'Vérifiez votre boîte mail'

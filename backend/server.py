@@ -6657,9 +6657,19 @@ async def scan_debit(req: ScanDebitRequest):
     if statut not in ("ACTIVE", "REMIS"):
         return {"status": "error", "code": "INACTIVE", "message": f"Badge non actif ({statut})", "color": "red"}
     
-    # Zone access check
+    # Define zone early (fix UnboundLocalError)
     from routes.badges import ZONE_ACCESS, BADGE_TYPES
     zone = req.zone.upper()
+    
+    # Étape 6 — Remise J-0 : premier scan à ENTREE_GENERALE → statut REMIS
+    if zone == "ENTREE_GENERALE" and statut == "ACTIVE" and req.montant == 0:
+        await db.cc_badges.update_one({"badge_id": badge_id}, {"$set": {"statut": "REMIS", "remis": True, "remis_at": datetime.now(timezone.utc).isoformat()}})
+        # Update Baserow mirror
+        baserow_id = badge.get("baserow_row_id")
+        if baserow_id:
+            asyncio.create_task(_br_update_mirror(baserow_id, {**badge, "statut": "REMIS"}))
+    
+    # Zone access check
     if zone in ZONE_ACCESS:
         if badge_type not in ZONE_ACCESS[zone]:
             return {
@@ -6719,6 +6729,77 @@ async def scan_debit(req: ScanDebitRequest):
         },
         "zone": zone,
         **jeton_info,
+    }
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BADGE LIFECYCLE — 8 étapes du cycle de vie
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class BadgePrintBatchRequest(BaseModel):
+    badge_ids: Optional[list] = None
+    type_badge: Optional[str] = None
+
+@app.post("/api/badges/print-batch")
+async def mark_badges_printed(req: BadgePrintBatchRequest):
+    """Étape 5 — Impression batch J-15: marquer les badges comme imprimés"""
+    query = {}
+    if req.badge_ids:
+        query["badge_id"] = {"$in": req.badge_ids}
+    elif req.type_badge:
+        query["type_badge"] = req.type_badge
+    else:
+        query["statut"] = {"$in": ["INSCRIT", "ACTIVE"]}
+
+    result = await db.cc_badges.update_many(
+        query,
+        {"$set": {"imprime": True, "imprime_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"status": "success", "marked_printed": result.modified_count}
+
+
+@app.post("/api/badges/archive-legacy")
+async def archive_frek_legacy():
+    """Étape 8 — FREK Legacy: archiver les empreintes culturelles post-événement"""
+    badges = await db.cc_badges.find({"statut": "REMIS"}, {"_id": 0}).to_list(5000)
+    archived = 0
+    for badge in badges:
+        frek_id = badge.get("frek_id", "")
+        if frek_id and not frek_id.startswith("LOCAL-"):
+            result = await _frek.record_stage(frek_id, "LEGACY")
+            if result.get("status") == "recorded":
+                archived += 1
+    return {"status": "success", "archived": archived, "total_remis": len(badges)}
+
+
+@app.get("/api/badges/lifecycle/{badge_id}")
+async def get_badge_lifecycle(badge_id: str):
+    """Retourne le cycle de vie complet d'un badge (8 étapes)"""
+    badge = await db.cc_badges.find_one({"badge_id": badge_id}, {"_id": 0})
+    if not badge:
+        raise HTTPException(status_code=404, detail="Badge non trouvé")
+
+    statut = badge.get("statut", "INSCRIT")
+    lifecycle = [
+        {"step": 1, "name": "Inscription", "done": True, "date": badge.get("date_emission")},
+        {"step": 2, "name": "FREK-ID émis", "done": bool(badge.get("frek_id")), "frek_id": badge.get("frek_id")},
+        {"step": 3, "name": "Email envoyé", "done": True, "note": "Bienvenue + QR dynamique"},
+        {"step": 4, "name": "Activation", "done": statut in ("ACTIVE", "REMIS"), "date": badge.get("activated_at")},
+        {"step": 5, "name": "Impression", "done": badge.get("imprime", False), "date": badge.get("imprime_at")},
+        {"step": 6, "name": "Remise J-0", "done": statut == "REMIS" or badge.get("remis", False), "date": badge.get("remis_at")},
+        {"step": 7, "name": "NFC actif", "done": badge.get("nfc_enabled", False) and statut == "REMIS", "nfc_uid": badge.get("nfc_uid")},
+        {"step": 8, "name": "FREK Legacy", "done": False, "note": "Post-événement CVL BRAIN / OAPI"},
+    ]
+
+    return {
+        "badge_id": badge_id,
+        "statut": statut,
+        "type_badge": badge.get("type_badge"),
+        "prenom": badge.get("prenom"),
+        "nom": badge.get("nom"),
+        "lifecycle": lifecycle,
+        "current_step": next((s["step"] for s in reversed(lifecycle) if s["done"]), 1),
     }
 
 
