@@ -63,7 +63,7 @@
 
   "test_credentials": {
     "admin_password": "CC2026admin",
-    "backend_url": "https://real-time-events-6.preview.emergentagent.com"
+    "backend_url": "https://cc2026-updates.preview.emergentagent.com"
   },
 
   "seed_data_creation": "",

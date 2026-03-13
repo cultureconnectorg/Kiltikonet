@@ -4,7 +4,7 @@ Test Section 2-5 Routes: Culture Connect 2026
 - Section 4: Workspace Alirio contacts
 - Section 5: Help guides
 
-Test runs against: https://real-time-events-6.preview.emergentagent.com
+Test runs against: https://cc2026-updates.preview.emergentagent.com
 """
 
 import pytest
@@ -12,7 +12,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://real-time-events-6.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://cc2026-updates.preview.emergentagent.com').rstrip('/')
 
 # ============================================================
 # FIXTURES

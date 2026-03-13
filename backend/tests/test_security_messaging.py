@@ -11,7 +11,7 @@ import json
 import asyncio
 import websockets
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://real-time-events-6.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://cc2026-updates.preview.emergentagent.com')
 
 # Test credentials from the test request
 CREDENTIALS = {
