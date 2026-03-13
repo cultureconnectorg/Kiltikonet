@@ -1,63 +1,93 @@
-# Culture Connect 2026 - PRD
+# Kiltikonet.fr — Hub Central Culture Connect 2026
 
-## Description du projet
-Plateforme événementielle complète pour Culture Connect 2026, un marché professionnel des industries culturelles en Martinique (20-23 mai 2026). Inclut une landing page publique, un système d'accréditation, des espaces de travail collaboratifs, et un Smart Engine analytique.
+## Description
+Plateforme evenementielle complete pour Culture Connect 2026 (22 Mai 2026, Parc de La Savane, Fort-de-France, Martinique).
+Entite legale: Factory Maker Studio (EURL) / CVLN Group.
+Objectif: 40 000 FREK-IDs comme preuve de marche pour le Seed Round CVLN Group.
 
-## Architecture technique
+## Architecture
 - **Frontend**: React 19 (PWA) + Tailwind CSS + Shadcn/UI
-- **Backend**: FastAPI + MongoDB (+ db.json pour données partagées legacy)
-- **Authentification**: JWT pour admin, mots de passe par workspace
-- **Intégrations**: Baserow, Anthropic Claude, Stripe, Cloudinary, html5-qrcode
+- **Backend**: FastAPI + MongoDB (primary) + Baserow (mirror table 865847)
+- **Auth**: JWT HS256 + workspace passwords
+- **Integrations**: Baserow, Stripe, Cloudinary, FREK API (frekcore.com), AWS SES, Resend (legacy)
+- **Palette**: #0C0818 (fond), #3B0764 (violet), #6B21A8 (violet clair), #C9A84C (or)
 
-## Workspaces et rôles
-| Workspace | Rôle | Mot de passe | Données gérées |
-|-----------|------|-------------|----------------|
-| Laurent | Fondateur | LC2026 | Vue d'ensemble, logs |
-| Gwen | Événementiel | Gwen2026 | Artistes, Prestataires, Planning |
-| Alirio | Business | Alirio2026 | Partenaires, Tâches, Contacts |
-| Wudy | Comptabilité | Wudy2026 | Budget, Dépenses |
-| Fabrice | Captation live | Fabrice2026 | Captions, Séquences |
-| Kaige | Presse | Kaige2026 | Communiqués, Médias |
-| Twina | Design | Twina2026 | CMS, Visuels |
+## FREK Integration
+- Base URL: https://frekcore.com/api/v1
+- Client ID: kiltikonet-cc2026
+- Mode degrade: LOCAL-{uuid} si frekcore.com indisponible
+- Retry queue async + reconciliation automatique
 
-## Données partagées (SharedDataContext)
-Entités centralisées via `/api/shared/*`:
-- artistes, prestataires, partners, tasks, expenses, contacts, planning
-- Polling automatique toutes les 10 secondes
-- CRUD complet via React Context (useSharedData hook)
+## Badges — 14 Types
+Format: CC26-{TYPE}-{CODE5}
+Types: ART, INT, STF, BNV, PRS, VIP, OFF, SPO, EXP-B, EXP-S, EXP-G, EXP-P, EXP-D, EXP-VIP
+NFC: VIP, OFF, SPO, EXP-G, EXP-P, EXP-D, EXP-VIP
+
+## Zones d'Acces
+- ENTREE_GENERALE: tous
+- SCENE_PRINCIPALE: ART, OFF, VIP, STF
+- VIP_LOUNGE: VIP, OFF, SPO, EXP-VIP
+- BACKSTAGE: ART, STF
+- EXPOSANTS: EXP-*, STF
+- PRESSE: PRS, OFF
+- ATELIERS_PREMIUM: 5 jetons minimum
+
+## Jetons CC
+1 Jeton = 1.50EUR | Rachat marchand: 1.35EUR
+Packs: Decouverte 10J/13.50EUR, Culture 25J/30EUR, Diaspora 50J/55EUR, VIP 100J/100EUR
+
+## Emails SES (7 templates)
+send_bienvenue, send_wallet_recharge, send_rappel_j15, send_rappel_j1, send_jour_j, send_merci_j1, send_admin_alert
 
 ---
 
-## Complété
+## Complete (13/03/2026)
 
-### P0 - Synchronisation des données (10/03/2026)
-- SharedDataContext créé avec CRUD complet pour 7 entités
-- SharedDataProvider intégré dans App.js (wraps toute l'app)
-- WorkspaceGwen: utilise useSharedData() pour artistes, prestataires, planning
-- WorkspaceAlirio: utilise useSharedData() pour partners, tasks, contacts
-- WorkspaceWudy: utilise useSharedData() pour expenses
-- WorkspaceLaurent: utilise useSharedData() pour afficher compteurs live
-- WorkspaceFabrice: connecté au contexte (artistes, planning)
-- Pages publiques (LandingPage, ProgramPage): section Line-up avec artistes partagés
-- Bug critique MongoDB ObjectId résolu (33/33 tests passés)
+### Phase 0-4: Badge + FREK + Jetons + SES + Frontend
+- Backend: Services (frek_client, ses_service, baserow_service) + Routes (badges, jetons)
+- 14 types de badges avec format CC26-TYPE-CODE5
+- FREK API client avec mode degrade (LOCAL-{uuid})
+- Matrice d'acces 7 zones
+- 4 packs Stripe jetons
+- 7 templates email SES (palette #0C0818/#3B0764/#C9A84C)
+- Baserow mirror (table 865847)
+- Frontend: BadgeInscription, BadgeActivation, JetonsPage
+- Testing: 25/25 tests passes (100%)
 
-### Précédemment complété
+### Precedemment complete
 - PWA avec interface mobile
 - Dashboard admin avec Mode Terrain
 - Smart Engine Dashboard
-- Responsivité de tous les workspaces
-- Permissions des workspaces (Gwen, Alirio, Wudy)
-- Système de notifications internes
+- Workspaces (Laurent, Gwen, Alirio, Wudy, Fabrice, Kaige, Twina)
+- SharedDataContext (synchronisation temps reel)
+- CMS Admin + Visual Editor
+- Pro Space (LinkedIn Culturel)
+- Stripe integration (accreditations + partenariats)
+- Badge PDF generation + email
 
 ---
 
-## Tâches restantes
+## Taches restantes
 
-### P1 - Déploiement
-- Prêt pour déploiement après validation P0
+### P1 - Phase 5: Dashboard FREK + Tests integration
+- Widget stats FREK sur dashboard admin
+- Integration end-to-end badge -> jetons -> scan
 
-### P2 - Améliorations futures
-- Vue 3D admin (bloquée: React 19 + Three.js incompatibilité)
-- Visual Editor iframe (contournement window.open actif)
-- Refactorisation backend (server.py monolithique)
-- WebSocket pour synchronisation temps réel (au lieu du polling 10s)
+### P2 - Ameliorations
+- Batch emails SES (rappels J-15, J-1, Jour J, Merci J+1)
+- NFC scan integration
+- Mode terrain QR scanner avec verification zone
+- Reconciliation FREK automatique (cron)
+- Dashboard analytics Jetons (graphiques Recharts)
+
+### P3 - Technique
+- Refactorisation server.py (7800+ lignes -> modules)
+- Vue 3D admin (bloquee: React 19 + Three.js)
+- Visual Editor iframe
+- Migration vers SES production (sortie sandbox)
+
+## Credentials
+- Admin: CC2026admin
+- Workspaces: LC2026, Twina2026, Gwen2026, Kaige2026, Alirio2026, Wudy2026, Fabrice2026, DataCC2026
+- FREK Client: kiltikonet-cc2026
+- Baserow Token: BjKPCSpcpif72OtZtsmMFUbZysqlNGiK (table 865847)
