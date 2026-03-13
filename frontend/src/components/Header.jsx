@@ -16,8 +16,7 @@ export const Header = () => {
     { path: '/programme', label: 'Programme' },
     { path: '/concert', label: 'Concert' },
     { path: '/pricing', label: language === 'fr' ? 'Tarifs' : 'Pricing' },
-    { path: '/inscription', label: language === 'fr' ? 'Inscription' : 'Register' },
-    { path: '/partnership', label: language === 'fr' ? 'Partenariat' : 'Partnership' },
+    { path: '/badge-inscription', label: language === 'fr' ? 'Partenariat' : 'Partnership' },
     { path: '/catalogue', label: 'Catalogue' },
   ];
 

@@ -168,12 +168,66 @@ const SlotItem = ({ slot, isHighlight, slotIdx, parentVisible }) => {
 
 const ProgramPage = () => {
   const navigate = useNavigate();
-  const { program, intro, loading: programLoading, error: programError } = useCMSProgram();
+  const { program: cmsProgram, intro, loading: programLoading, error: programError } = useCMSProgram();
   const { theme, loading: themeLoading } = useCMSTheme();
   const [heroVisible, setHeroVisible] = useState(false);
   
   const loading = programLoading || themeLoading;
   const primaryColor = theme?.primary_color || '#A65D47';
+
+  // Fallback hardcoded program when CMS is empty
+  const defaultProgram = [
+    {
+      id: 'jour1',
+      label: 'Mardi 20 Mai — Accueil & Accréditations',
+      site: 'Bibliothèque Schœlcher, Fort-de-France',
+      is_highlight: false,
+      slots: [
+        { time: '09:00', title: 'Ouverture des portes & Accréditations', description: 'Retrait des badges, installation des stands' },
+        { time: '10:30', title: 'Cérémonie d\'ouverture', description: 'Discours de bienvenue — Factory Maker Studio / CVLN Group', speaker: 'Organisateurs CC2026' },
+        { time: '14:00', title: 'Table ronde : Industries culturelles caribéennes', description: 'État des lieux et perspectives', speaker: 'Panel d\'experts' },
+        { time: '16:30', title: 'Networking session', description: 'Rencontres B2B entre participants' },
+      ]
+    },
+    {
+      id: 'jour2',
+      label: 'Mercredi 21 Mai — Débats Industrie',
+      site: 'Atrium, Fort-de-France',
+      is_highlight: false,
+      slots: [
+        { time: '09:00', title: 'Conférences : Musique & Digital', description: 'Distribution, streaming et monétisation en Caraïbe' },
+        { time: '11:00', title: 'Workshop : FREK Identity', description: 'L\'identité culturelle numérique au service des artistes', speaker: 'Équipe FREK' },
+        { time: '14:00', title: 'Débat : Financement de la culture', description: 'Subventions, mécénat et modèles économiques alternatifs' },
+        { time: '16:00', title: 'Pitch sessions', description: 'Projets culturels innovants présentés en 5 minutes' },
+      ]
+    },
+    {
+      id: 'jour3',
+      label: 'Jeudi 22 Mai — Marché Culturel & Concerts',
+      site: 'Parc de La Savane, Fort-de-France',
+      is_highlight: true,
+      slots: [
+        { time: '09:00', title: 'Ouverture du Marché Culturel', description: '40-60 stands accrédités' },
+        { time: '10:00', title: 'Scène Démo Live', description: 'Performances artistiques en continu' },
+        { time: '12:00', title: 'Espace Gastronomie Caribéenne', description: 'Food court avec jetons CC' },
+        { time: '14:00', title: 'Rencontres B2B VIP', description: 'Sessions de networking ciblées' },
+        { time: '17:00', title: 'Concerts — Scène Principale', description: 'Soirée musicale au cœur de La Savane' },
+      ]
+    },
+    {
+      id: 'jour4',
+      label: 'Vendredi 23 Mai — Brunch & Clôture',
+      site: 'Fort-de-France',
+      is_highlight: false,
+      slots: [
+        { time: '09:30', title: 'Brunch de clôture', description: 'Petit-déjeuner networking en plein air' },
+        { time: '11:00', title: 'Bilan & Perspectives CC2027', description: 'Retour sur l\'événement et annonces pour l\'année prochaine' },
+        { time: '12:30', title: 'Cérémonie de clôture', description: 'Remise des prix et remerciements' },
+      ]
+    },
+  ];
+
+  const program = (cmsProgram && cmsProgram.length > 0) ? cmsProgram : defaultProgram;
 
   const prefersReducedMotion = typeof window !== 'undefined' && 
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;

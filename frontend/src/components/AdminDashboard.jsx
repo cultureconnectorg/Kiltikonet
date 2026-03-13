@@ -11,7 +11,7 @@ import {
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
   Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
   BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown,
-  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode
+  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins
 } from 'lucide-react';
 import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '../lib/translations';
 import axios from 'axios';
@@ -594,6 +594,14 @@ export const AdminDashboard = () => {
                 >
                   <Calendar className="w-4 h-4 sm:mr-2" />
                   <span className="hidden sm:inline">CC2026</span>
+                </Button>
+                <Button 
+                  onClick={() => navigate('/admin/analytics/jetons')} 
+                  className="h-9 sm:h-10 bg-[#C9A84C] text-[#1A1510] hover:bg-[#C9A84C]/90 font-syne text-xs sm:text-sm rounded-none" 
+                  data-testid="analytics-jetons-button"
+                >
+                  <Coins className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Jetons</span>
                 </Button>
                 <Button onClick={fetchRegistrations} variant="outline" className="h-9 sm:h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none">
                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
