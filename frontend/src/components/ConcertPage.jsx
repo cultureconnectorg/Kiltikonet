@@ -226,12 +226,101 @@ const ConcertPage = () => {
         </section>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — Animated "Line-up à venir" showcase */}
       {artistes.length === 0 && (
-        <section className="py-24 text-center">
-          <Music className="w-16 h-16 mx-auto mb-4" style={{ color: 'rgba(26,21,16,0.2)' }} />
-          <h2 className="font-serif text-2xl mb-2" style={{ color: '#1A1510' }}>Line-up à venir</h2>
-          <p style={{ color: '#6B6560' }}>Les artistes seront annoncés prochainement.</p>
+        <section className="py-24 overflow-hidden" data-testid="lineup-coming-soon">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            {/* Animated music wave */}
+            <div className="flex items-end justify-center gap-1 mb-8 h-16">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-2 rounded-full"
+                  style={{
+                    background: i % 3 === 0 ? '#A65D47' : i % 3 === 1 ? '#C9A84C' : '#4A5D4E',
+                    animation: `wave ${0.8 + (i % 4) * 0.2}s ease-in-out ${i * 0.1}s infinite alternate`,
+                  }}
+                />
+              ))}
+            </div>
+
+            <h2
+              className="font-serif text-4xl sm:text-5xl mb-4"
+              style={{
+                color: '#1A1510',
+                animation: 'fadeSlideUp 1s ease-out 0.3s both',
+              }}
+            >
+              Line-up à venir
+            </h2>
+            <p
+              className="text-lg mb-8 max-w-xl mx-auto"
+              style={{
+                color: '#6B6560',
+                animation: 'fadeSlideUp 1s ease-out 0.6s both',
+              }}
+            >
+              Les artistes qui feront vibrer la Savane seront révélés très prochainement.
+              Restez connectés !
+            </p>
+
+            {/* Animated placeholder cards */}
+            <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
+              {[0, 1, 2].map(i => (
+                <div
+                  key={i}
+                  className="relative rounded-2xl border-2 border-dashed overflow-hidden"
+                  style={{
+                    borderColor: 'rgba(26,21,16,0.15)',
+                    animation: `fadeSlideUp 0.8s ease-out ${0.8 + i * 0.2}s both`,
+                  }}
+                >
+                  <div className="px-6 py-10" style={{ background: 'rgba(26,21,16,0.03)' }}>
+                    <div
+                      className="w-16 h-16 mx-auto rounded-full mb-4 flex items-center justify-center"
+                      style={{
+                        background: `linear-gradient(135deg, ${['#A65D47', '#C9A84C', '#4A5D4E'][i]}30, ${['#A65D47', '#C9A84C', '#4A5D4E'][i]}10)`,
+                        animation: `pulse 2s ease-in-out ${i * 0.5}s infinite`,
+                      }}
+                    >
+                      <Music className="w-7 h-7" style={{ color: ['#A65D47', '#C9A84C', '#4A5D4E'][i], opacity: 0.5 }} />
+                    </div>
+                    <div className="h-4 w-24 mx-auto rounded" style={{ background: 'rgba(26,21,16,0.08)' }} />
+                    <div className="h-3 w-16 mx-auto mt-2 rounded" style={{ background: 'rgba(26,21,16,0.05)' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Countdown teaser */}
+            <div
+              className="inline-flex items-center gap-3 px-6 py-3 rounded-full"
+              style={{
+                background: 'rgba(166,93,71,0.08)',
+                animation: 'fadeSlideUp 1s ease-out 1.4s both',
+              }}
+            >
+              <div className="w-2 h-2 rounded-full" style={{ background: '#A65D47', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <span className="text-sm font-medium" style={{ color: '#A65D47' }}>
+                22 Mai 2026 — Parc de La Savane, Fort-de-France
+              </span>
+            </div>
+          </div>
+
+          <style>{`
+            @keyframes wave {
+              0% { height: 8px; }
+              100% { height: 56px; }
+            }
+            @keyframes fadeSlideUp {
+              from { opacity: 0; transform: translateY(30px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); opacity: 0.7; }
+              50% { transform: scale(1.05); opacity: 1; }
+            }
+          `}</style>
         </section>
       )}
 

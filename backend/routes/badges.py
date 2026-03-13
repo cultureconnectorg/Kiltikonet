@@ -282,3 +282,25 @@ async def frek_status():
 @router.post("/frek-reconcile")
 async def frek_reconcile():
     return await frek_client.reconcile()
+
+
+
+@router.get("/frek-discovery")
+async def frek_discovery():
+    """Discover FREKcore API endpoints"""
+    import httpx
+    frek_url = os.environ.get("FREK_API_URL", "")
+    results = {}
+    paths_to_check = [
+        "", "/health", "/v1/health", "/docs", "/openapi.json",
+        "/badges", "/v1/badges", "/identity", "/v1/identity",
+        "/auth/token", "/v1/auth/token",
+    ]
+    async with httpx.AsyncClient(timeout=5) as client:
+        for path in paths_to_check:
+            try:
+                resp = await client.get(f"{frek_url}{path}")
+                results[path or "/"] = {"status": resp.status_code, "content_type": resp.headers.get("content-type", "")}
+            except Exception as e:
+                results[path or "/"] = {"status": "error", "error": str(e)[:60]}
+    return {"frek_url": frek_url, "endpoints": results}
