@@ -2,10 +2,11 @@
 
 // Service Worker - Culture Connect 2026 PWA
 // Cache versioning
-const CACHE_VERSION = 'cc2026-v1.2';
+const CACHE_VERSION = 'cc2026-v2.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
+const SCAN_QUEUE_STORE = 'cc2026-offline-scans';
 
 // Files to cache immediately on install
 const STATIC_FILES = [
@@ -69,6 +70,11 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    // Intercept scan POST requests for offline queuing
+    if (request.method === 'POST' && url.pathname.includes('/api/scan/')) {
+      event.respondWith(handleOfflineScan(request));
+      return;
+    }
     return;
   }
 
@@ -265,8 +271,8 @@ function isStaticAsset(pathname) {
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync triggered:', event.tag);
   
-  if (event.tag === 'cc2026-sync') {
-    event.waitUntil(syncPendingData());
+  if (event.tag === 'cc2026-sync' || event.tag === 'cc2026-scan-sync') {
+    event.waitUntil(syncOfflineScans());
   }
 });
 
@@ -367,6 +373,158 @@ self.addEventListener('message', (event) => {
       )
     );
   }
+
+  if (event.data.type === 'SYNC_OFFLINE_SCANS') {
+    event.waitUntil(syncOfflineScans());
+  }
+
+  if (event.data.type === 'GET_OFFLINE_QUEUE_SIZE') {
+    event.waitUntil(
+      getOfflineQueueSize().then(size => {
+        event.source.postMessage({ type: 'OFFLINE_QUEUE_SIZE', size });
+      })
+    );
+  }
 });
+
+// ═══════════════════════════════════════════════════════════════
+// OFFLINE SCAN QUEUE (IndexedDB)
+// ═══════════════════════════════════════════════════════════════
+
+function openScanDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(SCAN_QUEUE_STORE, 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('scans')) {
+        db.createObjectStore('scans', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function queueOfflineScan(scanData) {
+  const db = await openScanDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('scans', 'readwrite');
+    tx.objectStore('scans').add({
+      ...scanData,
+      queued_at: new Date().toISOString(),
+      synced: false,
+    });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getOfflineScans() {
+  const db = await openScanDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('scans', 'readonly');
+    const req = tx.objectStore('scans').getAll();
+    req.onsuccess = () => resolve(req.result.filter(s => !s.synced));
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function markScanSynced(id) {
+  const db = await openScanDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('scans', 'readwrite');
+    const store = tx.objectStore('scans');
+    const req = store.get(id);
+    req.onsuccess = () => {
+      const scan = req.result;
+      if (scan) {
+        scan.synced = true;
+        store.put(scan);
+      }
+      resolve();
+    };
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getOfflineQueueSize() {
+  try {
+    const scans = await getOfflineScans();
+    return scans.length;
+  } catch { return 0; }
+}
+
+async function handleOfflineScan(request) {
+  try {
+    const response = await fetch(request.clone());
+    return response;
+  } catch (error) {
+    // Network failed — queue the scan locally
+    try {
+      const body = await request.clone().json();
+      await queueOfflineScan({
+        url: request.url,
+        body: body,
+        method: request.method,
+      });
+
+      // Notify clients about queued scan
+      const clients = await self.clients.matchAll();
+      clients.forEach(c => c.postMessage({ type: 'SCAN_QUEUED_OFFLINE', body }));
+
+      return new Response(
+        JSON.stringify({
+          offline: true,
+          queued: true,
+          message: 'Scan enregistré hors-ligne. Synchronisation automatique au retour du réseau.',
+          badge_id: body.badge_id || '',
+          zone: body.zone || '',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'offline', message: 'Impossible de mettre en file le scan' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+}
+
+async function syncOfflineScans() {
+  console.log('[SW] Syncing offline scans...');
+  try {
+    const scans = await getOfflineScans();
+    let synced = 0;
+    let failed = 0;
+
+    for (const scan of scans) {
+      try {
+        const response = await fetch(scan.url, {
+          method: scan.method || 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(scan.body),
+        });
+        if (response.ok) {
+          await markScanSynced(scan.id);
+          synced++;
+        } else { failed++; }
+      } catch { failed++; }
+    }
+
+    // Notify clients
+    const clients = await self.clients.matchAll();
+    clients.forEach(c => c.postMessage({
+      type: 'OFFLINE_SYNC_COMPLETE',
+      synced,
+      failed,
+      remaining: scans.length - synced,
+    }));
+
+    console.log(`[SW] Sync complete: ${synced} synced, ${failed} failed`);
+  } catch (e) {
+    console.error('[SW] Sync error:', e);
+  }
+}
 
 console.log('[SW] Service Worker loaded - CC2026 PWA');

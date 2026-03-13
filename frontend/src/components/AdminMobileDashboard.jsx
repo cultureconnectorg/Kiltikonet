@@ -519,11 +519,59 @@ const AdminMobileDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dashboardLive, setDashboardLive] = useState(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [offlineQueueSize, setOfflineQueueSize] = useState(0);
   
   // Zone & role state
   const [selectedZone, setSelectedZone] = useState('ENTREE_GENERALE');
-  const [staffRole, setStaffRole] = useState('staff_entree'); // staff_entree | staff_bar | staff_vip
+  const [staffRole, setStaffRole] = useState('staff_entree');
   const [debitAmount, setDebitAmount] = useState(0);
+
+  // Online/offline detection + SW message listener
+  useEffect(() => {
+    const goOnline = () => { setIsOnline(true); syncOfflineQueue(); };
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+
+    const swHandler = (event) => {
+      if (event.data?.type === 'SCAN_QUEUED_OFFLINE') {
+        setOfflineQueueSize(prev => prev + 1);
+        toast.info('Scan enregistré hors-ligne');
+      }
+      if (event.data?.type === 'OFFLINE_SYNC_COMPLETE') {
+        setOfflineQueueSize(0);
+        toast.success(`${event.data.synced} scan(s) synchronisé(s)`);
+        fetchAffluence();
+        fetchDashboard();
+      }
+      if (event.data?.type === 'OFFLINE_QUEUE_SIZE') {
+        setOfflineQueueSize(event.data.size);
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', swHandler);
+
+    // Ask SW for current queue size
+    navigator.serviceWorker?.ready?.then(reg => {
+      reg.active?.postMessage({ type: 'GET_OFFLINE_QUEUE_SIZE' });
+    });
+
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+      navigator.serviceWorker?.removeEventListener('message', swHandler);
+    };
+  }, []);
+
+  const syncOfflineQueue = () => {
+    navigator.serviceWorker?.ready?.then(reg => {
+      if (reg.sync) {
+        reg.sync.register('cc2026-scan-sync');
+      } else {
+        reg.active?.postMessage({ type: 'SYNC_OFFLINE_SCANS' });
+      }
+    });
+  };
 
   const ZONES = [
     { id: 'ENTREE_GENERALE', label: 'Entrée Générale', icon: '🚪' },
@@ -625,6 +673,17 @@ const AdminMobileDashboard = () => {
       });
 
       const data = await res.json();
+      
+      // Handle offline queued response from SW
+      if (data.offline && data.queued) {
+        setScanResult({
+          status: 'queued', code: 'OFFLINE_QUEUED',
+          message: data.message, color: 'orange',
+          badge_id: data.badge_id, zone: data.zone,
+        });
+        return;
+      }
+      
       setScanResult(data);
 
       if (data.color === 'green') {
@@ -663,6 +722,23 @@ const AdminMobileDashboard = () => {
     >
       {/* Header */}
       <header className="sticky top-0 z-30 px-4 py-4 safe-area-top" style={{ background: COLORS.background, borderBottom: `1px solid ${COLORS.border}` }}>
+        {/* Offline status bar */}
+        {(!isOnline || offlineQueueSize > 0) && (
+          <div 
+            className="flex items-center justify-between px-3 py-2 rounded-lg mb-3 text-xs font-medium"
+            style={{ background: isOnline ? `${COLORS.accent}20` : `${COLORS.warning}20`, color: isOnline ? COLORS.accent : COLORS.warning }}
+            data-testid="offline-status-bar"
+          >
+            <span>
+              {!isOnline ? 'Mode hors-ligne actif' : `${offlineQueueSize} scan(s) en attente de sync`}
+            </span>
+            {isOnline && offlineQueueSize > 0 && (
+              <button onClick={syncOfflineQueue} className="px-2 py-1 rounded" style={{ background: `${COLORS.accent}30` }}>
+                Synchroniser
+              </button>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold" style={{ color: COLORS.text }}>Mode Terrain</h1>

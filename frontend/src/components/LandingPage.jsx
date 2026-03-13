@@ -6,7 +6,7 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { 
   ArrowRight, MapPin, Calendar, Users, Globe, Layers,
-  Mail, Instagram, Linkedin, Send, ChevronDown, Star, Music
+  Mail, Instagram, Linkedin, Send, ChevronDown, Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -32,8 +32,7 @@ export const LandingPage = () => {
   const [parallaxOffset, setParallaxOffset] = useState(0);
   
   // Shared data (synced from all workspaces)
-  const { artistes, partners: sharedPartners } = useSharedData();
-  const confirmedArtists = artistes.filter(a => a.status === 'Confirmé');
+  const { partners: sharedPartners } = useSharedData();
   
   // Reduced motion check
   const prefersReducedMotion = typeof window !== 'undefined' && 
@@ -293,46 +292,6 @@ export const LandingPage = () => {
 
       {/* ═══════════ MOMENT 4 — LE COMPTE À REBOURS ═══════════ */}
       <Countdown targetDate="2026-05-22T00:00:00" />
-
-      {/* ═══════════ LINE-UP - Connected to shared data ═══════════ */}
-      {artistes.length > 0 && (
-        <section className="py-16 sm:py-24" data-testid="lineup-section-landing">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Reveal>
-              <div className="text-center mb-12">
-                <p className="text-terracotta font-syne text-sm tracking-widest uppercase mb-4">
-                  {language === 'fr' ? 'Line-up' : 'Line-up'}
-                </p>
-                <h2 className="font-serif text-3xl sm:text-4xl text-charcoal">
-                  {language === 'fr' ? 'Les artistes' : 'Artists'}
-                </h2>
-              </div>
-            </Reveal>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {artistes.map((artist, i) => (
-                <Reveal key={artist.id}>
-                  <div className="group relative p-6 rounded-2xl border border-charcoal/10 bg-white hover:shadow-lg transition-all duration-300" data-testid={`landing-artist-${artist.id}`}>
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ background: artist.status === 'Confirmé' ? '#4A5D4E' : '#C4714A' }}>
-                        {artist.name?.charAt(0)}
-                      </div>
-                      <div>
-                        <h3 className="font-syne font-bold text-charcoal text-lg">{artist.name}</h3>
-                        <p className="text-sm text-charcoal/50">{artist.genre}</p>
-                      </div>
-                    </div>
-                    {artist.status === 'Confirmé' && (
-                      <span className="absolute top-4 right-4 text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 font-medium">
-                        Confirmé
-                      </span>
-                    )}
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ═══════════ MOMENT 5 — PROGRAMME ═══════════ */}
       <section id="programme" className="py-24 sm:py-32 bg-cream" data-testid="programme-section">

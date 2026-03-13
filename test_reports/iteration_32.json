@@ -1,0 +1,149 @@
+{
+  "summary": "CC2026 Iteration 32 - Complete testing of new features: Visiteur badge (VIS type, 0€), Concert page, line-up removal from Programme/Landing pages, Jetons Analytics dashboard, and AWS SES domain status. Backend: 17/17 tests passed (100%). Frontend: All UI elements verified via Playwright.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "features_tested": {
+    "tarifs_page": {
+      "status": "PASSED",
+      "tests": [
+        "4 pricing cards visible (Visiteur, Émergent, Professionnel, Institutionnel)",
+        "Visiteur card displays 'Gratuit' instead of price",
+        "Visiteur card redirects to /badge-inscription on click"
+      ]
+    },
+    "concert_page": {
+      "status": "PASSED",
+      "tests": [
+        "New /concert page loads with hero section",
+        "Title 'Concerts & Performances' visible",
+        "Date '22 Mai 2026' and location 'Parc de La Savane' displayed",
+        "Artist cards section present ('À confirmer')",
+        "CTA button 'Voir les tarifs' present"
+      ]
+    },
+    "programme_page": {
+      "status": "PASSED",
+      "tests": [
+        "NO lineup section visible (correctly removed)",
+        "Programme content section present"
+      ]
+    },
+    "landing_page": {
+      "status": "PASSED",
+      "tests": [
+        "NO lineup section visible (correctly removed)",
+        "Hero, Stats, Programme, Partenaires sections present",
+        "Concert link visible in navbar"
+      ]
+    },
+    "header_navigation": {
+      "status": "PASSED",
+      "tests": [
+        "'Concert' link present in navbar",
+        "Concert link navigates to /concert correctly"
+      ]
+    },
+    "badge_types_api": {
+      "status": "PASSED",
+      "endpoint": "GET /api/badges/types",
+      "tests": [
+        "VIS type exists with label 'Visiteur'",
+        "VIS has ENTREE_GENERALE zone access",
+        "VIS is NOT NFC enabled (free badge)"
+      ]
+    },
+    "badge_inscription_api": {
+      "status": "PASSED",
+      "endpoint": "POST /api/badges/inscrire",
+      "tests": [
+        "type_badge=VIS creates badge with CC26-VIS-xxxxx format",
+        "VIS badge has nfc_enabled=false",
+        "VIS badge statut=INSCRIT",
+        "Duplicate email rejected (409)",
+        "Invalid badge type rejected (400)"
+      ]
+    },
+    "jetons_analytics_api": {
+      "status": "PASSED",
+      "endpoint": "GET /api/analytics/jetons/overview",
+      "tests": [
+        "Returns summary with total_jetons_circulation, total_purchased, total_spent, etc.",
+        "Returns timeline array",
+        "Returns pack_distribution array",
+        "Returns frek_core connection status"
+      ]
+    },
+    "ses_domain_status_api": {
+      "status": "PASSED",
+      "endpoint": "GET /api/ses/domain/status",
+      "tests": [
+        "Returns domain 'kiltikonet.fr'",
+        "Returns verification status",
+        "Returns DKIM configuration",
+        "Returns dns_records_needed (SPF, DMARC, DKIM CNAME)",
+        "Returns sending quota"
+      ]
+    },
+    "jetons_analytics_dashboard": {
+      "status": "PASSED",
+      "tests": [
+        "Dashboard accessible at /admin/analytics/jetons (requires admin login)",
+        "4 KPI cards displayed (Jetons en circulation, Revenus totaux, Jetons dépensés, Détenteurs)",
+        "Recharts charts visible (Volume de transactions, Distribution des packs, Jetons par type de badge, Top 10 détenteurs)",
+        "Transactions récentes table present",
+        "FREK status indicator shows connection state"
+      ]
+    }
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_iteration32_features.py",
+    "/app/test_reports/pytest/iteration32_results.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "FREK API is in FALLBACK MODE (MOCKED) - generates LOCAL-xxx IDs when external API unreachable",
+    "AWS SES domain verification status shows 'NotStarted' - DNS records need to be configured for kiltikonet.fr production email sending",
+    "Console warning about span in select element in BadgeInscription (hydration warning) - minor, doesn't affect functionality"
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_iteration32_features.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% - 17/17 tests passed",
+    "frontend": "100% - All UI elements verified"
+  },
+
+  "test_credentials": {
+    "admin_password": "CC2026admin",
+    "test_badges_created": ["CC26-VIS-QW0FQ", "Multiple test VIS badges during pytest"]
+  },
+
+  "seed_data_creation": "Multiple VIS badge test records created during backend testing",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Iteration 32 complete. All new features verified: 1) Tarifs page has 4 cards with Visiteur at 0€ redirecting to /badge-inscription, 2) Concert page exists at /concert with artist lineup (moved from Programme/Landing), 3) Programme and Landing pages have NO lineup sections, 4) Badge types API includes VIS type for free visitors, 5) Badge inscription works with VIS type, 6) Jetons Analytics dashboard at /admin/analytics/jetons shows Recharts charts with FREK core status, 7) SES domain status API returns kiltikonet.fr configuration. Admin login: CC2026admin. FREK API is in fallback mode (LOCAL-xxx IDs).",
+
+  "mocked_apis": {
+    "FREK_API": "MOCKED - In fallback mode, generates LOCAL-xxx IDs instead of real FREK IDs"
+  },
+
+  "rca_of_the_issue": null
+}

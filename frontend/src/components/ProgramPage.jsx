@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCMSProgram, useCMSTheme } from '../hooks/useCMSContent';
 import { useIntersectionObserver } from '../hooks/useAnimations';
-import { ArrowLeft, Calendar, MapPin, Clock, User, Loader2, Download, Music } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, User, Loader2, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { LegalFooter } from './legal';
-import { useSharedData } from '../contexts/SharedDataContext';
 
 // Animated Day Card with timeline
 const AnimatedDayCard = ({ day, dayIdx, totalDays }) => {
@@ -173,10 +172,6 @@ const ProgramPage = () => {
   const { theme, loading: themeLoading } = useCMSTheme();
   const [heroVisible, setHeroVisible] = useState(false);
   
-  // Shared data - confirmed artists from all workspaces
-  const { artistes } = useSharedData();
-  const confirmedArtists = artistes.filter(a => a.status === 'Confirmé');
-
   const loading = programLoading || themeLoading;
   const primaryColor = theme?.primary_color || '#A65D47';
 
@@ -275,40 +270,6 @@ const ProgramPage = () => {
           </p>
         </div>
       </section>
-
-      {/* Line-up section - Connected to shared data */}
-      {artistes.length > 0 && (
-        <section className="py-12 bg-paper border-b border-charcoal/10" data-testid="lineup-section">
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="flex items-center gap-3 mb-6">
-              <Music className="w-5 h-5" style={{ color: primaryColor }} />
-              <h2 className="font-serif text-2xl text-charcoal">Line-up</h2>
-              <span className="text-xs px-2 py-1 rounded-full bg-charcoal/5 text-charcoal/50">
-                {artistes.length} artiste{artistes.length > 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {artistes.map(artist => (
-                <div key={artist.id} className="p-4 rounded-xl border border-charcoal/10 bg-white/50 hover:shadow-md transition-shadow" data-testid={`lineup-artist-${artist.id}`}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: artist.status === 'Confirmé' ? '#4A5D4E' : primaryColor }}>
-                      {artist.name?.charAt(0) || '?'}
-                    </div>
-                    <div>
-                      <div className="font-syne font-bold text-charcoal">{artist.name}</div>
-                      <div className="text-xs text-charcoal/50">{artist.genre}</div>
-                    </div>
-                  </div>
-                  {artist.horaire && <div className="mt-2 text-xs text-charcoal/40 flex items-center gap-1"><Clock className="w-3 h-3" />{artist.horaire}</div>}
-                  {artist.status === 'Confirmé' && (
-                    <span className="mt-2 inline-block text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Confirmé</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Timeline section */}
       <section className="py-16 relative">

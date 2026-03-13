@@ -26,6 +26,8 @@ import VisualEditor from "./components/VisualEditor";
 import DynamicPage from "./components/DynamicPage";
 // Program Page
 import ProgramPage from "./components/ProgramPage";
+// Concert Page
+import ConcertPage from "./components/ConcertPage";
 // Intro Sequence
 import IntroSequence, { ReturnWelcome } from "./components/IntroSequence";
 // Accreditation System
@@ -35,6 +37,7 @@ import BadgeScan from "./components/BadgeScan";
 import BadgeActivation from "./components/BadgeActivation";
 import BadgeInscription from "./components/BadgeInscription";
 import JetonsPage from "./components/JetonsPage";
+import JetonsAnalyticsDashboard from "./components/JetonsAnalyticsDashboard";
 // Workspaces
 import WorkspaceLaurent from "./components/workspaces/WorkspaceLaurent";
 import WorkspaceTwina from "./components/workspaces/WorkspaceTwina";
@@ -141,6 +144,7 @@ function App() {
               <Route path="/register" element={<RegistrationForm />} />
               <Route path="/inscription" element={<RegistrationForm />} />
               <Route path="/programme" element={<ProgramPage />} />
+              <Route path="/concert" element={<ConcertPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/dashboard-3d" element={<ProtectedRoute allowedRoles={['admin']}><Suspense fallback={<Loading3D />}><Dashboard3D /></Suspense></ProtectedRoute>} />
@@ -158,6 +162,7 @@ function App() {
               <Route path="/badge-inscription" element={<BadgeInscription />} />
               <Route path="/jetons" element={<JetonsPage />} />
               <Route path="/jetons/confirmation" element={<JetonsPage />} />
+              <Route path="/admin/analytics/jetons" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><JetonsAnalyticsDashboard /></ProtectedRoute>} />
               <Route path="/participant/:participantId" element={<ParticipantProfile />} />
               {/* Workspaces - Protected */}
               <Route path="/workspace/laurent" element={<ProtectedRoute allowedRoles={['founder']}><WorkspaceLaurent /></ProtectedRoute>} />

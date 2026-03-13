@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { UserPlus, CheckCircle, Loader2, QrCode, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -6,8 +7,11 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 const C = { bg: '#F4F0E8', card: '#FFFFFF', warm: '#E8E0D0', dark: '#1A1510', muted: '#6B6560', gold: '#C9A84C', terra: '#A65D47' };
 
 export default function BadgeInscription() {
+  const location = useLocation();
+  const preSelectedType = location.state?.selectedType || '';
+  const tierName = location.state?.tierName || '';
   const [types, setTypes] = useState({});
-  const [form, setForm] = useState({ prenom: '', nom: '', email: '', type_badge: 'BNV', organisation: '' });
+  const [form, setForm] = useState({ prenom: '', nom: '', email: '', type_badge: preSelectedType || 'VIS', organisation: '' });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -78,8 +82,15 @@ export default function BadgeInscription() {
       <div className="max-w-md mx-auto" data-testid="badge-inscription-form">
         <div className="text-center mb-8">
           <UserPlus className="w-12 h-12 mx-auto mb-3" style={{ color: C.terra }} />
-          <h1 className="text-2xl font-bold" style={{ color: C.dark }}>Inscription Badge</h1>
+          <h1 className="text-2xl font-bold" style={{ color: C.dark }}>
+            {tierName ? `Inscription ${tierName}` : 'Inscription Badge'}
+          </h1>
           <p className="text-sm mt-1" style={{ color: C.muted }}>Culture Connect 2026</p>
+          {preSelectedType === 'VIS' && (
+            <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium" style={{ background: `${C.gold}20`, color: C.gold }}>
+              Accès gratuit
+            </span>
+          )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 p-6 rounded-xl shadow-lg" style={{ background: C.card, border: `1px solid ${C.warm}` }}>
           <Field label="Prénom *" value={form.prenom} onChange={v => setForm({...form, prenom: v})} testId="input-prenom" />

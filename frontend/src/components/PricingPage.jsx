@@ -57,10 +57,14 @@ const PricingCard = ({ tier, index, language, onSelect }) => {
       <p className="text-charcoal/60 text-sm mb-6">{tier.description}</p>
 
       <div className="mb-6">
-        <span className="font-serif text-4xl text-charcoal">{tier.price}€</span>
-        <span className="text-charcoal/50 text-sm ml-2">
-          {language === 'fr' ? '/ personne' : '/ person'}
+        <span className="font-serif text-4xl text-charcoal">
+          {tier.price === 0 ? (language === 'fr' ? 'Gratuit' : 'Free') : `${tier.price}€`}
         </span>
+        {tier.price > 0 && (
+          <span className="text-charcoal/50 text-sm ml-2">
+            {language === 'fr' ? '/ personne' : '/ person'}
+          </span>
+        )}
       </div>
 
       <ul className="space-y-3 mb-8">
@@ -86,7 +90,10 @@ const PricingCard = ({ tier, index, language, onSelect }) => {
         onClick={() => onSelect(tier)}
         className={`w-full h-12 ${buttonClasses[tier.color]} text-paper font-syne text-sm tracking-wide rounded-none transition-all duration-300 group`}
       >
-        {language === 'fr' ? "S'inscrire" : 'Register'}
+        {tier.price === 0
+          ? (language === 'fr' ? "S'inscrire gratuitement" : 'Register for free')
+          : (language === 'fr' ? "S'inscrire" : 'Register')
+        }
         <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
       </Button>
     </div>
@@ -108,6 +115,31 @@ export const PricingPage = () => {
 
   const tiers = [
     {
+      id: 'visiteur',
+      name: language === 'fr' ? 'Visiteur' : 'Visitor',
+      price: 0,
+      description: language === 'fr'
+        ? 'Accès gratuit pour découvrir l\'événement'
+        : 'Free access to discover the event',
+      color: 'sage',
+      badge_type: 'VIS',
+      features: language === 'fr' ? [
+        'Accès à l\'entrée générale',
+        'Badge Culture Connect',
+        'FREK-ID culturel',
+        'Accès aux ateliers ouverts',
+        'Accès à la Savane (22 Mai)',
+        'Documentation digitale'
+      ] : [
+        'General entrance access',
+        'Culture Connect badge',
+        'Cultural FREK-ID',
+        'Open workshop access',
+        'La Savane access (May 22)',
+        'Digital documentation'
+      ]
+    },
+    {
       id: 'emerging',
       name: language === 'fr' ? 'Émergent' : 'Emerging',
       price: 50,
@@ -115,6 +147,7 @@ export const PricingPage = () => {
         ? 'Pour les artistes émergents et étudiants'
         : 'For emerging artists and students',
       color: 'sage',
+      badge_type: 'BNV',
       features: language === 'fr' ? [
         'Accès aux conférences',
         'Badge accréditation',
@@ -140,6 +173,7 @@ export const PricingPage = () => {
         : 'For professionals and organizations',
       color: 'terracotta',
       popular: true,
+      badge_type: 'INT',
       features: language === 'fr' ? [
         'Tout le pack Émergent',
         'Accès prioritaire aux tables rondes',
@@ -168,6 +202,7 @@ export const PricingPage = () => {
         ? 'Pour les institutions et partenaires majeurs'
         : 'For institutions and major partners',
       color: 'charcoal',
+      badge_type: 'SPO',
       features: language === 'fr' ? [
         'Tout le pack Professionnel',
         'Stand dédié au Marché Culturel',
@@ -191,7 +226,11 @@ export const PricingPage = () => {
   ];
 
   const handleSelectTier = (tier) => {
-    navigate('/inscription', { state: { selectedTier: tier.id, price: tier.price } });
+    if (tier.price === 0) {
+      navigate('/badge-inscription', { state: { selectedType: tier.badge_type, tierName: tier.name } });
+    } else {
+      navigate('/inscription', { state: { selectedTier: tier.id, price: tier.price, badge_type: tier.badge_type } });
+    }
   };
 
   return (
@@ -249,7 +288,7 @@ export const PricingPage = () => {
       {/* Pricing Cards */}
       <section className="py-20 sm:py-28 -mt-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8 items-start">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
             {tiers.map((tier, index) => (
               <PricingCard
                 key={tier.id}

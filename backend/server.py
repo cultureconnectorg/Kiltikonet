@@ -3513,8 +3513,12 @@ app.include_router(api_v1_router)
 # ================== CC2026 BADGE & JETONS ROUTES ==================
 from routes.badges import router as badges_router
 from routes.jetons import router as jetons_router
+from routes.ses import router as ses_router
+from routes.analytics import router as analytics_router
 app.include_router(badges_router)
 app.include_router(jetons_router)
+app.include_router(ses_router)
+app.include_router(analytics_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek

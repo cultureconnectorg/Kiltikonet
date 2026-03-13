@@ -30,6 +30,7 @@ _db = _client[os.environ["DB_NAME"]]
 # ============ CONSTANTS ============
 
 BADGE_TYPES = {
+    "VIS": "Visiteur",
     "ART": "Artiste",
     "INT": "Intervenant",
     "STF": "Staff",
