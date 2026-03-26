@@ -627,7 +627,8 @@ WORKSPACE_CREDENTIALS = {
     "Alirio2026": {"role": "business", "name": "Alirio", "redirect": "/workspace/alirio"},
     "Wudy2026": {"role": "finance", "name": "Wudy", "redirect": "/workspace/wudy"},
     "Fabrice2026": {"role": "captions", "name": "Fabrice", "redirect": "/workspace/fabrice"},
-    "DataCC2026": {"role": "analyst", "name": "Data Analyst", "redirect": "/workspace/analyst"}
+    "DataCC2026": {"role": "analyst", "name": "Data Analyst", "redirect": "/workspace/analyst"},
+    "Coleen2026": {"role": "partnerships", "name": "Coleen", "redirect": "/workspace/coleen"}
 }
 
 class WorkspaceLoginRequest(BaseModel):
@@ -4207,21 +4208,21 @@ async def init_default_content(tenant_id: str = DEFAULT_TENANT):
                     "id": "day2",
                     "date": "2026-05-21",
                     "label": "DAY 2 — Mercredi 21 Mai 2026",
-                    "site": "Bibliothèque Schoelcher + Tropiques Atrium",
+                    "site": "Bibliothèque Schoelcher + Teyat Otonom Mawon",
                     "is_highlight": False,
                     "highlight_color": None,
                     "slots": [
                         {"time": "09:30", "title": "Workshop : Distribution digitale", "description": "Stratégies de distribution pour artistes caribéens", "speaker": "Experts streaming"},
                         {"time": "11:00", "title": "Masterclass : Production musicale", "description": "Techniques et tendances actuelles", "speaker": ""},
                         {"time": "14:30", "title": "Rencontres B2B", "description": "Sessions de speed-meeting", "speaker": ""},
-                        {"time": "20:00", "title": "Showcase Artistes Émergents", "description": "Performances live @ Tropiques Atrium", "speaker": "Artistes sélectionnés"}
+                        {"time": "20:00", "title": "Showcase Artistes Émergents", "description": "Performances live @ Teyat Otonom Mawon", "speaker": "Artistes sélectionnés"}
                     ]
                 },
                 {
                     "id": "day3",
                     "date": "2026-05-22",
                     "label": "DAY 3 — Jeudi 22 Mai 2026 (JOURNÉE ABOLITION)",
-                    "site": "Tropiques Atrium + La Savane",
+                    "site": "Teyat Otonom Mawon + La Savane",
                     "is_highlight": True,
                     "highlight_color": "#A65D47",
                     "slots": [
@@ -4235,7 +4236,7 @@ async def init_default_content(tenant_id: str = DEFAULT_TENANT):
                     "id": "day4",
                     "date": "2026-05-23",
                     "label": "DAY 4 — Vendredi 23 Mai 2026",
-                    "site": "Tropiques Atrium",
+                    "site": "Teyat Otonom Mawon",
                     "is_highlight": False,
                     "highlight_color": None,
                     "slots": [

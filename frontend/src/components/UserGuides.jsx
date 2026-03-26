@@ -121,7 +121,7 @@ Partenaire Or/Silver/Bronze: Selon niveau de sponsoring`
 - Zone publique
 
 🔐 ESPACE PRO (VIP, Pro, Institutionnel, Presse):
-- Tropiques Atrium
+- Teyat Otonom Mawon (TOM)
 - Salon business
 
 🎭 BACKSTAGE (Artiste, Staff, Régie):
@@ -439,7 +439,7 @@ SI PROBLÈME DE SCAN:
    Équipe: Bénévoles + 1 régisseur
    Rôle: Scan badges, orientation
 
-📍 ESPACE PRO (Tropiques Atrium)
+📍 ESPACE PRO (Teyat Otonom Mawon)
    Équipe: Alirio + 1 assistant
    Rôle: Accueil pros, badges VIP
 

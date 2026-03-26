@@ -144,8 +144,8 @@ export const PricingPage = () => {
       name: language === 'fr' ? 'Émergent' : 'Emerging',
       price: 50,
       description: language === 'fr' 
-        ? 'Pour les artistes émergents et étudiants'
-        : 'For emerging artists and students',
+        ? 'Jeunes entrepreneurs, PME, startups culturelles & artistes émergents'
+        : 'Young entrepreneurs, SMEs, cultural startups & emerging artists',
       color: 'sage',
       badge_type: 'BNV',
       features: language === 'fr' ? [
@@ -167,7 +167,7 @@ export const PricingPage = () => {
     {
       id: 'professional',
       name: language === 'fr' ? 'Professionnel' : 'Professional',
-      price: 150,
+      price: 300,
       description: language === 'fr'
         ? 'Pour les professionnels et structures'
         : 'For professionals and organizations',
@@ -197,7 +197,7 @@ export const PricingPage = () => {
     {
       id: 'institutional',
       name: language === 'fr' ? 'Institutionnel' : 'Institutional',
-      price: 300,
+      price: 500,
       description: language === 'fr'
         ? 'Pour les institutions et partenaires majeurs'
         : 'For institutions and major partners',

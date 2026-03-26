@@ -48,6 +48,7 @@ import WorkspaceAlirio from "./components/workspaces/WorkspaceAlirio";
 import WorkspaceWudy from "./components/workspaces/WorkspaceWudy";
 import WorkspaceFabrice from "./components/workspaces/WorkspaceFabrice";
 import WorkspaceAnalyst from "./components/workspaces/WorkspaceAnalyst";
+import ColeenWorkspace from "./components/workspaces/ColeenWorkspace";
 // Protected Route with session expiration
 import { ProtectedRoute } from "./components/ProtectedRoute";
 // Dashboard CC2026 Collaboratif
@@ -175,6 +176,7 @@ function App() {
               <Route path="/workspace/wudy" element={<ProtectedRoute allowedRoles={['finance']}><WorkspaceWudy /></ProtectedRoute>} />
               <Route path="/workspace/fabrice" element={<ProtectedRoute allowedRoles={['captions']}><WorkspaceFabrice /></ProtectedRoute>} />
               <Route path="/workspace/analyst" element={<ProtectedRoute allowedRoles={['analyst']}><WorkspaceAnalyst /></ProtectedRoute>} />
+              <Route path="/workspace/coleen" element={<ProtectedRoute allowedRoles={['partnerships']}><ColeenWorkspace /></ProtectedRoute>} />
               {/* Dashboard CC2026 Collaboratif */}
               <Route path="/dashboard-cc2026" element={<ProtectedRoute allowedRoles={['admin', 'design']}><DashboardCC2026 workspaceId="CC2026admin" /></ProtectedRoute>} />
               <Route path="/dashboard-cc2026/laurent" element={<ProtectedRoute allowedRoles={['founder']}><DashboardCC2026 workspaceId="LC2026" /></ProtectedRoute>} />

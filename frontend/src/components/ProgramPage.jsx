@@ -192,7 +192,7 @@ const ProgramPage = () => {
     {
       id: 'jour2',
       label: 'Mercredi 21 Mai — Débats Industrie',
-      site: 'Atrium, Fort-de-France',
+      site: 'Teyat Otonom Mawon (TOM), Fort-de-France',
       is_highlight: false,
       slots: [
         { time: '09:00', title: 'Conférences : Musique & Digital', description: 'Distribution, streaming et monétisation en Caraïbe' },

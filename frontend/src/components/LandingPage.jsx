@@ -72,7 +72,7 @@ export const LandingPage = () => {
   
   const programDays = [
     { day: 'Mar. 20 Mai', title: language === 'fr' ? 'Accueil & Accréditations' : 'Welcome', location: 'Bibliothèque Schœlcher' },
-    { day: 'Mer. 21 Mai', title: language === 'fr' ? 'Débats Industrie' : 'Industry Debates', location: 'Atrium' },
+    { day: 'Mer. 21 Mai', title: language === 'fr' ? 'Débats Industrie' : 'Industry Debates', location: 'TOM' },
     { day: 'Jeu. 22 Mai', title: language === 'fr' ? 'Marché Culturel' : 'Cultural Market', location: 'La Savane', highlight: true },
     { day: 'Ven. 23 Mai', title: language === 'fr' ? 'Brunch & Clôture' : 'Brunch & Closing', location: 'Fort-de-France' }
   ];

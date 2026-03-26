@@ -236,7 +236,7 @@ const BadgeScan = () => {
                   Zones d'acces autorisees
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {['Parc La Savane', 'Tropiques Atrium', 'Espace Pro'].map(zone => (
+                  {['Parc La Savane', 'Teyat Otonom Mawon', 'Espace Pro'].map(zone => (
                     <span 
                       key={zone}
                       className="px-3 py-1 rounded-full text-xs font-medium"
