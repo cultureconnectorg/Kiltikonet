@@ -99,14 +99,12 @@ const AppLayout = ({ children }) => {
   );
 };
 
-// Intro wrapper that checks URL
+// Intro wrapper that checks URL — ONLY shows on root path "/"
 const IntroWrapper = () => {
   const location = window.location.pathname;
   const [showIntro, setShowIntro] = React.useState(() => {
-    // Skip intro on admin pages, badge scan page, workspace pages, espace-pro
-    if (location.startsWith('/admin') || location.startsWith('/smart-engine') || location.startsWith('/badge') || location.startsWith('/workspace') || location.startsWith('/dashboard-cc2026') || location.startsWith('/espace-pro')) {
-      return false;
-    }
+    // Only show intro on the ROOT path "/"
+    if (location !== '/') return false;
     // Skip intro if visual editor mode
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('ve') === '1' || urlParams.get('skip_intro') === '1') {
@@ -143,8 +141,8 @@ function App() {
               <Route path="/catalogue" element={<CatalogPage />} />
               <Route path="/catalog" element={<CatalogPage />} />
               <Route path="/tarifs" element={<PricingPage />} />
-              <Route path="/register" element={<RegistrationForm />} />
-              <Route path="/inscription" element={<RegistrationForm />} />
+              <Route path="/register" element={<PricingPage />} />
+              <Route path="/inscription" element={<PricingPage />} />
               <Route path="/programme" element={<ProgramPage />} />
               <Route path="/concert" element={<ConcertPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />

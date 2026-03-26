@@ -160,13 +160,11 @@ const IntroSequence = ({ onComplete }) => {
     }
   }, [intention]);
 
-  // Show skip button after 3 seconds in step 6
+  // Show skip button after 1.5 seconds (regardless of step)
   useEffect(() => {
-    if (step === 6) {
-      const timer = setTimeout(() => setShowSkip(true), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [step]);
+    const timer = setTimeout(() => setShowSkip(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Stagger identity appearance
   useEffect(() => {
@@ -315,6 +313,17 @@ const IntroSequence = ({ onComplete }) => {
           </svg>
         )}
       </button>
+
+      {/* Global skip button - always visible */}
+      {showSkip && step !== 6 && (
+        <button
+          onClick={handleSkip}
+          className="absolute bottom-8 right-8 z-50 text-sm text-gray-400 hover:text-white transition-colors animate-fade-in px-4 py-2 rounded-full border border-gray-700 hover:border-gray-500"
+          data-testid="skip-intro-global"
+        >
+          Passer →
+        </button>
+      )}
 
       {/* STEP 1: Le Souffle */}
       {step === 1 && (
