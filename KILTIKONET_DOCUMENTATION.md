@@ -6,8 +6,8 @@
 
 ## 1. VUE D'ENSEMBLE
 
-**URL Production** : `https://cc2026-updates.preview.emergentagent.com`
-**API Base URL** : `https://cc2026-updates.preview.emergentagent.com/api`
+**URL Production** : `https://tarifs-update.preview.emergentagent.com`
+**API Base URL** : `https://tarifs-update.preview.emergentagent.com/api`
 **Stack** : FastAPI (Python) + React 19 PWA + MongoDB + Stripe + AWS SES
 **Organisateur** : Factory Maker Studio (EURL) / CVLN Group
 **Événement** : 20-23 Mai 2026, Fort-de-France, Martinique
@@ -109,7 +109,7 @@ Frontend (React PWA)  ←→  API Gateway (/api prefix)  ←→  FastAPI Backend
 
 **Exemple d'inscription :**
 ```bash
-curl -X POST https://cc2026-updates.preview.emergentagent.com/api/badges/inscrire \
+curl -X POST https://tarifs-update.preview.emergentagent.com/api/badges/inscrire \
   -H "Content-Type: application/json" \
   -d '{"prenom":"Marie","nom":"Test","email":"marie@test.com","type_badge":"VIS"}'
 ```
@@ -235,7 +235,7 @@ curl -X POST .../api/scan/debit \
 
 ## 5. CONNEXION FREKCORE
 
-**FREKcore URL** : `https://frek-certification.preview.emergentagent.com/api`
+**FREKcore URL** : `https://tarifs-update.preview.emergentagent.com/api`
 **Auth** : JWT via `POST /v1/auth/token`
 ```json
 {

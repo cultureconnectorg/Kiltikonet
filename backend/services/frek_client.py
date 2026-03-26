@@ -12,7 +12,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-FREK_API_URL = os.environ.get("FREK_API_URL", "https://frek-certification.preview.emergentagent.com/api")
+FREK_API_URL = os.environ.get("FREK_API_URL", "https://tarifs-update.preview.emergentagent.com/api")
 FREK_CLIENT_ID = os.environ.get("FREK_CLIENT_ID", "kiltikonet-cc2026")
 FREK_CLIENT_SECRET = os.environ.get("FREK_CLIENT_SECRET", "pczBP49crCXSSSwSOShsXClzs9srhKe5S-xnraMPn-k")
 FREK_ADMIN_KEY = os.environ.get("FREK_ADMIN_KEY", "pczBP49crCXSSSwSOShsXClzs9srhKe5S-xnraMPn-k")
