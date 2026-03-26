@@ -56,6 +56,15 @@ BASE_URL = os.environ.get("BASE_URL", "https://kiltikonet.fr")
 # Create the main app
 app = FastAPI()
 
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
@@ -4805,13 +4814,6 @@ async def verify_proxy(attestation_id: str):
             logger.error(f"Verify proxy error: {str(e)}")
             raise HTTPException(status_code=500, detail="Internal proxy error")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # ================== SECURITY HEADERS MIDDLEWARE ==================
 from starlette.middleware.base import BaseHTTPMiddleware
