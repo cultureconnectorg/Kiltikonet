@@ -18,81 +18,45 @@ Application full-stack pour la gestion d'un événement culturel caribéen (accr
 
 ## Ce qui est implémenté
 
+### ConfirmationScreen enrichi (26/03/2026)
+- Combine design de paiement + badge design
+- Affiche: Header coloré avec tier, carte personne, détails paiement, Badge ID (copier), FREK-ID, zones d'accès, boutons Mon Espace/Accueil/Télécharger badge
+- Prix corrigés: Pro 300€, Institu 500€
+- Stripe cancel_url corrigé (pointe vers /tarifs au lieu de /inscription)
+
 ### Refactoring server.py (26/03/2026)
 - **server.py : 8780 → 8317 lignes** (-463 lignes)
-- `routes/shared.py` : Artistes, Prestataires, Tasks, Partners, Expenses, Contacts, Planning (CRUD complet)
+- `routes/shared.py` : Artistes, Prestataires, Tasks, Partners, Expenses, Contacts, Planning
 - `routes/terrain.py` : validate-badge, affluence, search, manual-checkin, reset-presence
-- Routes existantes : `routes/analytics.py`, `routes/badges.py`, `routes/jetons.py`, `routes/ses.py`
 
 ### PWA Scan Staff (26/03/2026)
 - `BadgeScan.jsx` migré de Baserow vers MongoDB local
-- **Scanner Dashboard** (`/badge-scan`) : Affluence en temps réel, recherche participant, check-in manuel, instructions
-- **Validation Badge** (`/badge/{id}`) : Vérifie le badge, affiche BIENVENUE (vert) / DEJA SCANNE (orange) / INVALIDE (rouge)
-- Zones d'accès affichées : Parc La Savane, Teyat Otonom Mawon, Espace Pro
+- Scanner Dashboard + Validation Badge (vert/orange/rouge)
 
 ### Export PDF Badges Batch (26/03/2026)
-- Backend `GET /api/badges/export-pdf-batch?tier=X` : Génère PDF multi-pages (4 badges A6 par page A4)
-- Backend `GET /api/badges/export-pdf-single/{id}` : Badge individuel
-- Backend `GET /api/badges/export-stats` : Statistiques par tier
-- **Workspace Twina** : Onglet "Export Badges PDF" avec stats et boutons d'export par catégorie
+- Workspace Twina : onglet "Export Badges PDF" avec stats et export par tier
 
 ### Smart Engine & Analytics (26/03/2026)
-- Tracking automatique (page views, IP, device, referrer, session)
-- Dashboard admin `/admin/analytics/site` + bouton "Trafic" dans la barre admin
-- Endpoint `GET /api/analytics/site?days=N`
+- Tracking automatique + Dashboard admin `/admin/analytics/site`
 
 ### Espace Coleen (26/03/2026)
-- CRUD complet : Partenaires (avec upload photo Cloudinary), Contacts, Budget
-- Dashboard avec pipeline partenariats
+- CRUD complet avec upload photo Cloudinary
 
 ### Formulaire Pro 3 étapes (26/03/2026)
-- Identité → Activité pro (org, SIRET, bio, logo upload) → Objectifs (tags, RGPD)
-- Tarifs : Gratuit / 50€ / 300€ / 500€
-
-### Cache PWA (26/03/2026)
-- Version cache : `cc2026-v3.0`
+- Identité → Activité pro → Objectifs & Réseautage
 
 ---
 
 ## Backlog
 
-### P1 - À faire
-- Catalogue : 0 inscriptions approuvées (normal, pas de bug)
+### P1
 - Déploiement production (kiltikonet.fr)
 
-### P2 - Futur
+### P2
 - AWS SES sortir du sandbox
-- Continuer refactoring server.py (Stripe, registrations, CMS, chat/WebSocket)
+- Continuer refactoring server.py (Stripe, registrations, CMS, chat)
 
 ---
-
-## Architecture fichiers
-```
-/app/backend/
-  server.py          # Backend principal (~8317 lignes)
-  routes/
-    analytics.py     # Analytics events
-    badges.py        # Badge system (FREKcore)
-    jetons.py        # Jetons/tokens
-    ses.py           # Email SES
-    shared.py        # NEW: Partners, contacts, expenses, tasks, planning, artistes, prestataires
-    terrain.py       # NEW: Badge scan, affluence, search, check-in
-  services/
-    baserow_service.py
-    frek_client.py
-    ses_service.py
-
-/app/frontend/src/
-  App.js
-  components/
-    BadgeScan.jsx           # REWRITTEN: PWA Scanner Staff
-    SiteAnalyticsDashboard.jsx
-    PricingPage.jsx
-    RegistrationForm.jsx
-    workspaces/
-      ColeenWorkspace.jsx   # CRUD + photo upload
-      WorkspaceTwina.jsx    # CMS + Export PDF
-```
 
 ## Test Reports
 - iteration_33: Smart Engine + Coleen (100%)

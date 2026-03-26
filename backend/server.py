@@ -863,7 +863,7 @@ async def create_checkout_session(request: Request, checkout_data: CheckoutReque
             raise HTTPException(status_code=400, detail="Invalid accreditation tier")
         tier_data = ACCREDITATION_TIERS[checkout_data.tier]
         success_url = f"{origin_url}/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
-        cancel_url = f"{origin_url}/inscription"
+        cancel_url = f"{origin_url}/tarifs"
         
     elif checkout_data.type == "partnership":
         if checkout_data.tier not in PARTNERSHIP_TIERS:
