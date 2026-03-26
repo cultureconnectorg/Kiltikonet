@@ -171,6 +171,7 @@ function App() {
               {/* CC2026 Badge & Jetons */}
               <Route path="/activer-badge/:qrToken" element={<BadgeActivation />} />
               <Route path="/badge-inscription" element={<BadgeInscription />} />
+              <Route path="/register-pro" element={<RegistrationForm />} />
               <Route path="/jetons" element={<JetonsPage />} />
               <Route path="/mon-espace" element={<UserDashboard />} />
               <Route path="/jetons/confirmation" element={<JetonsPage />} />

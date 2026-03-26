@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, RefreshCw, Users, Building2, DollarSign,
   BarChart3, Plus, Mail, Phone, Trash2, Edit3, X, Check,
-  ChevronDown, Search, FileText, Calendar, Briefcase
+  ChevronDown, Search, FileText, Calendar, Briefcase, Upload, Camera, Loader2
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
@@ -469,29 +469,73 @@ export default function ColeenWorkspace() {
 function PartnerCard({ partner, onUpdate, onDelete, editingId, setEditingId }) {
   const isEditing = editingId === partner.id;
   const [editData, setEditData] = useState({});
+  const [uploading, setUploading] = useState(false);
+  const fileRef = React.useRef(null);
 
   const startEdit = () => {
     setEditData({ status: partner.status, nextAction: partner.nextAction || '', lastAction: partner.lastAction || '' });
     setEditingId(partner.id);
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API}/api/shared/partners/${partner.id}/photo`, {
+        method: 'POST', body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success('Photo uploadée');
+        onUpdate(partner.id, { logo_url: data.url });
+      } else toast.error('Erreur upload');
+    } catch { toast.error('Erreur réseau'); }
+    setUploading(false);
+  };
+
   return (
     <div className="p-4 rounded-xl border" style={{ background: C.card, borderColor: C.warm }} data-testid={`partner-${partner.id}`}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
+      <div className="flex items-start gap-3">
+        {/* Photo */}
+        <div className="relative flex-shrink-0">
+          <div
+            onClick={() => !uploading && fileRef.current?.click()}
+            className="w-14 h-14 rounded-lg overflow-hidden border cursor-pointer flex items-center justify-center transition-colors hover:border-[#A65D47]"
+            style={{ borderColor: C.warm, background: C.light }}
+            data-testid={`partner-photo-${partner.id}`}
+          >
+            {uploading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: C.terra }} />
+            ) : partner.logo_url ? (
+              <img src={partner.logo_url} alt={partner.name} className="w-full h-full object-cover" />
+            ) : (
+              <Camera className="w-5 h-5" style={{ color: C.warm }} />
+            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs px-2 py-0.5 rounded font-medium" style={{ background: `${typeColor(partner.type)}20`, color: typeColor(partner.type) }}>
               {partner.type}
             </span>
-            <p className="font-bold text-sm" style={{ color: C.dark }}>{partner.name}</p>
+            <p className="font-bold text-sm truncate" style={{ color: C.dark }}>{partner.name}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 mt-1.5">
+          <div className="flex flex-wrap items-center gap-3 mt-1">
             {partner.contact && <span className="text-xs" style={{ color: C.muted }}>{partner.contact}</span>}
             {partner.email && <span className="flex items-center gap-1 text-xs" style={{ color: C.muted }}><Mail className="w-3 h-3" />{partner.email}</span>}
             {partner.phone && <span className="flex items-center gap-1 text-xs" style={{ color: C.muted }}><Phone className="w-3 h-3" />{partner.phone}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-1.5 ml-3">
+
+        {/* Actions */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {!isEditing && (
             <span className="text-xs px-2 py-1 rounded" style={{ background: `${statusColor(partner.status)}15`, color: statusColor(partner.status) }}>
               {partner.status}

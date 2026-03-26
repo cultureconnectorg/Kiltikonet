@@ -226,7 +226,13 @@ export const PricingPage = () => {
   ];
 
   const handleSelectTier = (tier) => {
-    navigate('/badge-inscription', { state: { selectedType: tier.badge_type, tierName: tier.name } });
+    if (tier.price === 0) {
+      // Visiteur gratuit → formulaire simplifié
+      navigate('/badge-inscription', { state: { selectedType: tier.badge_type, tierName: tier.name } });
+    } else {
+      // Payant → formulaire complet 3 étapes (identité, activité pro, objectifs)
+      navigate('/badge-inscription', { state: { selectedTier: tier.id, selectedType: tier.badge_type, tierName: tier.name, useFullForm: true } });
+    }
   };
 
   return (

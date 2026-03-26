@@ -36,6 +36,16 @@ export default function BadgeInscription() {
   const navigate = useNavigate();
   const preSelectedType = location.state?.selectedType || '';
   const tierName = location.state?.tierName || '';
+  const useFullForm = location.state?.useFullForm || false;
+  const selectedTier = location.state?.selectedTier || '';
+
+  // Redirect to full registration form for paid tiers
+  useEffect(() => {
+    if (useFullForm && selectedTier) {
+      navigate('/register-pro', { state: { selectedTier }, replace: true });
+      return;
+    }
+  }, [useFullForm, selectedTier, navigate]);
 
   const [step, setStep] = useState(preSelectedType ? 2 : 1);
   const [selectedCategory, setSelectedCategory] = useState(null);

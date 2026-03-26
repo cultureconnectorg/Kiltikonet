@@ -19,8 +19,8 @@ const API = `${BACKEND_URL}/api`;
 
 const tierInfo = {
   emerging: { name: 'Émergent', nameEn: 'Emerging', price: 50 },
-  professional: { name: 'Professionnel', nameEn: 'Professional', price: 150 },
-  institutional: { name: 'Institutionnel', nameEn: 'Institutional', price: 300 }
+  professional: { name: 'Professionnel', nameEn: 'Professional', price: 300 },
+  institutional: { name: 'Institutionnel', nameEn: 'Institutional', price: 500 }
 };
 
 const steps = [

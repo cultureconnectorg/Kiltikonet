@@ -2,7 +2,7 @@
 
 // Service Worker - Culture Connect 2026 PWA
 // Cache versioning
-const CACHE_VERSION = 'cc2026-v2.0';
+const CACHE_VERSION = 'cc2026-v3.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;

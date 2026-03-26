@@ -8528,6 +8528,7 @@ class PartnerModel(BaseModel):
     phone: str = ""
     lastAction: str = ""
     nextAction: str = "Premier contact"
+    logo_url: Optional[str] = None
     created_by: str = ""
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -8564,6 +8565,19 @@ async def delete_partner(partner_id: str):
     """Delete a partner"""
     result = await db.partners.delete_one({"id": partner_id})
     return {"success": True, "deleted": result.deleted_count > 0}
+
+@app.post("/api/shared/partners/{partner_id}/photo")
+async def upload_partner_photo(partner_id: str, file: UploadFile = File(...)):
+    """Upload a photo/logo for a partner"""
+    image_url = await upload_to_cloudinary(file, f"culture-connect/partners/{partner_id}")
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Upload failed")
+    await db.partners.update_one(
+        {"id": partner_id},
+        {"$set": {"logo_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True, "url": image_url}
+
 
 # --- BUDGET / DÉPENSES ---
 class ExpenseModel(BaseModel):
