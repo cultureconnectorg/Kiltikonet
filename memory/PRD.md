@@ -28,45 +28,60 @@ Application full-stack pour la gestion d'un événement culturel caribéen (accr
 ### Espace Coleen (26/03/2026)
 - Workspace fonctionnel avec CRUD complet : Partenaires (add/edit status/delete), Contacts (add/delete), Budget/Dépenses (add/delete)
 - Dashboard avec pipeline partenariats, KPIs, analytics CC2026
+- **Upload photos partenaires** : cliquer sur la zone photo d'un partenaire → upload Cloudinary
 - Route : `/workspace/coleen` (rôle partnerships)
 
+### Formulaire d'inscription Pro (26/03/2026)
+- Routage : Visiteur → `/badge-inscription` (simplifié), Payants → `/register-pro` (3 étapes)
+- **Étape 1 - Identité** : Nom complet*, Email*, Téléphone*, Pays*
+- **Étape 2 - Activité professionnelle** : Organisation*, Type de profil*, SIRET (opt), Site web (opt), Bio/Description du projet*, Upload logo/photo (Cloudinary), Stand request (oui/non)
+- **Étape 3 - Objectifs & Réseautage** : Expertise tags (max 5), Comment connu CC*, RGPD*, Récapitulatif, Bouton paiement avec prix correct
+
+### Tarifs corrigés (26/03/2026)
+- Visiteur : Gratuit, Émergent : 50€, Professionnel : 300€ (Populaire), Institutionnel : 500€
+- Prix correctement reflétés dans PricingPage.jsx ET RegistrationForm.jsx
+
+### Cache PWA (26/03/2026)
+- Version cache mise à jour : `cc2026-v3.0` dans `sw.js`
+
 ### Corrections précédentes
-- IntroSequence : overlay vidéo corrigé (bouton Passer immédiat)
-- Routes `/inscription` et `/register` retirées
-- Programme : "Tropiques Atrium" remplacé par "Teyat Otonom Mawon (TOM)" dans le code
+- IntroSequence : overlay vidéo corrigé
+- Routes `/inscription` et `/register` → redirigent vers /tarifs
+- Programme : "Tropiques Atrium" → "Teyat Otonom Mawon (TOM)"
+- Header : pas de lien "Inscription" (Accueil, Programme, Concert, Tarifs, Partenariat, Jetons, Catalogue)
 
 ---
 
 ## Backlog priorité
 
-### P0 - En attente
-- **Formulaire Pro incomplet** : il manque les étapes (Informations personnelles → Activité professionnelle avec org, SIRET, bio, logo → Objectifs & Réseautage avec tags expertises, source CC)
-- **Upload photos partenaires** : pouvoir uploader les vraies photos depuis l'espace admin
-- **Upload photo à l'inscription** : les participants doivent charger leur photo lors de l'inscription
-
 ### P1 - À faire
-- Catalogue vide (`/api/catalog/live` renvoie vide)
-- Page Tarifs à vérifier (Pro 300€, Institu 500€)
-- Cache PWA (`sw.js`) : l'utilisateur voit encore l'ancien site sur kiltikonet.fr
+- Catalogue : actuellement vide car 0 inscriptions approuvées (normal, pas de bug). Se remplira automatiquement.
 
 ### P2 - Futur
-- Déploiement production
-- PWA App Scan Staff
-- Export PDF badges batch Twina
-- AWS SES (sortir du sandbox)
+- Déploiement production (kiltikonet.fr)
+- AWS SES (sortir du sandbox pour emails)
 - Refactoring `server.py` (>8600 lignes)
+- PWA App Scan Staff (tests terrain)
+- Export PDF badges batch Twina (J-15)
 
 ---
 
 ## Architecture fichiers clés
 ```
-/app/backend/server.py          # Monolithe backend
+/app/backend/server.py          # Monolithe backend (~8770 lignes)
 /app/frontend/src/App.js        # Routes + PageTracker analytics
 /app/frontend/src/hooks/useAnalytics.js
 /app/frontend/src/services/SmartAnalytics.js
 /app/frontend/src/components/SiteAnalyticsDashboard.jsx
 /app/frontend/src/components/workspaces/ColeenWorkspace.jsx
-/app/frontend/src/components/ProgramPage.jsx
 /app/frontend/src/components/PricingPage.jsx
+/app/frontend/src/components/RegistrationForm.jsx
+/app/frontend/src/components/BadgeInscription.jsx
+/app/frontend/src/components/ProgramPage.jsx
 /app/frontend/src/components/CatalogPage.jsx
+/app/frontend/public/sw.js
 ```
+
+## Test Reports
+- `/app/test_reports/iteration_33.json` — Smart Engine + Coleen (100%)
+- `/app/test_reports/iteration_34.json` — Pricing + Registration + Upload (100%)
