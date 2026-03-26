@@ -1,286 +1,328 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { CheckCircle, XCircle, User, Building2, MapPin, Tag, Clock, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  CheckCircle, XCircle, User, Building2, MapPin, Tag, Clock, 
+  Loader2, AlertCircle, QrCode, Search, ChevronRight, Users, ArrowLeft
+} from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════════
-// CONFIGURATION
-// ═══════════════════════════════════════════════════════════════
-const BASEROW_TOKEN = 'BjKPCSpcpif72OtZtsmMFUbZysqlNGiK';
-const BASEROW_TABLE = '865847';
-const BASEROW_API = 'https://api.baserow.io/api';
+const API = process.env.REACT_APP_BACKEND_URL;
 
-// Design colors
-const COLORS = {
-  charbon: '#1C1A14',
-  terracotta: '#C4714A',
-  gold: '#D4A84B',
-  forest: '#4A5D4E',
-  cream: '#F4F1EA',
-  burgundy: '#8B1A4A',
+const C = {
+  charbon: '#1C1A14', terra: '#C4714A', gold: '#D4A84B',
+  sage: '#4A5D4E', cream: '#F4F1EA', burgundy: '#8B1A4A',
   teal: '#0B6E7A'
 };
 
-// Badge type colors
-const BADGE_COLORS = {
-  'VIP': { bg: COLORS.burgundy, text: '#fff' },
-  'Presse': { bg: COLORS.teal, text: '#fff' },
-  'Exposant': { bg: COLORS.gold, text: COLORS.charbon },
-  'Artiste': { bg: COLORS.terracotta, text: '#fff' },
-  'Staff Artiste': { bg: COLORS.terracotta, text: '#fff' },
-  'Benevole': { bg: COLORS.forest, text: '#fff' },
-  'Institutionnel': { bg: '#5B9BD5', text: '#fff' },
-  'Staff': { bg: COLORS.charbon, text: COLORS.gold },
-  'Regie technique': { bg: '#333', text: COLORS.gold },
-  'Emergent': { bg: '#6B46C1', text: '#fff' },
-  'Professionnel': { bg: '#2D5A7B', text: '#fff' },
-  'Public': { bg: '#6B7280', text: '#fff' },
-  'Visiteur': { bg: '#9CA3AF', text: COLORS.charbon },
-  'Participant': { bg: '#4B5563', text: '#fff' },
-  'Partenaire Or': { bg: COLORS.gold, text: COLORS.charbon },
-  'Partenaire Silver': { bg: '#C0C0C0', text: COLORS.charbon },
-  'Partenaire Bronze': { bg: '#CD7F32', text: '#fff' }
+const TIER_COLORS = {
+  emerging: { bg: C.sage, label: 'Emergent' },
+  professional: { bg: C.terra, label: 'Professionnel' },
+  institutional: { bg: C.charbon, label: 'Institutionnel' },
+  visitor: { bg: '#6B7280', label: 'Visiteur' },
 };
 
-// Helper to extract value from Baserow Single Select fields
-const getFieldValue = (field) => {
-  if (field === null || field === undefined) return '';
-  if (typeof field === 'object' && field.value !== undefined) return field.value;
-  return String(field);
-};
-
-// ═══════════════════════════════════════════════════════════════
-// BADGE SCAN PAGE - Auto-validates presence when scanned
-// ═══════════════════════════════════════════════════════════════
 const BadgeScan = () => {
   const { id } = useParams();
-  const [participant, setParticipant] = useState(null);
+  const navigate = useNavigate();
+
+  // If an ID is in the URL, show validation mode
+  // Otherwise, show the staff scanner dashboard
+  if (id) return <BadgeValidation badgeId={id} />;
+  return <ScannerDashboard />;
+};
+
+/* ═══════════ BADGE VALIDATION (when QR is scanned) ═══════════ */
+function BadgeValidation({ badgeId }) {
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [validating, setValidating] = useState(false);
-  const [justValidated, setJustValidated] = useState(false);
 
-  // Load participant and auto-validate
   useEffect(() => {
-    const loadAndValidate = async () => {
+    const validate = async () => {
       setLoading(true);
-      setError(null);
-      
       try {
-        // Fetch participant by ID from Baserow
-        const response = await fetch(
-          `${BASEROW_API}/database/rows/table/${BASEROW_TABLE}/${id}/?user_field_names=true`,
-          { headers: { 'Authorization': `Token ${BASEROW_TOKEN}` } }
-        );
-        
-        if (!response.ok) throw new Error('Participant introuvable');
-        
-        const data = await response.json();
-        setParticipant(data);
-
-        // Auto-validate presence if not already present (PATCH to Baserow)
-        const currentPresence = getFieldValue(data['Statut presence']);
-        if (currentPresence !== 'Present') {
-          setValidating(true);
-          const heure = new Date().toTimeString().slice(0, 5);
-          
-          const patchResponse = await fetch(
-            `${BASEROW_API}/database/rows/table/${BASEROW_TABLE}/${id}/?user_field_names=true`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Authorization': `Token ${BASEROW_TOKEN}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                'Statut presence': 'Present',
-                "Heure d'arrivee": heure
-              })
-            }
-          );
-          
-          if (patchResponse.ok) {
-            setParticipant(prev => ({
-              ...prev,
-              'Statut presence': 'Present',
-              "Heure d'arrivee": heure
-            }));
-            setJustValidated(true);
-          }
-          setValidating(false);
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        setError(err.message || 'Erreur de chargement');
-      } finally {
-        setLoading(false);
+        const res = await fetch(`${API}/api/terrain/validate-badge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ badge_id: badgeId, validator_id: 'staff_scan', location: 'entree_principale' })
+        });
+        const data = await res.json();
+        setResult(data);
+      } catch (e) {
+        setResult({ status: 'error', code: 'NETWORK', message: 'Erreur reseau. Verifiez votre connexion.', color: 'red' });
       }
+      setLoading(false);
     };
+    validate();
+  }, [badgeId]);
 
-    if (id) loadAndValidate();
-  }, [id]);
-
-  const getInitials = (p) => {
-    if (!p) return '??';
-    return ((p.Prenom || '?')[0] + (p.Nom || '?')[0]).toUpperCase();
-  };
-
-  const badgeType = getFieldValue(participant?.['Type de badge']);
-  const presenceStatus = getFieldValue(participant?.['Statut presence']);
-  const isPresent = presenceStatus === 'Present';
-  const colors = BADGE_COLORS[badgeType] || BADGE_COLORS['Artiste'];
+  const bgColor = result?.color === 'green' ? C.sage : result?.color === 'orange' ? C.gold : '#CF6060';
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: C.charbon }} data-testid="badge-validation">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold" 
-              style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.burgundy})`, color: '#fff' }}>
-              CC
-            </div>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" 
+              style={{ background: `linear-gradient(135deg, ${C.terra}, ${C.burgundy})`, color: '#fff' }}>CC</div>
             <div className="text-left">
-              <div className="font-bold tracking-wider" style={{ color: COLORS.gold }}>CULTURE CONNECT</div>
-              <div className="text-xs" style={{ color: COLORS.terracotta }}>Verification Accreditation</div>
+              <div className="font-bold tracking-wider text-sm" style={{ color: C.gold }}>CULTURE CONNECT</div>
+              <div className="text-xs" style={{ color: C.terra }}>Verification Accreditation</div>
             </div>
           </div>
         </div>
 
-        {/* Content */}
         {loading ? (
-          <div className="rounded-xl p-8 text-center" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
-            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: COLORS.terracotta }} />
-            <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              {validating ? 'Validation en cours...' : 'Chargement...'}
-            </div>
+          <div className="rounded-xl p-8 text-center" style={{ background: '#2A2820', border: `1px solid ${C.gold}20` }}>
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: C.terra }} />
+            <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Validation en cours...</div>
           </div>
-        ) : error ? (
-          <div className="rounded-xl p-8 text-center" style={{ background: '#2A2820', border: '1px solid rgba(207,96,96,0.3)' }}>
-            <AlertCircle className="w-16 h-16 mx-auto mb-4" style={{ color: '#CF6060' }} />
-            <div className="font-bold text-lg mb-2" style={{ color: '#CF6060' }}>Badge Invalide</div>
-            <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>{error}</div>
-            <div className="mt-4 font-mono text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>ID: {id}</div>
-          </div>
-        ) : participant ? (
-          <div className="rounded-xl overflow-hidden" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
+        ) : result ? (
+          <div className="rounded-xl overflow-hidden" style={{ background: '#2A2820', border: `1px solid ${C.gold}20` }}>
             {/* Status banner */}
-            <div 
-              className="p-4 text-center"
-              style={{ background: isPresent ? COLORS.forest : COLORS.burgundy }}
-            >
-              {isPresent ? (
+            <div className="p-5 text-center" style={{ background: bgColor }}>
+              {result.color === 'green' ? (
                 <>
-                  <div className="flex items-center justify-center gap-2 text-white font-bold text-lg">
-                    <CheckCircle className="w-6 h-6" />
-                    {justValidated ? 'BIENVENUE !' : 'ACCREDITE'}
-                  </div>
-                  <div className="text-white/80 text-sm mt-1">
-                    {justValidated 
-                      ? `Presence enregistree a ${participant["Heure d'arrivee"]}`
-                      : `Arrive a ${participant["Heure d'arrivee"] || '-'}`
-                    }
-                  </div>
+                  <CheckCircle className="w-10 h-10 mx-auto mb-2 text-white" />
+                  <div className="text-white font-bold text-xl">BIENVENUE !</div>
+                  <div className="text-white/80 text-sm mt-1">Presence enregistree</div>
+                </>
+              ) : result.color === 'orange' ? (
+                <>
+                  <AlertCircle className="w-10 h-10 mx-auto mb-2 text-white" />
+                  <div className="text-white font-bold text-lg">DEJA SCANNE</div>
+                  <div className="text-white/80 text-sm mt-1">Scanne a {result.scanned_at ? new Date(result.scanned_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '-'}</div>
                 </>
               ) : (
-                <div className="text-white font-bold tracking-wider">EN ATTENTE</div>
+                <>
+                  <XCircle className="w-10 h-10 mx-auto mb-2 text-white" />
+                  <div className="text-white font-bold text-lg">{result.code === 'NOT_FOUND' ? 'BADGE INVALIDE' : 'NON APPROUVE'}</div>
+                  <div className="text-white/80 text-sm mt-1">{result.message}</div>
+                </>
               )}
             </div>
 
-            {/* Participant info */}
-            <div className="p-6">
-              {/* Avatar & Name */}
-              <div className="flex items-center gap-4 mb-6">
-                <div 
-                  className="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg"
-                  style={{ background: colors.bg, color: colors.text }}
-                >
-                  {getInitials(participant)}
-                </div>
-                <div>
-                  <div className="font-bold text-xl text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                    {participant.Prenom} {participant.Nom}
+            {/* Person info */}
+            {result.person && (
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold"
+                    style={{ background: TIER_COLORS[result.person.tier]?.bg || C.terra, color: '#fff' }}>
+                    {(result.person.full_name || '??').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
-                  <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    {participant.Organisation || '-'}
-                  </div>
-                  <div 
-                    className="inline-block mt-2 px-3 py-1 rounded text-xs font-bold"
-                    style={{ background: `${colors.bg}30`, color: colors.bg === COLORS.gold ? COLORS.charbon : colors.text, border: `1px solid ${colors.bg}` }}
-                  >
-                    {badgeType || 'PARTICIPANT'}
+                  <div>
+                    <div className="font-bold text-lg text-white">{result.person.full_name}</div>
+                    {result.person.organization_name && (
+                      <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>{result.person.organization_name}</div>
+                    )}
+                    <div className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold"
+                      style={{ background: `${TIER_COLORS[result.person.tier]?.bg || C.terra}30`, color: TIER_COLORS[result.person.tier]?.bg || C.terra }}>
+                      {TIER_COLORS[result.person.tier]?.label || result.person.profile_type || 'Participant'}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Details */}
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center gap-3" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                  <MapPin className="w-5 h-5" style={{ color: COLORS.terracotta }} />
-                  <span>{getFieldValue(participant["Territoire d'origine"]) || '-'}</span>
-                </div>
-                <div className="flex items-center gap-3" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                  <Tag className="w-5 h-5" style={{ color: COLORS.terracotta }} />
-                  <span>{getFieldValue(participant["Secteur d'activite"]) || '-'}</span>
-                </div>
-                {participant.Email && (
-                  <div className="flex items-center gap-3" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                    <User className="w-5 h-5" style={{ color: COLORS.terracotta }} />
-                    <span className="text-sm">{participant.Email}</span>
+                {result.person.country && (
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    <MapPin className="w-4 h-4" style={{ color: C.terra }} />
+                    {result.person.country}
                   </div>
                 )}
-              </div>
 
-              {/* Access zones */}
-              <div className="rounded-lg p-4" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                <div className="text-xs uppercase tracking-wider mb-3" style={{ color: COLORS.gold, fontFamily: "'Syne', sans-serif" }}>
-                  Zones d'acces autorisees
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {['Parc La Savane', 'Teyat Otonom Mawon', 'Espace Pro'].map(zone => (
-                    <span 
-                      key={zone}
-                      className="px-3 py-1 rounded-full text-xs font-medium"
-                      style={{ background: `${COLORS.gold}15`, border: `1px solid ${COLORS.gold}30`, color: COLORS.gold }}
-                    >
-                      {zone}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Success message for just validated */}
-              {justValidated && (
-                <div className="mt-4 p-4 rounded-lg text-center" style={{ background: 'rgba(77,191,138,0.1)', border: '1px solid rgba(77,191,138,0.2)' }}>
-                  <CheckCircle className="w-8 h-8 mx-auto mb-2" style={{ color: '#4DBF8A' }} />
-                  <div className="font-bold" style={{ color: '#4DBF8A' }}>Presence validee automatiquement</div>
-                  <div className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    Donnees synchronisees avec Baserow
+                {/* Access zones */}
+                <div className="mt-4 rounded-lg p-3" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                  <div className="text-xs uppercase tracking-wider mb-2" style={{ color: C.gold }}>Zones d'acces</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Parc La Savane', 'Teyat Otonom Mawon', 'Espace Pro'].map(z => (
+                      <span key={z} className="px-2 py-1 rounded-full text-xs" style={{ background: `${C.gold}15`, border: `1px solid ${C.gold}30`, color: C.gold }}>{z}</span>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Footer */}
-            <div className="p-4 text-center" style={{ background: 'rgba(0,0,0,0.2)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="text-xs font-bold tracking-wider" style={{ color: COLORS.terracotta }}>
-                22 MAI 2026 - LA SAVANE - FORT-DE-FRANCE
-              </div>
-              <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                kiltikonet.fr - @cultureconnectorg
-              </div>
+            <div className="p-3 text-center" style={{ background: 'rgba(0,0,0,0.2)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="text-xs font-bold tracking-wider" style={{ color: C.terra }}>22 MAI 2026 - LA SAVANE - FORT-DE-FRANCE</div>
+              <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>kiltikonet.fr</div>
             </div>
           </div>
         ) : null}
 
-        {/* ID footer */}
         <div className="text-center mt-4">
-          <div className="font-mono text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            ID: {id}
+          <div className="font-mono text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>ID: {badgeId}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════ SCANNER DASHBOARD (for staff) ═══════════ */
+function ScannerDashboard() {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [affluence, setAffluence] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    fetchAffluence();
+    const interval = setInterval(fetchAffluence, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchAffluence = async () => {
+    try {
+      const res = await fetch(`${API}/api/terrain/affluence`);
+      const data = await res.json();
+      setAffluence(data);
+    } catch { /* offline fallback */ }
+  };
+
+  const handleSearch = async (q) => {
+    setSearchQuery(q);
+    if (q.length < 2) { setSearchResults([]); return; }
+    setSearching(true);
+    try {
+      const res = await fetch(`${API}/api/terrain/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      setSearchResults(data.results || []);
+    } catch { setSearchResults([]); }
+    setSearching(false);
+  };
+
+  const handleManualCheckin = async (regId) => {
+    try {
+      const res = await fetch(`${API}/api/terrain/manual-checkin/${regId}?validator_id=staff_manual`, { method: 'POST' });
+      const data = await res.json();
+      if (data.status === 'success' || data.status === 'already_present') {
+        // Refresh search results
+        if (searchQuery) handleSearch(searchQuery);
+        fetchAffluence();
+      }
+    } catch { /* */ }
+  };
+
+  const pct = affluence?.percentage || 0;
+
+  return (
+    <div className="min-h-screen" style={{ background: C.charbon }} data-testid="scanner-dashboard">
+      {/* Header */}
+      <header className="sticky top-0 z-40 p-4" style={{ background: 'rgba(28,26,20,0.95)', backdropFilter: 'blur(8px)', borderBottom: `1px solid ${C.gold}15` }}>
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button onClick={() => navigate('/admin')} data-testid="back-btn">
+              <ArrowLeft className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+            </button>
+            <div>
+              <div className="font-bold text-sm" style={{ color: C.gold }}>CC2026 STAFF</div>
+              <div className="text-xs" style={{ color: C.terra }}>Scan & Check-in</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <QrCode className="w-5 h-5" style={{ color: C.gold }} />
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-lg mx-auto p-4 space-y-4">
+        {/* Affluence */}
+        {affluence && (
+          <div className="rounded-xl p-4" style={{ background: '#2A2820', border: `1px solid ${C.gold}15` }} data-testid="affluence-card">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs uppercase tracking-wider" style={{ color: C.gold }}>Affluence en temps reel</span>
+              <Users className="w-4 h-4" style={{ color: C.gold }} />
+            </div>
+            <div className="flex items-end gap-3 mb-2">
+              <span className="text-3xl font-bold text-white">{affluence.present_count}</span>
+              <span className="text-sm pb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>/ {affluence.total_registered}</span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: pct > 75 ? C.terra : C.sage }} />
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{pct}%</span>
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{affluence.remaining} restant(s)</span>
+            </div>
+            {affluence.last_scans?.length > 0 && (
+              <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>Derniers scans</div>
+                {affluence.last_scans.slice(0, 3).map((s, i) => (
+                  <div key={i} className="flex items-center justify-between py-1">
+                    <span className="text-xs text-white">{s.person?.full_name || '-'}</span>
+                    <span className="text-xs" style={{ color: C.terra }}>{s.timestamp ? new Date(s.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Search */}
+        <div className="rounded-xl p-4" style={{ background: '#2A2820', border: `1px solid ${C.gold}15` }}>
+          <div className="text-xs uppercase tracking-wider mb-3" style={{ color: C.gold }}>Recherche participant</div>
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
+            <input
+              ref={searchRef}
+              value={searchQuery}
+              onChange={e => handleSearch(e.target.value)}
+              placeholder="Nom, organisation, email..."
+              className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm text-white"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              data-testid="search-participant-input"
+            />
+            {searching && <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 animate-spin" style={{ color: C.terra }} />}
+          </div>
+
+          {/* Results */}
+          {searchResults.length > 0 && (
+            <div className="mt-3 space-y-2" data-testid="search-results">
+              {searchResults.map(r => (
+                <div key={r.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div>
+                    <div className="text-sm font-medium text-white">{r.full_name}</div>
+                    <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{r.organization_name || r.profile_type}</div>
+                    <div className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px]"
+                      style={{ background: `${TIER_COLORS[r.tier]?.bg || C.terra}20`, color: TIER_COLORS[r.tier]?.bg || C.terra }}>
+                      {TIER_COLORS[r.tier]?.label || r.tier}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {r.presence_status === 'present' ? (
+                      <span className="flex items-center gap-1 text-xs px-2 py-1 rounded" style={{ background: `${C.sage}20`, color: C.sage }}>
+                        <CheckCircle className="w-3 h-3" /> Present
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleManualCheckin(r.id)}
+                        className="text-xs px-3 py-1.5 rounded font-medium"
+                        style={{ background: C.terra, color: '#fff' }}
+                        data-testid={`checkin-${r.id}`}
+                      >
+                        Check-in
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Instructions */}
+        <div className="rounded-xl p-4" style={{ background: '#2A2820', border: `1px solid ${C.gold}15` }}>
+          <div className="text-xs uppercase tracking-wider mb-3" style={{ color: C.gold }}>Comment scanner</div>
+          <div className="space-y-2 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <p>1. Ouvrez l'appareil photo de votre telephone</p>
+            <p>2. Scannez le QR code sur le badge du participant</p>
+            <p>3. Le lien s'ouvre automatiquement et valide la presence</p>
+            <p className="pt-2" style={{ color: C.terra }}>Ou utilisez la recherche ci-dessus pour un check-in manuel.</p>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default BadgeScan;

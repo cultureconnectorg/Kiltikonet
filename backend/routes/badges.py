@@ -112,7 +112,7 @@ async def frek_discovery():
     return {"frek_url": frek_url, "endpoints": results}
 
 
-@router.get("/{badge_id}")
+@router.get("/single/{badge_id}")
 async def get_badge(badge_id: str):
     """Get badge details by badge_id"""
     badge = await _db.cc_badges.find_one({"badge_id": badge_id}, {"_id": 0})

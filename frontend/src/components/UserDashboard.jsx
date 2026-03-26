@@ -36,7 +36,7 @@ export default function UserDashboard() {
     setLoading(true);
     try {
       // Load badge info
-      const bRes = await fetch(`${API}/api/badges/${bid}`);
+      const bRes = await fetch(`${API}/api/badges/single/${bid}`);
       if (!bRes.ok) throw new Error('Badge non trouvé');
       const badge = await bRes.json();
       setProfile(badge);

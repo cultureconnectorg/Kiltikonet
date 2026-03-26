@@ -3516,10 +3516,14 @@ from routes.badges import router as badges_router
 from routes.jetons import router as jetons_router
 from routes.ses import router as ses_router
 from routes.analytics import router as analytics_router
+from routes.shared import router as shared_router
+from routes.terrain import router as terrain_router
 app.include_router(badges_router)
 app.include_router(jetons_router)
 app.include_router(ses_router)
 app.include_router(analytics_router)
+app.include_router(shared_router)
+app.include_router(terrain_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek
@@ -6386,244 +6390,181 @@ async def get_public_catalog():
     return {"registrations": registrations, "count": len(registrations)}
 
 
+
+# Terrain routes extracted to /routes/terrain.py
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
-# MODE TERRAIN - Validation QR & Affluence Temps Réel
+# EXPORT PDF BADGES BATCH (Twina workspace)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class QRValidationRequest(BaseModel):
-    badge_id: str
-    validator_id: Optional[str] = None
-    location: Optional[str] = "Entrée principale"
+@app.get("/api/badges/export-pdf-batch")
+async def export_badges_pdf_batch(
+    tier: Optional[str] = None,
+    status: str = "approved"
+):
+    """Generate a multi-page PDF with all approved badges (A6 format, 4 per A4 page)"""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    
+    query = {"status": status}
+    if tier:
+        query["tier"] = tier
+    
+    registrations = await db.registrations.find(query, {"_id": 0}).to_list(2000)
+    
+    if not registrations:
+        raise HTTPException(status_code=404, detail="Aucune inscription trouvee pour ces criteres")
+    
+    # Create merged PDF - 4 badges per A4 page (2x2 grid)
+    merged_buffer = io.BytesIO()
+    a4_width, a4_height = A4
+    badge_w = 105 * mm  # A6 width
+    badge_h = 148 * mm  # A6 height
+    
+    c_merged = canvas.Canvas(merged_buffer, pagesize=A4)
+    
+    # Positions for 4 badges on A4 (2 columns x 2 rows)
+    positions = [
+        (0, a4_height - badge_h),           # top-left
+        (badge_w, a4_height - badge_h),      # top-right
+        (0, a4_height - 2 * badge_h),        # bottom-left
+        (badge_w, a4_height - 2 * badge_h),  # bottom-right
+    ]
+    
+    for i, reg in enumerate(registrations):
+        pos_idx = i % 4
+        x, y = positions[pos_idx]
+        
+        # Generate individual badge PDF
+        badge_bytes = generate_badge_pdf_buffer(reg)
+        
+        # Draw the badge as a form XObject
+        from reportlab.lib.utils import ImageReader
+        from PyPDF2 import PdfReader as PyPdfReader
+        
+        # Convert badge PDF to image for embedding
+        # Simpler approach: draw badge content directly at position
+        _draw_badge_on_canvas(c_merged, reg, x, y, badge_w, badge_h)
+        
+        # New page after every 4 badges
+        if pos_idx == 3 and i < len(registrations) - 1:
+            c_merged.showPage()
+    
+    c_merged.save()
+    merged_buffer.seek(0)
+    
+    from fastapi.responses import StreamingResponse
+    filename = f"badges_cc2026_{tier or 'all'}_{len(registrations)}.pdf"
+    return StreamingResponse(
+        merged_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
-@app.post("/api/terrain/validate-badge")
-async def validate_badge(request: QRValidationRequest):
-    """Validate a badge via QR scan - Mark as Present"""
-    # Find registration by ID or badge_id
-    registration = await db.registrations.find_one(
-        {"$or": [{"id": request.badge_id}, {"badge_id": request.badge_id}]},
-        {"_id": 0}
+
+def _draw_badge_on_canvas(c, participant, x, y, badge_w, badge_h):
+    """Draw a single badge on a canvas at position (x, y)"""
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.units import mm
+    
+    tier_colors = {"emerging": "#4A5D4E", "professional": "#A65D47", "institutional": "#1A1A1A"}
+    tier_names = {"emerging": "EMERGENT", "professional": "PROFESSIONNEL", "institutional": "INSTITUTIONNEL"}
+    tier = participant.get("tier", "professional")
+    tier_color = HexColor(tier_colors.get(tier, "#A65D47"))
+    
+    # Background
+    c.setFillColor(HexColor("#F4F1EA"))
+    c.rect(x, y, badge_w, badge_h, fill=1, stroke=0)
+    
+    # Border
+    c.setStrokeColor(tier_color)
+    c.setLineWidth(2)
+    c.rect(x + 2, y + 2, badge_w - 4, badge_h - 4, fill=0, stroke=1)
+    
+    cx = x + badge_w / 2
+    
+    # Header
+    c.setFillColor(HexColor("#1A1A1A"))
+    c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(cx, y + badge_h - 22, "CULTURE CONNECT 2026")
+    
+    c.setFont("Helvetica", 7)
+    c.setFillColor(HexColor("#8A8578"))
+    c.drawCentredString(cx, y + badge_h - 33, "Fort-de-France - 20-23 Mai 2026")
+    
+    # Name
+    c.setFillColor(HexColor("#1A1A1A"))
+    c.setFont("Helvetica-Bold", 13)
+    full_name = participant.get("full_name", "")[:25]
+    c.drawCentredString(cx, y + badge_h - 65, full_name)
+    
+    c.setFont("Helvetica", 9)
+    c.setFillColor(HexColor("#8A8578"))
+    org_name = participant.get("organization_name", "")[:30]
+    c.drawCentredString(cx, y + badge_h - 80, org_name)
+    
+    # Tier badge
+    tier_text = tier_names.get(tier, "PROFESSIONNEL")
+    c.setFillColor(tier_color)
+    c.rect(cx - 35, y + badge_h - 103, 70, 16, fill=1, stroke=0)
+    c.setFillColor(HexColor("#F4F1EA"))
+    c.setFont("Helvetica-Bold", 8)
+    c.drawCentredString(cx, y + badge_h - 98, tier_text)
+    
+    # QR Code
+    profile_url = f"{BASE_URL}/participant/{participant.get('id')}"
+    qr = qrcode.QRCode(version=1, box_size=8, border=2)
+    qr.add_data(profile_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_buf = io.BytesIO()
+    qr_img.save(qr_buf, format='PNG')
+    qr_buf.seek(0)
+    
+    from reportlab.lib.utils import ImageReader
+    qr_image = ImageReader(qr_buf)
+    qr_size = 28 * mm
+    c.drawImage(qr_image, cx - qr_size / 2, y + 18, width=qr_size, height=qr_size)
+    
+    # ID
+    c.setFillColor(HexColor("#8A8578"))
+    c.setFont("Helvetica", 6)
+    c.drawCentredString(cx, y + 12, f"ID: {participant.get('id', '')[:8].upper()}")
+
+
+@app.get("/api/badges/export-pdf-single/{registration_id}")
+async def export_single_badge_pdf(registration_id: str):
+    """Generate a single badge PDF for a specific registration"""
+    reg = await db.registrations.find_one({"id": registration_id}, {"_id": 0})
+    if not reg:
+        raise HTTPException(status_code=404, detail="Inscription non trouvee")
+    
+    pdf_bytes = generate_badge_pdf_buffer(reg)
+    
+    from fastapi.responses import StreamingResponse
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=badge_{registration_id[:8]}.pdf"}
     )
-    
-    if not registration:
-        return {
-            "status": "error",
-            "code": "NOT_FOUND",
-            "message": "Badge non trouvé dans le système",
-            "color": "red"
-        }
-    
-    # Check if already scanned
-    if registration.get("presence_status") == "present":
-        scanned_at = registration.get("scanned_at", "")
-        return {
-            "status": "already_scanned",
-            "code": "DUPLICATE",
-            "message": "Badge déjà scanné",
-            "scanned_at": scanned_at,
-            "person": {
-                "full_name": registration.get("full_name"),
-                "organization_name": registration.get("organization_name"),
-                "profile_type": registration.get("profile_type"),
-                "tier": registration.get("tier")
-            },
-            "color": "orange"
-        }
-    
-    # Check if registration is approved
-    if registration.get("status") != "approved":
-        return {
-            "status": "error",
-            "code": "NOT_APPROVED",
-            "message": "Inscription non approuvée (statut: " + str(registration.get('status', 'unknown')) + ")",
-            "color": "red"
-        }
-    
-    # Mark as present
-    scan_time = datetime.now(timezone.utc).isoformat()
-    await db.registrations.update_one(
-        {"id": registration["id"]},
-        {
-            "$set": {
-                "presence_status": "present",
-                "scanned_at": scan_time,
-                "scanned_by": request.validator_id,
-                "scan_location": request.location
-            }
-        }
-    )
-    
-    # Log the scan event
-    scan_event = {
-        "id": str(uuid.uuid4()),
-        "type": "badge_scan",
-        "registration_id": registration["id"],
-        "validator_id": request.validator_id,
-        "location": request.location,
-        "timestamp": scan_time
-    }
-    await db.scan_events.insert_one(scan_event)
-    
+
+
+@app.get("/api/badges/export-stats")
+async def get_badge_export_stats():
+    """Get stats for badge export (how many per tier, approved, etc.)"""
+    pipeline = [
+        {"$match": {"status": "approved"}},
+        {"$group": {"_id": "$tier", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    stats = await db.registrations.aggregate(pipeline).to_list(10)
+    total = sum(s["count"] for s in stats)
     return {
-        "status": "success",
-        "code": "VALIDATED",
-        "message": "Entrée validée !",
-        "scanned_at": scan_time,
-        "person": {
-            "id": registration["id"],
-            "full_name": registration.get("full_name"),
-            "organization_name": registration.get("organization_name"),
-            "profile_type": registration.get("profile_type"),
-            "tier": registration.get("tier"),
-            "country": registration.get("country")
-        },
-        "color": "green"
+        "total_approved": total,
+        "by_tier": {s["_id"]: s["count"] for s in stats if s["_id"]},
+        "ready_for_print": total
     }
-
-@app.get("/api/terrain/affluence")
-async def get_affluence():
-    """Get real-time attendance count"""
-    # Total approved registrations
-    total_approved = await db.registrations.count_documents({"status": "approved"})
-    
-    # Present (scanned) count
-    present_count = await db.registrations.count_documents({
-        "status": "approved",
-        "presence_status": "present"
-    })
-    
-    # Recent scans (last hour)
-    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
-    recent_scans = await db.scan_events.count_documents({
-        "timestamp": {"$gte": one_hour_ago}
-    })
-    
-    # Last 5 scans
-    last_scans = await db.scan_events.find(
-        {},
-        {"_id": 0}
-    ).sort("timestamp", -1).limit(5).to_list(5)
-    
-    # Enrich last scans with person info
-    enriched_scans = []
-    for scan in last_scans:
-        reg = await db.registrations.find_one(
-            {"id": scan.get("registration_id")},
-            {"_id": 0, "full_name": 1, "organization_name": 1, "tier": 1}
-        )
-        if reg:
-            scan["person"] = reg
-            enriched_scans.append(scan)
-    
-    return {
-        "total_registered": total_approved,
-        "present_count": present_count,
-        "remaining": total_approved - present_count,
-        "percentage": round((present_count / total_approved * 100) if total_approved > 0 else 0, 1),
-        "recent_scans_1h": recent_scans,
-        "last_scans": enriched_scans,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-
-@app.get("/api/terrain/search")
-async def search_participants(q: str, limit: int = 10):
-    """Quick search for participants by name (for manual check-in)"""
-    if not q or len(q) < 2:
-        return {"results": [], "count": 0}
-    
-    # Search by name or organization (case-insensitive)
-    query = {
-        "status": "approved",
-        "$or": [
-            {"full_name": {"$regex": q, "$options": "i"}},
-            {"organization_name": {"$regex": q, "$options": "i"}}
-        ]
-    }
-    
-    results = await db.registrations.find(
-        query,
-        {
-            "_id": 0,
-            "id": 1,
-            "full_name": 1,
-            "organization_name": 1,
-            "profile_type": 1,
-            "tier": 1,
-            "presence_status": 1,
-            "scanned_at": 1,
-            "image": 1
-        }
-    ).limit(limit).to_list(limit)
-    
-    return {"results": results, "count": len(results)}
-
-@app.post("/api/terrain/manual-checkin/{registration_id}")
-async def manual_checkin(registration_id: str, validator_id: str = None):
-    """Manual check-in for participants without QR code"""
-    registration = await db.registrations.find_one(
-        {"id": registration_id},
-        {"_id": 0}
-    )
-    
-    if not registration:
-        raise HTTPException(status_code=404, detail="Participant non trouvé")
-    
-    if registration.get("presence_status") == "present":
-        return {
-            "status": "already_present",
-            "message": "Déjà enregistré comme présent",
-            "scanned_at": registration.get("scanned_at")
-        }
-    
-    # Mark as present (manual)
-    scan_time = datetime.now(timezone.utc).isoformat()
-    await db.registrations.update_one(
-        {"id": registration_id},
-        {
-            "$set": {
-                "presence_status": "present",
-                "scanned_at": scan_time,
-                "scanned_by": validator_id,
-                "scan_location": "Manuel"
-            }
-        }
-    )
-    
-    # Log the scan event
-    scan_event = {
-        "id": str(uuid.uuid4()),
-        "type": "manual_checkin",
-        "registration_id": registration_id,
-        "validator_id": validator_id,
-        "location": "Manuel",
-        "timestamp": scan_time
-    }
-    await db.scan_events.insert_one(scan_event)
-    
-    return {
-        "status": "success",
-        "message": "Entrée validée manuellement",
-        "scanned_at": scan_time
-    }
-
-@app.delete("/api/terrain/reset-presence/{registration_id}")
-async def reset_presence(registration_id: str):
-    """Reset presence status (admin only - for corrections)"""
-    result = await db.registrations.update_one(
-        {"id": registration_id},
-        {
-            "$unset": {
-                "presence_status": "",
-                "scanned_at": "",
-                "scanned_by": "",
-                "scan_location": ""
-            }
-        }
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Participant non trouvé")
-    
-    return {"status": "success", "message": "Présence réinitialisée"}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -8370,411 +8311,7 @@ async def smart_engine_cron_check():
 # DONNÉES PARTAGÉES - Artistes, Prestataires, Tâches, Partenaires
 # Synchronisation entre tous les workspaces
 # ═══════════════════════════════════════════════════════════════════════════════
+# Shared workspace routes extracted to /routes/shared.py
+# Terrain/scan routes extracted to /routes/terrain.py
+# ═══════════════════════════════════════════════════════════════════════════════
 
-# --- ARTISTES ---
-class ArtisteModel(BaseModel):
-    id: Optional[str] = None
-    name: str
-    genre: str
-    status: str = "À contacter"  # À contacter, En négociation, Confirmé
-    contrat: str = "Non signé"   # Non signé, Envoyé, Signé
-    cachet: str = ""
-    rider: bool = False
-    horaire: str = "TBD"
-    email: str = ""
-    phone: str = ""
-    created_by: str = ""
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-@app.get("/api/shared/artistes")
-async def get_artistes():
-    """Get all artistes"""
-    artistes = await db.artistes.find({}, {"_id": 0}).sort("name", 1).to_list(100)
-    return artistes
-
-@app.post("/api/shared/artistes")
-async def create_artiste(artiste: ArtisteModel):
-    """Create a new artiste"""
-    artiste_doc = artiste.dict()
-    artiste_doc["id"] = artiste_doc.get("id") or str(uuid.uuid4())
-    artiste_doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    artiste_doc["updated_at"] = artiste_doc["created_at"]
-    
-    await db.artistes.insert_one(artiste_doc)
-    # Remove MongoDB _id before returning
-    artiste_doc.pop("_id", None)
-    return {"success": True, "artiste": artiste_doc}
-
-@app.patch("/api/shared/artistes/{artiste_id}")
-async def update_artiste(artiste_id: str, updates: dict):
-    """Update an artiste"""
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
-    await db.artistes.update_one({"id": artiste_id}, {"$set": updates})
-    updated = await db.artistes.find_one({"id": artiste_id}, {"_id": 0})
-    return {"success": True, "artiste": updated}
-
-@app.delete("/api/shared/artistes/{artiste_id}")
-async def delete_artiste(artiste_id: str):
-    """Delete an artiste"""
-    result = await db.artistes.delete_one({"id": artiste_id})
-    return {"success": True, "deleted": result.deleted_count > 0}
-
-# --- PRESTATAIRES ---
-class PrestataireModel(BaseModel):
-    id: Optional[str] = None
-    name: str
-    type: str  # Son, Lumière, Sécurité, Scène, Traiteur, Autre
-    status: str = "À contacter"  # À contacter, Contacté, Devis en attente, Validé
-    devis: str = ""
-    contact: str = ""
-    email: str = ""
-    phone: str = ""
-    validated: bool = False
-    created_by: str = ""
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-@app.get("/api/shared/prestataires")
-async def get_prestataires():
-    """Get all prestataires"""
-    prestataires = await db.prestataires.find({}, {"_id": 0}).sort("name", 1).to_list(100)
-    return prestataires
-
-@app.post("/api/shared/prestataires")
-async def create_prestataire(prestataire: PrestataireModel):
-    """Create a new prestataire"""
-    presta_doc = prestataire.dict()
-    presta_doc["id"] = presta_doc.get("id") or str(uuid.uuid4())
-    presta_doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    presta_doc["updated_at"] = presta_doc["created_at"]
-    
-    await db.prestataires.insert_one(presta_doc)
-    # Remove MongoDB _id before returning
-    presta_doc.pop("_id", None)
-    return {"success": True, "prestataire": presta_doc}
-
-@app.patch("/api/shared/prestataires/{prestataire_id}")
-async def update_prestataire(prestataire_id: str, updates: dict):
-    """Update a prestataire"""
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
-    await db.prestataires.update_one({"id": prestataire_id}, {"$set": updates})
-    updated = await db.prestataires.find_one({"id": prestataire_id}, {"_id": 0})
-    return {"success": True, "prestataire": updated}
-
-@app.delete("/api/shared/prestataires/{prestataire_id}")
-async def delete_prestataire(prestataire_id: str):
-    """Delete a prestataire"""
-    result = await db.prestataires.delete_one({"id": prestataire_id})
-    return {"success": True, "deleted": result.deleted_count > 0}
-
-# --- TÂCHES ---
-class TaskModel(BaseModel):
-    id: Optional[str] = None
-    title: str
-    description: str = ""
-    status: str = "a_faire"  # a_faire, en_cours, fait
-    priority: str = "moyenne"  # basse, moyenne, haute
-    deadline: str = ""
-    assigned_to: str = ""  # workspace name
-    created_by: str = ""
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-@app.get("/api/shared/tasks")
-async def get_tasks(assigned_to: str = None):
-    """Get all tasks, optionally filtered by assignee"""
-    query = {}
-    if assigned_to:
-        query["assigned_to"] = assigned_to
-    tasks = await db.shared_tasks.find(query, {"_id": 0}).sort("deadline", 1).to_list(200)
-    return tasks
-
-@app.post("/api/shared/tasks")
-async def create_task(task: TaskModel):
-    """Create a new task"""
-    task_doc = task.dict()
-    task_doc["id"] = task_doc.get("id") or str(uuid.uuid4())
-    task_doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    task_doc["updated_at"] = task_doc["created_at"]
-    
-    await db.shared_tasks.insert_one(task_doc)
-    # Remove MongoDB _id before returning
-    task_doc.pop("_id", None)
-    return {"success": True, "task": task_doc}
-
-@app.patch("/api/shared/tasks/{task_id}")
-async def update_task(task_id: str, updates: dict):
-    """Update a task"""
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
-    await db.shared_tasks.update_one({"id": task_id}, {"$set": updates})
-    updated = await db.shared_tasks.find_one({"id": task_id}, {"_id": 0})
-    return {"success": True, "task": updated}
-
-@app.delete("/api/shared/tasks/{task_id}")
-async def delete_task(task_id: str):
-    """Delete a task"""
-    result = await db.shared_tasks.delete_one({"id": task_id})
-    return {"success": True, "deleted": result.deleted_count > 0}
-
-# --- PARTENAIRES ---
-class PartnerModel(BaseModel):
-    id: Optional[str] = None
-    name: str
-    type: str = "Bronze"  # Bronze, Silver, Or, Institutionnel
-    status: str = "Prospect"  # Prospect, Contacté, Dossier envoyé, En négociation, Signé
-    contact: str = ""
-    email: str = ""
-    phone: str = ""
-    lastAction: str = ""
-    nextAction: str = "Premier contact"
-    logo_url: Optional[str] = None
-    created_by: str = ""
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-@app.get("/api/shared/partners")
-async def get_partners():
-    """Get all partners"""
-    partners = await db.partners.find({}, {"_id": 0}).sort("name", 1).to_list(200)
-    return partners
-
-@app.post("/api/shared/partners")
-async def create_partner(partner: PartnerModel):
-    """Create a new partner"""
-    partner_doc = partner.dict()
-    partner_doc["id"] = partner_doc.get("id") or str(uuid.uuid4())
-    partner_doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    partner_doc["updated_at"] = partner_doc["created_at"]
-    
-    await db.partners.insert_one(partner_doc)
-    # Remove MongoDB _id before returning
-    partner_doc.pop("_id", None)
-    return {"success": True, "partner": partner_doc}
-
-@app.patch("/api/shared/partners/{partner_id}")
-async def update_partner(partner_id: str, updates: dict):
-    """Update a partner"""
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
-    await db.partners.update_one({"id": partner_id}, {"$set": updates})
-    updated = await db.partners.find_one({"id": partner_id}, {"_id": 0})
-    return {"success": True, "partner": updated}
-
-@app.delete("/api/shared/partners/{partner_id}")
-async def delete_partner(partner_id: str):
-    """Delete a partner"""
-    result = await db.partners.delete_one({"id": partner_id})
-    return {"success": True, "deleted": result.deleted_count > 0}
-
-@app.post("/api/shared/partners/{partner_id}/photo")
-async def upload_partner_photo(partner_id: str, file: UploadFile = File(...)):
-    """Upload a photo/logo for a partner"""
-    image_url = await upload_to_cloudinary(file, f"culture-connect/partners/{partner_id}")
-    if not image_url:
-        raise HTTPException(status_code=500, detail="Upload failed")
-    await db.partners.update_one(
-        {"id": partner_id},
-        {"$set": {"logo_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    return {"success": True, "url": image_url}
-
-
-# --- BUDGET / DÉPENSES ---
-class ExpenseModel(BaseModel):
-    id: Optional[str] = None
-    label: str
-    montant: float
-    category: str
-    fournisseur: str = ""
-    justificatif: bool = False
-    date: str = ""
-    created_by: str = ""
-    created_at: Optional[str] = None
-
-@app.get("/api/shared/expenses")
-async def get_expenses():
-    """Get all expenses"""
-    expenses = await db.expenses.find({}, {"_id": 0}).sort("date", -1).to_list(500)
-    return expenses
-
-@app.post("/api/shared/expenses")
-async def create_expense(expense: ExpenseModel):
-    """Create a new expense"""
-    expense_doc = expense.dict()
-    expense_doc["id"] = expense_doc.get("id") or str(uuid.uuid4())
-    expense_doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    expense_doc["date"] = expense_doc.get("date") or datetime.now(timezone.utc).strftime("%d/%m/%Y")
-    
-    await db.expenses.insert_one(expense_doc)
-    # Remove MongoDB _id before returning
-    expense_doc.pop("_id", None)
-    return {"success": True, "expense": expense_doc}
-
-@app.patch("/api/shared/expenses/{expense_id}")
-async def update_expense(expense_id: str, updates: dict):
-    """Update an expense"""
-    await db.expenses.update_one({"id": expense_id}, {"$set": updates})
-    updated = await db.expenses.find_one({"id": expense_id}, {"_id": 0})
-    return {"success": True, "expense": updated}
-
-@app.delete("/api/shared/expenses/{expense_id}")
-async def delete_expense(expense_id: str):
-    """Delete an expense"""
-    result = await db.expenses.delete_one({"id": expense_id})
-    return {"success": True, "deleted": result.deleted_count > 0}
-
-# --- CONTACTS PERSO ---
-class ContactModel(BaseModel):
-    id: Optional[str] = None
-    prenom: str
-    nom: str
-    email: str = ""
-    phone: str = ""
-    organisation: str = ""
-    fonction: str = ""
-    categorie: str = "Personnel"  # Partenaire, Institutionnel, Presse, Personnel
-    statut: str = "Actif"
-    notes: str = ""
-    owner: str = ""  # workspace owner
-    created_at: Optional[str] = None
-
-@app.get("/api/shared/contacts")
-async def get_contacts(owner: str = None):
-    """Get all contacts, optionally filtered by owner"""
-    query = {}
-    if owner:
-        query["owner"] = owner
-    contacts = await db.contacts.find(query, {"_id": 0}).sort("nom", 1).to_list(500)
-    return contacts
-
-@app.post("/api/shared/contacts")
-async def create_contact(contact: ContactModel):
-    """Create a new contact"""
-    contact_doc = contact.dict()
-    contact_doc["id"] = contact_doc.get("id") or str(uuid.uuid4())
-    contact_doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    
-    await db.contacts.insert_one(contact_doc)
-    # Remove MongoDB _id before returning
-    contact_doc.pop("_id", None)
-    return {"success": True, "contact": contact_doc}
-
-@app.patch("/api/shared/contacts/{contact_id}")
-async def update_contact(contact_id: str, updates: dict):
-    """Update a contact"""
-    await db.contacts.update_one({"id": contact_id}, {"$set": updates})
-    updated = await db.contacts.find_one({"id": contact_id}, {"_id": 0})
-    return {"success": True, "contact": updated}
-
-@app.delete("/api/shared/contacts/{contact_id}")
-async def delete_contact(contact_id: str):
-    """Delete a contact"""
-    result = await db.contacts.delete_one({"id": contact_id})
-    return {"success": True, "deleted": result.deleted_count > 0}
-
-# --- PLANNING ---
-class PlanningItemModel(BaseModel):
-    id: Optional[str] = None
-    time: str
-    event: str
-    responsable: str = ""
-    status: str = "todo"  # todo, done
-    date: str = "2026-05-22"  # Default event date
-    created_by: str = ""
-    created_at: Optional[str] = None
-
-@app.get("/api/shared/planning")
-async def get_planning(date: str = None):
-    """Get planning items"""
-    query = {}
-    if date:
-        query["date"] = date
-    items = await db.planning.find(query, {"_id": 0}).sort("time", 1).to_list(100)
-    return items
-
-@app.post("/api/shared/planning")
-async def create_planning_item(item: PlanningItemModel):
-    """Create a new planning item"""
-    item_doc = item.dict()
-    item_doc["id"] = item_doc.get("id") or str(uuid.uuid4())
-    item_doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    
-    await db.planning.insert_one(item_doc)
-    # Remove MongoDB _id before returning
-    item_doc.pop("_id", None)
-    return {"success": True, "item": item_doc}
-
-@app.patch("/api/shared/planning/{item_id}")
-async def update_planning_item(item_id: str, updates: dict):
-    """Update a planning item"""
-    await db.planning.update_one({"id": item_id}, {"$set": updates})
-    updated = await db.planning.find_one({"id": item_id}, {"_id": 0})
-    return {"success": True, "item": updated}
-
-@app.delete("/api/shared/planning/{item_id}")
-async def delete_planning_item(item_id: str):
-    """Delete a planning item"""
-    result = await db.planning.delete_one({"id": item_id})
-    return {"success": True, "deleted": result.deleted_count > 0}
-
-# --- INIT DATA ---
-@app.post("/api/shared/init-default-data")
-async def init_default_data():
-    """Initialize default data if collections are empty"""
-    results = {}
-    
-    # Init artistes
-    if await db.artistes.count_documents({}) == 0:
-        default_artistes = [
-            {"id": "art1", "name": "Kathy", "genre": "DJ Set", "status": "Confirmé", "contrat": "Signé", "cachet": "2500€", "rider": True, "horaire": "22h", "email": "kathy@music.com", "phone": "+596 696 00 00 00"},
-            {"id": "art2", "name": "Admiral T", "genre": "Dancehall", "status": "En négociation", "contrat": "Envoyé", "cachet": "5000€", "rider": False, "horaire": "23h", "email": "", "phone": ""},
-            {"id": "art3", "name": "Kalash", "genre": "Rap", "status": "À contacter", "contrat": "Non signé", "cachet": "-", "rider": False, "horaire": "TBD", "email": "", "phone": ""},
-        ]
-        for a in default_artistes:
-            a["created_at"] = datetime.now(timezone.utc).isoformat()
-            await db.artistes.insert_one(a)
-        results["artistes"] = len(default_artistes)
-    
-    # Init prestataires
-    if await db.prestataires.count_documents({}) == 0:
-        default_prestas = [
-            {"id": "presta1", "name": "SonoPlus Martinique", "type": "Son", "status": "Devis en attente", "devis": "4500€", "contact": "Jean-Marc", "email": "contact@sonoplus.mq", "phone": "+596 696 11 11 11", "validated": False},
-            {"id": "presta2", "name": "LightShow Caraïbes", "type": "Lumière", "status": "Devis en attente", "devis": "3200€", "contact": "Marie", "email": "info@lightshow.mq", "phone": "+596 696 22 22 22", "validated": False},
-            {"id": "presta3", "name": "Sécurité Antilles", "type": "Sécurité", "status": "À contacter", "devis": "-", "contact": "", "email": "", "phone": "", "validated": False},
-        ]
-        for p in default_prestas:
-            p["created_at"] = datetime.now(timezone.utc).isoformat()
-            await db.prestataires.insert_one(p)
-        results["prestataires"] = len(default_prestas)
-    
-    # Init planning
-    if await db.planning.count_documents({}) == 0:
-        default_planning = [
-            {"id": "plan1", "time": "08:00", "event": "Arrivée équipe technique", "responsable": "Fabrice", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan2", "time": "10:00", "event": "Installation scène", "responsable": "Fabrice", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan3", "time": "14:00", "event": "Balance artistes", "responsable": "Gwen", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan4", "time": "17:00", "event": "Ouverture accueil VIP", "responsable": "Alirio", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan5", "time": "18:00", "event": "Ouverture portes public", "responsable": "Kaige", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan6", "time": "19:00", "event": "Discours ouverture", "responsable": "Laurent", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan7", "time": "20:00", "event": "Premier artiste", "responsable": "Gwen", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan8", "time": "22:00", "event": "DJ Set Kathy", "responsable": "Gwen", "status": "todo", "date": "2026-05-22"},
-            {"id": "plan9", "time": "00:00", "event": "Fin événement", "responsable": "Laurent", "status": "todo", "date": "2026-05-22"},
-        ]
-        for item in default_planning:
-            item["created_at"] = datetime.now(timezone.utc).isoformat()
-            await db.planning.insert_one(item)
-        results["planning"] = len(default_planning)
-    
-    # Init partners
-    if await db.partners.count_documents({}) == 0:
-        default_partners = [
-            {"id": "partner1", "name": "Rhum Clément", "type": "Or", "status": "Signé", "contact": "Marie Clément", "email": "partenariat@clement.mq", "phone": "+596 696 33 33 33", "lastAction": "05/03/2026", "nextAction": "Livraison produits"},
-            {"id": "partner2", "name": "Air France", "type": "Silver", "status": "En négociation", "contact": "Pierre Dubois", "email": "sponsoring@airfrance.fr", "phone": "", "lastAction": "01/03/2026", "nextAction": "Relance"},
-            {"id": "partner3", "name": "CTM", "type": "Institutionnel", "status": "Dossier envoyé", "contact": "", "email": "culture@ctm.mq", "phone": "", "lastAction": "28/02/2026", "nextAction": "Attente réponse"},
-        ]
-        for p in default_partners:
-            p["created_at"] = datetime.now(timezone.utc).isoformat()
-            await db.partners.insert_one(p)
-        results["partners"] = len(default_partners)
-    
-    return {"success": True, "initialized": results}

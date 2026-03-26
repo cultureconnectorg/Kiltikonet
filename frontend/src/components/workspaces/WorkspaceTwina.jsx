@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Palette, Image, FileText, Upload, Eye, Plus, Save, Trash2, Settings } from 'lucide-react';
+import { LogOut, Palette, Image, FileText, Upload, Eye, Plus, Save, Trash2, Settings, Printer, Download, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import InternalMessaging from '../InternalMessaging';
@@ -24,6 +24,8 @@ const WorkspaceTwina = () => {
   const [cmsContent, setCmsContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('hero');
+  const [badgeStats, setBadgeStats] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const loadCMS = async () => {
@@ -36,7 +38,16 @@ const WorkspaceTwina = () => {
         setLoading(false);
       }
     };
+    const loadBadgeStats = async () => {
+      try {
+        const res = await axios.get(`${API}/badges/export-stats`);
+        setBadgeStats(res.data);
+      } catch (error) {
+        console.error('Error loading badge stats:', error);
+      }
+    };
     loadCMS();
+    loadBadgeStats();
     
     // Log activity
     axios.post(`${API}/workspace/log`, {
@@ -64,10 +75,37 @@ const WorkspaceTwina = () => {
 
   const sections = [
     { id: 'hero', label: 'Hero / Accueil', icon: Image },
+    { id: 'badges', label: 'Export Badges PDF', icon: Printer },
     { id: 'partners', label: 'Logos Partenaires', icon: Palette },
     { id: 'program', label: 'Programme', icon: FileText },
     { id: 'visuals', label: 'Visuels & Medias', icon: Upload }
   ];
+
+  const handleExportBadges = async (tier = null) => {
+    setExporting(true);
+    try {
+      const params = tier ? `?tier=${tier}` : '';
+      const res = await fetch(`${API}/badges/export-pdf-batch${params}`);
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.detail || 'Erreur export');
+        setExporting(false);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `badges_cc2026_${tier || 'all'}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Export PDF termine !');
+      logAction('export', `Export badges PDF ${tier || 'tous'}`);
+    } catch (e) {
+      toast.error('Erreur lors de l\'export');
+    }
+    setExporting(false);
+  };
 
   return (
     <div className="min-h-screen" style={{ background: COLORS.charbon, fontFamily: "'Syne', sans-serif" }}>
@@ -139,6 +177,82 @@ const WorkspaceTwina = () => {
               </div>
             ) : (
               <>
+                {activeSection === 'badges' && (
+                  <div className="space-y-6" data-testid="badges-export-section">
+                    <h2 className="text-lg font-bold" style={{ color: COLORS.pink }}>Export Badges PDF</h2>
+                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      Generez les badges en PDF pour impression. Format A6, 4 badges par page A4.
+                    </p>
+
+                    {/* Stats */}
+                    {badgeStats && (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="p-3 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <p className="text-xl font-bold text-white">{badgeStats.total_approved}</p>
+                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Total approuves</p>
+                        </div>
+                        {Object.entries(badgeStats.by_tier || {}).map(([tier, count]) => (
+                          <div key={tier} className="p-3 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                            <p className="text-xl font-bold" style={{ color: tier === 'emerging' ? '#4A5D4E' : tier === 'professional' ? '#C4714A' : tier === 'institutional' ? '#D4A84B' : '#fff' }}>{count}</p>
+                            <p className="text-xs capitalize" style={{ color: 'rgba(255,255,255,0.4)' }}>{tier}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Export buttons */}
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => handleExportBadges()}
+                        disabled={exporting || !badgeStats?.total_approved}
+                        className="w-full p-4 rounded-lg flex items-center justify-between transition-colors disabled:opacity-40"
+                        style={{ background: `${COLORS.pink}20`, border: `1px solid ${COLORS.pink}40` }}
+                        data-testid="export-all-badges-btn"
+                      >
+                        <div className="flex items-center gap-3">
+                          {exporting ? <Loader2 className="w-5 h-5 animate-spin" style={{ color: COLORS.pink }} /> : <Printer className="w-5 h-5" style={{ color: COLORS.pink }} />}
+                          <div className="text-left">
+                            <p className="text-sm font-bold text-white">Exporter TOUS les badges</p>
+                            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{badgeStats?.total_approved || 0} badges - Format A4 (4 par page)</p>
+                          </div>
+                        </div>
+                        <Download className="w-5 h-5" style={{ color: COLORS.pink }} />
+                      </button>
+
+                      {['emerging', 'professional', 'institutional'].map(tier => {
+                        const count = badgeStats?.by_tier?.[tier] || 0;
+                        const labels = { emerging: 'Emergent', professional: 'Professionnel', institutional: 'Institutionnel' };
+                        const colors = { emerging: '#4A5D4E', professional: '#C4714A', institutional: '#D4A84B' };
+                        return (
+                          <button
+                            key={tier}
+                            onClick={() => handleExportBadges(tier)}
+                            disabled={exporting || count === 0}
+                            className="w-full p-3 rounded-lg flex items-center justify-between transition-colors disabled:opacity-30"
+                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                            data-testid={`export-${tier}-btn`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full" style={{ background: colors[tier] }} />
+                              <span className="text-sm text-white">{labels[tier]}</span>
+                            </div>
+                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{count} badges</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {(!badgeStats || badgeStats.total_approved === 0) && (
+                      <div className="p-6 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <Printer className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.15)' }} />
+                        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Aucun badge approuve pour le moment. Les badges seront disponibles apres approbation des inscriptions.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {activeSection === 'hero' && (
                   <div className="space-y-6">
                     <h2 className="text-lg font-bold" style={{ color: COLORS.pink }}>Section Hero / Accueil</h2>
