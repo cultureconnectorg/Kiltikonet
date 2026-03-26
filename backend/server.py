@@ -4402,11 +4402,47 @@ async def get_public_content(page: str, tenant_id: str = DEFAULT_TENANT):
     for item in content:
         result[item["section"]] = item.get("content", {})
     
+    # Sanitize: replace legacy venue name
+    import re
+    result_str = str(result)
+    if 'Atrium' in result_str or 'atrium' in result_str:
+        import json
+        result_json = json.dumps(result, default=str)
+        result_json = re.sub(r'Tropiques?\s*Atrium', 'Teyat Otonom Mawon (TOM)', result_json, flags=re.IGNORECASE)
+        result_json = result_json.replace('Atrium', 'TOM').replace('atrium', 'TOM')
+        result = json.loads(result_json)
+    
     return result
 
 @app.get("/api/public/page/{slug}")
 async def get_public_page(slug: str, tenant_id: str = DEFAULT_TENANT):
     """Get a custom page by slug (no auth required)"""
+
+@app.post("/api/cms/cleanup-atrium")
+async def cleanup_atrium_references(tenant_id: str = DEFAULT_TENANT):
+    """One-time cleanup: replace all Atrium references in CMS content"""
+    import re
+    import json as json_mod
+    updated = 0
+    async for doc in db.cms_content.find({"tenant_id": tenant_id}):
+        doc_str = json_mod.dumps(doc.get("content", {}), default=str)
+        if 'Atrium' in doc_str or 'atrium' in doc_str:
+            new_str = re.sub(r'Tropiques?\s*Atrium', 'Teyat Otonom Mawon (TOM)', doc_str, flags=re.IGNORECASE)
+            new_str = new_str.replace('Atrium', 'TOM').replace('atrium', 'TOM')
+            new_content = json_mod.loads(new_str)
+            await db.cms_content.update_one({"_id": doc["_id"]}, {"$set": {"content": new_content}})
+            updated += 1
+    # Also clean tenant_config
+    async for doc in db.tenant_config.find({}):
+        doc_str = json_mod.dumps(doc, default=str)
+        if 'Atrium' in doc_str or 'atrium' in doc_str:
+            doc.pop("_id")
+            new_str = re.sub(r'Tropiques?\s*Atrium', 'Teyat Otonom Mawon (TOM)', json_mod.dumps(doc, default=str), flags=re.IGNORECASE)
+            new_str = new_str.replace('Atrium', 'TOM').replace('atrium', 'TOM')
+            updated += 1
+    return {"success": True, "updated_documents": updated}
+
+
     page = await db.cms_pages.find_one(
         {"slug": slug, "tenant_id": tenant_id, "published": True}, 
         {"_id": 0}

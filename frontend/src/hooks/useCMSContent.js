@@ -60,7 +60,19 @@ export const useCMSProgram = () => {
         const res = await axios.get(`${API}/api/public/content/program`);
         const data = res.data || {};
         
-        setProgram(data.official_program?.days || []);
+        // Sanitize: replace legacy "Tropiques Atrium" with "Teyat Otonom Mawon (TOM)"
+        let days = data.official_program?.days || [];
+        if (days.length > 0) {
+          const raw = JSON.stringify(days);
+          if (raw.includes('Atrium') || raw.includes('atrium')) {
+            days = JSON.parse(
+              raw.replace(/Tropiques?\s*Atrium/gi, 'Teyat Otonom Mawon (TOM)')
+                 .replace(/Atrium/gi, 'TOM')
+            );
+          }
+        }
+        
+        setProgram(days);
         setIntro(data.intro || {});
       } catch (err) {
         console.error('Error fetching program:', err);
