@@ -7380,8 +7380,13 @@ class AnalyticsBatch(BaseModel):
     events: List[AnalyticsEvent]
 
 @app.post("/api/analytics/batch")
-async def track_analytics_batch(batch: AnalyticsBatch):
+async def track_analytics_batch(batch: AnalyticsBatch, req: Request):
     """Store batch of analytics events"""
+    client_ip = req.headers.get("x-forwarded-for", req.headers.get("x-real-ip", req.client.host if req.client else "unknown"))
+    if client_ip and "," in client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+    user_agent = req.headers.get("user-agent", "")
+    
     events_to_insert = []
     notifications_to_create = []
     
@@ -7393,6 +7398,8 @@ async def track_analytics_batch(batch: AnalyticsBatch):
             "user_id": event.userId,
             "timestamp": event.timestamp,
             "data": event.data,
+            "ip": client_ip,
+            "user_agent": user_agent,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         events_to_insert.append(event_doc)
@@ -7537,6 +7544,145 @@ async def get_analytics_dashboard(days: int = 7):
         "intro_sections": intro_sections,
         "pro_activity": pro_activity,
         "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.get("/api/analytics/site")
+async def get_site_analytics(days: int = 30):
+    """Comprehensive site analytics - traffic, visitors, pages, devices"""
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=days)
+    cutoff_iso = cutoff.isoformat()
+    
+    # Total events all time
+    total_events_all = await db.analytics_events.count_documents({})
+    total_page_views_all = await db.analytics_events.count_documents({"event_type": "page_view"})
+    
+    # Events in period
+    total_events = await db.analytics_events.count_documents({"created_at": {"$gte": cutoff_iso}})
+    total_page_views = await db.analytics_events.count_documents({"event_type": "page_view", "created_at": {"$gte": cutoff_iso}})
+    
+    # Unique sessions in period
+    unique_sessions_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}}},
+        {"$group": {"_id": "$session_id"}},
+        {"$count": "total"}
+    ]
+    unique_result = await db.analytics_events.aggregate(unique_sessions_pipeline).to_list(1)
+    unique_visitors = unique_result[0]["total"] if unique_result else 0
+    
+    # Unique IPs in period
+    unique_ips_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}, "ip": {"$ne": None}}},
+        {"$group": {"_id": "$ip"}},
+        {"$count": "total"}
+    ]
+    ip_result = await db.analytics_events.aggregate(unique_ips_pipeline).to_list(1)
+    unique_ips = ip_result[0]["total"] if ip_result else 0
+    
+    # Daily traffic breakdown
+    daily_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}}},
+        {"$addFields": {"date_str": {"$substr": ["$created_at", 0, 10]}}},
+        {"$group": {
+            "_id": "$date_str",
+            "views": {"$sum": 1},
+            "sessions": {"$addToSet": "$session_id"}
+        }},
+        {"$project": {
+            "date": "$_id", "_id": 0,
+            "views": 1,
+            "visitors": {"$size": "$sessions"}
+        }},
+        {"$sort": {"date": 1}}
+    ]
+    daily_stats = await db.analytics_events.aggregate(daily_pipeline).to_list(60)
+    
+    # Top pages
+    pages_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}}},
+        {"$group": {
+            "_id": "$data.page",
+            "views": {"$sum": 1},
+            "sessions": {"$addToSet": "$session_id"}
+        }},
+        {"$project": {
+            "page": "$_id", "_id": 0,
+            "views": 1,
+            "visitors": {"$size": "$sessions"}
+        }},
+        {"$sort": {"views": -1}},
+        {"$limit": 15}
+    ]
+    top_pages = await db.analytics_events.aggregate(pages_pipeline).to_list(15)
+    
+    # Device breakdown (mobile vs desktop)
+    device_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}, "data.device.isMobile": {"$exists": True}}},
+        {"$group": {
+            "_id": "$data.device.isMobile",
+            "count": {"$sum": 1}
+        }}
+    ]
+    device_stats = await db.analytics_events.aggregate(device_pipeline).to_list(10)
+    mobile = sum(d["count"] for d in device_stats if d["_id"] is True)
+    desktop = sum(d["count"] for d in device_stats if d["_id"] is False)
+    
+    # Referrer sources
+    referrer_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}, "data.referrer": {"$ne": ""}, "data.referrer": {"$ne": None}}},
+        {"$group": {
+            "_id": "$data.referrer",
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    referrers = await db.analytics_events.aggregate(referrer_pipeline).to_list(10)
+    
+    # Hourly distribution (for current day)
+    today_str = now.strftime("%Y-%m-%d")
+    hourly_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": today_str}}},
+        {"$addFields": {"hour": {"$substr": ["$created_at", 11, 2]}}},
+        {"$group": {"_id": "$hour", "count": {"$sum": 1}}},
+        {"$sort": {"_id": 1}}
+    ]
+    hourly_stats = await db.analytics_events.aggregate(hourly_pipeline).to_list(24)
+    
+    # Recent activity (last 20 page views)
+    recent = await db.analytics_events.find(
+        {"event_type": "page_view"},
+        {"_id": 0, "data.page": 1, "ip": 1, "created_at": 1, "session_id": 1, "data.device.isMobile": 1}
+    ).sort("created_at", -1).limit(20).to_list(20)
+    
+    # Average pages per session
+    avg_pages_pipeline = [
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}}},
+        {"$group": {"_id": "$session_id", "pages": {"$sum": 1}}},
+        {"$group": {"_id": None, "avg": {"$avg": "$pages"}}}
+    ]
+    avg_result = await db.analytics_events.aggregate(avg_pages_pipeline).to_list(1)
+    avg_pages = round(avg_result[0]["avg"], 1) if avg_result else 0
+    
+    return {
+        "period_days": days,
+        "summary": {
+            "total_page_views": total_page_views,
+            "total_page_views_all_time": total_page_views_all,
+            "unique_visitors": unique_visitors,
+            "unique_ips": unique_ips,
+            "total_events": total_events,
+            "total_events_all_time": total_events_all,
+            "avg_pages_per_session": avg_pages,
+        },
+        "daily": daily_stats,
+        "top_pages": top_pages,
+        "devices": {"mobile": mobile, "desktop": desktop},
+        "referrers": [{"source": r["_id"], "count": r["count"]} for r in referrers],
+        "hourly_today": [{"hour": h["_id"], "count": h["count"]} for h in hourly_stats],
+        "recent_activity": recent,
+        "generated_at": now.isoformat()
     }
 
 @app.get("/api/analytics/behavior/{user_id}")

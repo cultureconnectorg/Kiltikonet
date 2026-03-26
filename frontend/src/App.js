@@ -64,6 +64,10 @@ import AdminMobileDashboard from "./components/AdminMobileDashboard";
 import PerformanceDashboard from "./components/admin/PerformanceDashboard";
 // Device Detection Hook
 import useDeviceDetect from "./hooks/useDeviceDetect";
+// Analytics
+import { useAnalytics } from "./hooks/useAnalytics";
+// Site Analytics Dashboard
+import SiteAnalyticsDashboard from "./components/SiteAnalyticsDashboard";
 // 3D Components - LAZY LOADED to avoid React 19 compatibility issues
 const Dashboard3D = lazy(() => import("./components/admin/Dashboard3D"));
 const SmartEngine3D = lazy(() => import("./components/admin/SmartEngine3D"));
@@ -78,6 +82,12 @@ const Loading3D = () => (
   </div>
 );
 
+// Page tracker component - must be inside BrowserRouter
+const PageTracker = () => {
+  useAnalytics();
+  return null;
+};
+
 // Layout wrapper that conditionally shows Header and Mobile Nav
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -88,6 +98,7 @@ const AppLayout = ({ children }) => {
   
   return (
     <>
+      <PageTracker />
       {showHeader && <Header />}
       <div className="pb-16 md:pb-0"> {/* Add padding for mobile nav on mobile only */}
         {children}
@@ -184,6 +195,8 @@ function App() {
               <Route path="/dashboard-cc2026/kaige" element={<ProtectedRoute allowedRoles={['press']}><DashboardCC2026 workspaceId="Kaige2026" /></ProtectedRoute>} />
               <Route path="/dashboard-cc2026/alirio" element={<ProtectedRoute allowedRoles={['business']}><DashboardCC2026 workspaceId="Alirio2026" /></ProtectedRoute>} />
               <Route path="/dashboard-cc2026/wudy" element={<ProtectedRoute allowedRoles={['finance']}><DashboardCC2026 workspaceId="Wudy2026" /></ProtectedRoute>} />
+              {/* Site Analytics */}
+              <Route path="/admin/analytics/site" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><SiteAnalyticsDashboard /></ProtectedRoute>} />
               {/* Smart Engine - 3D version */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
               <Route path="/smart-engine-3d" element={<Suspense fallback={<Loading3D />}><SmartEngine3D /></Suspense>} />

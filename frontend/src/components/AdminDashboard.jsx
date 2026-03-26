@@ -603,6 +603,14 @@ export const AdminDashboard = () => {
                   <Coins className="w-4 h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Jetons</span>
                 </Button>
+                <Button 
+                  onClick={() => navigate('/admin/analytics/site')} 
+                  className="h-9 sm:h-10 bg-[#A65D47] text-white hover:bg-[#A65D47]/90 font-syne text-xs sm:text-sm rounded-none" 
+                  data-testid="analytics-site-button"
+                >
+                  <BarChart3 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Trafic</span>
+                </Button>
                 <Button onClick={fetchRegistrations} variant="outline" className="h-9 sm:h-10 border-lightborder text-charcoal/70 hover:text-charcoal rounded-none">
                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>
