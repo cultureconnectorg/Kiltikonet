@@ -65,20 +65,32 @@ export default function BadgeInscription() {
   }, [preSelectedType]);
 
   const selectCategory = (cat) => {
+    // Paid tiers → redirect to full registration + Stripe payment
+    if (cat.id === 'emerging') {
+      navigate('/register-pro', { state: { selectedTier: 'emerging' } });
+      return;
+    }
+    if (cat.id === 'pro') {
+      navigate('/register-pro', { state: { selectedTier: 'professional' } });
+      return;
+    }
+    if (cat.id === 'exposant') {
+      setSelectedCategory(cat.id);
+      setStep(1.5); // Show sub-options (Bronze/Silver/Gold)
+      return;
+    }
+    // Free visitor → continue with simple badge form
     setSelectedCategory(cat.id);
     if (cat.badge) {
       setSelectedBadge(cat.badge);
       setForm(f => ({ ...f, type_badge: cat.badge }));
       setStep(2);
-    } else {
-      setStep(1.5); // Show sub-options
     }
   };
 
   const selectExposant = (badge) => {
-    setSelectedBadge(badge);
-    setForm(f => ({ ...f, type_badge: badge }));
-    setStep(2);
+    // All exposant tiers require payment → redirect to registration
+    navigate('/register-pro', { state: { selectedTier: 'institutional' } });
   };
 
   const handleSubmit = async (e) => {
