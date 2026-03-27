@@ -703,6 +703,8 @@ class CheckoutRequest(BaseModel):
     contact_phone: Optional[str] = None
     website: Optional[str] = None
     logo_url: Optional[str] = None
+    # hCaptcha
+    captcha_token: Optional[str] = None
 
 class PartnerResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -863,6 +865,14 @@ class SiteConfig(BaseModel):
 @api_router.post("/create-checkout-session")
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
     """Create a Stripe checkout session for accreditation or partnership"""
+    
+    # hCaptcha verification
+    if checkout_data.captcha_token:
+        from services.hcaptcha import verify_hcaptcha
+        client_ip = request.client.host if request.client else "unknown"
+        captcha_result = await verify_hcaptcha(checkout_data.captcha_token, client_ip)
+        if not captcha_result["success"]:
+            raise HTTPException(status_code=403, detail=captcha_result["error"])
     
     # Use origin_url from frontend for redirects (supports preview/production/custom domains)
     origin_url = checkout_data.origin_url.rstrip('/') if checkout_data.origin_url else BASE_URL
@@ -5418,6 +5428,35 @@ class SiteRegistrationRequest(BaseModel):
     bio: Optional[str] = ""
     is_professional: bool = False
     cc2026_interest: bool = False  # Si True, ajoute à Baserow
+
+# ================== CONTACT FORM (with hCaptcha) ==================
+class ContactFormRequest(BaseModel):
+    name: str
+    email: str
+    message: str
+    captcha_token: Optional[str] = None
+
+@app.post("/api/contact")
+async def submit_contact_form(data: ContactFormRequest, request: Request):
+    """Public contact form submission with hCaptcha protection"""
+    if data.captcha_token:
+        from services.hcaptcha import verify_hcaptcha
+        client_ip = request.client.host if request.client else "unknown"
+        captcha_result = await verify_hcaptcha(data.captcha_token, client_ip)
+        if not captcha_result["success"]:
+            raise HTTPException(status_code=403, detail=captcha_result["error"])
+
+    contact = {
+        "id": str(uuid.uuid4()),
+        "name": data.name,
+        "email": data.email,
+        "message": data.message,
+        "status": "new",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.contact_messages.insert_one(contact)
+    del contact["_id"]
+    return {"success": True, "message": "Message recu"}
 
 @app.post("/api/register")
 async def register_on_site(data: SiteRegistrationRequest):

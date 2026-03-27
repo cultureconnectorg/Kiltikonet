@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UserPlus, CheckCircle, Loader2, QrCode, Copy, Check, ArrowLeft, ArrowRight, Store, Users, Briefcase, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
+import HCaptchaWidget from './HCaptchaWidget';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const C = { bg: '#F4F0E8', card: '#FFFFFF', warm: '#E8E0D0', dark: '#1A1510', muted: '#6B6560', gold: '#C9A84C', terra: '#A65D47', sage: '#4A5D4E' };
@@ -54,6 +55,8 @@ export default function BadgeInscription() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
 
   useEffect(() => {
     if (preSelectedType) {
@@ -96,13 +99,14 @@ export default function BadgeInscription() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.prenom || !form.nom || !form.email || !form.type_badge) { toast.error('Veuillez remplir tous les champs obligatoires'); return; }
+    if (!captchaToken) { toast.error('Veuillez compléter le captcha'); return; }
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/badges/inscrire`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const res = await fetch(`${API_URL}/api/badges/inscrire`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, captcha_token: captchaToken }) });
       const data = await res.json();
       if (res.ok) { setResult(data); toast.success('Badge créé !'); setStep(3); }
-      else toast.error(data.detail || 'Erreur inscription');
-    } catch { toast.error('Erreur de connexion'); }
+      else { toast.error(data.detail || 'Erreur inscription'); setCaptchaToken(null); captchaRef.current?.reset(); }
+    } catch { toast.error('Erreur de connexion'); setCaptchaToken(null); captchaRef.current?.reset(); }
     setLoading(false);
   };
 
@@ -237,6 +241,16 @@ export default function BadgeInscription() {
             <Field label="Nom *" value={form.nom} onChange={v => setForm({ ...form, nom: v })} testId="input-nom" />
             <Field label="Email *" type="email" value={form.email} onChange={v => setForm({ ...form, email: v })} testId="input-email" />
             <Field label="Organisation / Entreprise" value={form.organisation} onChange={v => setForm({ ...form, organisation: v })} testId="input-organisation" />
+
+            {/* hCaptcha Widget */}
+            <div className="pt-2" data-testid="captcha-container-visitor">
+              <HCaptchaWidget
+                ref={captchaRef}
+                onVerify={(token) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken(null)}
+                onError={() => setCaptchaToken(null)}
+              />
+            </div>
 
             <Button
               type="submit"

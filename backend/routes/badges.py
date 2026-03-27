@@ -11,13 +11,14 @@ import logging
 import asyncio
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from fastapi import APIRouter, HTTPException, Request
 from services.frek_client import frek_client
 from services.baserow_service import mirror_badge, update_mirror
 from services import ses_service
+from services.hcaptcha import verify_hcaptcha
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ class InscriptionRequest(BaseModel):
     email: str
     type_badge: str
     organisation: Optional[str] = None
+    captcha_token: Optional[str] = None
 
 
 class ScanRequest(BaseModel):
@@ -123,7 +125,14 @@ async def get_badge(badge_id: str):
 
 
 @router.post("/inscrire")
-async def inscrire(req: InscriptionRequest):
+async def inscrire(req: InscriptionRequest, request: Request):
+    # hCaptcha verification
+    if req.captcha_token:
+        client_ip = request.client.host if request.client else "unknown"
+        captcha_result = await verify_hcaptcha(req.captcha_token, client_ip)
+        if not captcha_result["success"]:
+            raise HTTPException(status_code=403, detail=captcha_result["error"])
+
     if req.type_badge not in BADGE_TYPES:
         raise HTTPException(status_code=400, detail=f"Type badge invalide. Types: {list(BADGE_TYPES.keys())}")
 

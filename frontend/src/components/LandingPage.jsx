@@ -21,12 +21,15 @@ import {
 import { ParticleBackground, Countdown } from './CinematicElements';
 import { Globe3D } from './Globe3D';
 import { useSharedData } from '../contexts/SharedDataContext';
+import HCaptchaWidget from './HCaptchaWidget';
 
 export const LandingPage = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contactCaptchaToken, setContactCaptchaToken] = useState(null);
+  const contactCaptchaRef = useRef(null);
   const [heroLoaded, setHeroLoaded] = useState(false);
   const parallaxRef = useRef(null);
   const [parallaxOffset, setParallaxOffset] = useState(0);
@@ -63,10 +66,24 @@ export const LandingPage = () => {
   
   const handleContactSubmit = async (e) => {
     e.preventDefault();
+    if (!contactCaptchaToken) {
+      toast.error(language === 'fr' ? 'Veuillez compléter le captcha' : 'Please complete the captcha');
+      return;
+    }
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success(language === 'fr' ? 'Message envoyé !' : 'Message sent!');
-    setContactForm({ name: '', email: '', message: '' });
+    try {
+      const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+      await axios.post(`${API}/contact`, {
+        ...contactForm,
+        captcha_token: contactCaptchaToken,
+      });
+      toast.success(language === 'fr' ? 'Message envoyé !' : 'Message sent!');
+      setContactForm({ name: '', email: '', message: '' });
+      setContactCaptchaToken(null);
+      contactCaptchaRef.current?.reset();
+    } catch (err) {
+      toast.error(language === 'fr' ? 'Erreur lors de l\'envoi' : 'Send error');
+    }
     setIsSubmitting(false);
   };
   
@@ -454,6 +471,15 @@ export const LandingPage = () => {
                   className="bg-cream border-lightborder text-charcoal placeholder:text-charcoal/40 min-h-[120px] rounded-none focus:border-terracotta transition-colors"
                   required
                 />
+                {/* hCaptcha Widget */}
+                <div data-testid="captcha-container-contact">
+                  <HCaptchaWidget
+                    ref={contactCaptchaRef}
+                    onVerify={(token) => setContactCaptchaToken(token)}
+                    onExpire={() => setContactCaptchaToken(null)}
+                    onError={() => setContactCaptchaToken(null)}
+                  />
+                </div>
                 <Button
                   type="submit"
                   disabled={isSubmitting}

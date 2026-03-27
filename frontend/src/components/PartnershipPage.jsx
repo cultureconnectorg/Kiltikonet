@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
@@ -7,6 +7,7 @@ import { Check, Users, Globe, BarChart3, Mic2, MapPin, Calendar, CreditCard, Loa
 import { toast } from 'sonner';
 import axios from 'axios';
 import { Reveal, useIntersectionObserver } from '../hooks/useAnimations';
+import HCaptchaWidget from './HCaptchaWidget';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -185,6 +186,8 @@ export const PartnershipPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [heroVisible, setHeroVisible] = useState(false);
+  const [partnerCaptchaToken, setPartnerCaptchaToken] = useState(null);
+  const partnerCaptchaRef = useRef(null);
   
   const prefersReducedMotion = typeof window !== 'undefined' && 
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -233,6 +236,10 @@ export const PartnershipPage = () => {
       toast.error(language === 'fr' ? 'Veuillez sélectionner une formule' : 'Please select a package');
       return;
     }
+    if (!partnerCaptchaToken) {
+      toast.error(language === 'fr' ? 'Veuillez compléter le captcha' : 'Please complete the captcha');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -244,7 +251,8 @@ export const PartnershipPage = () => {
         contact_name: formData.contact_name,
         contact_email: formData.contact_email,
         contact_phone: formData.contact_phone,
-        website: formData.website
+        website: formData.website,
+        captcha_token: partnerCaptchaToken
       };
 
       const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
@@ -258,6 +266,8 @@ export const PartnershipPage = () => {
       console.error('Payment error:', error);
       toast.error(language === 'fr' ? 'Erreur lors de la création du paiement' : 'Payment creation error');
       setIsSubmitting(false);
+      setPartnerCaptchaToken(null);
+      partnerCaptchaRef.current?.reset();
     }
   };
 
@@ -443,6 +453,15 @@ export const PartnershipPage = () => {
                   </div>
 
                   <div className="pt-4">
+                    {/* hCaptcha Widget */}
+                    <div className="mb-4" data-testid="captcha-container-partnership">
+                      <HCaptchaWidget
+                        ref={partnerCaptchaRef}
+                        onVerify={(token) => setPartnerCaptchaToken(token)}
+                        onExpire={() => setPartnerCaptchaToken(null)}
+                        onError={() => setPartnerCaptchaToken(null)}
+                      />
+                    </div>
                     <Button
                       type="submit"
                       disabled={isSubmitting}

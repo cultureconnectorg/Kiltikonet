@@ -13,6 +13,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { RGPDCheckbox } from './legal';
 import { Reveal } from '../hooks/useAnimations';
+import HCaptchaWidget from './HCaptchaWidget';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -56,6 +57,8 @@ export const RegistrationForm = () => {
   const [errors, setErrors] = useState({});
   const [rgpdConsent, setRgpdConsent] = useState(false); // RGPD consent state
   const [headerVisible, setHeaderVisible] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = React.useRef(null);
 
   const prefersReducedMotion = typeof window !== 'undefined' && 
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -152,6 +155,7 @@ export const RegistrationForm = () => {
     if (step === 3) {
       if (!formData.how_heard) newErrors.how_heard = true;
       if (!rgpdConsent) newErrors.rgpd = true; // RGPD validation
+      if (!captchaToken) newErrors.captcha = true;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -189,7 +193,9 @@ export const RegistrationForm = () => {
         siret_number: formData.siret_number || null,
         website_url: formData.website_url || null,
         // NEW: Expertise tags as comma-separated string (Stripe metadata limit)
-        expertise_tags: (formData.expertise_tags || []).join(',')
+        expertise_tags: (formData.expertise_tags || []).join(','),
+        // hCaptcha token
+        captcha_token: captchaToken
       };
       
       const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
@@ -204,6 +210,8 @@ export const RegistrationForm = () => {
       console.error('Payment error:', error);
       toast.error(language === 'fr' ? 'Erreur lors de la création du paiement' : 'Payment creation error');
       setIsSubmitting(false);
+      setCaptchaToken(null);
+      captchaRef.current?.reset();
     }
   };
 
@@ -508,6 +516,24 @@ export const RegistrationForm = () => {
                   onCheckedChange={setRgpdConsent}
                   showError={errors.rgpd}
                 />
+              </div>
+
+              {/* hCaptcha Widget */}
+              <div className="pt-4" data-testid="captcha-container-pro">
+                <HCaptchaWidget
+                  ref={captchaRef}
+                  onVerify={(token) => {
+                    setCaptchaToken(token);
+                    if (errors.captcha) setErrors(prev => ({ ...prev, captcha: null }));
+                  }}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => setCaptchaToken(null)}
+                />
+                {errors.captcha && (
+                  <p className="text-xs text-red-500 text-center mt-2">
+                    {language === 'fr' ? 'Veuillez compléter le captcha' : 'Please complete the captcha'}
+                  </p>
+                )}
               </div>
               
               {/* Summary before payment */}
