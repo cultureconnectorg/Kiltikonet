@@ -11,8 +11,10 @@ import {
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
   Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
   BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown,
-  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins
+  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins, Shield
 } from 'lucide-react';
+import SmartEngineDashboard from './SmartEngineDashboard';
+import AIAgentsDashboard from './AIAgentsDashboard';
 import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -690,6 +692,30 @@ export const AdminDashboard = () => {
                 {language === 'fr' ? 'Partenaires' : 'Partners'}
               </button>
               <button
+                onClick={() => setActiveTab('smart-engine')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'smart-engine'
+                    ? 'border-terracotta text-terracotta'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-smart-engine"
+              >
+                <BarChart3 className="w-4 h-4 inline mr-2" />
+                Smart Engine
+              </button>
+              <button
+                onClick={() => setActiveTab('ai-agents')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'ai-agents'
+                    ? 'border-terracotta text-terracotta'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-ai-agents"
+              >
+                <Shield className="w-4 h-4 inline mr-2" />
+                Agents IA
+              </button>
+              <button
                 onClick={() => setShowExportModal(true)}
                 className="ml-auto px-4 py-3 text-sm font-syne text-charcoal/50 hover:text-terracotta transition-colors"
                 data-testid="filtered-export-btn"
@@ -703,6 +729,14 @@ export const AdminDashboard = () => {
           {activeTab === 'partners' ? (
             <div className="flex-1 overflow-auto p-6">
               <PartnerManagement />
+            </div>
+          ) : activeTab === 'smart-engine' ? (
+            <div className="flex-1 overflow-auto">
+              <SmartEngineDashboard />
+            </div>
+          ) : activeTab === 'ai-agents' ? (
+            <div className="flex-1 overflow-auto">
+              <AIAgentsDashboard />
             </div>
           ) : (
             <div className="flex-1 overflow-auto">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { CheckCircle, Circle, AlertTriangle, Clock, ChevronDown, ChevronRight, Calendar, Users, Target, Loader2, Wifi, WifiOff, RefreshCw, CloudOff } from 'lucide-react';
+import { CheckCircle, Circle, AlertTriangle, Clock, ChevronDown, ChevronRight, Calendar, Users, Target, Loader2, Wifi, WifiOff, RefreshCw, CloudOff, BarChart3 } from 'lucide-react';
+import SmartEngineDashboard from './SmartEngineDashboard';
 import useOfflineSync from '../hooks/useOfflineSync';
 import { toast } from 'sonner';
 
@@ -628,6 +629,18 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
             >
               Vue Globale
             </button>
+            <button
+              onClick={() => setView('smart-engine')}
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-all ${view === 'smart-engine' ? 'font-bold' : ''}`}
+              style={{
+                background: view === 'smart-engine' ? COLORS.gold : COLORS.card,
+                color: view === 'smart-engine' ? COLORS.bg : COLORS.text
+              }}
+              data-testid="view-smart-engine"
+            >
+              <BarChart3 className="w-3 h-3 inline mr-1" />
+              Smart Engine
+            </button>
           </div>
           {/* Offline/Online Status & Sync */}
           <div className="flex items-center gap-2 text-[10px] sm:text-xs" style={{ color: COLORS.textMuted }}>
@@ -671,6 +684,13 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
           </div>
         </div>
         
+        {/* Smart Engine View */}
+        {view === 'smart-engine' && (
+          <div className="-mx-3 sm:-mx-4">
+            <SmartEngineDashboard />
+          </div>
+        )}
+
         {/* Pole Stats - Mobile: 5 columns grid instead of 9 */}
         {view === 'global' && (
           <div className="grid grid-cols-5 sm:grid-cols-9 gap-1 sm:gap-2 mb-4 sm:mb-6 overflow-x-auto">
@@ -681,6 +701,7 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
         )}
         
         {/* Tasks by Week */}
+        {view !== 'smart-engine' && (
         <div>
           {WEEKS.map(week => (
             <WeekSection
@@ -695,8 +716,10 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
             />
           ))}
         </div>
+        )}
         
         {/* Jour J Banner - Mobile responsive */}
+        {view !== 'smart-engine' && (
         <div className="mt-6 sm:mt-8 p-4 sm:p-8 rounded-xl text-center" style={{ background: `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.card})`, border: `2px solid ${COLORS.gold}` }}>
           <div className="text-[10px] sm:text-sm uppercase tracking-widest mb-1 sm:mb-2" style={{ color: COLORS.textMuted }}>
             <span className="sm:hidden">22 Mai 2026 — Fort-de-France</span>
@@ -710,6 +733,7 @@ const DashboardCC2026 = ({ workspaceId = 'CC2026admin' }) => {
             <span className="hidden sm:inline">6 000 spectateurs · Parc de La Savane · Commémoration Abolition de l'Esclavage</span>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
