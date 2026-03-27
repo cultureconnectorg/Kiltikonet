@@ -3537,12 +3537,18 @@ from routes.ses import router as ses_router
 from routes.analytics import router as analytics_router
 from routes.shared import router as shared_router
 from routes.terrain import router as terrain_router
+from routes.smart_engine import router as smart_engine_router
+from routes.pro_social import router as pro_social_router
+from routes.ai_agents import router as ai_agents_router
 app.include_router(badges_router)
 app.include_router(jetons_router)
 app.include_router(ses_router)
 app.include_router(analytics_router)
 app.include_router(shared_router)
 app.include_router(terrain_router)
+app.include_router(smart_engine_router)
+app.include_router(pro_social_router)
+app.include_router(ai_agents_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek

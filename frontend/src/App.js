@@ -18,6 +18,8 @@ import { Toaster } from "./components/ui/sonner";
 import { MentionsLegales, PolitiqueConfidentialite, CGU, Cookies, CookieBanner } from "./components/legal";
 // Smart Engine - NEW Admin Dashboard
 import SmartEngineDashboard from "./pages/Admin/SmartEngineDashboard";
+// AI Agents Dashboard
+import AIAgentsDashboard from "./components/AIAgentsDashboard";
 // CMS Admin
 import CMSAdmin from "./components/CMSAdmin";
 // Visual Editor
@@ -202,6 +204,8 @@ function App() {
               {/* Smart Engine - 3D version */}
               <Route path="/smart-engine" element={<SmartEngineDashboard />} />
               <Route path="/smart-engine-3d" element={<Suspense fallback={<Loading3D />}><SmartEngine3D /></Suspense>} />
+              {/* AI Agents Dashboard */}
+              <Route path="/admin/ai-agents" element={<AIAgentsDashboard />} />
               {/* Espace Pro CC2026 - LinkedIn Culturel */}
               <Route path="/espace-pro" element={<ProSpaceDashboard />} />
               <Route path="/espace-pro/connexion" element={<ProSpaceLogin />} />

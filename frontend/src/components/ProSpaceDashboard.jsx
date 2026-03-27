@@ -307,7 +307,7 @@ export const useProSession = () => {
 const ProSpaceDashboard = () => {
   const navigate = useNavigate();
   const { session, loading, logout, isAuthenticated } = useProSession();
-  const [activeSection, setActiveSection] = useState('profile');
+  const [activeSection, setActiveSection] = useState('feed');
   const [profile, setProfile] = useState(null);
   const [connections, setConnections] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -368,11 +368,13 @@ const ProSpaceDashboard = () => {
   }
 
   const sections = [
+    { id: 'feed', label: 'Fil d\'actu', icon: Newspaper },
     { id: 'profile', label: 'Mon Profil', icon: User },
     { id: 'network', label: 'Réseau Pro', icon: Users },
     { id: 'messages', label: 'Messages', icon: MessageSquare, badge: messages.filter(m => !m.read).length },
     { id: 'opportunities', label: 'Opportunités', icon: Briefcase, badge: opportunities.length },
     { id: 'events', label: 'Agenda', icon: Calendar },
+    { id: 'recommendations', label: 'Suggestions', icon: Sparkles },
   ];
 
   return (
@@ -466,6 +468,9 @@ const ProSpaceDashboard = () => {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0">
+            {activeSection === 'feed' && (
+              <FeedSection session={session} />
+            )}
             {activeSection === 'profile' && (
               <ProfileSection profile={profile} session={session} onUpdate={loadProfileData} />
             )}
@@ -480,6 +485,9 @@ const ProSpaceDashboard = () => {
             )}
             {activeSection === 'events' && (
               <EventsSection events={events} session={session} />
+            )}
+            {activeSection === 'recommendations' && (
+              <RecommendationsSection session={session} />
             )}
           </main>
         </div>
@@ -1635,6 +1643,304 @@ const EventsSection = ({ events, session }) => {
       {filteredEvents.length === 0 && (
         <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.4)' }}>
           Aucun événement trouvé
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// FEED SECTION — Fil d'actualité
+// ═══════════════════════════════════════════════════════════════
+const FeedSection = ({ session }) => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newPostContent, setNewPostContent] = useState('');
+  const [posting, setPosting] = useState(false);
+  const [commentInputs, setCommentInputs] = useState({});
+
+  const loadFeed = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/pro/social/feed`, { params: { profile_id: session.id } });
+      setPosts(res.data.posts || []);
+    } catch (err) {
+      console.error('Feed error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.id]);
+
+  useEffect(() => { loadFeed(); }, [loadFeed]);
+
+  const handleCreatePost = async () => {
+    if (!newPostContent.trim()) return;
+    setPosting(true);
+    try {
+      await axios.post(`${API}/pro/social/posts`, {
+        author_id: session.id,
+        author_name: session.name,
+        author_image: session.image,
+        author_type: session.type,
+        content: newPostContent,
+      });
+      setNewPostContent('');
+      toast.success('Publication partagée !');
+      loadFeed();
+    } catch (err) {
+      toast.error('Erreur lors de la publication');
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const handleLike = async (postId) => {
+    try {
+      await axios.post(`${API}/pro/social/posts/${postId}/like?profile_id=${session.id}`);
+      loadFeed();
+    } catch (err) {
+      toast.error('Erreur');
+    }
+  };
+
+  const handleComment = async (postId) => {
+    const content = commentInputs[postId];
+    if (!content?.trim()) return;
+    try {
+      await axios.post(`${API}/pro/social/posts/${postId}/comment`, {
+        author_id: session.id,
+        author_name: session.name,
+        content,
+      });
+      setCommentInputs({ ...commentInputs, [postId]: '' });
+      loadFeed();
+    } catch (err) {
+      toast.error('Erreur');
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    try {
+      await axios.delete(`${API}/pro/social/posts/${postId}?author_id=${session.id}`);
+      toast.success('Post supprimé');
+      loadFeed();
+    } catch (err) {
+      toast.error('Erreur');
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      {/* Create Post */}
+      <div className="p-5 rounded-xl" style={{ background: COLORS.card }}>
+        <div className="flex gap-3">
+          <img
+            src={session.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(session.name)}&background=D4A84B&color=1C1A14`}
+            alt="" className="w-10 h-10 rounded-full object-cover"
+          />
+          <div className="flex-1">
+            <textarea
+              value={newPostContent}
+              onChange={(e) => setNewPostContent(e.target.value)}
+              placeholder="Partagez une actualité, un projet, une idée..."
+              rows={3}
+              className="w-full p-3 rounded-lg text-sm resize-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: COLORS.cream }}
+              data-testid="new-post-input"
+            />
+            <div className="flex justify-end mt-2">
+              <Button onClick={handleCreatePost} disabled={posting || !newPostContent.trim()} size="sm" style={{ background: COLORS.gold, color: COLORS.charbon }} data-testid="publish-post-btn">
+                {posting ? 'Publication...' : 'Publier'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Posts Feed */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: COLORS.gold }} />
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="text-center py-12 rounded-xl" style={{ background: COLORS.card }}>
+          <Newspaper className="w-12 h-12 mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Aucune publication pour le moment</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Soyez le premier à partager !</p>
+        </div>
+      ) : (
+        posts.map(post => (
+          <div key={post.id} className="p-5 rounded-xl" style={{ background: COLORS.card }} data-testid={`post-${post.id}`}>
+            {/* Author */}
+            <div className="flex items-center gap-3 mb-3">
+              <img
+                src={post.author_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=4A5D4E&color=F4F1EA`}
+                alt="" className="w-10 h-10 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <span className="font-medium" style={{ color: COLORS.cream }}>{post.author_name}</span>
+                {post.author_type && <span className="ml-2 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{post.author_type}</span>}
+                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  {new Date(post.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+              {post.author_id === session.id && (
+                <button onClick={() => handleDeletePost(post.id)} className="p-1 rounded hover:bg-white/10" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {/* Content */}
+            <p className="text-sm whitespace-pre-wrap mb-4" style={{ color: 'rgba(255,255,255,0.8)' }}>{post.content}</p>
+            {/* Tags */}
+            {post.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {post.tags.map(tag => <span key={tag} className="px-2 py-0.5 text-xs rounded" style={{ background: `${COLORS.gold}15`, color: COLORS.gold }}>#{tag}</span>)}
+              </div>
+            )}
+            {/* Actions */}
+            <div className="flex items-center gap-4 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <button onClick={() => handleLike(post.id)} className="flex items-center gap-1 text-sm transition-colors hover:text-red-400"
+                style={{ color: post.likes?.includes(session.id) ? '#E74C3C' : 'rgba(255,255,255,0.4)' }}>
+                <Heart className="w-4 h-4" fill={post.likes?.includes(session.id) ? '#E74C3C' : 'none'} /> {post.likes_count || 0}
+              </button>
+              <span className="flex items-center gap-1 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <MessageCircle className="w-4 h-4" /> {post.comments_count || 0}
+              </span>
+            </div>
+            {/* Comments */}
+            {post.comments?.length > 0 && (
+              <div className="mt-3 space-y-2 pl-4" style={{ borderLeft: `2px solid ${COLORS.gold}20` }}>
+                {post.comments.slice(-3).map(c => (
+                  <div key={c.id} className="text-xs">
+                    <span className="font-medium" style={{ color: COLORS.gold }}>{c.author_name}</span>
+                    <span className="ml-2" style={{ color: 'rgba(255,255,255,0.6)' }}>{c.content}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Add Comment */}
+            <div className="flex gap-2 mt-3">
+              <Input
+                value={commentInputs[post.id] || ''}
+                onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                onKeyPress={(e) => e.key === 'Enter' && handleComment(post.id)}
+                placeholder="Commenter..."
+                className="flex-1 h-8 text-xs"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: COLORS.cream }}
+              />
+              <Button size="sm" onClick={() => handleComment(post.id)} className="h-8 px-3" style={{ background: `${COLORS.gold}20`, color: COLORS.gold }}>
+                <Send className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// RECOMMENDATIONS SECTION — Suggestions de connexions
+// ═══════════════════════════════════════════════════════════════
+const RecommendationsSection = ({ session }) => {
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await axios.get(`${API}/pro/social/recommendations/${session.id}`);
+        setRecommendations(res.data.recommendations || []);
+      } catch (err) {
+        console.error('Recommendations error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [session.id]);
+
+  const sendConnectionRequest = async (proId) => {
+    try {
+      await axios.post(`${API}/pro/connect`, { from: session.id, to: proId });
+      toast.success('Demande de connexion envoyée !');
+      setRecommendations(prev => prev.filter(r => r.id !== proId));
+    } catch (err) {
+      toast.error('Erreur lors de l\'envoi');
+    }
+  };
+
+  const ProfileIcon = (type) => PROFILE_ICONS[type] || Users;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold" style={{ color: COLORS.cream }}>Profils recommandés</h2>
+        <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          Suggestions basées sur votre profil et vos intérêts
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: COLORS.gold }} />
+        </div>
+      ) : recommendations.length === 0 ? (
+        <div className="text-center py-12 rounded-xl" style={{ background: COLORS.card }}>
+          <Sparkles className="w-12 h-12 mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Aucune recommandation disponible</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Complétez votre profil pour recevoir des suggestions</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {recommendations.map(rec => {
+            const Icon = ProfileIcon(rec.profile_type);
+            return (
+              <div key={rec.id} className="p-5 rounded-xl" style={{ background: COLORS.card }} data-testid={`recommendation-${rec.id}`}>
+                <div className="flex gap-4">
+                  <img
+                    src={rec.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(rec.full_name)}&background=4A5D4E&color=F4F1EA`}
+                    alt={rec.full_name}
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon className="w-4 h-4" style={{ color: COLORS.terracotta }} />
+                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{rec.profile_type}</span>
+                      {rec.match_score > 0 && (
+                        <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: `${COLORS.gold}20`, color: COLORS.gold }}>
+                          {rec.match_score} pts
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-bold truncate" style={{ color: COLORS.cream }}>{rec.full_name}</h3>
+                    <p className="text-sm truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{rec.organization_name}</p>
+                  </div>
+                </div>
+                {/* Reasons */}
+                {rec.reasons?.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    {rec.reasons.map((r, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                        <Sparkles className="w-3 h-3 flex-shrink-0" style={{ color: COLORS.gold }} />
+                        {r}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-4">
+                  <Button
+                    size="sm"
+                    onClick={() => sendConnectionRequest(rec.id)}
+                    style={{ background: COLORS.gold, color: COLORS.charbon }}
+                    data-testid={`connect-${rec.id}`}
+                  >
+                    <Plus className="w-3 h-3 mr-1" /> Se connecter
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
