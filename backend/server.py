@@ -6651,6 +6651,67 @@ async def get_badge_export_stats():
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# INVITATION PDF EXPORT — Template PINT personnalisé
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/invitations/export-single/{badge_id}")
+async def export_single_invitation(badge_id: str):
+    """Génère une invitation PDF personnalisée pour un badge"""
+    from services.pdf_export import generate_invitation_pdf
+    from fastapi.responses import StreamingResponse
+
+    badge = await db.cc_badges.find_one({"badge_id": badge_id}, {"_id": 0})
+    if not badge:
+        # Try from registrations
+        badge = await db.registrations.find_one({"id": badge_id}, {"_id": 0})
+        if badge:
+            badge["type_badge"] = badge.get("tier", "PRO").upper()
+            badge["prenom"] = badge.get("full_name", "").split(" ")[0] if badge.get("full_name") else ""
+            badge["nom"] = " ".join(badge.get("full_name", "").split(" ")[1:]) if badge.get("full_name") else ""
+
+    if not badge:
+        raise HTTPException(status_code=404, detail="Badge non trouvé")
+
+    pdf_buffer = generate_invitation_pdf(badge)
+    name_slug = f"{badge.get('prenom', '')}-{badge.get('nom', '')}".strip("-").replace(" ", "_")
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=invitation_{name_slug}.pdf"}
+    )
+
+
+@app.get("/api/invitations/export-batch")
+async def export_batch_invitations(
+    type_badge: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 500
+):
+    """Génère un PDF multi-pages avec toutes les invitations personnalisées"""
+    from services.pdf_export import generate_batch_invitations
+    from fastapi.responses import StreamingResponse
+
+    query = {}
+    if type_badge:
+        query["type_badge"] = type_badge.upper()
+    if status:
+        query["statut"] = status
+
+    badges = await db.cc_badges.find(query, {"_id": 0}).limit(limit).to_list(limit)
+
+    if not badges:
+        raise HTTPException(status_code=404, detail="Aucun badge trouvé pour ces critères")
+
+    pdf_buffer = generate_batch_invitations(badges)
+    count = len(badges)
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=invitations_cc2026_{type_badge or 'all'}_{count}.pdf"}
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # SCAN DEBIT — Terrain mode jeton debit + zone validation
 # ═══════════════════════════════════════════════════════════════════════════════
 
