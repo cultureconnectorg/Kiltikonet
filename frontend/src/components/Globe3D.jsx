@@ -47,8 +47,13 @@ export const Globe3D = () => {
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
-        const width = Math.min(containerRef.current.offsetWidth, 900);
-        const height = Math.min(width * 0.65, 550);
+        const containerWidth = containerRef.current.offsetWidth;
+        const isMobile = window.innerWidth < 640;
+        const width = Math.min(containerWidth, 900);
+        // Taller ratio on mobile for more impact
+        const heightRatio = isMobile ? 0.95 : 0.7;
+        const maxHeight = isMobile ? 450 : 600;
+        const height = Math.min(width * heightRatio, maxHeight);
         setDimensions({ width, height });
       }
     };
@@ -114,11 +119,12 @@ export const Globe3D = () => {
   // Initialize globe position focused on Atlantic (Martinique region)
   useEffect(() => {
     if (globeRef.current && globeReady) {
-      // Focus on Martinique with a good view of both Americas and Africa
+      const isMobile = window.innerWidth < 640;
+      // Closer camera on mobile for more visual impact
       globeRef.current.pointOfView({
         lat: 20,
         lng: -40,
-        altitude: 2.2
+        altitude: isMobile ? 1.6 : 2.0
       }, 1500);
     }
   }, [globeReady]);
@@ -196,12 +202,12 @@ export const Globe3D = () => {
   return (
     <section 
       ref={sectionRef} 
-      className="py-16 sm:py-24 bg-charcoal overflow-hidden" 
+      className="py-8 sm:py-16 bg-charcoal overflow-hidden" 
       data-testid="globe-section"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-4 sm:mb-6">
           <h2 
             className="font-serif text-3xl sm:text-4xl text-cream mb-4"
             style={{
@@ -230,7 +236,6 @@ export const Globe3D = () => {
           className="relative mx-auto flex justify-center items-center"
           style={{ 
             maxWidth: '900px',
-            minHeight: '400px',
             opacity: isVisible ? 1 : 0,
             transition: 'opacity 0.8s ease-out 0.4s'
           }}
@@ -315,7 +320,7 @@ export const Globe3D = () => {
 
         {/* Counter */}
         <div 
-          className="text-center mt-8"
+          className="text-center mt-4 sm:mt-6"
           style={{
             opacity: isVisible && globeReady ? 1 : 0,
             transition: 'opacity 0.7s ease-out 0.6s'
