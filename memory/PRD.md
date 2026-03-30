@@ -57,7 +57,8 @@
 - Iteration 39 : 100% (Export PDF Invitations — 16/16 tests)
 
 ### Corrections recentes (30 Mars 2026)
-- **Bug hCaptcha bloquant Stripe** : La verification captcha sur `create-checkout-session` renvoyait 403 et bloquait la redirection vers Stripe. Fix : verification rendue non-bloquante pour les flux de paiement (Stripe gere l'anti-fraude). Widget captcha retire des formulaires payants (RegistrationForm, PartnershipPage). Captcha maintenu sur formulaires gratuits (BadgeInscription, Contact).
+- **Bug hCaptcha bloquant Stripe** : Verification captcha rendue non-bloquante pour les flux de paiement. Widget retire des formulaires payants.
+- **Globe 3D Premium** : Composant Globe3D entierement reconstruit avec texture Blue Marble, arcs gradient, 4 sources de lumiere, fond etoile, lazy loading, camera responsive (mobile 1.6 / desktop 2.0), espacement compact.
 
 ### Backlog
 - (P1) AWS SES : Sortir du Sandbox (action manuelle utilisateur dans console AWS)
