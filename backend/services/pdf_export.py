@@ -46,10 +46,12 @@ PAGE_MAP = {
     "EXP-D": 12,
     "EXPOSANT_VIP": 13,
     "EXP-V": 13,
+    "EXP-VIP": 13,
     # Fallback generics
     "VIS": 2,
     "PRO": 2,
     "INST": 2,
+    "BNV": 6,
 }
 
 # ═══════════════════════════════════════════════════════════════
@@ -63,8 +65,8 @@ DARK = Color(0.11, 0.10, 0.08, 1)  # #1C1A14
 # Layout type definitions
 LAYOUT_ARTISTE = {
     "fields": [
-        {"key": "scene", "label": "", "x": 85, "y": 106, "font_size": 9},
-        {"key": "date_heure", "label": "", "x": 100, "y": 92, "font_size": 9},
+        {"key": "scene", "label": "", "x": 82, "y": 120, "font_size": 9},
+        {"key": "date_heure", "label": "", "x": 102, "y": 107, "font_size": 9},
     ]
 }
 
@@ -78,26 +80,26 @@ LAYOUT_OFFICIEL = {
 
 LAYOUT_STAFF = {
     "fields": [
-        {"key": "nom", "label": "", "x": 62, "y": 133, "font_size": 9},
-        {"key": "fonction", "label": "", "x": 70, "y": 119, "font_size": 9},
-        {"key": "jours", "label": "", "x": 62, "y": 106, "font_size": 9},
-        {"key": "acces", "label": "", "x": 63, "y": 93, "font_size": 9},
+        {"key": "nom", "label": "", "x": 72, "y": 128, "font_size": 9},
+        {"key": "fonction", "label": "", "x": 90, "y": 118, "font_size": 9},
+        {"key": "jours", "label": "", "x": 72, "y": 108, "font_size": 9},
+        {"key": "acces", "label": "", "x": 72, "y": 99, "font_size": 9},
     ]
 }
 
 LAYOUT_BENEVOLE = {
     "fields": [
-        {"key": "nom", "label": "", "x": 62, "y": 115, "font_size": 9},
-        {"key": "jours", "label": "", "x": 62, "y": 101, "font_size": 9},
-        {"key": "acces", "label": "", "x": 63, "y": 87, "font_size": 9},
+        {"key": "nom", "label": "", "x": 72, "y": 130, "font_size": 9},
+        {"key": "jours", "label": "", "x": 72, "y": 120, "font_size": 9},
+        {"key": "acces", "label": "", "x": 72, "y": 110, "font_size": 9},
     ]
 }
 
 LAYOUT_EXPOSANT = {
     "fields": [
-        {"key": "nom", "label": "", "x": 63, "y": 100, "font_size": 9},
-        {"key": "jours", "label": "", "x": 63, "y": 87, "font_size": 9},
-        {"key": "stand", "label": "", "x": 90, "y": 67, "font_size": 9},
+        {"key": "nom", "label": "", "x": 73, "y": 103, "font_size": 9},
+        {"key": "jours", "label": "", "x": 73, "y": 93, "font_size": 9},
+        {"key": "stand", "label": "", "x": 108, "y": 73, "font_size": 9},
     ]
 }
 
@@ -118,6 +120,9 @@ LAYOUT_MAP = {
     13: LAYOUT_EXPOSANT,
 }
 
+# Pages with dark backgrounds requiring light text color
+DARK_BG_PAGES = {11, 12, 13}
+
 
 def _resolve_page(badge_type: str) -> int:
     """Resolve badge type string to page index."""
@@ -125,10 +130,11 @@ def _resolve_page(badge_type: str) -> int:
     return PAGE_MAP.get(key, 2)  # Default to OFFICIEL
 
 
-def _build_overlay(page_width, page_height, layout, data):
+def _build_overlay(page_width, page_height, layout, data, use_gold=False):
     """Create a PDF overlay with participant data positioned on fields."""
     packet = io.BytesIO()
     c = canvas.Canvas(packet, pagesize=(page_width, page_height))
+    text_color = GOLD if use_gold else DARK
 
     for field in layout["fields"]:
         key = field["key"]
@@ -142,9 +148,10 @@ def _build_overlay(page_width, page_height, layout, data):
 
         # Draw text
         c.setFont("Helvetica-Bold", fs)
-        c.setFillColor(DARK)
+        c.setFillColor(text_color)
         c.drawString(x, y, str(value))
 
+    c.showPage()
     c.save()
     packet.seek(0)
     return packet
@@ -196,7 +203,7 @@ def generate_invitation_pdf(participant: dict) -> io.BytesIO:
             "stand": participant.get("stand", participant.get("stand_number", "")),
         }
 
-        overlay_packet = _build_overlay(w, h, layout, data)
+        overlay_packet = _build_overlay(w, h, layout, data, use_gold=(page_idx in DARK_BG_PAGES))
         overlay_reader = PdfReader(overlay_packet)
         page.merge_page(overlay_reader.pages[0])
 

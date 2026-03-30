@@ -1,0 +1,136 @@
+{
+  "summary": "Iteration 39 - PDF Export Invitations CC2026 Testing. Backend: 16/16 tests passed (100%). All export-single and export-batch endpoints working correctly. PDFs are valid with correct headers and structure.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "features_tested": {
+    "health_check": {
+      "status": "PASSED",
+      "tests": ["GET /api/ returns 200 with message"]
+    },
+    "export_single_invitation": {
+      "status": "PASSED",
+      "tests": [
+        "GET /api/invitations/export-single/CC26-VIP-6LNR7 - VIP badge PDF generated",
+        "GET /api/invitations/export-single/CC26-BNV-YY32W - BENEVOLE badge PDF generated",
+        "GET /api/invitations/export-single/CC26-ART-ATKZ4 - ARTISTE badge PDF generated (empty fields allowed)",
+        "GET /api/invitations/export-single/CC26-EXP-VIP-GYCB3 - EXPOSANT VIP badge PDF generated (dark bg, gold text)",
+        "GET /api/invitations/export-single/NONEXISTENT - Returns 404 as expected"
+      ]
+    },
+    "export_batch_invitations": {
+      "status": "PASSED",
+      "tests": [
+        "GET /api/invitations/export-batch?type_badge=VIP&limit=5 - Multi-page VIP PDF generated",
+        "GET /api/invitations/export-batch?type_badge=BNV&limit=3 - Multi-page BENEVOLE PDF generated",
+        "GET /api/invitations/export-batch?type_badge=ART&limit=3 - Multi-page ARTISTE PDF generated",
+        "GET /api/invitations/export-batch?limit=10 - Mixed batch PDF generated",
+        "GET /api/invitations/export-batch?type_badge=NONEXISTENT - Returns 404 as expected"
+      ]
+    },
+    "pdf_structure": {
+      "status": "PASSED",
+      "tests": [
+        "PDF header starts with %PDF (valid PDF)",
+        "Content-Type header is application/pdf",
+        "Content-Disposition header has attachment and filename.pdf"
+      ]
+    },
+    "edge_cases": {
+      "status": "PASSED",
+      "tests": [
+        "Batch export with limit=50 works correctly",
+        "Batch export with status filter works correctly"
+      ]
+    }
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_pdf_export_invitations.py",
+    "/app/test_reports/pytest/pdf_export_invitations_results.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "PDF export service at /app/backend/services/pdf_export.py is fully calibrated",
+    "PAGE_MAP correctly maps all badge types including BNV and EXP-VIP",
+    "DARK_BG_PAGES (11, 12, 13) correctly use GOLD text color for EXPOSANT pages",
+    "c.showPage() before c.save() fixes empty canvas bug",
+    "Template at /app/backend/templates/PINT_TEMPLATE.pdf has 14 pages (249.36x323.52 pts each)"
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_pdf_export_invitations.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% - 16/16 tests passed",
+    "frontend": "N/A - Backend only testing"
+  },
+
+  "test_credentials": {
+    "known_badge_ids": {
+      "VIP": "CC26-VIP-6LNR7",
+      "BNV": "CC26-BNV-YY32W",
+      "ART": "CC26-ART-ATKZ4",
+      "EXP-VIP": "CC26-EXP-VIP-GYCB3"
+    }
+  },
+
+  "seed_data_creation": "No seed data created - used existing badges in database",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Iteration 39 complete. PDF export invitations fully tested. Endpoints: GET /api/invitations/export-single/{badge_id} for single badge PDF, GET /api/invitations/export-batch?type_badge=X&limit=N for batch PDF. Badge types in DB: VIP(17), ART(5/6), OFF(2), BNV(14), EXP-G(1), SPO(1), VIS(13), EXP-VIP(2). Total 56 badges. Template has 14 pages for 14 badge types. Dark background pages (11-13) use GOLD text color.",
+
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  },
+
+  "pdf_export_summary": {
+    "endpoints": [
+      "GET /api/invitations/export-single/{badge_id} - Single page PDF",
+      "GET /api/invitations/export-batch?type_badge=X&limit=N - Multi-page PDF"
+    ],
+    "template": "/app/backend/templates/PINT_TEMPLATE.pdf (14 pages, 249.36x323.52 pts)",
+    "badge_types_tested": ["VIP", "BNV", "ART", "EXP-VIP"],
+    "page_mapping": {
+      "ARTISTE/ART": "Page 0",
+      "PRESSE/PRS": "Page 1",
+      "OFFICIEL/OFF": "Page 2",
+      "SPONSOR/SPO": "Page 3",
+      "VIP": "Page 4",
+      "STAFF/STF": "Page 5",
+      "BENEVOLE/BEN/BNV": "Page 6",
+      "INTERVENANT/INT": "Page 7",
+      "EXPOSANT_BRONZE/EXP-B": "Page 8",
+      "EXPOSANT_SILVER/EXP-S": "Page 9",
+      "EXPOSANT_GOLD/EXP-G": "Page 10",
+      "EXPOSANT_PLATINE/EXP-P": "Page 11 (dark bg, gold text)",
+      "EXPOSANT_DIAMANT/EXP-D": "Page 12 (dark bg, gold text)",
+      "EXPOSANT_VIP/EXP-V/EXP-VIP": "Page 13 (dark bg, gold text)"
+    },
+    "layouts": {
+      "ARTISTE": "scene, date_heure",
+      "OFFICIEL": "nom, representant, acces",
+      "STAFF": "nom, fonction, jours, acces",
+      "BENEVOLE": "nom, jours, acces",
+      "EXPOSANT": "nom, jours, stand"
+    }
+  },
+
+  "rca_of_the_issue": null
+}
