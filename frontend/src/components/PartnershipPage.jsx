@@ -236,10 +236,6 @@ export const PartnershipPage = () => {
       toast.error(language === 'fr' ? 'Veuillez sélectionner une formule' : 'Please select a package');
       return;
     }
-    if (!partnerCaptchaToken) {
-      toast.error(language === 'fr' ? 'Veuillez compléter le captcha' : 'Please complete the captcha');
-      return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -453,15 +449,6 @@ export const PartnershipPage = () => {
                   </div>
 
                   <div className="pt-4">
-                    {/* hCaptcha Widget */}
-                    <div className="mb-4" data-testid="captcha-container-partnership">
-                      <HCaptchaWidget
-                        ref={partnerCaptchaRef}
-                        onVerify={(token) => setPartnerCaptchaToken(token)}
-                        onExpire={() => setPartnerCaptchaToken(null)}
-                        onError={() => setPartnerCaptchaToken(null)}
-                      />
-                    </div>
                     <Button
                       type="submit"
                       disabled={isSubmitting}

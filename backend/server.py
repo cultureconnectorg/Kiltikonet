@@ -866,13 +866,16 @@ class SiteConfig(BaseModel):
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
     """Create a Stripe checkout session for accreditation or partnership"""
     
-    # hCaptcha verification
+    # hCaptcha verification — non-blocking for payment flows (Stripe handles fraud)
     if checkout_data.captcha_token:
-        from services.hcaptcha import verify_hcaptcha
-        client_ip = request.client.host if request.client else "unknown"
-        captcha_result = await verify_hcaptcha(checkout_data.captcha_token, client_ip)
-        if not captcha_result["success"]:
-            raise HTTPException(status_code=403, detail=captcha_result["error"])
+        try:
+            from services.hcaptcha import verify_hcaptcha
+            client_ip = request.client.host if request.client else "unknown"
+            captcha_result = await verify_hcaptcha(checkout_data.captcha_token, client_ip)
+            if not captcha_result["success"]:
+                logger.warning(f"hCaptcha verification failed for checkout (non-blocking): {captcha_result['error']}")
+        except Exception as e:
+            logger.warning(f"hCaptcha error during checkout (non-blocking): {e}")
     
     # Use origin_url from frontend for redirects (supports preview/production/custom domains)
     origin_url = checkout_data.origin_url.rstrip('/') if checkout_data.origin_url else BASE_URL

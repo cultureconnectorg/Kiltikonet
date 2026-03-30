@@ -56,6 +56,9 @@
 - Iteration 36-38 : Tous 100% (hCaptcha, 4 Chantiers, Refonte LinkedIn)
 - Iteration 39 : 100% (Export PDF Invitations — 16/16 tests)
 
+### Corrections recentes (30 Mars 2026)
+- **Bug hCaptcha bloquant Stripe** : La verification captcha sur `create-checkout-session` renvoyait 403 et bloquait la redirection vers Stripe. Fix : verification rendue non-bloquante pour les flux de paiement (Stripe gere l'anti-fraude). Widget captcha retire des formulaires payants (RegistrationForm, PartnershipPage). Captcha maintenu sur formulaires gratuits (BadgeInscription, Contact).
+
 ### Backlog
 - (P1) AWS SES : Sortir du Sandbox (action manuelle utilisateur dans console AWS)
 - (P2) Visualisation Mgraph interactive (D3.js)

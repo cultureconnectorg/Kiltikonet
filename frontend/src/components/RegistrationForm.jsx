@@ -155,7 +155,6 @@ export const RegistrationForm = () => {
     if (step === 3) {
       if (!formData.how_heard) newErrors.how_heard = true;
       if (!rgpdConsent) newErrors.rgpd = true; // RGPD validation
-      if (!captchaToken) newErrors.captcha = true;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -516,24 +515,6 @@ export const RegistrationForm = () => {
                   onCheckedChange={setRgpdConsent}
                   showError={errors.rgpd}
                 />
-              </div>
-
-              {/* hCaptcha Widget */}
-              <div className="pt-4" data-testid="captcha-container-pro">
-                <HCaptchaWidget
-                  ref={captchaRef}
-                  onVerify={(token) => {
-                    setCaptchaToken(token);
-                    if (errors.captcha) setErrors(prev => ({ ...prev, captcha: null }));
-                  }}
-                  onExpire={() => setCaptchaToken(null)}
-                  onError={() => setCaptchaToken(null)}
-                />
-                {errors.captcha && (
-                  <p className="text-xs text-red-500 text-center mt-2">
-                    {language === 'fr' ? 'Veuillez compléter le captcha' : 'Please complete the captcha'}
-                  </p>
-                )}
               </div>
               
               {/* Summary before payment */}
