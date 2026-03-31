@@ -65,3 +65,12 @@
 - (P2) Visualisation Mgraph interactive (D3.js)
 - (P2) IA externe pour recommandations (Phase 2 post-CC2026)
 - (P3) Vue 3D SmartEngine
+
+### Integrations
+| Service | Status |
+|---------|--------|
+| Stripe | Configures (live) |
+| hCaptcha | Production |
+| AWS SES | Sandbox (200/jour) |
+| Anthropic (CVL BRAIN) | Production (claude-sonnet-4) |
+| Cloudinary | Configures |
