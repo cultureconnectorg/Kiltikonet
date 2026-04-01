@@ -3591,6 +3591,7 @@ from routes.candidatures import router as candidatures_router, init_db as candid
 candidatures_init_db(db, send_email_async)
 from routes.ghost_profiles import router as ghost_router
 from routes.cultural_identity import router as cultural_identity_router, feed_router as cultural_feed_router, reactions_router as cultural_reactions_router
+from routes.cultural_search import router as cultural_search_router, analytics_router as cultural_analytics_router
 app.include_router(badges_router)
 app.include_router(jetons_router)
 app.include_router(ses_router)
@@ -3607,6 +3608,8 @@ app.include_router(ghost_router)
 app.include_router(cultural_identity_router)
 app.include_router(cultural_feed_router)
 app.include_router(cultural_reactions_router)
+app.include_router(cultural_search_router)
+app.include_router(cultural_analytics_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek

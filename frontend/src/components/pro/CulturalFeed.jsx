@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Plus } from 'lucide-react';
 import axios from 'axios';
-import CulturalCard, { CardSkeleton, CARD_TYPE_LABELS } from './CulturalCards';
+import CulturalCard, { CardSkeleton } from './CulturalCards';
+import CreateCulturalCard from './CreateCulturalCard';
+import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const G = '#E8D5A0';
 
 const FILTER_TABS = [
   { key: '', label: 'Tout' },
@@ -18,6 +23,7 @@ const CulturalFeed = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const [activeFilter, setActiveFilter] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const sentinelRef = useRef(null);
@@ -214,19 +220,39 @@ const CulturalFeed = ({ userId }) => {
       {/* Loading more indicator */}
       {loadingMore && (
         <div className="py-6 flex justify-center">
-          <div
-            className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: '#C8A84B' }}
-          />
+          <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: G }} />
         </div>
       )}
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="h-1" />
 
+      {/* Floating create button */}
+      <button onClick={() => setShowCreate(true)} data-testid="create-card-fab"
+        className="fixed bottom-24 md:bottom-8 right-4 w-12 h-12 rounded-2xl flex items-center justify-center z-40 transition-transform hover:scale-105 active:scale-95"
+        style={{ background: G, boxShadow: `0 4px 20px ${G}40`, animation: 'fabPulse 2s ease-in-out infinite' }}
+        aria-label="Créer une carte culturelle">
+        <Plus size={24} style={{ color: '#000' }} strokeWidth={2.5} />
+      </button>
+
+      {/* Create modal */}
+      {showCreate && (
+        <CreateCulturalCard
+          userId={userId}
+          onClose={() => setShowCreate(false)}
+          onPublished={(data) => {
+            toast.success('Ta carte enrichit la mémoire caribéenne 🌺');
+            skipRef.current = 0;
+            loadCards(true);
+          }}
+        />
+      )}
+
       <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fabPulse {
+          0%, 100% { box-shadow: 0 4px 20px ${G}30; }
+          50% { box-shadow: 0 4px 28px ${G}50; }
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

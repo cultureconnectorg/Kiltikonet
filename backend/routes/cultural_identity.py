@@ -258,6 +258,24 @@ async def get_cultural_feed(
         card["reactions"] = reaction_counts
         card["total_reactions"] = sum(reaction_counts.values())
 
+    # Inject sponsored cards at every 5th position
+    sponsored = await _db.cultural_cards.find(
+        {"is_sponsored": True}, {"_id": 0}
+    ).to_list(10)
+
+    if sponsored:
+        enriched = []
+        organic_idx = 0
+        for i in range(len(cards) + len(sponsored)):
+            if (i + 1) % 6 == 0 and sponsored:
+                sp = sponsored.pop(0)
+                sp["is_sponsored"] = True
+                enriched.append(sp)
+            elif organic_idx < len(cards):
+                enriched.append(cards[organic_idx])
+                organic_idx += 1
+        cards = enriched
+
     paginated = cards[skip:skip + limit]
 
     return {
