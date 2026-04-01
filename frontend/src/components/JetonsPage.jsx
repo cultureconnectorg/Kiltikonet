@@ -53,7 +53,7 @@ export default function JetonsPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: C.bg }} data-testid="jetons-page">
+    <div className="min-h-screen pt-16 sm:pt-20" style={{ background: C.bg }} data-testid="jetons-page">
       {/* Header */}
       <div className="py-12 px-4 text-center" style={{ background: `linear-gradient(135deg, ${C.terra} 0%, ${C.gold} 100%)` }}>
         <Ticket className="w-12 h-12 mx-auto mb-3 text-white" />

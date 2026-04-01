@@ -21,6 +21,7 @@ export const Header = () => {
     { path: '/partnership', label: language === 'fr' ? 'Partenariat' : 'Partnership' },
     { path: '/jetons', label: 'Jetons' },
     { path: '/catalogue', label: 'Catalogue' },
+    { path: '/appel-2026', label: language === 'fr' ? 'Appel 2026' : 'Call 2026' },
   ];
 
   const accountLinks = [

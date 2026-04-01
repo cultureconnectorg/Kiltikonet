@@ -4,7 +4,7 @@
 ### Plateforme
 - **Frontend** : React 19, Tailwind CSS, Shadcn UI
 - **Backend** : FastAPI, MongoDB (Motor)
-- **Integrations** : Stripe, FREKcore, AWS SES (sandbox), Cloudinary, hCaptcha, Anthropic (CVL BRAIN)
+- **Integrations** : Stripe, FREKcore, AWS SES (sandbox), Cloudinary, hCaptcha, Anthropic (CVL BRAIN), Resend
 
 ### Fonctionnalites Implementees
 
@@ -30,33 +30,31 @@
   - **Evenements personnalises** : matching par type, tags, score culturel, taille evenement
   - **Partenariats organisations** : complementarite types, diversite, qualite scores
   - Enrichissement CVL BRAIN optionnel pour les top resultats (?enrich=true)
-- **18 evenements CC2026** seedes (20-23 Mai 2026, La Savane, Fort-de-France) :
-  - Ateliers Bele, Conferences Diaspora, Music Business Summit, Workshops Audiovisuel
-  - Diaspora Nights (Zouk/Kompa, Dancehall/Afrobeats), Showcase Artistes, Exposition Art
-  - Networking VIP, Brunch Bilan, Grand Concert de cloture
-- **Admin** — Onglet "Recommandations" dans Smart Engine (3 sous-tabs) :
-  - Vue globale : stats cards, distribution impact culturel, types evenements, top orgs
-  - Par profil : selecteur participant, 3 colonnes (Connexions/Evenements/Partenariats), bouton CVL BRAIN
-  - Agenda CC2026 : 4 jours expandables avec details (lieu, horaires, capacite, badges cibles)
-- **Utilisateur** — Widget dans UserDashboard :
-  - Onglets "Evenements pour vous" et "Connexions suggerees"
-  - Scores de matching, raisons, types badges colores
-- **API Endpoints** :
-  - GET /api/recommendations/connections/{badge_id}
-  - GET /api/recommendations/events/{badge_id}
-  - GET /api/recommendations/partnerships/{badge_id}
-  - GET /api/recommendations/admin/overview
-  - GET /api/recommendations/events
+- **18 evenements CC2026** seedes (20-23 Mai 2026, La Savane, Fort-de-France)
+- **Admin** — Onglet "Recommandations" dans Smart Engine (3 sous-tabs)
+- **Utilisateur** — Widget dans UserDashboard
 - **Tests Iteration 43 — Backend 15/15 (100%), Frontend 100%**
+
+#### Phase 8 — Appel a Projet CC2026 (DONE — 1 Avril 2026)
+- **Page publique `/appel-2026`** : Hero, Qui sommes-nous, Laureats CC, Eligibilite, Criteres de selection (C1-C5), Formulaire de candidature, Calendrier, Contact
+- **Backend** : 6 endpoints (POST soumission, GET liste, PUT statut, GET export CSV, GET docs DOCX)
+- **Admin Dashboard** : Onglet "Candidatures" avec tableau, filtres, changement de statut, export CSV
+- **Fichiers DOCX** : 3 cahiers des charges telechargeables (FR, EN, KW) avec protection whitelist
+- **Navigation** : Lien "Appel 2026" ajoute dans le Header
+- **Correction affichage** : Page Jetons — padding-top pour le header fixe
+- **Tests Iteration 44 — Backend 18/18 (100%), Frontend 100%**
 
 ### Architecture
 | Fichier | Role |
 |---------|------|
+| `backend/routes/candidatures.py` | 6 endpoints appel a projet |
 | `backend/routes/recommendations.py` | 5 endpoints recommandations |
 | `backend/services/recommendations.py` | Moteur scoring hybride |
 | `backend/services/seed_events.py` | 18 evenements CC2026 |
 | `backend/services/cvl_brain.py` | Coeur IA Souveraine |
 | `backend/routes/smart_engine.py` | 8 flux CVLN + Mgraph |
+| `frontend/src/components/AppelPage.jsx` | Page publique appel a projet |
+| `frontend/src/components/CandidaturesAdmin.jsx` | Gestion admin candidatures |
 | `frontend/src/components/RecommendationsDashboard.jsx` | Dashboard admin recommandations |
 | `frontend/src/components/UserRecommendations.jsx` | Widget utilisateur recommandations |
 | `frontend/src/components/MgraphView.jsx` | Visualisation 3D Mgraph |
@@ -68,8 +66,12 @@
 - Iteration 41 : 100% (Mgraph initial)
 - Iteration 42 : 100% (Mgraph 3D + Notifications)
 - Iteration 43 : 100% (Recommandations IA — 15/15 backend, frontend 100%)
+- Iteration 44 : 100% (Appel a Projet — 18/18 backend, frontend 100%)
 
 ### Backlog
+- (P1) Verifier emails candidature (Resend vs Brevo SMTP)
 - (P1) AWS SES : Sortir du Sandbox
 - (P2) Dashboard Smart Engine 3D immersif complet
+- (P3) PWA App Scan Staff
+- (P3) Export PDF badges batch Twina
 - (P3) Mode replay temporel Mgraph
