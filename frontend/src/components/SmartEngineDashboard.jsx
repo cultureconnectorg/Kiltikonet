@@ -116,24 +116,11 @@ const PredictiveView = ({ data }) => (
   </div>
 );
 
-const MgraphView = ({ data }) => (
-  <div className="space-y-6">
-    <div className="grid grid-cols-3 gap-3">
-      <MetricCard label="Profils (nodes)" value={data.total_nodes} icon={Users} color="#6B7DB3" />
-      <MetricCard label="Connexions (edges)" value={data.total_edges} icon={Network} color="#9B59B6" />
-      <MetricCard label="Clusters" value={Object.keys(data.clusters || {}).length} icon={Globe} color="#F39C12" />
-    </div>
-    <Section title="Distribution par type">
-      <BarSimple data={Object.entries(data.clusters || {}).map(([k, v]) => ({ type: k, count: v }))} labelKey="type" valueKey="count" color="#6B7DB3" />
-    </Section>
-    <Section title="Graphe réseau">
-      <div className="text-center py-8 text-[#555]">
-        <Network size={48} className="mx-auto mb-3 opacity-30" />
-        <p className="text-sm">{data.total_nodes} profils / {data.total_edges} connexions</p>
-        <p className="text-xs mt-1">Visualisation interactive disponible en Phase 2</p>
-      </div>
-    </Section>
-  </div>
+const MgraphViewLazy = React.lazy(() => import('./MgraphView'));
+const MgraphViewWrapper = () => (
+  <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 size={32} className="animate-spin text-[#A65D47]" /></div>}>
+    <MgraphViewLazy />
+  </React.Suspense>
 );
 
 const LiveAudienceView = ({ data }) => (
@@ -301,7 +288,7 @@ const CreativeNetworkView = ({ data }) => (
 const VIEWS = {
   'dashboard': DashboardView,
   'predictive': PredictiveView,
-  'mgraph': MgraphView,
+  'mgraph': MgraphViewWrapper,
   'live-audience': LiveAudienceView,
   'creation-origin': CreationOriginView,
   'cultural-diffusion': CulturalDiffusionView,

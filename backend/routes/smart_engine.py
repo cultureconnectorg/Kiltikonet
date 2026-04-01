@@ -89,41 +89,77 @@ async def get_predictive_analysis(days: int = 30):
 # ═══════════════════════════════════════════════════════════════
 @router.get("/mgraph")
 async def get_mgraph():
-    """Mgraph — Graphe de relations entre professionnels"""
-    # Get all pro connections
-    connections = await _db.pro_connections.find(
-        {}, {"_id": 0, "from_profile": 1, "to_profile": 1, "status": 1, "created_at": 1}
+    """Mgraph — Graphe 3D de relations culturelles CC2026"""
+    import random
+    random.seed(42)
+
+    badges = await _db.cc_badges.find(
+        {}, {"_id": 0, "badge_id": 1, "frek_id": 1, "prenom": 1, "nom": 1,
+             "type_badge": 1, "organisation": 1, "cultural_impact_score": 1,
+             "statut": 1, "nfc_enabled": 1, "jetons_solde": 1}
     ).to_list(500)
 
-    # Get pro profiles for nodes
-    profiles = await _db.registrations.find(
-        {}, {"_id": 0, "id": 1, "full_name": 1, "profile_type": 1, "organization_name": 1, "country": 1}
-    ).to_list(500)
-
-    # Build nodes and edges
     nodes = []
-    for p in profiles:
-        nodes.append({
-            "id": p.get("id", ""),
-            "label": p.get("full_name", ""),
-            "type": p.get("profile_type", "other"),
-            "org": p.get("organization_name", ""),
-            "country": p.get("country", "")
-        })
+    type_map = {}
+    org_map = {}
+
+    for b in badges:
+        badge_type = b.get("type_badge", "VIS")
+        base_type = badge_type.split("-")[0] if "-" in badge_type else badge_type
+        node = {
+            "id": b.get("badge_id", ""),
+            "frek_id": b.get("frek_id", ""),
+            "label": f"{b.get('prenom', '')} {b.get('nom', '')}".strip(),
+            "type": base_type,
+            "full_type": badge_type,
+            "org": b.get("organisation", ""),
+            "score": b.get("cultural_impact_score", 0),
+            "statut": b.get("statut", ""),
+            "nfc": b.get("nfc_enabled", False),
+            "jetons": b.get("jetons_solde", 0)
+        }
+        nodes.append(node)
+        type_map.setdefault(base_type, []).append(node["id"])
+        if node["org"]:
+            org_map.setdefault(node["org"], []).append(node["id"])
 
     edges = []
-    for c in connections:
-        edges.append({
-            "from": c.get("from_profile", ""),
-            "to": c.get("to_profile", ""),
-            "status": c.get("status", "pending"),
-        })
+    edge_set = set()
 
-    # Cluster analysis
+    # Same organisation = strong link
+    for org, members in org_map.items():
+        if len(members) > 1:
+            for i in range(len(members)):
+                for j in range(i + 1, min(len(members), i + 5)):
+                    key = tuple(sorted([members[i], members[j]]))
+                    if key not in edge_set:
+                        edge_set.add(key)
+                        edges.append({"source": members[i], "target": members[j], "link_type": "org", "strength": 0.8})
+
+    # Same badge type = moderate link (random sample)
+    for btype, members in type_map.items():
+        if len(members) > 1:
+            for i in range(len(members)):
+                targets = random.sample(members, min(3, len(members)))
+                for t in targets:
+                    if t != members[i]:
+                        key = tuple(sorted([members[i], t]))
+                        if key not in edge_set:
+                            edge_set.add(key)
+                            edges.append({"source": members[i], "target": t, "link_type": "type", "strength": 0.3})
+
+    # High-score cross-type = brain link
+    high_score = [n for n in nodes if n["score"] >= 40]
+    for i in range(len(high_score)):
+        for j in range(i + 1, min(len(high_score), i + 4)):
+            key = tuple(sorted([high_score[i]["id"], high_score[j]["id"]]))
+            if key not in edge_set:
+                edge_set.add(key)
+                edges.append({"source": high_score[i]["id"], "target": high_score[j]["id"], "link_type": "brain", "strength": 0.6})
+
     type_counts = {}
     for n in nodes:
-        t = n["type"]
-        type_counts[t] = type_counts.get(t, 0) + 1
+        type_counts[n["type"]] = type_counts.get(n["type"], 0) + 1
 
     return {
         "stream": "mgraph",
