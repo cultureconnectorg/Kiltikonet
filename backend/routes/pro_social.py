@@ -53,11 +53,14 @@ async def get_feed(profile_id: Optional[str] = None, limit: int = 30, skip: int 
             connected_ids.add(c["to_profile"])
         connected_ids.add(profile_id)
 
-        # Include active ghost profiles in feed
+        # Include active ghost profiles (v1 + v2) in feed
         active_ghosts = await _db.ghost_profiles.find(
             {"active": True}, {"_id": 0, "id": 1}
         ).to_list(100)
-        ghost_ids = {g["id"] for g in active_ghosts}
+        active_ghosts_v2 = await _db.ghost_profiles_v2.find(
+            {"active": True}, {"_id": 0, "id": 1}
+        ).to_list(500)
+        ghost_ids = {g["id"] for g in active_ghosts} | {g["id"] for g in active_ghosts_v2}
 
         query["$or"] = [
             {"author_id": {"$in": list(connected_ids)}},
@@ -97,9 +100,10 @@ async def create_post(data: PostCreate):
     del post["_id"]
 
     # Trigger ghost auto-comment for real user posts (non-ghost)
-    if not data.author_id.startswith("ghost_"):
+    if not data.author_id.startswith("ghost_") and not data.author_id.startswith("gv2_"):
         import asyncio
         asyncio.create_task(_trigger_ghost_comment(post["id"]))
+        asyncio.create_task(_trigger_social_validation(post["id"], data.author_id))
         # Reward: first post +5 Jetons
         asyncio.create_task(_trigger_reward(data.author_id, "first_post"))
 
@@ -135,6 +139,23 @@ async def _trigger_reward(user_id: str, event: str):
             )
     except Exception as e:
         logger.warning(f"Reward trigger failed: {e}")
+
+async def _trigger_social_validation(post_id: str, author_id: str):
+    """Trigger growth engine social validation (v2 ghost engagement)."""
+    try:
+        import asyncio
+        await asyncio.sleep(random.randint(10, 60))
+        import httpx
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"http://localhost:8001/api/growth/engine/social-validation",
+                json={"post_id": post_id, "author_id": author_id},
+                timeout=30
+            )
+    except Exception as e:
+        logger.warning(f"Social validation trigger failed: {e}")
+
+
 
 
 @router.post("/posts/{post_id}/like")

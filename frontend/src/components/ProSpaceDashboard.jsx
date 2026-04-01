@@ -23,6 +23,7 @@ import CulturalFeed from './pro/CulturalFeed';
 import CulturalReactions from './pro/CulturalReactions';
 import MobileNavigation from './pro/MobileNavigation';
 import ShopPage from './pro/ShopPage';
+import { ProofOfLifeBadge, OnboardingWidget, CreationNudge } from './pro/GrowthWidgets';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -227,6 +228,9 @@ const ProSpaceDashboard = () => {
               {unreadCount > 0 && <span className="absolute top-0 right-2 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center" style={{ background: '#E85A4F', color: '#fff' }}>{unreadCount}</span>}
             </button>
           </nav>
+
+          {/* Proof of Life badge */}
+          <ProofOfLifeBadge />
 
           {/* Jetons Badge */}
           <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all hover:scale-[1.02]" data-testid="jetons-badge"
@@ -476,6 +480,8 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
 
         {/* Right sidebar */}
         <aside className="hidden xl:block w-72 flex-shrink-0 space-y-4">
+          <OnboardingWidget userId={session.id} />
+          <CreationNudge userId={session.id} />
           <RecommendationsWidget session={session} />
         </aside>
       </div>
