@@ -104,17 +104,16 @@ Réponds en 2-3 phrases maximum. Sois direct et humain.`,
       {/* Floating button */}
       {!open && (
         <button onClick={handleOpen} data-testid="cvl-brain-float-btn"
-          className="fixed bottom-6 right-6 z-[90] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+          className="fixed bottom-20 md:bottom-6 right-4 z-[90] w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
           style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.accent})`, boxShadow: `0 4px 20px ${C.gold}40` }}
           aria-label="Parle à CVL BRAIN">
-          <Sparkles size={24} style={{ color: '#000' }} />
-          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-ping" style={{ background: C.gold }} />
+          <Sparkles size={20} style={{ color: '#000' }} />
         </button>
       )}
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-[95] w-80 sm:w-96 rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ background: C.surface, border: `1px solid ${C.border}`, maxHeight: '500px' }} data-testid="cvl-brain-chat">
+        <div className="fixed bottom-20 md:bottom-6 right-4 z-[95] w-80 sm:w-96 rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ background: C.surface, border: `1px solid ${C.border}`, maxHeight: '500px' }} data-testid="cvl-brain-chat">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3" style={{ background: `linear-gradient(135deg, ${C.gold}20, ${C.accent}10)`, borderBottom: `1px solid ${C.border}` }}>
             <div className="flex items-center gap-2">

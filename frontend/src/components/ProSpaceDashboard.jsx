@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
-// ESPACE PRO CC2026 — LinkedIn Culturel Afro-Caribéen
-// MOBILE-FIRST · WCAG AA · Avatars Dégradés · Jetons Animés
+// ESPACE PRO CC2026 — Moteur d'Identité Culturelle Caribéenne
+// MOBILE-FIRST · PREMIUM UX · Fond #0a0a0a · Accent Or #C8A84B
 // ═══════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -17,15 +17,19 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import ProOnboarding from './ProOnboarding';
 import CvlBrainFloat from './CvlBrainFloat';
+import CulturalIdentityBar from './pro/CulturalIdentityBar';
+import ConstellationRadar from './pro/ConstellationRadar';
+import CulturalFeed from './pro/CulturalFeed';
+import MobileNavigation from './pro/MobileNavigation';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// ─── Design Tokens ─────────────────────────────────────
+// ─── Design Tokens — Premium Dark ─────────────────────
 const C = {
-  bg: '#0F0F0F', surface: '#1A1A1A', card: '#222222', border: '#333',
-  text: '#F0EDE5', muted: '#A8A8A8', dim: '#777', gold: '#D4A84B',
+  bg: '#0a0a0a', surface: '#111111', card: '#141414', border: '#1a1a1a',
+  text: '#FFFFFF', muted: '#888888', dim: '#555555', gold: '#C8A84B',
   accent: '#C4714A', forest: '#4A5D4E', blue: '#5B9BD5', red: '#E85A4F',
-  purple: '#8B5CF6', turquoise: '#2DD4BF', input: '#2A2A2A',
+  purple: '#8B5CF6', turquoise: '#2DD4BF', input: '#181818',
 };
 
 const TYPE_COLORS = {
@@ -100,6 +104,7 @@ const ProSpaceDashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [jetonsBalance, setJetonsBalance] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [culturalIdentity, setCulturalIdentity] = useState(null);
 
   useEffect(() => { if (!loading && !isAuthenticated) navigate('/espace-pro/connexion'); }, [loading, isAuthenticated, navigate]);
   useEffect(() => { if (session?.id) loadAll(); }, [session?.id]);
@@ -117,6 +122,10 @@ const ProSpaceDashboard = () => {
 
   useEffect(() => {
     if (session?.id) axios.get(`${API}/ghost/jetons/${session.id}`).then(r => setJetonsBalance(r.data.jetons_solde || 0)).catch(() => {});
+  }, [session?.id]);
+
+  useEffect(() => {
+    if (session?.id) axios.get(`${API}/cultural-identity/${session.id}`).then(r => setCulturalIdentity(r.data)).catch(() => {});
   }, [session?.id]);
 
   useEffect(() => { axios.post(`${API}/ghost/seed`).catch(() => {}); }, []);
@@ -150,32 +159,46 @@ const ProSpaceDashboard = () => {
 
   const unreadCount = messages.filter(m => !m.read && m.to === session.id).length;
   const navItems = [
-    { id: 'feed', label: 'Accueil', icon: Home },
+    { id: 'feed', label: 'Feed', icon: Home },
     { id: 'network', label: 'Réseau', icon: Users },
     { id: 'opportunities', label: 'Emplois', icon: Briefcase },
     { id: 'events', label: 'Agenda', icon: Calendar },
   ];
 
+  const handleMobileNav = (id) => {
+    if (id === 'create') {
+      setActiveSection('feed');
+      // Will scroll to create post area
+      setTimeout(() => {
+        const el = document.querySelector('[data-testid="create-post-box"]');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    } else {
+      setActiveSection(id);
+    }
+    setMobileMenu(false);
+  };
+
   return (
-    <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'Syne', sans-serif" }} data-testid="pro-space-dashboard">
+    <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'DM Sans', 'Inter', sans-serif" }} data-testid="pro-space-dashboard">
       {showOnboarding && <ProOnboarding session={session} onComplete={handleOnboardingComplete} />}
 
       {/* ─── HEADER ─── */}
-      <header className="sticky top-0 z-50 border-b" style={{ background: C.surface, borderColor: C.border }}>
+      <header className="sticky top-0 z-50" style={{ background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(20px) saturate(1.8)', WebkitBackdropFilter: 'blur(20px) saturate(1.8)', borderBottom: '1px solid #1a1a1a' }}>
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
           {/* Logo */}
           <button onClick={() => setActiveSection('feed')} className="flex-shrink-0" aria-label="Accueil Espace Pro" data-testid="logo-home">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: C.gold }}>
-              <span className="font-black text-sm" style={{ color: '#000' }}>CC</span>
+              <span className="font-black text-sm" style={{ color: '#0a0a0a' }}>CC</span>
             </div>
           </button>
 
           {/* Search — desktop */}
           <div className="hidden sm:flex flex-1 max-w-xs relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: C.dim }} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: '#555' }} />
             <input placeholder="Rechercher..." aria-label="Rechercher dans le réseau"
-              className="w-full h-11 pl-10 pr-4 rounded-lg text-base"
-              style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 44 }} />
+              className="w-full h-10 pl-10 pr-4 rounded-full text-sm"
+              style={{ background: '#141414', border: '1px solid #1a1a1a', color: '#fff', outline: 'none', minHeight: 44 }} />
           </div>
 
           <div className="flex-1 sm:hidden" />
@@ -218,41 +241,15 @@ const ProSpaceDashboard = () => {
 
           {/* Logout */}
           <button onClick={handleLogout} aria-label="Se déconnecter" data-testid="logout-btn"
-            className="p-2 rounded-lg hover:bg-white/5 hidden sm:flex" style={{ color: C.dim, minHeight: 44 }}>
+            className="p-2 rounded-lg hover:bg-white/5 hidden sm:flex" style={{ color: '#555', minHeight: 44 }}>
             <LogOut size={18} />
           </button>
-
-          {/* Mobile Menu Toggle */}
-          <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 rounded-lg" style={{ color: C.dim, minHeight: 44 }} aria-label="Menu">
-            <Menu size={22} />
-          </button>
         </div>
-
-        {/* Mobile Nav Dropdown */}
-        {mobileMenu && (
-          <div className="md:hidden border-t px-4 py-3 space-y-1" style={{ borderColor: C.border, background: C.surface }}>
-            {navItems.map(item => (
-              <button key={item.id} onClick={() => { setActiveSection(item.id); setMobileMenu(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-base"
-                style={{ color: activeSection === item.id ? C.gold : C.text, background: activeSection === item.id ? `${C.gold}10` : 'transparent', minHeight: 48 }}>
-                <item.icon size={20} /> {item.label}
-              </button>
-            ))}
-            <button onClick={() => { setShowMessages(true); setMobileMenu(false); }}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-base" style={{ color: C.text, minHeight: 48 }}>
-              <MessageSquare size={20} /> Messages {unreadCount > 0 && <span className="ml-auto w-6 h-6 rounded-full text-xs flex items-center justify-center" style={{ background: C.red, color: '#fff' }}>{unreadCount}</span>}
-            </button>
-            <button onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-base" style={{ color: C.red, minHeight: 48 }}>
-              <LogOut size={20} /> Déconnexion
-            </button>
-          </div>
-        )}
       </header>
 
       {/* ─── MAIN ─── */}
       <div className="max-w-5xl mx-auto px-4 py-6">
-        {activeSection === 'feed' && <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} />}
+        {activeSection === 'feed' && <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />}
         {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadAll} />}
         {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadAll} />}
         {activeSection === 'opportunities' && <OpportunitiesPage opportunities={opportunities} />}
@@ -262,39 +259,92 @@ const ProSpaceDashboard = () => {
       {showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
       <CvlBrainFloat session={session} />
 
+      {/* ─── MOBILE BOTTOM NAV ─── */}
+      <MobileNavigation
+        activeSection={activeSection}
+        onNavigate={handleMobileNav}
+        feedBadge={0}
+        networkBadge={connections.length > 0 ? 0 : 1}
+      />
+
       {/* ─── Global CSS ─── */}
       <style>{`
-        @keyframes jetonsPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(212,168,75,0); } 50% { box-shadow: 0 0 12px 2px rgba(212,168,75,0.25); } }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+        @keyframes jetonsPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(200,168,75,0); } 50% { box-shadow: 0 0 12px 2px rgba(200,168,75,0.2); } }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-slide-in { animation: fadeSlideIn 0.4s ease-out both; }
       `}</style>
     </div>
   );
 };
 
 // ═══════════════════════════════════════════════════════════
-// FEED LAYOUT — 3 columns
+// FEED LAYOUT — Cultural Identity Sidebar + Discovery Feed
 // ═══════════════════════════════════════════════════════════
-const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance }) => (
-  <div className="flex gap-6">
-    {/* Left sidebar */}
-    <aside className="hidden lg:block w-60 flex-shrink-0 space-y-4">
-      <div className="rounded-xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <div className="h-16" style={{ background: `linear-gradient(135deg, ${C.accent}70, ${C.gold}40, ${C.turquoise}30)` }} />
+const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, culturalIdentity }) => (
+  <div className="flex gap-6 fade-slide-in">
+    {/* Left sidebar — Identity */}
+    <aside className="hidden lg:block w-64 flex-shrink-0 space-y-4">
+      {/* Profile Card */}
+      <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        <div className="h-20 relative" style={{ background: `linear-gradient(135deg, ${C.accent}40, ${C.gold}20)` }}>
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 30% 50%, rgba(200,168,75,0.15), transparent 70%)' }} />
+        </div>
         <div className="px-4 pb-5 -mt-8 text-center">
-          <Avatar src={session.image} name={session.name} type={session.type} size={60} className="mx-auto" style={{ border: `3px solid ${C.card}` }} />
-          <h3 className="text-base font-bold mt-2" style={{ color: C.text }}>{session.name}</h3>
-          <p className="text-sm" style={{ color: C.muted }}>{PROFILE_LABELS[session.type] || 'Professionnel'}</p>
+          <Avatar src={session.image} name={session.name} type={session.type} size={64} className="mx-auto" style={{ border: `3px solid ${C.card}` }} />
+          <h3 className="text-sm font-bold mt-2" style={{ color: '#fff' }}>{session.name}</h3>
+          <p className="text-xs" style={{ color: '#888' }}>{PROFILE_LABELS[session.type] || 'Professionnel'}</p>
         </div>
-        <div className="border-t px-5 py-4 space-y-3" style={{ borderColor: C.border }}>
-          <div className="flex justify-between text-sm"><span style={{ color: C.muted }}>Connexions</span><span className="font-semibold" style={{ color: C.gold }}>{connections.length}</span></div>
-          <div className="flex justify-between text-sm"><span style={{ color: C.muted }}>Vues profil</span><span className="font-semibold" style={{ color: C.gold }}>{profile?.views || 0}</span></div>
-          <div className="flex justify-between text-sm"><span style={{ color: C.muted }}>Jetons CC</span><span className="font-bold" style={{ color: C.gold }}>{jetonsBalance || 0}</span></div>
+        {/* Cultural Score */}
+        <div className="px-4 pb-4">
+          <CulturalIdentityBar
+            score={culturalIdentity?.score || 0}
+            levelName={culturalIdentity?.level?.name || ''}
+          />
         </div>
+        <div className="border-t px-4 py-3 space-y-2" style={{ borderColor: '#1a1a1a' }}>
+          <div className="flex justify-between text-xs"><span style={{ color: '#888' }}>Connexions</span><span className="font-semibold" style={{ color: C.gold }}>{connections.length}</span></div>
+          <div className="flex justify-between text-xs"><span style={{ color: '#888' }}>Vues profil</span><span className="font-semibold" style={{ color: C.gold }}>{profile?.views || 0}</span></div>
+          <div className="flex justify-between text-xs"><span style={{ color: '#888' }}>Jetons CC</span><span className="font-bold" style={{ color: C.gold }}>{jetonsBalance || 0}</span></div>
+        </div>
+      </div>
+
+      {/* Constellation Radar */}
+      <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        <h3 className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#888', letterSpacing: '0.12em' }}>
+          Empreinte culturelle
+        </h3>
+        <ConstellationRadar
+          dimensions={culturalIdentity?.dimensions || {}}
+          compact={true}
+        />
       </div>
     </aside>
 
-    {/* Center */}
+    {/* Center — Cultural Feed */}
     <main className="flex-1 min-w-0">
+      {/* CC2026 Countdown */}
+      <div className="rounded-2xl p-5 relative overflow-hidden mb-5" data-testid="countdown-banner"
+        style={{ background: '#141414', border: '1px solid #1a1a1a' }}>
+        <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 80% 20%, rgba(200,168,75,0.08), transparent 60%)` }} />
+        <div className="flex items-center justify-between flex-wrap gap-3 relative">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold" style={{ color: '#fff' }}>Culture Connect 2026</h2>
+            <p className="text-xs mt-0.5" style={{ color: '#888' }}>20–23 Mai · Parc de La Savane · Fort-de-France</p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: 'rgba(200,168,75,0.1)', border: '1px solid rgba(200,168,75,0.25)' }}>
+            <span className="text-xl sm:text-2xl font-black tabular-nums" style={{ color: C.gold }}>J-{getDaysUntil()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Create Post */}
       <FeedSection session={session} />
+
+      {/* Cultural Discovery Feed */}
+      <div className="mt-5">
+        <CulturalFeed userId={session.id} />
+      </div>
     </main>
 
     {/* Right sidebar */}
@@ -364,139 +414,115 @@ const FeedSection = ({ session }) => {
     if (s < 86400) return `${Math.floor(s / 3600)} h`; return `${Math.floor(s / 86400)} j`;
   };
 
-  const daysLeft = getDaysUntil();
-
   return (
-    <div className="space-y-5">
-      {/* ─── CC2026 COUNTDOWN BANNER ─── */}
-      <div className="rounded-xl p-5 relative overflow-hidden" data-testid="countdown-banner"
-        style={{ background: `linear-gradient(135deg, ${C.accent}30, ${C.gold}15, ${C.forest}20)`, border: `1px solid ${C.gold}30` }}>
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h2 className="text-lg sm:text-xl font-black" style={{ color: C.gold }}>CC2026 — La Savane</h2>
-            <p className="text-sm mt-1" style={{ color: C.muted }}>20–23 Mai 2026 · Fort-de-France, Martinique</p>
-          </div>
-          <div className="flex items-center gap-2 px-5 py-3 rounded-xl" style={{ background: `${C.gold}20`, border: `2px solid ${C.gold}` }}>
-            <span className="text-2xl sm:text-3xl font-black" style={{ color: C.gold }}>J-{daysLeft}</span>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* ─── CREATE POST ─── */}
-      <div className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }} data-testid="create-post-box">
+      <div className="rounded-2xl p-4" style={{ background: '#141414', border: '1px solid #1a1a1a' }} data-testid="create-post-box">
         <div className="flex gap-3">
-          <Avatar src={session.image} name={session.name} type={session.type} size={48} />
+          <Avatar src={session.image} name={session.name} type={session.type} size={44} />
           <div className="flex-1">
             <textarea value={newPost} onChange={e => setNewPost(e.target.value)}
               placeholder="Partagez votre actualité culturelle..."
-              rows={3} data-testid="new-post-input" aria-label="Nouveau post"
-              className="w-full p-4 rounded-xl text-base resize-none"
-              style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 80, lineHeight: 1.6 }} />
-            <div className="flex flex-wrap justify-between items-center gap-3 mt-3">
+              rows={2} data-testid="new-post-input" aria-label="Nouveau post"
+              className="w-full p-3 rounded-xl text-sm resize-none"
+              style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', color: '#fff', outline: 'none', minHeight: 60, lineHeight: 1.6 }} />
+            <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
               <div className="flex gap-2">
                 <button onClick={generateWithBrain} disabled={generating} data-testid="generate-brain-btn"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all hover:scale-105"
-                  style={{ background: `${C.gold}15`, color: C.gold, border: `1px solid ${C.gold}30`, minHeight: 44 }}>
-                  <Sparkles size={16} /> {generating ? 'CVL BRAIN écrit...' : 'Générer avec CVL BRAIN'}
-                </button>
-                <button className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm" style={{ color: C.blue, minHeight: 44 }} aria-label="Ajouter une photo">
-                  <Image size={16} /> <span className="hidden sm:inline">Photo</span>
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all hover:scale-105"
+                  style={{ background: 'rgba(200,168,75,0.1)', color: C.gold, border: '1px solid rgba(200,168,75,0.2)', minHeight: 36 }}>
+                  <Sparkles size={14} /> {generating ? 'Génération...' : 'CVL BRAIN'}
                 </button>
               </div>
               <Button disabled={!newPost.trim() || posting} onClick={createPost} data-testid="publish-post-btn"
-                className="rounded-full px-6 text-base font-bold" style={{ background: C.gold, color: '#000', minHeight: 44 }}>
-                {posting ? 'Publication...' : 'Publier'}
+                className="rounded-full px-5 text-sm font-bold" style={{ background: C.gold, color: '#0a0a0a', minHeight: 36 }}>
+                {posting ? '...' : 'Publier'}
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ─── POSTS ─── */}
+      {/* ─── SOCIAL POSTS ─── */}
       {loading ? (
-        <div className="py-16 text-center"><div className="w-10 h-10 border-3 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: C.gold }} /></div>
-      ) : posts.length === 0 ? (
-        <div className="rounded-xl p-16 text-center" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <Newspaper size={48} className="mx-auto mb-4" style={{ color: C.dim }} />
-          <p className="text-base" style={{ color: C.muted }}>Aucune publication. Soyez le premier !</p>
-        </div>
-      ) : posts.map(post => {
-        const borderColor = TYPE_COLORS[post.author_type] || C.border;
+        <div className="py-12 text-center"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: C.gold }} /></div>
+      ) : posts.length === 0 ? null : posts.map(post => {
+        const borderColor = TYPE_COLORS[post.author_type] || '#1a1a1a';
         return (
-          <article key={post.id} className="rounded-xl overflow-hidden" data-testid={`post-${post.id}`}
-            style={{ background: C.card, borderLeft: `4px solid ${borderColor}`, border: `1px solid ${C.border}`, borderLeftWidth: 4, borderLeftColor: borderColor }}>
+          <article key={post.id} className="rounded-2xl overflow-hidden cultural-card" data-testid={`post-${post.id}`}
+            style={{ background: '#141414', border: '1px solid #1a1a1a', borderLeftWidth: 3, borderLeftColor: borderColor }}>
             {/* Post Header */}
-            <div className="p-5 pb-0">
+            <div className="p-4 pb-0">
               <div className="flex gap-3">
-                <Avatar src={post.author_image} name={post.author_name} type={post.author_type} size={52} />
+                <Avatar src={post.author_image} name={post.author_name} type={post.author_type} size={44} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-bold truncate" style={{ color: C.text }}>{post.author_name}</span>
+                    <span className="text-sm font-bold truncate" style={{ color: '#fff' }}>{post.author_name}</span>
                     {post.author_id === session.id && (
-                      <button onClick={() => deletePost(post.id)} aria-label="Supprimer ce post" className="ml-auto p-2 rounded-lg hover:bg-white/10" style={{ color: C.dim, minHeight: 44 }}><X size={16} /></button>
+                      <button onClick={() => deletePost(post.id)} aria-label="Supprimer ce post" className="ml-auto p-2 rounded-lg hover:bg-white/10" style={{ color: '#555', minHeight: 44 }}><X size={14} /></button>
                     )}
                   </div>
-                  <p className="text-sm" style={{ color: TYPE_COLORS[post.author_type] || C.muted }}>{PROFILE_LABELS[post.author_type] || ''}</p>
-                  <p className="text-sm flex items-center gap-1 mt-0.5" style={{ color: C.dim }}><Clock size={12} /> {timeAgo(post.created_at)}</p>
+                  <p className="text-xs" style={{ color: TYPE_COLORS[post.author_type] || '#888' }}>{PROFILE_LABELS[post.author_type] || ''}</p>
+                  <p className="text-xs flex items-center gap-1 mt-0.5" style={{ color: '#555' }}><Clock size={10} /> {timeAgo(post.created_at)}</p>
                 </div>
               </div>
             </div>
 
             {/* Content */}
-            <div className="px-5 py-4">
-              <p className="text-base whitespace-pre-wrap leading-relaxed" style={{ color: C.text, lineHeight: 1.7 }}>{post.content}</p>
+            <div className="px-4 py-3">
+              <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: '#fff', lineHeight: 1.7 }}>{post.content}</p>
               {post.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {post.tags.map(t => <span key={t} className="text-sm font-medium" style={{ color: C.gold }}>#{t}</span>)}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {post.tags.map(t => <span key={t} className="text-xs font-medium" style={{ color: C.gold }}>#{t}</span>)}
                 </div>
               )}
             </div>
 
             {/* Counts */}
             {(post.likes_count > 0 || post.comments_count > 0) && (
-              <div className="px-5 py-2 flex items-center justify-between text-sm border-t" style={{ borderColor: C.border, color: C.muted }}>
-                {post.likes_count > 0 && <span className="flex items-center gap-1"><Heart size={14} fill={C.red} style={{ color: C.red }} /> {post.likes_count}</span>}
+              <div className="px-4 py-2 flex items-center justify-between text-xs border-t" style={{ borderColor: '#1a1a1a', color: '#888' }}>
+                {post.likes_count > 0 && <span className="flex items-center gap-1"><Heart size={12} fill={C.red} style={{ color: C.red }} /> {post.likes_count}</span>}
                 {post.comments_count > 0 && <button onClick={() => setShowComments({ ...showComments, [post.id]: !showComments[post.id] })} className="hover:underline">{post.comments_count} commentaire{post.comments_count > 1 ? 's' : ''}</button>}
               </div>
             )}
 
             {/* Actions */}
-            <div className="px-3 py-1 flex border-t" style={{ borderColor: C.border }}>
+            <div className="px-2 py-1 flex border-t" style={{ borderColor: '#1a1a1a' }}>
               <button onClick={() => handleLike(post.id)} aria-label={post.likes?.includes(session.id) ? "Retirer le j'aime" : "J'aime"}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg hover:bg-white/5 text-base transition-colors"
-                style={{ color: post.likes?.includes(session.id) ? C.red : C.muted, minHeight: 48 }}>
-                <Heart size={20} fill={post.likes?.includes(session.id) ? C.red : 'none'} /> J'aime
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg hover:bg-white/5 text-sm transition-colors"
+                style={{ color: post.likes?.includes(session.id) ? C.red : '#888', minHeight: 44 }}>
+                <Heart size={16} fill={post.likes?.includes(session.id) ? C.red : 'none'} /> J'aime
               </button>
               <button onClick={() => setShowComments({ ...showComments, [post.id]: !showComments[post.id] })} aria-label="Commenter"
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg hover:bg-white/5 text-base"
-                style={{ color: C.muted, minHeight: 48 }}>
-                <MessageCircle size={20} /> Commenter
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg hover:bg-white/5 text-sm"
+                style={{ color: '#888', minHeight: 44 }}>
+                <MessageCircle size={16} /> Commenter
               </button>
             </div>
 
             {/* Comments */}
             {showComments[post.id] && (
-              <div className="px-5 pb-5 border-t space-y-3" style={{ borderColor: C.border }}>
+              <div className="px-4 pb-4 border-t space-y-2" style={{ borderColor: '#1a1a1a' }}>
                 {post.comments?.map(c => (
-                  <div key={c.id} className="flex gap-3 mt-3">
-                    <Avatar name={c.author_name} type="other" size={36} />
-                    <div className="flex-1 p-3 rounded-xl" style={{ background: C.input }}>
-                      <span className="text-sm font-bold" style={{ color: C.text }}>{c.author_name}</span>
-                      <p className="text-sm mt-1 leading-relaxed" style={{ color: C.muted }}>{c.content}</p>
+                  <div key={c.id} className="flex gap-2 mt-2">
+                    <Avatar name={c.author_name} type="other" size={32} />
+                    <div className="flex-1 p-2.5 rounded-xl" style={{ background: '#0a0a0a' }}>
+                      <span className="text-xs font-bold" style={{ color: '#fff' }}>{c.author_name}</span>
+                      <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#888' }}>{c.content}</p>
                     </div>
                   </div>
                 ))}
-                <div className="flex gap-3 mt-3">
-                  <Avatar src={session.image} name={session.name} type={session.type} size={36} />
+                <div className="flex gap-2 mt-2">
+                  <Avatar src={session.image} name={session.name} type={session.type} size={32} />
                   <div className="flex-1 flex gap-2">
                     <input value={commentInputs[post.id] || ''} onChange={e => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
                       onKeyDown={e => e.key === 'Enter' && handleComment(post.id)}
-                      placeholder="Ajouter un commentaire..." aria-label="Ajouter un commentaire"
-                      className="flex-1 px-4 rounded-full text-base"
-                      style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 44 }} />
+                      placeholder="Commentaire..." aria-label="Ajouter un commentaire"
+                      className="flex-1 px-3 rounded-full text-sm"
+                      style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', color: '#fff', outline: 'none', minHeight: 36 }} />
                     <button onClick={() => handleComment(post.id)} aria-label="Envoyer le commentaire"
-                      className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-white/10" style={{ color: C.gold, minHeight: 44 }}>
-                      <Send size={16} />
+                      className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10" style={{ color: C.gold, minHeight: 36 }}>
+                      <Send size={14} />
                     </button>
                   </div>
                 </div>

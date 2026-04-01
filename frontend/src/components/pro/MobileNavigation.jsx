@@ -1,0 +1,122 @@
+import React, { useState, useEffect } from 'react';
+import { Compass, Users, PlusCircle, Calendar, User } from 'lucide-react';
+
+const TABS = [
+  { id: 'feed', label: 'Feed', icon: Compass },
+  { id: 'network', label: 'Réseau', icon: Users },
+  { id: 'create', label: 'Créer', icon: PlusCircle },
+  { id: 'events', label: 'Agenda', icon: Calendar },
+  { id: 'profile', label: 'Moi', icon: User },
+];
+
+const MobileNavigation = ({ activeSection, onNavigate, feedBadge = 0, networkBadge = 0 }) => {
+  const [tapped, setTapped] = useState(null);
+
+  const handleTap = (id) => {
+    setTapped(id);
+    setTimeout(() => setTapped(null), 200);
+    onNavigate(id);
+  };
+
+  return (
+    <>
+      {/* Spacer to prevent content being hidden behind fixed bar */}
+      <div className="md:hidden h-16" />
+
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+        style={{
+          background: 'rgba(10,10,10,0.92)',
+          backdropFilter: 'blur(20px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
+          borderTop: '1px solid #1a1a1a',
+        }}
+        role="navigation"
+        aria-label="Navigation mobile"
+        data-testid="mobile-navigation"
+      >
+        <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+          {TABS.map((tab) => {
+            const isActive = activeSection === tab.id;
+            const isTapped = tapped === tab.id;
+            const badge = tab.id === 'feed' ? feedBadge : tab.id === 'network' ? networkBadge : 0;
+            const Icon = tab.icon;
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTap(tab.id)}
+                className="relative flex flex-col items-center justify-center gap-0.5 flex-1"
+                style={{
+                  minHeight: 44,
+                  minWidth: 44,
+                  transform: isTapped ? 'scale(0.88)' : 'scale(1)',
+                  transition: 'transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+                aria-current={isActive ? 'page' : undefined}
+                aria-label={tab.label}
+                data-testid={`mobile-nav-${tab.id}`}
+              >
+                {/* Create button special styling */}
+                {tab.id === 'create' ? (
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center -mt-3"
+                    style={{
+                      background: '#C8A84B',
+                      boxShadow: '0 2px 12px rgba(200,168,75,0.3)',
+                      transform: isTapped ? 'scale(0.9)' : 'scale(1)',
+                      transition: 'transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}
+                  >
+                    <Icon size={22} style={{ color: '#0a0a0a' }} strokeWidth={2.5} />
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <Icon
+                        size={22}
+                        style={{
+                          color: isActive ? '#C8A84B' : '#555',
+                          transition: 'color 0.2s',
+                        }}
+                        strokeWidth={isActive ? 2.2 : 1.8}
+                      />
+                      {/* Notification badge */}
+                      {badge > 0 && (
+                        <span
+                          className="absolute -top-1 -right-1.5 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[10px] font-bold px-1"
+                          style={{ background: '#E85A4F', color: '#fff' }}
+                        >
+                          {badge > 9 ? '9+' : badge}
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      className="text-[10px] font-medium"
+                      style={{
+                        color: isActive ? '#C8A84B' : '#555',
+                        transition: 'color 0.2s',
+                      }}
+                    >
+                      {tab.label}
+                    </span>
+                  </>
+                )}
+
+                {/* Active indicator dot */}
+                {isActive && tab.id !== 'create' && (
+                  <div
+                    className="absolute -bottom-0 w-1 h-1 rounded-full"
+                    style={{ background: '#C8A84B' }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    </>
+  );
+};
+
+export default MobileNavigation;

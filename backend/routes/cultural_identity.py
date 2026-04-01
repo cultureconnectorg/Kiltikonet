@@ -517,6 +517,18 @@ SEED_CARDS = [
         "image_url": "",
         "meta": {"date": "2026-10-28", "lieu": "Toute la Caraïbe", "type_event": "Journée culturelle"},
     },
+    # --- MUSIQUE (5e carte ajoutée) ---
+    {
+        "id": "card-mus-05",
+        "card_type": "musique",
+        "dimension": "Musique",
+        "title": "Jacob Desvarieux — Ou lé",
+        "subtitle": "Le guitariste fondateur du zouk",
+        "description": "Co-fondateur de Kassav', Jacob Desvarieux a inventé le son du zouk avec sa guitare. Disparu en 2021, il reste le pilier de la musique caribéenne moderne.",
+        "image_url": "",
+        "duration": "4:15",
+        "meta": {"genre": "Zouk", "year": "1985", "origin": "Guadeloupe"},
+    },
     # --- PATRIMOINE (3 cartes) ---
     {
         "id": "card-pat-01",
