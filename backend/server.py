@@ -6117,6 +6117,11 @@ async def pro_request_access(request: ProAccessRequest):
     registration = await db.registrations.find_one(
         {"email": email_lower, "status": "approved"}, {"_id": 0}
     )
+    if registration and not registration.get("frek_id"):
+        import hashlib as _hl2
+        frek_id = f"FREK-{_hl2.sha256(email_lower.encode()).hexdigest()[:4].upper()}-{_hl2.sha256(registration.get('id','x').encode()).hexdigest()[:4].upper()}"
+        await db.registrations.update_one({"email": email_lower}, {"$set": {"frek_id": frek_id}})
+        registration["frek_id"] = frek_id
     if not registration:
         badge = await db.cc_badges.find_one({"email": email_lower}, {"_id": 0})
         if badge:
@@ -6128,7 +6133,27 @@ async def pro_request_access(request: ProAccessRequest):
             }
     
     if not registration:
-        raise HTTPException(status_code=404, detail="Email non trouvé dans les participants approuvés")
+        # AUTO-INSCRIPTION — Créer un nouveau profil avec FREK-ID unique
+        import hashlib as _hl
+        frek_id = f"FREK-{_hl.sha256(f'{email_lower}{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:4].upper()}-{_hl.sha256(email_lower.encode()).hexdigest()[:4].upper()}"
+        new_profile = {
+            "id": f"pro_{str(uuid.uuid4())[:12]}",
+            "email": email_lower,
+            "full_name": email_lower.split('@')[0].replace('.', ' ').replace('_', ' ').title(),
+            "profile_type": "other",
+            "status": "approved",
+            "frek_id": frek_id,
+            "jetons_solde": 0,
+            "is_new_user": True,
+            "language": "fr",
+            "validity_extension": True,
+            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.registrations.insert_one({**new_profile})
+        new_profile.pop("_id", None)
+        registration = new_profile
+        logger.info(f"[AUTO_REGISTER] New profile created for {email_lower} with FREK-ID {frek_id}")
     
     code = generate_access_code()
     pro_access_codes[email_lower] = {
@@ -6241,6 +6266,7 @@ async def pro_verify_code(request: ProVerifyCode):
             registration = {
                 "id": "admin-bypass", "email": email, "full_name": "Admin CC2026",
                 "profile_type": "admin", "status": "approved", "is_admin": True,
+                "frek_id": f"FREK-ADM-{email[:4].upper()}", "language": "fr",
             }
     
     if not registration:
@@ -6267,6 +6293,86 @@ async def dev_get_code(email: str):
     if not stored:
         raise HTTPException(status_code=404, detail="No code found")
     return {"code": stored["code"], "expires": stored["expires"].isoformat()}
+
+# ─── LANGUAGE PREFERENCE ────────────────────────────────
+@app.post("/api/pro/update-language")
+async def update_language(data: dict):
+    """Update user language preference."""
+    user_id = data.get("user_id")
+    language = data.get("language", "fr")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id requis")
+    if language not in ("fr", "en", "es", "pt"):
+        raise HTTPException(status_code=400, detail="Langue non supportée")
+    await db.registrations.update_one({"id": user_id}, {"$set": {"language": language}})
+    await db.pro_profiles.update_one({"profile_id": user_id}, {"$set": {"language": language}}, upsert=True)
+    return {"success": True, "language": language}
+
+# ─── RGPD — Suppression de compte ───────────────────────
+@app.post("/api/pro/delete-account")
+async def delete_account(data: dict):
+    """RGPD: Supprimer un compte. Les KT acquis ne sont pas remboursés."""
+    user_id = data.get("user_id")
+    email = data.get("email", "").lower()
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id requis")
+    
+    # Archive before delete
+    registration = await db.registrations.find_one({"id": user_id}, {"_id": 0})
+    if registration:
+        await db.deleted_accounts.insert_one({
+            **registration,
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
+            "deletion_reason": data.get("reason", "user_request"),
+            "kt_balance_at_deletion": registration.get("jetons_solde", 0),
+            "note": "KT non remboursés conformément aux CGU"
+        })
+    
+    # Delete from all collections
+    await db.registrations.delete_one({"id": user_id})
+    await db.pro_profiles.delete_one({"profile_id": user_id})
+    await db.pro_connections.delete_many({"$or": [{"from_id": user_id}, {"to_id": user_id}]})
+    await db.pro_messages.delete_many({"$or": [{"from": user_id}, {"to": user_id}]})
+    await db.notifications.delete_many({"user_id": user_id})
+    
+    # Anonymize wallet (keep for accounting)
+    await db.kn_wallets.update_one(
+        {"user_id": user_id},
+        {"$set": {"status": "deleted", "user_id": f"deleted_{user_id[:8]}", "frek_id": None}}
+    )
+    
+    await db.pro_access_logs.insert_one({
+        "email": email, "profile_id": user_id, "action": "account_deleted",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    logger.info(f"[RGPD] Account deleted: {user_id}")
+    return {"success": True, "message": "Compte supprimé. Les Kilti-Tokens acquis ne sont pas remboursables."}
+
+# ─── RGPD — Export des données ───────────────────────────
+@app.get("/api/pro/export-data/{user_id}")
+async def export_user_data(user_id: str):
+    """RGPD: Exporter toutes les données personnelles."""
+    registration = await db.registrations.find_one({"id": user_id}, {"_id": 0})
+    if not registration:
+        raise HTTPException(status_code=404, detail="Profil non trouvé")
+    
+    pro_data = await db.pro_profiles.find_one({"profile_id": user_id}, {"_id": 0})
+    wallet = await db.kn_wallets.find_one({"user_id": user_id}, {"_id": 0})
+    transactions = await db.kn_transactions.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+    notifications = await db.notifications.find({"user_id": user_id}, {"_id": 0}).to_list(500)
+    access_logs = await db.pro_access_logs.find({"profile_id": user_id}, {"_id": 0}).to_list(500)
+    
+    return {
+        "export_date": datetime.now(timezone.utc).isoformat(),
+        "legal_entity": "Factory Maker Studio EURL",
+        "profile": registration,
+        "pro_data": pro_data,
+        "wallet": wallet,
+        "transactions": transactions,
+        "notifications": notifications,
+        "access_logs": access_logs,
+    }
 
 @app.get("/api/pro/profile/{profile_id}")
 async def get_pro_profile(profile_id: str):

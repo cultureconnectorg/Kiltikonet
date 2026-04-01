@@ -6,7 +6,7 @@ const TABS = [
   { id: 'network', label: 'Reseau', icon: Users },
   { id: 'create', label: 'Creer', icon: PlusCircle },
   { id: 'shop', label: 'Shop', icon: ShoppingBag },
-  { id: 'profile', label: 'Moi', icon: User },
+  { id: 'settings', label: 'Profil', icon: User },
 ];
 
 const MobileNavigation = ({ activeSection, onNavigate, feedBadge = 0, networkBadge = 0 }) => {

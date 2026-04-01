@@ -9,7 +9,8 @@ import {
   LogOut, ChevronRight, Plus, Send, Heart, Star, MapPin, Globe,
   Building2, Mic2, Mail, Phone, Link2, Edit2, Save, X, Check,
   Sparkles, Clock, Eye, MessageCircle, Handshake, Newspaper, Tag,
-  ChevronDown, ChevronUp, Shield, Award, Image, Home, Zap, Menu
+  ChevronDown, ChevronUp, Shield, Award, Image, Home, Zap, Menu,
+  Settings, Trash2, Download, Languages
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -171,6 +172,7 @@ const ProSpaceDashboard = () => {
     { id: 'network', label: 'Réseau', icon: Users },
     { id: 'shop', label: 'Shop', icon: Briefcase },
     { id: 'events', label: 'Agenda', icon: Calendar },
+    { id: 'settings', label: 'Profil', icon: Settings },
   ];
 
   const handleMobileNav = (id) => {
@@ -235,7 +237,7 @@ const ProSpaceDashboard = () => {
           {/* Jetons Badge */}
           <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all hover:scale-[1.02]" data-testid="jetons-badge"
             style={{ background: '#1a1a1a', border: '1px solid rgba(232,213,160,0.3)', minHeight: 36, animation: 'jetonsPulse 3s ease-in-out infinite' }}
-            title="1 Kilti-Token = 1.50€" aria-label={`${jetonsBalance} Kilti-Tokens`}>
+            title={`FREK-ID: ${session.frek_id || 'Non lie'}`} aria-label={`${jetonsBalance} Kilti-Tokens`}>
             <Zap size={16} style={{ color: '#E8D5A0' }} />
             <span className="text-sm font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{jetonsBalance}</span>
             <span className="text-[10px] hidden sm:inline font-semibold" style={{ color: '#E8D5A0' }}>KT</span>
@@ -271,6 +273,7 @@ const ProSpaceDashboard = () => {
           {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadAll} />}
           {activeSection === 'shop' && <ShopSection session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'events' && <EventsPage events={events} />}
+          {activeSection === 'settings' && <SettingsSection session={session} jetonsBalance={jetonsBalance} onLogout={handleLogout} />}
         </div>
       )}
 
@@ -1128,6 +1131,204 @@ const EventsPage = ({ events }) => (
 // ═══════════════════════════════════════════════════════════
 // PRO SPACE LOGIN — Connexion par code
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// SETTINGS & PROFILE — FREK-ID, Langue, RGPD
+// ═══════════════════════════════════════════════════════════
+const LANGS = [
+  { code: 'fr', label: 'Francais', flag: 'FR' },
+  { code: 'en', label: 'English', flag: 'EN' },
+  { code: 'es', label: 'Espanol', flag: 'ES' },
+  { code: 'pt', label: 'Portugues', flag: 'PT' },
+];
+
+const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
+  const [language, setLanguage] = useState(session?.language || 'fr');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleLanguageChange = async (lang) => {
+    setLanguage(lang);
+    try {
+      await axios.post(`${API}/pro/update-language`, { user_id: session.id, language: lang });
+      const stored = JSON.parse(localStorage.getItem('cc2026_pro_session') || '{}');
+      stored.language = lang;
+      localStorage.setItem('cc2026_pro_session', JSON.stringify(stored));
+      toast.success('Langue mise a jour');
+    } catch { toast.error('Erreur'); }
+  };
+
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const res = await axios.get(`${API}/pro/export-data/${session.id}`);
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `kiltikonet_data_${session.id}.json`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Donnees exportees');
+    } catch { toast.error('Erreur d\'export'); }
+    finally { setExporting(false); }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await axios.post(`${API}/pro/delete-account`, { user_id: session.id, email: session.email });
+      localStorage.removeItem('cc2026_pro_session');
+      toast.success('Compte supprime');
+      window.location.href = '/espace-pro/connexion';
+    } catch { toast.error('Erreur de suppression'); }
+    finally { setDeleting(false); }
+  };
+
+  return (
+    <div className="max-w-lg mx-auto space-y-4" data-testid="settings-section">
+      {/* Profile Card */}
+      <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        <div className="h-20 relative" style={{ background: `linear-gradient(135deg, rgba(232,213,160,0.12), rgba(232,213,160,0.04))` }}>
+          <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)' }} />
+        </div>
+        <div className="px-5 pb-5 -mt-8">
+          <Avatar name={session?.name} size={64} ring style={{ border: `3px solid ${C.card}` }} />
+          <h2 className="text-lg font-black mt-3" style={{ color: C.text, fontFamily: "'DM Sans', sans-serif" }}>
+            {session?.name || 'Utilisateur'}
+          </h2>
+          <p className="text-xs" style={{ color: C.muted }}>{session?.email}</p>
+          <div className="flex items-center gap-3 mt-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+              style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.2)' }}>
+              <Zap size={14} style={{ color: C.gold }} />
+              <span className="text-sm font-bold" style={{ color: C.gold }}>{jetonsBalance} KT</span>
+            </div>
+            {session?.frek_id && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}
+                data-testid="frek-id-display">
+                <Shield size={14} style={{ color: '#8b5cf6' }} />
+                <span className="text-[11px] font-mono font-bold" style={{ color: '#8b5cf6' }}>{session.frek_id}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Language Selector */}
+      <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }} data-testid="language-selector">
+        <div className="flex items-center gap-2 mb-3">
+          <Languages size={16} style={{ color: C.gold }} />
+          <h3 className="text-sm font-bold" style={{ color: C.text }}>Langue</h3>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {LANGS.map(l => (
+            <button key={l.code} onClick={() => handleLanguageChange(l.code)}
+              className="py-2.5 rounded-xl text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: language === l.code ? C.gold : '#0a0a0b',
+                color: language === l.code ? '#0a0a0b' : C.muted,
+                border: `1px solid ${language === l.code ? C.gold : C.border}`,
+              }}
+              data-testid={`lang-${l.code}`}>
+              <span className="text-xs font-bold">{l.flag}</span>
+              <br />
+              <span className="text-[10px]">{l.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* KT Info */}
+      <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        <div className="flex items-center gap-2 mb-2">
+          <Shield size={16} style={{ color: C.gold }} />
+          <h3 className="text-sm font-bold" style={{ color: C.text }}>Ecosysteme KT</h3>
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
+          Vos Kilti-Tokens sont valables pour l'ensemble des evenements et services Culture Connect 
+          (CC2026, CC2027 et editions suivantes). Emis par Factory Maker Studio EURL.
+        </p>
+      </div>
+
+      {/* RGPD Section */}
+      <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }} data-testid="rgpd-section">
+        <div className="flex items-center gap-2 mb-4">
+          <Shield size={16} style={{ color: '#22c55e' }} />
+          <h3 className="text-sm font-bold" style={{ color: C.text }}>Donnees personnelles (RGPD)</h3>
+        </div>
+        <div className="space-y-2">
+          <button onClick={handleExportData} disabled={exporting}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:bg-white/5"
+            style={{ background: '#0a0a0b', border: `1px solid ${C.border}` }}
+            data-testid="export-data-btn">
+            <Download size={16} style={{ color: C.gold }} />
+            <div className="flex-1">
+              <p className="text-xs font-semibold" style={{ color: C.text }}>Gerer mes donnees</p>
+              <p className="text-[10px]" style={{ color: C.muted }}>Telecharger toutes vos donnees au format JSON</p>
+            </div>
+          </button>
+          <button onClick={() => setShowDeleteConfirm(true)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:bg-red-500/5"
+            style={{ background: '#0a0a0b', border: '1px solid #1e1e1e' }}
+            data-testid="delete-account-btn">
+            <Trash2 size={16} style={{ color: '#ef4444' }} />
+            <div className="flex-1">
+              <p className="text-xs font-semibold" style={{ color: '#ef4444' }}>Supprimer mon compte</p>
+              <p className="text-[10px]" style={{ color: C.muted }}>Action irreversible. Les KT acquis ne sont pas rembourses.</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="relative w-full max-w-sm rounded-2xl p-6"
+            style={{ background: C.card, border: '1px solid #ef444440' }} onClick={e => e.stopPropagation()}
+            data-testid="delete-confirm-modal">
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <Trash2 size={24} style={{ color: '#ef4444' }} />
+              </div>
+              <h3 className="text-base font-black mb-2" style={{ color: C.text }}>Supprimer votre compte ?</h3>
+              <p className="text-xs mb-1" style={{ color: C.muted }}>
+                Cette action est irreversible. Toutes vos donnees seront supprimees.
+              </p>
+              <p className="text-xs font-semibold mb-5" style={{ color: '#ef4444' }}>
+                Les {jetonsBalance} KT acquis ne seront pas rembourses.
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-3 rounded-xl text-xs font-bold transition-all hover:bg-white/5"
+                  style={{ background: '#0a0a0b', color: C.text, border: `1px solid ${C.border}` }}
+                  data-testid="cancel-delete-btn">
+                  Annuler
+                </button>
+                <button onClick={handleDeleteAccount} disabled={deleting}
+                  className="flex-1 py-3 rounded-xl text-xs font-bold transition-all hover:bg-red-600"
+                  style={{ background: '#ef4444', color: '#fff' }}
+                  data-testid="confirm-delete-btn">
+                  {deleting ? 'Suppression...' : 'Confirmer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout */}
+      <button onClick={onLogout}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:bg-white/5"
+        style={{ background: C.card, color: C.muted, border: `1px solid ${C.border}` }}
+        data-testid="settings-logout-btn">
+        <LogOut size={16} /> Deconnexion
+      </button>
+    </div>
+  );
+};
+
 export const ProSpaceLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -1135,6 +1336,7 @@ export const ProSpaceLogin = () => {
   const [codeSent, setCodeSent] = useState(false);
   const [accessCode, setAccessCode] = useState('');
   const [verifying, setVerifying] = useState(false);
+  const [legalModal, setLegalModal] = useState(null);
 
   const handleRequestCode = async (e) => {
     e.preventDefault();
@@ -1147,21 +1349,21 @@ export const ProSpaceLogin = () => {
           try {
             const verifyRes = await axios.post(`${API}/pro/verify-code`, { email, code: '000000' });
             if (verifyRes.data.success) {
-              const proSession = { id: verifyRes.data.profile.id, email: verifyRes.data.profile.email, name: verifyRes.data.profile.full_name, image: verifyRes.data.profile.image, type: verifyRes.data.profile.profile_type, verified: true, createdAt: Date.now() };
+              const p = verifyRes.data.profile;
+              const proSession = { id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() };
               localStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
-              toast.success(`Bienvenue ${verifyRes.data.profile.full_name} !`);
+              toast.success(`Bienvenue ${p.full_name} !`);
               navigate('/espace-pro', { replace: true });
               return;
             }
           } catch {}
         }
         setCodeSent(true);
-        toast.success("Code d'accès envoyé !", { description: 'Vérifiez votre boîte mail' });
-      } else {
-        toast.error(res.data.message || 'Email non trouvé dans notre base');
+        toast.success("Code d'acces envoye !", { description: 'Verifiez votre boite mail' });
       }
-    } catch { toast.error('Email non reconnu', { description: 'Vous devez être inscrit à CC2026' }); }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Erreur de connexion');
+    } finally { setLoading(false); }
   };
 
   const handleVerifyCode = async (e) => {
@@ -1171,9 +1373,10 @@ export const ProSpaceLogin = () => {
     try {
       const res = await axios.post(`${API}/pro/verify-code`, { email, code: accessCode });
       if (res.data.success) {
-        const proSession = { id: res.data.profile.id, email: res.data.profile.email, name: res.data.profile.full_name, image: res.data.profile.image, type: res.data.profile.profile_type, verified: true, createdAt: Date.now() };
+        const p = res.data.profile;
+        const proSession = { id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() };
         localStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
-        toast.success(`Bienvenue ${res.data.profile.full_name} !`);
+        toast.success(p.is_new_user ? 'Compte cree avec succes !' : `Bienvenue ${p.full_name} !`);
         navigate('/espace-pro', { replace: true });
       }
     } catch { toast.error('Code invalide'); }
@@ -1184,50 +1387,179 @@ export const ProSpaceLogin = () => {
     return <div className="min-h-screen flex items-center justify-center" style={{ background: C.bg }}><div className="w-12 h-12 border-3 border-t-transparent rounded-full animate-spin" style={{ borderColor: C.gold }} /></div>;
   }
 
+  const LEGAL_CONTENT = {
+    mentions: {
+      title: 'Mentions Legales',
+      content: `Editeur : Factory Maker Studio EURL\nSiege social : Martinique / Bruxelles\nRCS : Registre du Commerce et des Societes de Fort-de-France\nDirecteur de publication : Laurent Coeurvolan\n\nHebergement : Services cloud securises conformes RGPD.\n\nContact : contact@kiltikonet.fr\n\nLa plateforme KiltiKonet est operee par Factory Maker Studio EURL en tant que bras operationnel de l'ecosysteme Culture Connect. Toutes les transactions financieres liees aux Kilti-Tokens sont emises et gerees par cette entite.`
+    },
+    kt: {
+      title: 'Conditions du Jeton KT',
+      content: `Les Kilti-Tokens (KT) sont des unites de valeur prepayees emises par Factory Maker Studio EURL.\n\n1. Nature juridique : Les KT sont des bons d'achat numeriques a usage unique ou multiple au sein de l'ecosysteme KiltiKonet. Ils ne constituent ni une monnaie electronique au sens de la directive 2009/110/CE, ni un instrument financier.\n\n2. Non-remboursabilite : Les KT acquis ne sont pas remboursables en euros. L'achat est definitif.\n\n3. Validite etendue : Les KT sont utilisables pour l'ensemble des evenements et services de l'ecosysteme Culture Connect (CC2026, CC2027 et editions suivantes). Cette validite etendue est un engagement commercial de Factory Maker Studio EURL.\n\n4. Utilisation : Les KT permettent d'acceder a des contenus, soutenir des artistes, acheter des produits culturels et participer aux evenements de l'ecosysteme.\n\n5. Transferabilite : Les KT peuvent etre transferes entre utilisateurs au sein de la plateforme.\n\n6. Rachat commercant : Les commercants partenaires peuvent echanger les KT recus contre des euros au taux de rachat en vigueur (actuellement 1.35 EUR/KT).`
+    },
+    frekid: {
+      title: 'Politique FREK-ID',
+      content: `Le FREK-ID est un identifiant culturel unique attribue a chaque utilisateur de la plateforme KiltiKonet.\n\n1. Finalite : Le FREK-ID permet l'identification securisee au sein de l'ecosysteme, le suivi du wallet Kilti-Tokens, et l'acces aux evenements CC2026.\n\n2. Donnees collectees : Email, nom, preferences culturelles, historique de transactions KT. Aucune donnee biometrique n'est collectee.\n\n3. Protection : Les donnees sont chiffrees et stockees conformement au RGPD (Reglement UE 2016/679). L'hebergement est realise au sein de l'Espace Economique Europeen.\n\n4. Droits : Conformement au RGPD, vous disposez d'un droit d'acces, de rectification, d'effacement, de portabilite et d'opposition. Exercez vos droits via la section "Parametres > Gerer mes donnees" ou par email a dpo@kiltikonet.fr.\n\n5. Conservation : Les donnees sont conservees pendant la duree d'utilisation du service et 3 ans apres la derniere activite.\n\n6. Sous-traitants : Stripe (paiements), hebergeur cloud (infrastructure). Tous conformes RGPD.`
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: C.bg }}>
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: `${C.gold}20` }}>
-            <Users size={32} style={{ color: C.gold }} />
-          </div>
-          <h1 className="text-2xl font-black mb-2" style={{ color: C.text, fontFamily: "'Syne', sans-serif" }}>Espace Pro CC2026</h1>
-          <p className="text-base" style={{ color: C.muted }}>Votre réseau professionnel culturel afro-caribéen</p>
-        </div>
-        <div className="p-6 rounded-xl" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          {!codeSent ? (
-            <form onSubmit={handleRequestCode} className="space-y-4">
-              <div>
-                <label htmlFor="pro-email" className="block text-sm mb-2 font-medium" style={{ color: C.muted }}>Email professionnel</label>
-                <input id="pro-email" type="email" placeholder="votre@email.com" value={email} onChange={e => setEmail(e.target.value)}
-                  className="w-full px-4 rounded-lg text-base" data-testid="pro-email-input"
-                  style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48 }} />
-              </div>
-              <Button type="submit" disabled={loading || !email} className="w-full rounded-full text-base font-bold"
-                style={{ background: C.gold, color: '#000', minHeight: 48 }} data-testid="pro-request-code-btn">
-                {loading ? 'Envoi...' : "Recevoir mon code d'accès"}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-4">
-              <p className="text-sm text-center" style={{ color: C.muted }}>Un code à 6 chiffres a été envoyé à <strong style={{ color: C.gold }}>{email}</strong></p>
-              <div>
-                <label htmlFor="pro-code" className="block text-sm mb-2 font-medium" style={{ color: C.muted }}>Code d'accès</label>
-                <input id="pro-code" type="text" placeholder="000000" value={accessCode} onChange={e => setAccessCode(e.target.value)}
-                  className="w-full px-4 rounded-lg text-center text-xl tracking-widest" data-testid="pro-code-input" maxLength={6}
-                  style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48, letterSpacing: '0.3em' }} />
-              </div>
-              <Button type="submit" disabled={verifying || accessCode.length < 6} className="w-full rounded-full text-base font-bold"
-                style={{ background: C.gold, color: '#000', minHeight: 48 }} data-testid="pro-verify-code-btn">
-                {verifying ? 'Vérification...' : 'Vérifier et accéder'}
-              </Button>
-              <button type="button" onClick={() => setCodeSent(false)} className="w-full text-center text-sm py-2" style={{ color: C.dim }}>
-                Changer d'adresse email
+    <div className="min-h-screen flex flex-col" style={{ background: C.bg, fontFamily: "'DM Sans', sans-serif" }}>
+      {/* Legal Modal */}
+      {legalModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setLegalModal(null)}>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl p-6"
+            style={{ background: C.card, border: `1px solid ${C.border}` }} onClick={e => e.stopPropagation()}
+            data-testid="legal-modal">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-black" style={{ color: C.text }}>{LEGAL_CONTENT[legalModal]?.title}</h2>
+              <button onClick={() => setLegalModal(null)} className="p-2 rounded-lg hover:bg-white/5" data-testid="close-legal-modal">
+                <X size={18} style={{ color: C.muted }} />
               </button>
-            </form>
-          )}
+            </div>
+            <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: C.muted }}>
+              {LEGAL_CONTENT[legalModal]?.content}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Logo & Branding */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center relative"
+              style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.15), rgba(232,213,160,0.05))', border: `1px solid rgba(232,213,160,0.2)` }}>
+              <Users size={28} style={{ color: C.gold }} />
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ background: C.gold }}>
+                <Zap size={10} style={{ color: '#0a0a0b' }} />
+              </div>
+            </div>
+            <h1 className="text-2xl font-black tracking-tight" style={{ color: C.text }}>
+              <span style={{ background: `linear-gradient(135deg, #FFFFFF, ${C.gold})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Espace Pro CC2026
+              </span>
+            </h1>
+            <p className="text-sm mt-2" style={{ color: C.muted }}>
+              Votre reseau professionnel culturel afro-caribeen
+            </p>
+          </div>
+
+          {/* Login Card */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+            <div className="p-6">
+              {!codeSent ? (
+                <form onSubmit={handleRequestCode} className="space-y-4">
+                  <div>
+                    <label htmlFor="pro-email" className="block text-xs mb-2 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>
+                      Email professionnel
+                    </label>
+                    <input id="pro-email" type="email" placeholder="votre@email.com" value={email} onChange={e => setEmail(e.target.value)}
+                      className="w-full px-4 rounded-xl text-sm transition-all focus:ring-1"
+                      data-testid="pro-email-input" autoComplete="email"
+                      style={{ background: '#0a0a0b', border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48, fontFamily: "'DM Sans', sans-serif" }} />
+                    <p className="text-[10px] mt-1.5" style={{ color: C.dim }}>
+                      Nouveau ? Un compte sera cree automatiquement avec un FREK-ID unique.
+                    </p>
+                  </div>
+                  <Button type="submit" disabled={loading || !email} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading || !email ? 0.5 : 1 }} data-testid="pro-request-code-btn">
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#0a0a0b' }} />
+                        Envoi...
+                      </span>
+                    ) : "Recevoir mon code d'acces"}
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyCode} className="space-y-4">
+                  <div className="text-center py-2">
+                    <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+                      style={{ background: 'rgba(232,213,160,0.1)', border: `1px solid rgba(232,213,160,0.2)` }}>
+                      <Mail size={20} style={{ color: C.gold }} />
+                    </div>
+                    <p className="text-sm" style={{ color: C.muted }}>
+                      Code envoye a <strong style={{ color: C.gold }}>{email}</strong>
+                    </p>
+                  </div>
+                  <div>
+                    <label htmlFor="pro-code" className="block text-xs mb-2 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>
+                      Code d'acces
+                    </label>
+                    <input id="pro-code" type="text" placeholder="000000" value={accessCode} onChange={e => setAccessCode(e.target.value)}
+                      className="w-full px-4 rounded-xl text-center text-xl tracking-widest" data-testid="pro-code-input" maxLength={6}
+                      inputMode="numeric" autoComplete="one-time-code"
+                      style={{ background: '#0a0a0b', border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 52, letterSpacing: '0.3em', fontFamily: "'DM Sans', sans-serif" }} />
+                  </div>
+                  <Button type="submit" disabled={verifying || accessCode.length < 6} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: verifying || accessCode.length < 6 ? 0.5 : 1 }} data-testid="pro-verify-code-btn">
+                    {verifying ? 'Verification...' : 'Verifier et acceder'}
+                  </Button>
+                  <button type="button" onClick={() => { setCodeSent(false); setAccessCode(''); }}
+                    className="w-full text-center text-xs py-2 transition-colors hover:text-white" style={{ color: C.dim }} data-testid="change-email-btn">
+                    Changer d'adresse email
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Trust Signals */}
+            <div className="px-6 pb-5">
+              <div className="flex items-center justify-center gap-4 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
+                <div className="flex items-center gap-1.5">
+                  <Shield size={12} style={{ color: C.gold }} />
+                  <span className="text-[10px] font-medium" style={{ color: C.dim }}>Chiffre E2E</span>
+                </div>
+                <div className="w-px h-3" style={{ background: C.border }} />
+                <div className="flex items-center gap-1.5">
+                  <Globe size={12} style={{ color: C.gold }} />
+                  <span className="text-[10px] font-medium" style={{ color: C.dim }}>RGPD</span>
+                </div>
+                <div className="w-px h-3" style={{ background: C.border }} />
+                <div className="flex items-center gap-1.5">
+                  <Zap size={12} style={{ color: C.gold }} />
+                  <span className="text-[10px] font-medium" style={{ color: C.dim }}>KT Ecosystem</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Footer Legal & Confiance */}
+      <footer className="py-6 px-4" data-testid="legal-footer">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-center gap-3 flex-wrap mb-3">
+            <button onClick={() => setLegalModal('mentions')} className="text-[10px] font-medium transition-colors hover:text-white"
+              style={{ color: C.dim }} data-testid="link-mentions-legales">
+              Mentions Legales
+            </button>
+            <span className="text-[10px]" style={{ color: C.border }}>·</span>
+            <button onClick={() => setLegalModal('kt')} className="text-[10px] font-medium transition-colors hover:text-white"
+              style={{ color: C.dim }} data-testid="link-conditions-kt">
+              Conditions KT
+            </button>
+            <span className="text-[10px]" style={{ color: C.border }}>·</span>
+            <button onClick={() => setLegalModal('frekid')} className="text-[10px] font-medium transition-colors hover:text-white"
+              style={{ color: C.dim }} data-testid="link-politique-frekid">
+              Politique FREK-ID
+            </button>
+            <span className="text-[10px]" style={{ color: C.border }}>·</span>
+            <button onClick={() => navigate('/confidentialite')} className="text-[10px] font-medium transition-colors hover:text-white"
+              style={{ color: C.dim }} data-testid="link-confidentialite">
+              Confidentialite
+            </button>
+          </div>
+          <div className="text-center">
+            <p className="text-[9px]" style={{ color: '#333' }}>
+              Factory Maker Studio EURL — Martinique / Bruxelles — kiltikonet.fr
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
