@@ -100,6 +100,8 @@ async def create_post(data: PostCreate):
     if not data.author_id.startswith("ghost_"):
         import asyncio
         asyncio.create_task(_trigger_ghost_comment(post["id"]))
+        # Reward: first post +5 Jetons
+        asyncio.create_task(_trigger_reward(data.author_id, "first_post"))
 
     return {"success": True, "post": post}
 
@@ -111,7 +113,6 @@ async def _trigger_ghost_comment(post_id: str):
         delay = random.randint(60, 600)  # 1-10 min
         await asyncio.sleep(delay)
         import httpx
-        # Internal call to ghost engine
         async with httpx.AsyncClient() as client:
             await client.post(
                 f"http://localhost:8001/api/ghost/engine/auto-comment",
@@ -122,10 +123,24 @@ async def _trigger_ghost_comment(post_id: str):
         logger.warning(f"Ghost auto-comment trigger failed: {e}")
 
 
+async def _trigger_reward(user_id: str, event: str):
+    """Trigger a Jetons CC reward via the ghost engine."""
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"http://localhost:8001/api/ghost/rewards/trigger",
+                json={"user_id": user_id, "event": event},
+                timeout=10
+            )
+    except Exception as e:
+        logger.warning(f"Reward trigger failed: {e}")
+
+
 @router.post("/posts/{post_id}/like")
 async def toggle_like(post_id: str, profile_id: str):
     """Toggle like sur un post"""
-    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0, "likes": 1})
+    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0, "likes": 1, "author_id": 1})
     if not post:
         raise HTTPException(status_code=404, detail="Post non trouvé")
 
@@ -143,6 +158,10 @@ async def toggle_like(post_id: str, profile_id: str):
             {"id": post_id},
             {"$addToSet": {"likes": profile_id}, "$inc": {"likes_count": 1}}
         )
+        # Reward author: +1 Jeton per like received
+        if not post.get("author_id", "").startswith("ghost_"):
+            import asyncio
+            asyncio.create_task(_trigger_reward(post.get("author_id", ""), "like_received"))
         return {"success": True, "liked": True}
 
 
@@ -162,6 +181,11 @@ async def add_comment(post_id: str, data: CommentCreate):
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Post non trouvé")
+    # Reward post author: +2 Jetons per comment received
+    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0, "author_id": 1})
+    if post and not post.get("author_id", "").startswith("ghost_") and data.author_id != post.get("author_id"):
+        import asyncio
+        asyncio.create_task(_trigger_reward(post["author_id"], "comment_received"))
     return {"success": True, "comment": comment}
 
 

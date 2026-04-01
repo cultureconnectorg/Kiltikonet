@@ -785,3 +785,462 @@ async def get_user_jetons(user_id: str):
     if not user:
         return {"jetons_solde": 0, "frek_id": None}
     return {"jetons_solde": user.get("jetons_solde", 0) or 0, "frek_id": user.get("frek_id")}
+
+
+# ═══════════════════════════════════════════════════════════════
+# REWARDS ENGINE — Jetons CC automatiques
+# ═══════════════════════════════════════════════════════════════
+REWARD_RULES = {
+    "first_post": 5,
+    "connection_accepted": 3,
+    "post_score_70": 10,
+    "profile_completed": 15,
+    "comment_received": 2,
+    "like_received": 1,
+}
+
+
+async def _award_jetons(user_id: str, amount: int, reason: str):
+    """Attribue des Jetons CC et logue la transaction."""
+    result = await _db.registrations.update_one(
+        {"id": user_id},
+        {"$inc": {"jetons_solde": amount}}
+    )
+    if result.modified_count == 0:
+        await _db.cc_badges.update_one(
+            {"badge_id": user_id},
+            {"$inc": {"jetons_solde": amount}}
+        )
+    await _db.jetons_transactions.insert_one({
+        "user_id": user_id,
+        "amount": amount,
+        "reason": reason,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    logger.info(f"Awarded {amount} Jetons to {user_id}: {reason}")
+
+
+@router.post("/rewards/trigger")
+async def trigger_reward(data: dict):
+    """Déclenche une récompense Jetons CC."""
+    user_id = data.get("user_id")
+    event = data.get("event")
+    if not user_id or not event:
+        raise HTTPException(status_code=400, detail="user_id et event requis")
+
+    amount = REWARD_RULES.get(event, 0)
+    if amount <= 0:
+        return {"success": False, "reason": "Événement non récompensé"}
+
+    # Prevent duplicate rewards for one-time events
+    if event in ("first_post", "profile_completed"):
+        existing = await _db.jetons_transactions.find_one(
+            {"user_id": user_id, "reason": {"$regex": event}}
+        )
+        if existing:
+            return {"success": False, "reason": "Récompense déjà attribuée"}
+
+    reason_labels = {
+        "first_post": "Premier post publié",
+        "connection_accepted": "Connexion acceptée",
+        "post_score_70": "Post avec score > 70",
+        "profile_completed": "Profil complété",
+        "comment_received": "Commentaire reçu",
+        "like_received": "Like reçu",
+    }
+
+    await _award_jetons(user_id, amount, reason_labels.get(event, event))
+    return {"success": True, "amount": amount, "event": event, "reason": reason_labels.get(event, event)}
+
+
+@router.get("/rewards/history/{user_id}")
+async def get_rewards_history(user_id: str):
+    """Historique des transactions Jetons CC."""
+    transactions = await _db.jetons_transactions.find(
+        {"user_id": user_id}, {"_id": 0}
+    ).sort("created_at", -1).limit(50).to_list(50)
+    return {"transactions": transactions}
+
+
+# ═══════════════════════════════════════════════════════════════
+# PRO EMAILS — Templates et envoi
+# ═══════════════════════════════════════════════════════════════
+async def _send_pro_email(to_email: str, subject: str, html: str):
+    """Envoie un email via Resend (l'infrastructure existante)."""
+    try:
+        import resend
+        resend.api_key = os.environ.get("RESEND_API_KEY")
+        sender = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+        await asyncio.to_thread(resend.Emails.send, {
+            "from": sender,
+            "to": [to_email],
+            "subject": subject,
+            "html": html,
+        })
+        logger.info(f"Pro email sent to {to_email}: {subject}")
+    except Exception as e:
+        logger.error(f"Pro email failed to {to_email}: {e}")
+
+
+def _email_wrapper(content: str) -> str:
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#0F0F0F;font-family:'Syne',Helvetica,Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:32px 24px;">
+<div style="text-align:center;margin-bottom:24px;">
+<div style="display:inline-block;background:#D4A84B;padding:8px 16px;border-radius:8px;">
+<span style="color:#000;font-weight:900;font-size:18px;">CC2026</span>
+</div>
+</div>
+{content}
+<div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #333;">
+<p style="color:#777;font-size:12px;">Culture Connect 2026 · 20–23 Mai · Fort-de-France, Martinique</p>
+<p style="color:#777;font-size:12px;">kiltikonet.fr — Espace Pro</p>
+</div>
+</div></body></html>"""
+
+
+@router.post("/emails/welcome")
+async def send_welcome_email(data: dict):
+    """Email de bienvenue Espace Pro."""
+    email = data.get("email")
+    name = data.get("name", "")
+    if not email:
+        raise HTTPException(status_code=400, detail="email requis")
+
+    html = _email_wrapper(f"""
+<div style="background:#1A1A1A;border:1px solid #333;border-radius:12px;padding:32px;">
+<h1 style="color:#D4A84B;font-size:24px;margin:0 0 16px;">Bienvenue dans l'Espace Pro CC2026 !</h1>
+<p style="color:#E8E4DC;font-size:16px;line-height:1.6;">Bonjour {name},</p>
+<p style="color:#A8A8A8;font-size:16px;line-height:1.6;">
+Votre inscription à l'Espace Pro CC2026 est confirmée. Vous faites désormais partie du premier réseau professionnel culturel caribéen.
+</p>
+<p style="color:#A8A8A8;font-size:16px;line-height:1.6;">
+<strong style="color:#D4A84B;">10 Jetons CC</strong> vous ont été offerts pour démarrer.
+Chaque Jeton vaut <strong style="color:#D4A84B;">1.50€</strong> dans l'écosystème CC2026.
+</p>
+<div style="text-align:center;margin:24px 0;">
+<a href="https://kiltikonet.fr/espace-pro" style="display:inline-block;background:#D4A84B;color:#000;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;">Accéder à l'Espace Pro</a>
+</div>
+<p style="color:#777;font-size:14px;">Fòs épi kouraj — CVL BRAIN</p>
+</div>""")
+
+    await _send_pro_email(email, "Bienvenue dans l'Espace Pro CC2026", html)
+    return {"success": True}
+
+
+@router.post("/emails/connection-accepted")
+async def send_connection_email(data: dict):
+    """Email notification connexion acceptée."""
+    email = data.get("email")
+    name = data.get("name", "")
+    connector_name = data.get("connector_name", "")
+    if not email:
+        raise HTTPException(status_code=400, detail="email requis")
+
+    html = _email_wrapper(f"""
+<div style="background:#1A1A1A;border:1px solid #333;border-radius:12px;padding:32px;">
+<h2 style="color:#D4A84B;font-size:20px;margin:0 0 16px;">Nouvelle connexion acceptée !</h2>
+<p style="color:#E8E4DC;font-size:16px;line-height:1.6;">Bonjour {name},</p>
+<p style="color:#A8A8A8;font-size:16px;line-height:1.6;">
+<strong style="color:#C4714A;">{connector_name}</strong> a accepté votre demande de connexion.
+Vous pouvez maintenant voir ses coordonnées et lui envoyer des messages.
+<br/><strong style="color:#D4A84B;">+3 Jetons CC</strong> pour cette connexion.
+</p>
+<div style="text-align:center;margin:24px 0;">
+<a href="https://kiltikonet.fr/espace-pro" style="display:inline-block;background:#D4A84B;color:#000;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;">Voir le profil</a>
+</div>
+</div>""")
+
+    await _send_pro_email(email, f"{connector_name} vous a accepté — Espace Pro CC2026", html)
+    return {"success": True}
+
+
+@router.post("/emails/new-message")
+async def send_new_message_email(data: dict):
+    """Email notification nouveau message."""
+    email = data.get("email")
+    name = data.get("name", "")
+    sender_name = data.get("sender_name", "")
+    if not email:
+        raise HTTPException(status_code=400, detail="email requis")
+
+    html = _email_wrapper(f"""
+<div style="background:#1A1A1A;border:1px solid #333;border-radius:12px;padding:32px;">
+<h2 style="color:#D4A84B;font-size:20px;margin:0 0 16px;">Nouveau message</h2>
+<p style="color:#E8E4DC;font-size:16px;line-height:1.6;">Bonjour {name},</p>
+<p style="color:#A8A8A8;font-size:16px;line-height:1.6;">
+<strong style="color:#C4714A;">{sender_name}</strong> vous a envoyé un message sur l'Espace Pro.
+</p>
+<div style="text-align:center;margin:24px 0;">
+<a href="https://kiltikonet.fr/espace-pro" style="display:inline-block;background:#D4A84B;color:#000;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;">Lire le message</a>
+</div>
+</div>""")
+
+    await _send_pro_email(email, f"Message de {sender_name} — Espace Pro CC2026", html)
+    return {"success": True}
+
+
+# ═══════════════════════════════════════════════════════════════
+# CULTURAL IDENTITY ENGINE — 7 dimensions, score en temps réel
+# ═══════════════════════════════════════════════════════════════
+IDENTITY_DIMENSIONS = ["musique", "danse", "litterature", "gastronomie", "entrepreneuriat", "patrimoine", "diaspora"]
+
+INFLUENCE_LEVELS = [
+    (0, 20, "ÉMERGENT", "Tu commences ton voyage"),
+    (21, 40, "ANCRÉ", "Tu connais tes racines"),
+    (41, 60, "RAYONNANT", "Tu transmets ta culture"),
+    (61, 80, "INFLUENT", "Tu façonnes la diaspora"),
+    (81, 100, "SOUVERAIN", "Tu es la culture"),
+]
+
+REACTION_TYPES = {
+    "fire": {"label": "Ça brûle", "emoji": "🔥", "points": 2},
+    "tambou": {"label": "Tambou", "emoji": "🥁", "points": 2},
+    "bel": {"label": "Bèl", "emoji": "🌺", "points": 2},
+    "resistance": {"label": "Résistance", "emoji": "✊", "points": 3},
+    "rayonnement": {"label": "Rayonnement", "emoji": "💫", "points": 3},
+}
+
+# Map tags to identity dimensions
+TAG_TO_DIMENSION = {
+    "bèlè": "danse", "danse": "danse", "chorégraphie": "danse", "bèlè contemporain": "danse",
+    "zouk": "musique", "gwoka": "musique", "musique": "musique", "kora": "musique",
+    "rap caribéen": "musique", "électronique": "musique", "jazz": "musique", "fusion": "musique",
+    "littérature": "litterature", "poésie": "litterature", "créole": "litterature", "écriture": "litterature",
+    "cuisine créole": "gastronomie", "gastronomie": "gastronomie", "food": "gastronomie",
+    "entrepreneuriat": "entrepreneuriat", "tech": "entrepreneuriat", "incubation": "entrepreneuriat",
+    "patrimoine": "patrimoine", "tradition": "patrimoine", "mémoire": "patrimoine", "sculpture": "patrimoine",
+    "diaspora": "diaspora", "Afrique-Caraïbes": "diaspora", "mode": "diaspora", "wax": "diaspora",
+    "agriculture": "gastronomie", "documentaire": "patrimoine", "cinéma": "patrimoine",
+    "art": "patrimoine", "peinture": "patrimoine", "théâtre": "litterature",
+}
+
+
+def _get_level(score: int) -> dict:
+    for low, high, name, desc in INFLUENCE_LEVELS:
+        if low <= score <= high:
+            return {"name": name, "description": desc, "min": low, "max": high}
+    return {"name": "SOUVERAIN", "description": "Tu es la culture", "min": 81, "max": 100}
+
+
+@router.get("/identity/{user_id}")
+async def get_cultural_identity(user_id: str):
+    """Retourne l'identité culturelle complète d'un utilisateur."""
+    identity = await _db.cultural_identity.find_one({"user_id": user_id}, {"_id": 0})
+    if not identity:
+        identity = {
+            "user_id": user_id,
+            "dimensions": {d: 0 for d in IDENTITY_DIMENSIONS},
+            "score": 0,
+            "score_today": 0,
+            "last_score_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await _db.cultural_identity.insert_one({**identity})
+
+    score = identity.get("score", 0)
+    level = _get_level(score)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    score_today = identity.get("score_today", 0) if identity.get("last_score_date") == today else 0
+
+    return {
+        "user_id": user_id,
+        "dimensions": identity.get("dimensions", {d: 0 for d in IDENTITY_DIMENSIONS}),
+        "score": score,
+        "score_today": score_today,
+        "level": level,
+        "reactions_config": REACTION_TYPES,
+    }
+
+
+@router.post("/identity/react")
+async def cultural_reaction(data: dict):
+    """Enregistre une réaction culturelle et met à jour les scores."""
+    user_id = data.get("user_id")
+    post_id = data.get("post_id")
+    reaction = data.get("reaction")
+    if not all([user_id, post_id, reaction]) or reaction not in REACTION_TYPES:
+        raise HTTPException(status_code=400, detail="user_id, post_id et reaction valide requis")
+
+    r_config = REACTION_TYPES[reaction]
+
+    # Add reaction to post
+    await _db.pro_posts.update_one(
+        {"id": post_id},
+        {"$addToSet": {f"reactions.{reaction}": user_id}}
+    )
+
+    # Get post to find tags and author
+    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0, "tags": 1, "author_id": 1})
+    if not post:
+        return {"success": False}
+
+    # Determine which identity dimension this reaction enriches
+    dims_to_boost = set()
+    for tag in (post.get("tags") or []):
+        t_lower = tag.lower()
+        if t_lower in TAG_TO_DIMENSION:
+            dims_to_boost.add(TAG_TO_DIMENSION[t_lower])
+    if not dims_to_boost:
+        dims_to_boost.add("patrimoine")
+
+    # Update reactor's identity
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    update_ops = {"$inc": {"score": r_config["points"], "score_today": r_config["points"]}}
+    for dim in dims_to_boost:
+        update_ops["$inc"][f"dimensions.{dim}"] = r_config["points"]
+    update_ops["$set"] = {"last_score_date": today}
+
+    await _db.cultural_identity.update_one(
+        {"user_id": user_id},
+        update_ops,
+        upsert=True
+    )
+
+    # Also give points to post author
+    if post.get("author_id") and post["author_id"] != user_id:
+        await _db.cultural_identity.update_one(
+            {"user_id": post["author_id"]},
+            {"$inc": {"score": 1, "score_today": 1}, "$set": {"last_score_date": today}},
+            upsert=True
+        )
+
+    # Get updated identity
+    updated = await _db.cultural_identity.find_one({"user_id": user_id}, {"_id": 0})
+    new_score = updated.get("score", 0) if updated else r_config["points"]
+
+    return {
+        "success": True,
+        "reaction": reaction,
+        "points_earned": r_config["points"],
+        "new_score": new_score,
+        "dimensions_boosted": list(dims_to_boost),
+        "level": _get_level(new_score),
+    }
+
+
+@router.get("/discovery/feed")
+async def discovery_feed(user_id: str = None, limit: int = 20):
+    """Feed de découverte intelligent : mélange posts, artistes, événements, patrimoine."""
+    cards = []
+
+    # 1) Regular posts from ghost + real
+    posts = await _db.pro_posts.find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    for p in posts:
+        # Determine card subtype from tags
+        tags = [t.lower() for t in (p.get("tags") or [])]
+        card_type = "post"
+        if any(t in tags for t in ["zouk", "gwoka", "bèlè", "musique", "kora", "électronique", "rap caribéen", "jazz"]):
+            card_type = "musique"
+        elif any(t in tags for t in ["patrimoine", "tradition", "mémoire", "sculpture", "art"]):
+            card_type = "patrimoine"
+
+        # Calculate impact hint
+        dims_hit = set()
+        for tag in tags:
+            if tag in TAG_TO_DIMENSION:
+                dims_hit.add(TAG_TO_DIMENSION[tag])
+        impact_dim = list(dims_hit)[0] if dims_hit else "patrimoine"
+        impact_pts = random.randint(2, 6)
+
+        cards.append({
+            **p,
+            "card_type": card_type,
+            "impact_hint": {
+                "dimension": impact_dim,
+                "points": impact_pts,
+                "text": f"Ce contenu enrichit ton empreinte {impact_dim.capitalize()} de +{impact_pts} points"
+            },
+        })
+
+    # 2) Artist cards from active ghost profiles
+    ghosts = await _db.ghost_profiles.find(
+        {"active": True, "retiring": False}, {"_id": 0}
+    ).to_list(20)
+    for g in ghosts[:6]:
+        comp_dim = (g.get("expertise_tags") or ["patrimoine"])[0].lower()
+        comp_dim = TAG_TO_DIMENSION.get(comp_dim, "patrimoine")
+        cards.append({
+            "id": f"artist_{g['id']}",
+            "card_type": "artiste",
+            "full_name": g["full_name"],
+            "organization_name": g.get("organization_name", ""),
+            "country": g.get("country", ""),
+            "profile_type": g.get("profile_type", "artist"),
+            "bio": g.get("bio", ""),
+            "expertise_tags": g.get("expertise_tags", []),
+            "cultural_impact_score": g.get("cultural_impact_score", 50),
+            "image": g.get("image", ""),
+            "frek_id": g.get("frek_id", ""),
+            "seeking": g.get("seeking", ""),
+            "offering": g.get("offering", ""),
+            "impact_hint": {
+                "dimension": comp_dim,
+                "points": random.randint(4, 8),
+                "text": f"Cet artiste complète ton empreinte {comp_dim.capitalize()} de +{random.randint(4, 8)} points"
+            },
+            "created_at": g.get("created_at", datetime.now(timezone.utc).isoformat()),
+        })
+
+    # 3) CC2026 Event card
+    cards.append({
+        "id": "cc2026_event",
+        "card_type": "evenement",
+        "title": "CC2026 — Chimin Savann",
+        "description": "20–23 Mai 2026, La Savane, Fort-de-France, Martinique. Le premier sommet culturel caribéen souverain.",
+        "date": "2026-05-20T09:00:00",
+        "location": "La Savane, Fort-de-France",
+        "impact_hint": {
+            "dimension": "diaspora",
+            "points": 20,
+            "text": "Cet événement peut booster ton score de +20"
+        },
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    # 4) Patrimoine cards (heritage)
+    heritage_cards = [
+        {
+            "id": "heritage_belè",
+            "card_type": "patrimoine",
+            "title": "Le Bèlè — Danse de résistance",
+            "description": "Le bèlè est une danse traditionnelle martiniquaise née dans les plantations. Chaque pas est un acte de liberté, chaque rythme un lien avec l'Afrique.",
+            "description_creole": "Bèlè sé an dansé ki sòti adan bitasyon-la. Chak pa sé an lakté libèté.",
+            "territory": "Martinique",
+            "tags": ["bèlè", "danse", "patrimoine", "tradition"],
+            "impact_hint": {"dimension": "danse", "points": 4, "text": "Cette pratique est une racine de la danse caribéenne"},
+            "created_at": (datetime.now(timezone.utc) - timedelta(days=3)).isoformat(),
+        },
+        {
+            "id": "heritage_gwoka",
+            "card_type": "patrimoine",
+            "title": "Le Gwoka — Patrimoine mondial UNESCO",
+            "description": "Inscrit au patrimoine immatériel de l'UNESCO en 2014, le gwoka guadeloupéen est musique, danse et résistance. Le ka parle quand les mots ne suffisent plus.",
+            "description_creole": "Gwoka sé mizik, sé dansé, sé rézistans. Lè tanbou ka palé, tout bagay ka channjé.",
+            "territory": "Guadeloupe",
+            "tags": ["gwoka", "patrimoine", "UNESCO", "musique"],
+            "impact_hint": {"dimension": "musique", "points": 5, "text": "Le gwoka enrichit ton empreinte Musique de +5 points"},
+            "created_at": (datetime.now(timezone.utc) - timedelta(days=5)).isoformat(),
+        },
+        {
+            "id": "heritage_madras",
+            "card_type": "patrimoine",
+            "title": "Le Madras — Tissu de mémoire",
+            "description": "Originaire d'Inde, adopté et transformé aux Antilles, le madras est devenu un symbole identitaire caribéen. Chaque couleur, chaque pli raconte une histoire de métissage et de réappropriation culturelle.",
+            "territory": "Antilles",
+            "tags": ["madras", "patrimoine", "mode", "identité"],
+            "impact_hint": {"dimension": "patrimoine", "points": 3, "text": "Le madras est un pilier de l'identité caribéenne"},
+            "created_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
+        },
+    ]
+    cards.extend(heritage_cards)
+
+    # Shuffle intelligently: mix card types but keep some order
+    random.shuffle(cards)
+
+    # Put event card near top
+    evt_idx = next((i for i, c in enumerate(cards) if c.get("card_type") == "evenement"), None)
+    if evt_idx and evt_idx > 3:
+        cards.insert(2, cards.pop(evt_idx))
+
+    return {"cards": cards[:limit], "total": len(cards)}

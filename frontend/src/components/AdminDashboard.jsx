@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { PartnerManagement } from './PartnerManagement';
 import AdminNotifications from './AdminNotifications';
 import CandidaturesAdmin from './CandidaturesAdmin';
+import GhostPopulationAdmin from './GhostPopulationAdmin';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -757,6 +758,18 @@ export const AdminDashboard = () => {
                 Candidatures
               </button>
               <button
+                onClick={() => setActiveTab('ghost')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'ghost'
+                    ? 'border-[#8B5CF6] text-[#8B5CF6]'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-ghost"
+              >
+                <Users className="w-4 h-4 inline mr-2" />
+                Ghost Pop.
+              </button>
+              <button
                 onClick={() => setShowExportModal(true)}
                 className="ml-auto px-4 py-3 text-sm font-syne text-charcoal/50 hover:text-terracotta transition-colors"
                 data-testid="filtered-export-btn"
@@ -790,6 +803,10 @@ export const AdminDashboard = () => {
           ) : activeTab === 'candidatures' ? (
             <div className="flex-1 overflow-auto">
               <CandidaturesAdmin />
+            </div>
+          ) : activeTab === 'ghost' ? (
+            <div className="flex-1 overflow-auto">
+              <GhostPopulationAdmin />
             </div>
           ) : (
             <div className="flex-1 overflow-auto">
