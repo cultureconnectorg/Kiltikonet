@@ -50,6 +50,22 @@
 - **Navigation** : Bouton renomme "Appel a projet" (pas "Appel 2026")
 - **Tests Iteration 45 — Backend 10/10 (100%), Frontend 100%**
 
+#### Phase 9 — Audit Accessibilite WCAG (DONE — 1 Avril 2026)
+- **Phase 1 — Audit** : 42 violations identifiees (14 critiques, 22 majeures, 6 mineures) sur 14 pages
+- **Phase 2 — Corrections CRITIQUES** :
+  - 6 images alt descriptifs (AdminDashboard, AdminMobileDashboard, ProSpaceDashboard, RegistrationForm, AccreditationSystem QR)
+  - 10 boutons icones aria-label (AccreditationSystem, ProSpaceDashboard, CMSAdmin)
+  - 9 champs de formulaire aria-label (recherche, commentaire, candidature)
+  - Globe 3D : role=img + aria-label descriptif complet
+  - Title dynamique par route (17 routes)
+- **Phase 2 — Corrections MAJEURES** :
+  - 17 modales : role=dialog + aria-modal=true + aria-label
+  - Header : aria-expanded sur menu mobile et dropdown compte, role=menu, role=menuitem
+  - MgraphView : role=dialog en plein ecran
+- **Phase 3** : Page /accessibilite creee (declaration RGAA 4.1 / WCAG 2.1 AA)
+- **Phase 4** : Correction responsive — breakpoint nav header de md (768px) a lg (1024px)
+- **Tests Iteration 46 — Backend 12/12 (100%), Frontend 100%**
+
 ### Architecture
 | Fichier | Role |
 |---------|------|
@@ -66,6 +82,8 @@
 | `frontend/src/components/MgraphView.jsx` | Visualisation 3D Mgraph |
 | `frontend/src/components/AdminNotifications.jsx` | Notifications push admin |
 
+| `frontend/src/components/AccessibilitePage.jsx` | Declaration RGAA accessibilite |
+
 ### Tests
 - Iteration 39 : 100% (Export PDF)
 - Iteration 40 : 100% (E2E Global)
@@ -74,6 +92,7 @@
 - Iteration 43 : 100% (Recommandations IA — 15/15 backend, frontend 100%)
 - Iteration 44 : 100% (Appel a Projet — 18/18 backend, frontend 100%)
 - Iteration 45 : 100% (Immersion Jetons + Appel — 10/10 backend, frontend 100%)
+- Iteration 46 : 100% (Audit Accessibilite WCAG — 12/12 backend, frontend 100%)
 
 ### Backlog
 - (P1) Verifier emails candidature (Resend vs Brevo SMTP)
