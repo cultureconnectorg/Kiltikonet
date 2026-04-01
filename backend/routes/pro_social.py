@@ -39,7 +39,7 @@ class CommentCreate(BaseModel):
 # ═══════════════════════════════════════════════════════════════
 @router.get("/feed")
 async def get_feed(profile_id: Optional[str] = None, limit: int = 30, skip: int = 0):
-    """Récupérer le fil d'actualité (tous les posts ou filtré par connexions)"""
+    """Récupérer le fil d'actualité (tous les posts, incluant les posts fantômes actifs)"""
     query = {}
     if profile_id:
         # Get connected profile IDs
@@ -52,7 +52,17 @@ async def get_feed(profile_id: Optional[str] = None, limit: int = 30, skip: int 
             connected_ids.add(c["from_profile"])
             connected_ids.add(c["to_profile"])
         connected_ids.add(profile_id)
-        query["author_id"] = {"$in": list(connected_ids)}
+
+        # Include active ghost profiles in feed
+        active_ghosts = await _db.ghost_profiles.find(
+            {"active": True}, {"_id": 0, "id": 1}
+        ).to_list(100)
+        ghost_ids = {g["id"] for g in active_ghosts}
+
+        query["$or"] = [
+            {"author_id": {"$in": list(connected_ids)}},
+            {"author_id": {"$in": list(ghost_ids)}},
+        ]
 
     posts = await _db.pro_posts.find(
         query, {"_id": 0}
@@ -85,7 +95,31 @@ async def create_post(data: PostCreate):
     }
     await _db.pro_posts.insert_one(post)
     del post["_id"]
+
+    # Trigger ghost auto-comment for real user posts (non-ghost)
+    if not data.author_id.startswith("ghost_"):
+        import asyncio
+        asyncio.create_task(_trigger_ghost_comment(post["id"]))
+
     return {"success": True, "post": post}
+
+
+async def _trigger_ghost_comment(post_id: str):
+    """Delayed ghost comment on a real user's post."""
+    import asyncio, random
+    try:
+        delay = random.randint(60, 600)  # 1-10 min
+        await asyncio.sleep(delay)
+        import httpx
+        # Internal call to ghost engine
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"http://localhost:8001/api/ghost/engine/auto-comment",
+                json={"post_id": post_id},
+                timeout=30
+            )
+    except Exception as e:
+        logger.warning(f"Ghost auto-comment trigger failed: {e}")
 
 
 @router.post("/posts/{post_id}/like")
@@ -151,7 +185,7 @@ async def get_directory(
     limit: int = 50,
     skip: int = 0
 ):
-    """Annuaire professionnel avec recherche avancée"""
+    """Annuaire professionnel avec recherche avancée (inclut les profils fantômes actifs)"""
     query = {"status": "approved"}
 
     if search:
@@ -171,16 +205,45 @@ async def get_directory(
          "country": 1, "image": 1, "bio": 1, "expertise_tags": 1}
     ).skip(skip).limit(limit).to_list(limit)
 
-    total = await _db.registrations.count_documents(query)
+    # Add active ghost profiles to directory
+    ghost_query = {"active": True, "retiring": False}
+    if search:
+        ghost_query["$or"] = [
+            {"full_name": {"$regex": search, "$options": "i"}},
+            {"organization_name": {"$regex": search, "$options": "i"}},
+            {"bio": {"$regex": search, "$options": "i"}},
+        ]
+    if profile_type:
+        ghost_query["profile_type"] = profile_type
+    if country:
+        ghost_query["country"] = {"$regex": country, "$options": "i"}
+
+    ghosts = await _db.ghost_profiles.find(
+        ghost_query,
+        {"_id": 0, "id": 1, "full_name": 1, "profile_type": 1, "organization_name": 1,
+         "country": 1, "image": 1, "bio": 1, "expertise_tags": 1}
+    ).to_list(50)
+
+    # Merge and shuffle slightly for natural feel
+    import random
+    all_pros = professionals + ghosts
+    if len(all_pros) > 2:
+        # Light shuffle to mix ghosts with real profiles
+        random.shuffle(all_pros)
+
+    total = await _db.registrations.count_documents(query) + len(ghosts)
 
     # Get unique countries and types for filters
     countries = await _db.registrations.distinct("country", {"status": "approved", "country": {"$ne": None}})
+    ghost_countries = await _db.ghost_profiles.distinct("country", {"active": True})
+    all_countries = list(set(countries + ghost_countries))
+
     types = await _db.registrations.distinct("profile_type", {"status": "approved"})
 
     return {
-        "professionals": professionals,
+        "professionals": all_pros,
         "total": total,
-        "filters": {"countries": [c for c in countries if c], "types": [t for t in types if t]}
+        "filters": {"countries": [c for c in all_countries if c], "types": [t for t in types if t]}
     }
 
 

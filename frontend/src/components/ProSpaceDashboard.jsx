@@ -11,12 +11,14 @@ import {
   Star, MapPin, Globe, Building2, Mic2, Mail, Phone, Link2,
   Edit2, Save, X, Check, Filter, Sparkles, ArrowRight,
   Clock, Eye, MessageCircle, Handshake, Newspaper, Tag,
-  ChevronDown, ChevronUp, Shield, Award, Image, Home, Bookmark
+  ChevronDown, ChevronUp, Shield, Award, Image, Home, Bookmark, Zap
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { toast } from 'sonner';
 import axios from 'axios';
+import ProOnboarding from './ProOnboarding';
+import CvlBrainFloat from './CvlBrainFloat';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -201,9 +203,40 @@ const ProSpaceDashboard = () => {
   const [events, setEvents] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showMessages, setShowMessages] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [jetonsBalance, setJetonsBalance] = useState(0);
 
   useEffect(() => { if (!loading && !isAuthenticated) navigate('/espace-pro/connexion'); }, [loading, isAuthenticated, navigate]);
   useEffect(() => { if (session?.id) loadProfileData(); }, [session?.id]);
+
+  // Check onboarding status
+  useEffect(() => {
+    if (session?.id) {
+      const done = localStorage.getItem(`cc2026_onboarding_${session.id}`);
+      if (!done) {
+        // Also check backend
+        axios.get(`${API}/pro/profile/${session.id}`).then(res => {
+          if (res.data && !res.data.onboarding_completed) {
+            setShowOnboarding(true);
+          }
+        }).catch(() => setShowOnboarding(true));
+      }
+    }
+  }, [session?.id]);
+
+  // Load Jetons balance
+  useEffect(() => {
+    if (session?.id) {
+      axios.get(`${API}/ghost/jetons/${session.id}`).then(res => {
+        setJetonsBalance(res.data.jetons_solde || 0);
+      }).catch(() => {});
+    }
+  }, [session?.id]);
+
+  // Seed ghost profiles on first load
+  useEffect(() => {
+    axios.post(`${API}/ghost/seed`).catch(() => {});
+  }, []);
 
   const loadProfileData = async () => {
     setLoadingData(true);
@@ -226,6 +259,15 @@ const ProSpaceDashboard = () => {
 
   const handleLogout = () => { logout(); toast.success('Déconnexion'); navigate('/espace-pro/connexion'); };
 
+  const handleOnboardingComplete = (result) => {
+    setShowOnboarding(false);
+    if (result) {
+      setJetonsBalance(prev => prev + (result.jetons_awarded || 10));
+      toast.success(`${result.jetons_awarded || 10} Jetons CC offerts !`, { description: `FREK-ID: ${result.frek_id}` });
+    }
+    loadProfileData();
+  };
+
   if (loading || !session) {
     return (<div className="min-h-screen flex items-center justify-center" style={{ background: C.bg }}><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: C.gold }} /></div>);
   }
@@ -241,6 +283,9 @@ const ProSpaceDashboard = () => {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'Syne', sans-serif" }} data-testid="pro-space-dashboard">
+      {/* ───── ONBOARDING MODAL ───── */}
+      {showOnboarding && <ProOnboarding session={session} onComplete={handleOnboardingComplete} />}
+
       {/* ───── TOP NAV BAR (LinkedIn style) ───── */}
       <header className="sticky top-0 z-50 border-b" style={{ background: C.surface, borderColor: C.border }}>
         <div className="max-w-[1128px] mx-auto px-4 h-14 flex items-center gap-4">
@@ -272,8 +317,14 @@ const ProSpaceDashboard = () => {
               {unreadCount > 0 && <span className="absolute top-0 right-2 w-4 h-4 rounded-full text-[10px] flex items-center justify-center" style={{ background: C.red, color: '#fff' }}>{unreadCount}</span>}
             </button>
           </nav>
+          {/* Jetons CC Badge (GOLD) */}
+          <div className="flex items-center gap-1 px-3 py-1.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity" style={{ background: `${C.gold}15`, border: `1px solid ${C.gold}40` }} title="1 Jeton CC = 1.50€" data-testid="jetons-badge">
+            <Zap size={14} style={{ color: C.gold }} />
+            <span className="text-sm font-bold" style={{ color: C.gold }}>{jetonsBalance}</span>
+            <span className="text-[9px] hidden sm:inline" style={{ color: C.gold }}>JCC</span>
+          </div>
           {/* Profile dropdown */}
-          <div className="flex items-center gap-3 ml-2 pl-4 border-l" style={{ borderColor: C.border }}>
+          <div className="flex items-center gap-3 ml-1 pl-3 border-l" style={{ borderColor: C.border }}>
             <button onClick={() => setActiveSection('profile')} className="flex items-center gap-2" data-testid="nav-profile">
               <img src={session.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(session.name)}&background=D4A84B&color=1C1A14`} alt={`Photo de ${session.name}`} className="w-7 h-7 rounded-full object-cover" />
               <ChevronDown size={12} style={{ color: C.dim }} />
@@ -287,7 +338,7 @@ const ProSpaceDashboard = () => {
 
       {/* ───── MAIN CONTENT ───── */}
       <div className="max-w-[1128px] mx-auto px-4 py-6">
-        {activeSection === 'feed' && <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadProfileData} />}
+        {activeSection === 'feed' && <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadProfileData} jetonsBalance={jetonsBalance} />}
         {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadProfileData} />}
         {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadProfileData} />}
         {activeSection === 'opportunities' && <OpportunitiesPage opportunities={opportunities} session={session} />}
@@ -296,6 +347,9 @@ const ProSpaceDashboard = () => {
 
       {/* ───── MESSAGES PANEL (Bottom-right like LinkedIn) ───── */}
       {showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadProfileData} onClose={() => setShowMessages(false)} />}
+
+      {/* ───── CVL BRAIN FLOATING BUTTON ───── */}
+      <CvlBrainFloat session={session} />
     </div>
   );
 };
@@ -310,7 +364,7 @@ const Avatar = ({ src, name, size = 48, className = '' }) => (
 // ═══════════════════════════════════════════════════════════════
 // FEED LAYOUT — 3 colonnes LinkedIn
 // ═══════════════════════════════════════════════════════════════
-const FeedLayout = ({ session, profile, connections, onRefresh }) => (
+const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance }) => (
   <div className="flex gap-6">
     {/* Left sidebar — Mini profile card */}
     <aside className="hidden lg:block w-56 flex-shrink-0 space-y-4">
@@ -324,6 +378,7 @@ const FeedLayout = ({ session, profile, connections, onRefresh }) => (
         <div className="border-t px-4 py-3 space-y-2" style={{ borderColor: C.border }}>
           <div className="flex justify-between text-xs"><span style={{ color: C.muted }}>Connexions</span><span style={{ color: C.gold }}>{connections.length}</span></div>
           <div className="flex justify-between text-xs"><span style={{ color: C.muted }}>Vues profil</span><span style={{ color: C.gold }}>{profile?.views || 0}</span></div>
+          <div className="flex justify-between text-xs"><span style={{ color: C.muted }}>Jetons CC</span><span className="font-bold" style={{ color: C.gold }}>{jetonsBalance || 0}</span></div>
         </div>
       </div>
     </aside>

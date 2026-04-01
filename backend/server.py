@@ -3589,6 +3589,7 @@ from routes.recommendations import router as reco_router, init_db as reco_init_d
 reco_init_db(db)
 from routes.candidatures import router as candidatures_router, init_db as candidatures_init_db
 candidatures_init_db(db, send_email_async)
+from routes.ghost_profiles import router as ghost_router
 app.include_router(badges_router)
 app.include_router(jetons_router)
 app.include_router(ses_router)
@@ -3601,6 +3602,7 @@ app.include_router(ai_agents_router)
 app.include_router(brain_router)
 app.include_router(reco_router)
 app.include_router(candidatures_router)
+app.include_router(ghost_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek
