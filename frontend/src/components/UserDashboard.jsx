@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import UserRecommendations from './UserRecommendations';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const C = {
@@ -193,6 +194,9 @@ export default function UserDashboard() {
             <Coins className="w-10 h-10" style={{ color: C.gold, opacity: 0.3 }} />
           </div>
         </div>
+
+        {/* Recommandations CC2026 */}
+        <UserRecommendations badgeId={profile.badge_id} colors={C} />
 
         {/* Recharger */}
         <div className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.warm}` }}>

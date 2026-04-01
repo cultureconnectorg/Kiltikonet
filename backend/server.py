@@ -3565,6 +3565,8 @@ from routes.smart_engine import router as smart_engine_router
 from routes.pro_social import router as pro_social_router
 from routes.ai_agents import router as ai_agents_router
 from routes.brain import router as brain_router
+from routes.recommendations import router as reco_router, init_db as reco_init_db
+reco_init_db(db)
 app.include_router(badges_router)
 app.include_router(jetons_router)
 app.include_router(ses_router)
@@ -3575,6 +3577,7 @@ app.include_router(smart_engine_router)
 app.include_router(pro_social_router)
 app.include_router(ai_agents_router)
 app.include_router(brain_router)
+app.include_router(reco_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek

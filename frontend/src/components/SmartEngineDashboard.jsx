@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   Activity, Users, Globe, BarChart3, Shield, Network, Eye, TrendingUp,
-  RefreshCw, Loader2, ArrowLeft, Home, Zap, Signal, MapPin, Share2
+  RefreshCw, Loader2, ArrowLeft, Home, Zap, Signal, MapPin, Share2, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
@@ -19,7 +19,8 @@ const STREAMS = [
   { id: 'cultural-diffusion', label: 'Diffusion', icon: Share2, color: '#9B59B6' },
   { id: 'conversion', label: 'Conversion', icon: BarChart3, color: '#2ECC71' },
   { id: 'verified-identity', label: 'Identités', icon: Shield, color: '#3498DB' },
-  { id: 'creative-network', label: 'Réseau', icon: Users, color: '#E67E22' },
+  { id: 'creative-network', label: 'Reseau', icon: Users, color: '#E67E22' },
+  { id: 'recommendations', label: 'Recommandations', icon: Sparkles, color: '#FFD700' },
 ];
 
 const MetricCard = ({ label, value, icon: Icon, color, sub }) => (
@@ -120,6 +121,13 @@ const MgraphViewLazy = React.lazy(() => import('./MgraphView'));
 const MgraphViewWrapper = () => (
   <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 size={32} className="animate-spin text-[#A65D47]" /></div>}>
     <MgraphViewLazy />
+  </React.Suspense>
+);
+
+const RecoLazy = React.lazy(() => import('./RecommendationsDashboard'));
+const RecoWrapper = () => (
+  <React.Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 size={32} className="animate-spin text-[#A65D47]" /></div>}>
+    <RecoLazy />
   </React.Suspense>
 );
 
@@ -295,6 +303,7 @@ const VIEWS = {
   'conversion': ConversionView,
   'verified-identity': VerifiedIdentityView,
   'creative-network': CreativeNetworkView,
+  'recommendations': RecoWrapper,
 };
 
 const SmartEngineDashboard = () => {
@@ -304,6 +313,13 @@ const SmartEngineDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchStream = useCallback(async (streamId) => {
+    // Views that manage their own data fetching
+    const selfManaged = ['mgraph', 'recommendations'];
+    if (selfManaged.includes(streamId)) {
+      setData({});
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const { data: result } = await axios.get(`${API}/${streamId}`);
