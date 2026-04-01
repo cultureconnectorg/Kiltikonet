@@ -44,6 +44,12 @@
 - **Correction affichage** : Page Jetons — padding-top pour le header fixe
 - **Tests Iteration 44 — Backend 18/18 (100%), Frontend 100%**
 
+#### Phase 8b — Immersion & Interactions Jetons + Appel a Projet (DONE — 1 Avril 2026)
+- **JetonsPage** : Hero sombre anime (staggered), compteur a rebours CC2026, cartes packs avec hover (scale, shadow, border), icones animees, badge BEST VALUE VIP, section Stripe info
+- **AppelPage** : Hero gradient avec particules flottantes, compteur deadline 30 avril, cartes laureats avec hover + rotation icone, cartes eligibilite avec border animate, criteres avec AnimatedNumber (%), timeline scroll-reveal, formulaire avec inputs focus glow
+- **Navigation** : Bouton renomme "Appel a projet" (pas "Appel 2026")
+- **Tests Iteration 45 — Backend 10/10 (100%), Frontend 100%**
+
 ### Architecture
 | Fichier | Role |
 |---------|------|
@@ -67,6 +73,7 @@
 - Iteration 42 : 100% (Mgraph 3D + Notifications)
 - Iteration 43 : 100% (Recommandations IA — 15/15 backend, frontend 100%)
 - Iteration 44 : 100% (Appel a Projet — 18/18 backend, frontend 100%)
+- Iteration 45 : 100% (Immersion Jetons + Appel — 10/10 backend, frontend 100%)
 
 ### Backlog
 - (P1) Verifier emails candidature (Resend vs Brevo SMTP)
