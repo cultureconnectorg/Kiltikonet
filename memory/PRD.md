@@ -1,107 +1,77 @@
 # CC2026 — KILTIKONET Platform — PRD
 
 ## Vision
-Plateforme sociale culturelle caribéenne premium. Réseau social professionnel autour de la culture antillaise (musique, art, patrimoine, gastronomie, littérature, formation).
+Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Amérique Latine et la Diaspora par la culture (musique, art, patrimoine, gastronomie, littérature, formation). Wallet Universel Kilti-Tokens, Stripe omnicanal, Growth Engine 4000 ghosts.
 
 ## Architecture
-- **Frontend**: React 19, Tailwind CSS, Framer Motion, PWA
+- **Frontend**: React 19, Tailwind CSS, PWA
 - **Backend**: FastAPI, MongoDB
-- **Intégrations**: Stripe (paiements), FREKcore (identité), iTunes API, Wikipedia API
+- **Fintech**: Stripe Checkout omnicanal, Wallet Universel (KT), FREK-ID terminal
+- **Intégrations**: Stripe, iTunes API, Wikipedia API
 
-## Design System Premium (ITER.51)
-- **Fond**: `#0a0a0b` (OLED Black)
-- **Or blanc accent**: `#E8D5A0`
-- **Police**: DM Sans (400-900)
-- **Texte secondaire**: `#72727a`
-- **Surface**: `#141414`, Bordures: `#1e1e1e`
+## Design System Premium
+- Fond: `#0a0a0b` (OLED Black)
+- Or blanc: `#E8D5A0`
+- Police: DM Sans
+- Texte secondaire: `#72727a`
 
-## Fonctionnalités Implémentées
+## Implémenté
 
-### Moteur d'Identité Culturelle
-- Score culturel (7 dimensions)
-- Radar constellation (D3.js/Canvas)
-- 5 réactions culturelles (feu/rythme/racines/résistance/lumière)
-- Feed culturel avec cartes (musique, artiste, lieu, événement, patrimoine)
+### Fintech Centralisée (DONE - 01/04/2026)
+**Wallet Universel** :
+- Création on-demand par user_id
+- Liaison FREK-ID (scan NFC CC2026)
+- Lookup par FREK-ID pour terminaux
+- Sync legacy (registrations.jetons_solde)
+- Historique transactions par canal
 
-### ITER.49 — CreateCulturalCard (DONE)
-- Modale de création en 5 étapes
-- Recherche externe (iTunes Search API, Wikipedia REST API)
-- Endpoints: POST /api/cultural-search, POST /api/cultural-cards
+**Stripe Omnicanal** :
+- Checkout sessions (web + app + terminal)
+- 5 packs KT : 10/50/100/250(Diaspora)/500(Mécène)
+- Status polling avec crédit automatique
+- Metadata canal + FREK-ID + ecosystem
 
-### ITER.51 — Refonte Design Premium (DONE - 01/04/2026)
-- Remplacement global #C8A84B → #E8D5A0
-- Fond OLED #0a0a0b, police DM Sans
-- Logo KILTIKONET dégradé blanc → or
-- Feed immersif scroll-snap TikTok (mobile)
-- Toggle Découvrir/Communauté
-- Actions verticales droite (réactions/comment/partage/JCC)
-- Barre de support artiste en bas de chaque carte
-- Bottom nav 5 onglets: Feed / Réseau / + / Shop / Moi
+**Shop CRUD** : 19 produits (8 catégories)
+**Terminal CC2026** : Débit par FREK-ID scan
+**Dashboard Admin** : Revenus, wallets, transactions, par canal
+**Ghost Bridge** : Feedback post-achat (notification institution ghost)
+**Célébration** : Animation dorée post-achat
 
-### ITER.52 — Routes & Interactions (DONE - 01/04/2026)
-- ShopPage.jsx — Marketplace 8 catégories
-- SoutenirSheet.jsx — Bottom sheet transfert JCC
-- Endpoint POST /api/ghost/jetons/transfer
+### Growth Engine v2 (DONE)
+- 4000 profils : 40% Afrique (Lagos, Dakar, Abidjan) / 40% Latino (Salvador, Carthagène, La Havane) / 20% Diaspora
+- 2028 posts sur 3 ans
+- 11 techniques de croissance implémentées
 
-### Growth Engine v2 — Moteur de Croissance (DONE - 01/04/2026)
-**4000 profils ghost progressifs** :
-- 70% profils caribéens réalistes, 30% institutions/artistes
-- 200 actifs immédiatement, 3800 en arrivée progressive (~13/jour)
-- 2028 posts seedés sur 3 ans d'historique
-- Interactions (likes, commentaires) entre ghosts
+### Design Premium ITER.51 (DONE)
+- Feed TikTok scroll-snap, Bottom nav 5 tabs, Logo KILTIKONET gradient
 
-**11 techniques de croissance implémentées** :
-1. Social Validation Fantôme — Auto-likes/comments sur posts réels
-2. Proof of Life — Badge "X en ligne" en temps réel
-3. Random Rewards — Bonus JCC aléatoires (slot machine)
-4. Onboarding Petites Victoires — 8 étapes gamifiées +25 JCC
-5. Content Mirroring — Contenu miroir basé sur les intérêts
-6. Creation Nudge — Balance consommation/création
-7. Magic Circle — Codes d'invitation exclusifs (max 5)
-8. Deep Linking — Liens de partage sans friction
-9. Fadeout Controller — Retraite progressive des ghosts
-10. Daily Arrival — Activation quotidienne des profils
-11. Seed Content — 2028 posts injectés (3 ans)
-
-## Endpoints API Growth Engine
-- GET /api/growth/engine/stats
-- GET /api/growth/engine/proof-of-life
-- POST /api/growth/engine/reward
-- GET /api/growth/engine/onboarding/{user_id}
-- POST /api/growth/engine/onboarding/complete
-- POST /api/growth/engine/invite
-- POST /api/growth/engine/invite/redeem
-- GET /api/growth/engine/creation-nudge/{user_id}
-- GET /api/growth/engine/mirror/{user_id}
-- POST /api/growth/engine/social-validation
-- POST /api/growth/engine/fadeout
-- POST /api/growth/engine/daily-arrival
-- GET /api/growth/engine/deeplink/{type}/{id}
+## Endpoints Fintech
+- GET/POST /api/wallet/{user_id}
+- GET /api/wallet/frek/{frek_id}
+- POST /api/wallet/link-frek
+- POST /api/wallet/transfer
+- POST /api/wallet/consume
+- GET /api/shop/packages
+- POST /api/shop/checkout/create
+- GET /api/shop/checkout/status/{id}
+- GET/POST /api/shop/products
+- GET /api/fintech/dashboard
 
 ## Tests
-- iteration_50.json: 100% (base)
-- iteration_51.json: Backend 95%, Frontend 100%
-- iteration_52.json: Backend 100% (22/22), Frontend 100%
+- iteration_53: Backend 100% (21/21), Frontend 100%
 
-## Backlog Priorisé
-### P0
-- Intégration Stripe pour paiements Shop
-- Backend Shop API (CRUD produits dynamiques)
-
+## Backlog
 ### P1
 - Messages standalone page
 - Network standalone page
 
 ### P2
 - Mgraph D3.js interactif
-- Intégration Unsplash (fallback Wikipedia OK)
-- Intégration Google Places (fallback Wikipedia OK)
+- Export PDF badges batch
 
 ### P3
 - Vue 3D SmartEngine
-- Export PDF badges batch
 - AWS SES sortie Sandbox
 
 ## Credentials
-- Admin bypass: cultureconnectorg@gmail.com (code: 000000)
-- Espace Coleen: Password Coleen2026
+- Admin: cultureconnectorg@gmail.com / 000000
