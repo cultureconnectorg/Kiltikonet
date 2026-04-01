@@ -1057,6 +1057,17 @@ async def stripe_webhook(request: Request):
             if transaction and not transaction.get("processed"):
                 await process_successful_payment(transaction, metadata)
                 logger.info(f"Successfully processed payment for session {session_id}")
+                # Notification push admin — paiement recu
+                payment_type = metadata.get("type", "unknown")
+                notif = {
+                    "category": "payment",
+                    "title": "Paiement Stripe recu",
+                    "message": f"{metadata.get('full_name') or metadata.get('company_name', 'N/A')} — {payment_type} ({metadata.get('tier', '')})",
+                    "session_id": session_id,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+                await db.admin_notifications.insert_one({**notif})
+                await broadcast_event("admin_notification", notif, channels=["admin_notifications"])
         
         return {"status": "success", "event": webhook_response.event_type}
     except Exception as e:
@@ -1273,6 +1284,16 @@ async def create_registration(
     
     # 🔄 Broadcast real-time update
     await broadcast_event("registration_created", {"id": registration_id, "name": full_name, "tier": tier})
+    # Notification push admin — nouveau badge/inscription
+    notif = {
+        "category": "badge",
+        "title": "Nouvelle inscription",
+        "message": f"{full_name} — {tier}",
+        "badge_id": registration_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.admin_notifications.insert_one({**notif})
+    await broadcast_event("admin_notification", notif, channels=["admin_notifications"])
     
     asyncio.create_task(send_email_async(
         email,
@@ -4998,6 +5019,38 @@ async def realtime_status():
         "mode": "bidirectional"
     }
 
+
+# ================== ADMIN NOTIFICATIONS ENDPOINTS ==================
+
+@app.get("/api/admin/notifications")
+async def get_admin_notifications(limit: int = 50, unread_only: bool = False):
+    """Get admin notification history"""
+    query = {"read": False} if unread_only else {}
+    notifs = await db.admin_notifications.find(query, {"_id": 0}).sort("timestamp", -1).to_list(limit)
+    unread_count = await db.admin_notifications.count_documents({"read": {"$ne": True}})
+    return {"notifications": notifs, "unread_count": unread_count}
+
+@app.post("/api/admin/notifications/read-all")
+async def mark_all_notifications_read():
+    """Mark all notifications as read"""
+    result = await db.admin_notifications.update_many({}, {"$set": {"read": True}})
+    return {"marked": result.modified_count}
+
+@app.post("/api/admin/notifications/test")
+async def send_test_notification():
+    """Send a test notification for debugging"""
+    notif = {
+        "category": "system",
+        "title": "Notification test",
+        "message": "Test du systeme de notifications push en temps reel",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "read": False,
+    }
+    await db.admin_notifications.insert_one({**notif})
+    await broadcast_event("admin_notification", notif, channels=["admin_notifications"])
+    return {"status": "sent", "notification": notif}
+
+
 # ================== BIDIRECTIONAL WEBSOCKET ENDPOINT ==================
 
 @app.websocket("/api/ws/sync")
@@ -5027,7 +5080,7 @@ async def websocket_sync(websocket: WebSocket):
         })
         
         # Auto-subscribe to all channels
-        for channel in ["cms", "globe", "registrations", "theme", "intention"]:
+        for channel in ["cms", "globe", "registrations", "theme", "intention", "admin_notifications"]:
             ws_manager.subscribe(client_id, channel)
         
         while True:
@@ -6759,6 +6812,16 @@ async def scan_debit(req: ScanDebitRequest):
     # Étape 6 — Remise J-0 : premier scan à ENTREE_GENERALE → statut REMIS
     if zone == "ENTREE_GENERALE" and statut == "ACTIVE" and req.montant == 0:
         await db.cc_badges.update_one({"badge_id": badge_id}, {"$set": {"statut": "REMIS", "remis": True, "remis_at": datetime.now(timezone.utc).isoformat()}})
+        # Notification push admin — badge remis
+        notif_remis = {
+            "category": "badge",
+            "title": "Badge remis",
+            "message": f"{badge.get('prenom','')} {badge.get('nom','')} — {badge_type} ({badge_id})",
+            "badge_id": badge_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.admin_notifications.insert_one({**notif_remis})
+        await broadcast_event("admin_notification", notif_remis, channels=["admin_notifications"])
         # Update Baserow mirror
         baserow_id = badge.get("baserow_row_id")
         if baserow_id:

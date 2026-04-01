@@ -21,6 +21,7 @@ import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '.
 import axios from 'axios';
 import { toast } from 'sonner';
 import { PartnerManagement } from './PartnerManagement';
+import AdminNotifications from './AdminNotifications';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -621,6 +622,7 @@ export const AdminDashboard = () => {
                 <Button onClick={handleExportCSV} className="h-9 sm:h-10 bg-charcoal text-paper font-syne text-xs sm:text-sm rounded-none hidden sm:flex" data-testid="export-csv-button">
                   <Download className="w-4 h-4 mr-2" /> CSV
                 </Button>
+                <AdminNotifications />
                 <Button onClick={() => { 
                   setIsAuthenticated(false); 
                   sessionStorage.removeItem('workspace_user');
