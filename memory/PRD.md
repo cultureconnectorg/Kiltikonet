@@ -8,70 +8,68 @@
 
 ### Fonctionnalites Implementees
 
-#### Phase 1 — Core (DONE)
-- Inscription badges (Visiteur gratuit, Pro payant via Stripe)
-- Generation visuelle de badges avec QR code
-- Admin Dashboard + CMS multi-pages, PWA, Staff Scanner NFC
+#### Phase 1-4 — Core + Export PDF (DONE — Mars 2026)
+- Inscription badges, generation visuelle, admin dashboard, CMS, PWA, Scanner NFC
+- Smart Engine CVLN 8 flux, Social feed, Agents IA
+- Espace Pro LinkedIn Culturel
+- Export PDF invitations 14 templates calibres
 
-#### Phase 2 — Smart Engine + Social (DONE)
-- Smart Engine CVLN 8 flux, Social feed, Recommandations, Dashboard 10 Agents IA
-
-#### Phase 3 — Refonte LinkedIn + Admin (DONE — 27 Mars 2026)
-- Espace Pro LinkedIn Culturel, Smart Engine triple acces
-
-#### Phase 4 — Export PDF + Config Production (DONE — 30 Mars 2026)
-- Export PDF invitations 14 templates calibres, AWS SES production (sandbox)
-- Tests Iteration 39 — 16/16 (100%)
-
-#### Phase 5 — CVL BRAIN + Globe 3D + Admin Tabs (DONE — 1 Avril 2026)
-- CVL BRAIN (Anthropic Claude), Globe 3D Premium, Fix hCaptcha, Onglets Jetons/Trafic
-- Tests Iteration 40 — Backend 14/14, Frontend 100%
+#### Phase 5 — CVL BRAIN + Globe 3D (DONE — 1 Avril 2026)
+- CVL BRAIN (Anthropic Claude), Globe 3D Premium
+- Onglets Jetons/Trafic AdminDashboard
+- Tests Iteration 40 — 100%
 
 #### Phase 6 — Mgraph 3D + Notifications Push (DONE — 1 Avril 2026)
-- **Mgraph 3D interactif** dans Smart Engine :
-  - D3.js v7 force simulation + Three.js r128 via CDN
-  - 58 noeuds / 165 liens depuis MongoDB en temps reel
-  - Noeuds spheres 3D : ART=#FFD700, VIP=#9B59B6, STF=#3498DB, SPO=#2ECC71, INT=#FFFFFF, VIS=#00FFFF, BNV=#E67E22
-  - Momentum/inertie sur rotation, auto-rotation douce
-  - Pulsation amplitude + frequence selon Cultural Impact Score
-  - 3 couches de particules dorees ambiantes (150+100+60)
-  - Halos glow radiaux (texture canvas gradient)
-  - Touch: 1 doigt rotation, pinch zoom, tap popup, double-tap isolation, long press CVL BRAIN
-  - Popup profil : nom, FREK-ID, type, Cultural Impact Score, organisation, statut, barre score, analyse BRAIN
-  - Isolation noeud : edges connectees visibles, reste dim
-  - Hover highlight, curseur dynamique
-  - Fallback 2D SVG, mode plein ecran, reset vue, refresh 30s
-- **Notifications Push Admin (WebSocket)** :
-  - Cloche dans le header AdminDashboard avec badge unread
-  - Panneau dark theme avec liste de notifications
-  - Temps reel via WebSocket /api/ws/sync channel admin_notifications
-  - Broadcast automatique lors de : paiement Stripe recu, nouvelle inscription, badge remis
-  - Bouton test, marquer tout lu
-  - Reconnexion automatique
-  - Endpoints : GET /api/admin/notifications, POST /api/admin/notifications/read-all, POST /api/admin/notifications/test
-- **Cles AWS SES** mises a jour (AKIAVJWEWGHLHYFRKEHY)
-- **Tests Iteration 41+42 — Backend 100%, Frontend 100%**
+- Mgraph 3D interactif (D3.js v7 + Three.js r128 CDN)
+- Notifications push admin WebSocket (badges, paiements)
+- Tests Iteration 42 — 100%
+
+#### Phase 7 — IA Recommandations Hybrides (DONE — 1 Avril 2026)
+- **Moteur de recommandations hybride** (scoring interne + enrichissement CVL BRAIN) :
+  - **Connexions participants** : matrice de compatibilite type/org/score, raisons personnalisees
+  - **Evenements personnalises** : matching par type, tags, score culturel, taille evenement
+  - **Partenariats organisations** : complementarite types, diversite, qualite scores
+  - Enrichissement CVL BRAIN optionnel pour les top resultats (?enrich=true)
+- **18 evenements CC2026** seedes (20-23 Mai 2026, La Savane, Fort-de-France) :
+  - Ateliers Bele, Conferences Diaspora, Music Business Summit, Workshops Audiovisuel
+  - Diaspora Nights (Zouk/Kompa, Dancehall/Afrobeats), Showcase Artistes, Exposition Art
+  - Networking VIP, Brunch Bilan, Grand Concert de cloture
+- **Admin** — Onglet "Recommandations" dans Smart Engine (3 sous-tabs) :
+  - Vue globale : stats cards, distribution impact culturel, types evenements, top orgs
+  - Par profil : selecteur participant, 3 colonnes (Connexions/Evenements/Partenariats), bouton CVL BRAIN
+  - Agenda CC2026 : 4 jours expandables avec details (lieu, horaires, capacite, badges cibles)
+- **Utilisateur** — Widget dans UserDashboard :
+  - Onglets "Evenements pour vous" et "Connexions suggerees"
+  - Scores de matching, raisons, types badges colores
+- **API Endpoints** :
+  - GET /api/recommendations/connections/{badge_id}
+  - GET /api/recommendations/events/{badge_id}
+  - GET /api/recommendations/partnerships/{badge_id}
+  - GET /api/recommendations/admin/overview
+  - GET /api/recommendations/events
+- **Tests Iteration 43 — Backend 15/15 (100%), Frontend 100%**
 
 ### Architecture
 | Fichier | Role |
 |---------|------|
-| `backend/server.py` | API principale + WebSocket + notifications |
-| `backend/routes/smart_engine.py` | 8 flux CVLN + Mgraph enrichi |
+| `backend/routes/recommendations.py` | 5 endpoints recommandations |
+| `backend/services/recommendations.py` | Moteur scoring hybride |
+| `backend/services/seed_events.py` | 18 evenements CC2026 |
 | `backend/services/cvl_brain.py` | Coeur IA Souveraine |
-| `backend/routes/brain.py` | Endpoints CVL BRAIN |
+| `backend/routes/smart_engine.py` | 8 flux CVLN + Mgraph |
+| `frontend/src/components/RecommendationsDashboard.jsx` | Dashboard admin recommandations |
+| `frontend/src/components/UserRecommendations.jsx` | Widget utilisateur recommandations |
 | `frontend/src/components/MgraphView.jsx` | Visualisation 3D Mgraph |
 | `frontend/src/components/AdminNotifications.jsx` | Notifications push admin |
-| `frontend/src/components/AdminDashboard.jsx` | Dashboard Admin (6 onglets + notifications) |
-| `frontend/src/components/SmartEngineDashboard.jsx` | Dashboard CVLN |
 
 ### Tests
-- Iteration 39 : 100% (Export PDF — 16/16)
-- Iteration 40 : 100% (E2E Global — 14/14)
-- Iteration 41 : 100% (Mgraph initial — 13/13)
-- Iteration 42 : 100% (Mgraph 3D + Notifications — 11/11 backend, frontend 100%)
+- Iteration 39 : 100% (Export PDF)
+- Iteration 40 : 100% (E2E Global)
+- Iteration 41 : 100% (Mgraph initial)
+- Iteration 42 : 100% (Mgraph 3D + Notifications)
+- Iteration 43 : 100% (Recommandations IA — 15/15 backend, frontend 100%)
 
 ### Backlog
-- (P1) AWS SES : Sortir du Sandbox (action manuelle console AWS)
-- (P2) IA recommandations combinees (connexions + contenus + partenariats)
+- (P1) AWS SES : Sortir du Sandbox
 - (P2) Dashboard Smart Engine 3D immersif complet
 - (P3) Mode replay temporel Mgraph
