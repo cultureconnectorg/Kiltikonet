@@ -23,84 +23,84 @@ Plateforme sociale culturelle caribéenne premium. Réseau social professionnel 
 - 5 réactions culturelles (feu/rythme/racines/résistance/lumière)
 - Feed culturel avec cartes (musique, artiste, lieu, événement, patrimoine)
 
-### ITER.49 — CreateCulturalCard (✅ Terminé)
+### ITER.49 — CreateCulturalCard (DONE)
 - Modale de création en 5 étapes
 - Recherche externe (iTunes Search API, Wikipedia REST API)
-- Bouton flottant "+" dans le feed
 - Endpoints: POST /api/cultural-search, POST /api/cultural-cards
-- Analytics d'événements culturels
 
-### ITER.51 — Refonte Design Premium (✅ Terminé - 01/04/2026)
-- Remplacement global #C8A84B → #E8D5A0 (46 occurrences)
+### ITER.51 — Refonte Design Premium (DONE - 01/04/2026)
+- Remplacement global #C8A84B → #E8D5A0
 - Fond OLED #0a0a0b, police DM Sans
 - Logo KILTIKONET dégradé blanc → or
 - Feed immersif scroll-snap TikTok (mobile)
-- Toggle "Découvrir / Communauté" (mobile)
-- Cartes plein écran avec image overlay
-- Actions verticales droite (réactions / commentaire / partager / JCC)
+- Toggle Découvrir/Communauté
+- Actions verticales droite (réactions/comment/partage/JCC)
 - Barre de support artiste en bas de chaque carte
 - Bottom nav 5 onglets: Feed / Réseau / + / Shop / Moi
-- Layout desktop 3 colonnes (sidebar identité / feed / recommandations)
 
-### ITER.52 — Routes & Interactions (✅ Terminé - 01/04/2026)
-- ShopPage.jsx — Marketplace 8 catégories (Billetterie, Jetons CC, Musique, Art, Gastronomie, Mode, Littérature, Formation)
-- 14 produits seed (Jetons CC packs, Pass CC2026, albums, art, mode, formations)
-- SoutenirSheet.jsx — Bottom sheet transfert JCC (sélection montant, affichage solde, envoi)
-- Endpoint POST /api/ghost/jetons/transfer (débit/crédit avec logs transactions)
-- Lien "Acheter des Jetons CC" si solde insuffisant
+### ITER.52 — Routes & Interactions (DONE - 01/04/2026)
+- ShopPage.jsx — Marketplace 8 catégories
+- SoutenirSheet.jsx — Bottom sheet transfert JCC
+- Endpoint POST /api/ghost/jetons/transfer
 
-### Système Social
-- Posts sociaux (création, fil d'actualité)
-- Profils ghost (10 profils seed caribéens)
-- Connexions et recommandations
-- Messages (panel latéral)
-- Onboarding interactif
+### Growth Engine v2 — Moteur de Croissance (DONE - 01/04/2026)
+**4000 profils ghost progressifs** :
+- 70% profils caribéens réalistes, 30% institutions/artistes
+- 200 actifs immédiatement, 3800 en arrivée progressive (~13/jour)
+- 2028 posts seedés sur 3 ans d'historique
+- Interactions (likes, commentaires) entre ghosts
 
-### Système Événementiel CC2026
-- Accréditations Pro (300€) / Institutionnel (500€)
-- Badges avec génération FREKcore
-- NFC, QR Code, Jetons CC (économie interne)
-- Countdown J-49
+**11 techniques de croissance implémentées** :
+1. Social Validation Fantôme — Auto-likes/comments sur posts réels
+2. Proof of Life — Badge "X en ligne" en temps réel
+3. Random Rewards — Bonus JCC aléatoires (slot machine)
+4. Onboarding Petites Victoires — 8 étapes gamifiées +25 JCC
+5. Content Mirroring — Contenu miroir basé sur les intérêts
+6. Creation Nudge — Balance consommation/création
+7. Magic Circle — Codes d'invitation exclusifs (max 5)
+8. Deep Linking — Liens de partage sans friction
+9. Fadeout Controller — Retraite progressive des ghosts
+10. Daily Arrival — Activation quotidienne des profils
+11. Seed Content — 2028 posts injectés (3 ans)
 
-## Produits Shop (Seed)
-| ID | Nom | Prix | Catégorie |
-|---|---|---|---|
-| jcc-10 | 10 Jetons CC | 15€ | jetons |
-| jcc-50 | 50 Jetons CC | 67.50€ | jetons |
-| jcc-100 | 100 Jetons CC | 120€ | jetons |
-| ticket-cc2026 | Pass CC2026 Général | 45€ | billetterie |
-| ticket-cc2026-vip | Pass CC2026 VIP | 150€ | billetterie |
-
-## Endpoints API Clés
-- POST /api/cultural-search (proxy iTunes + Wikipedia)
-- POST /api/cultural-cards (publication)
-- GET /api/cultural-feed (avec filtres card_type)
-- POST /api/cultural-reactions (5 types)
-- GET /api/cultural-identity/{user_id}
-- POST /api/ghost/jetons/transfer (soutien JCC)
-- GET /api/ghost/jetons/{user_id}
-- GET /api/pro/social/feed
-- GET /api/pro/social/recommendations
+## Endpoints API Growth Engine
+- GET /api/growth/engine/stats
+- GET /api/growth/engine/proof-of-life
+- POST /api/growth/engine/reward
+- GET /api/growth/engine/onboarding/{user_id}
+- POST /api/growth/engine/onboarding/complete
+- POST /api/growth/engine/invite
+- POST /api/growth/engine/invite/redeem
+- GET /api/growth/engine/creation-nudge/{user_id}
+- GET /api/growth/engine/mirror/{user_id}
+- POST /api/growth/engine/social-validation
+- POST /api/growth/engine/fadeout
+- POST /api/growth/engine/daily-arrival
+- GET /api/growth/engine/deeplink/{type}/{id}
 
 ## Tests
 - iteration_50.json: 100% (base)
-- iteration_51.json: Backend 95% (20/21), Frontend 100%
+- iteration_51.json: Backend 95%, Frontend 100%
+- iteration_52.json: Backend 100% (22/22), Frontend 100%
 
 ## Backlog Priorisé
+### P0
+- Intégration Stripe pour paiements Shop
+- Backend Shop API (CRUD produits dynamiques)
+
 ### P1
-- Backend Shop API (remplacer les produits seed frontend)
 - Messages standalone page
 - Network standalone page
 
 ### P2
 - Mgraph D3.js interactif
-- Intégration Unsplash (nécessite clé API)
-- Intégration Google Places (nécessite clé API)
+- Intégration Unsplash (fallback Wikipedia OK)
+- Intégration Google Places (fallback Wikipedia OK)
 
 ### P3
 - Vue 3D SmartEngine
 - Export PDF badges batch
-- AWS SES sortie Sandbox (action utilisateur requise)
+- AWS SES sortie Sandbox
 
 ## Credentials
 - Admin bypass: cultureconnectorg@gmail.com (code: 000000)
