@@ -1,107 +1,107 @@
-# CC2026 — Plateforme Culture Connect
+# CC2026 — KILTIKONET Platform — PRD
 
 ## Vision
-Plateforme événementielle pour les industries culturelles caribéennes.
-Stack : React 19 + FastAPI + MongoDB.
+Plateforme sociale culturelle caribéenne premium. Réseau social professionnel autour de la culture antillaise (musique, art, patrimoine, gastronomie, littérature, formation).
 
-## Core Features (Stable)
-- Accréditations avec 4 types de badges (Pro, Institu, Médias, VIP)
-- Paiements Stripe intégrés
-- Génération de badges via FREKcore
-- PWA avec scan NFC hors-ligne
-- Dashboard admin multi-espace (Coleen, Twina, Ghost)
-- Système de Jetons CC (récompenses)
-- Système Ghost Population (20 profils IA)
-- Onboarding CVL Brain
-- Emails via Resend
+## Architecture
+- **Frontend**: React 19, Tailwind CSS, Framer Motion, PWA
+- **Backend**: FastAPI, MongoDB
+- **Intégrations**: Stripe (paiements), FREKcore (identité), iTunes API, Wikipedia API
 
-## Moteur d'Identité Culturelle (iter.49)
+## Design System Premium (ITER.51)
+- **Fond**: `#0a0a0b` (OLED Black)
+- **Or blanc accent**: `#E8D5A0`
+- **Police**: DM Sans (400-900)
+- **Texte secondaire**: `#72727a`
+- **Surface**: `#141414`, Bordures: `#1e1e1e`
 
-### Backend APIs
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/api/cultural-identity/{user_id}` | GET | Score culturel (0-100) + 7 dimensions + niveau |
-| `/api/cultural-identity/{user_id}/recalculate` | POST | Recalcul dynamique du score |
-| `/api/cultural-feed` | GET | Feed culturel non-chronologique, filtrable |
-| `/api/cultural-reactions` | POST | Toggle réaction culturelle (5 types) |
-| `/api/cultural-feed/seed` | POST | Seed 18 cartes culturelles |
+## Fonctionnalités Implémentées
 
-### 7 Dimensions
-Musique · Arts Visuels & Scéniques · Langue Créole · Patrimoine & Traditions · Gastronomie · Féminité & Matriarcat · Identité Diasporique
+### Moteur d'Identité Culturelle
+- Score culturel (7 dimensions)
+- Radar constellation (D3.js/Canvas)
+- 5 réactions culturelles (feu/rythme/racines/résistance/lumière)
+- Feed culturel avec cartes (musique, artiste, lieu, événement, patrimoine)
 
-### 5 Niveaux
-Initié (0-20) · Ancré (21-40) · Enraciné (41-60) · Transmetteur (61-80) · Pilier (81-100)
+### ITER.49 — CreateCulturalCard (✅ Terminé)
+- Modale de création en 5 étapes
+- Recherche externe (iTunes Search API, Wikipedia REST API)
+- Bouton flottant "+" dans le feed
+- Endpoints: POST /api/cultural-search, POST /api/cultural-cards
+- Analytics d'événements culturels
 
-### 5 Réactions Culturelles
-Feu · Rythme · Racines · Résistance · Lumière
+### ITER.51 — Refonte Design Premium (✅ Terminé - 01/04/2026)
+- Remplacement global #C8A84B → #E8D5A0 (46 occurrences)
+- Fond OLED #0a0a0b, police DM Sans
+- Logo KILTIKONET dégradé blanc → or
+- Feed immersif scroll-snap TikTok (mobile)
+- Toggle "Découvrir / Communauté" (mobile)
+- Cartes plein écran avec image overlay
+- Actions verticales droite (réactions / commentaire / partager / JCC)
+- Barre de support artiste en bas de chaque carte
+- Bottom nav 5 onglets: Feed / Réseau / + / Shop / Moi
+- Layout desktop 3 colonnes (sidebar identité / feed / recommandations)
 
-### Frontend Components
-| Composant | Fichier |
-|-----------|---------|
-| CulturalIdentityBar | `pro/CulturalIdentityBar.jsx` |
-| ConstellationRadar | `pro/ConstellationRadar.jsx` |
-| CulturalFeed | `pro/CulturalFeed.jsx` |
-| CulturalCards | `pro/CulturalCards.jsx` |
-| CulturalReactions | `pro/CulturalReactions.jsx` |
-| MobileNavigation | `pro/MobileNavigation.jsx` |
+### ITER.52 — Routes & Interactions (✅ Terminé - 01/04/2026)
+- ShopPage.jsx — Marketplace 8 catégories (Billetterie, Jetons CC, Musique, Art, Gastronomie, Mode, Littérature, Formation)
+- 14 produits seed (Jetons CC packs, Pass CC2026, albums, art, mode, formations)
+- SoutenirSheet.jsx — Bottom sheet transfert JCC (sélection montant, affichage solde, envoi)
+- Endpoint POST /api/ghost/jetons/transfer (débit/crédit avec logs transactions)
+- Lien "Acheter des Jetons CC" si solde insuffisant
 
-## Design Premium (iter.50 — 1er Avril 2026)
+### Système Social
+- Posts sociaux (création, fil d'actualité)
+- Profils ghost (10 profils seed caribéens)
+- Connexions et recommandations
+- Messages (panel latéral)
+- Onboarding interactif
 
-### Design Tokens (CSS variables)
-- `--bg-primary: #0a0a0a`
-- `--bg-card: #141414`
-- `--accent-gold: #C8A84B`
-- `--text-primary: #FFFFFF`
-- `--text-secondary: #888888`
-- `--border-subtle: #1e1e1e`
-- Font: Inter (Google Fonts)
+### Système Événementiel CC2026
+- Accréditations Pro (300€) / Institutionnel (500€)
+- Badges avec génération FREKcore
+- NFC, QR Code, Jetons CC (économie interne)
+- Countdown J-49
 
-### Refonte visuelle appliquée
-- Avatars : dégradé radial #1e1e1e→#2a2a2a + anneau or au hover
-- Score : masqué --/100 si 0 cartes, barre fine avec shimmer
-- Level dots : connectés par ligne, tooltip au hover
-- Cards : full media TikTok (280px image, overlay gradient, badge type)
-- Posts : style X/Twitter dense (avatar 52px, badge rôle avec bordure)
-- Réactions : burst coloré par type (orange/marron/rose/or/blanc)
-- Profils suggérés : noms tronqués, "Membre CC2026" pour données test
-- Boutons : "Rejoindre" au lieu de "Se connecter"
-- J-50 : pulse animation (scale 1→1.03→1)
-- Header : glassmorphism, nav avec underline or actif
-- Mobile : bottom bar fixe, safe-area-inset, bouton Créer surélevé
-- Skeleton loading sur tous les états de chargement
-- prefers-reduced-motion support
+## Produits Shop (Seed)
+| ID | Nom | Prix | Catégorie |
+|---|---|---|---|
+| jcc-10 | 10 Jetons CC | 15€ | jetons |
+| jcc-50 | 50 Jetons CC | 67.50€ | jetons |
+| jcc-100 | 100 Jetons CC | 120€ | jetons |
+| ticket-cc2026 | Pass CC2026 Général | 45€ | billetterie |
+| ticket-cc2026-vip | Pass CC2026 VIP | 150€ | billetterie |
 
-## 18 Cartes Seedées
-5 Musique (Kassav', Malavoi, Admiral T, Tabou Combo, Jacob Desvarieux)
-4 Artistes (Ronald Selbonne, Hervé Beuze, Jocelyne Béroard, Maryse Condé)
-3 Lieux (Habitation Clément, Citadelle Laferrière, Marché de la Darse)
-3 Événements (CC2026, Biennale, Jounen Kwéyol)
-3 Patrimoine (Le Bèlè, Le Colombo, Le Conte Créole)
+## Endpoints API Clés
+- POST /api/cultural-search (proxy iTunes + Wikipedia)
+- POST /api/cultural-cards (publication)
+- GET /api/cultural-feed (avec filtres card_type)
+- POST /api/cultural-reactions (5 types)
+- GET /api/cultural-identity/{user_id}
+- POST /api/ghost/jetons/transfer (soutien JCC)
+- GET /api/ghost/jetons/{user_id}
+- GET /api/pro/social/feed
+- GET /api/pro/social/recommendations
 
-## Test Status
-- iter.49: Backend 14/14, Frontend 6/6
-- iter.50: Backend 10/10, Frontend 100% visuel
+## Tests
+- iteration_50.json: 100% (base)
+- iteration_51.json: Backend 95% (20/21), Frontend 100%
 
-## Backlog Prioritaire
+## Backlog Priorisé
+### P1
+- Backend Shop API (remplacer les produits seed frontend)
+- Messages standalone page
+- Network standalone page
 
-### ITER.49 (en cours)
-- P0: CreateCulturalCard.jsx (modal création cartes interactives)
-- P0: POST /api/cultural-search (proxy Spotify/Wikipedia/Google Places/Unsplash)
-- P0: POST /api/cultural-cards (création cartes + recalcul score)
-- P0: Monétisation (sponsored cards, affiliation Spotify, analytics)
-- P0: GET /api/analytics/cultural-trends + /cultural-profiles (admin)
-- Clés requises : SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, GOOGLE_PLACES_API_KEY, UNSPLASH_ACCESS_KEY
+### P2
+- Mgraph D3.js interactif
+- Intégration Unsplash (nécessite clé API)
+- Intégration Google Places (nécessite clé API)
 
-### Backlog général
-- P1: Emails candidature (Resend domain kiltikonet.fr)
-- P2: Mgraph D3.js interactif
-- P3: Vue 3D SmartEngine
-- P4: Export PDF badges batch
-
-## Contraintes
-- Ne pas toucher : Smart Engine, badges, Jeton CC, Stripe, hCaptcha, exports PDF
-- AWS SES bloqué en Sandbox (utiliser Resend)
+### P3
+- Vue 3D SmartEngine
+- Export PDF badges batch
+- AWS SES sortie Sandbox (action utilisateur requise)
 
 ## Credentials
-- Admin bypass: cultureconnectorg@gmail.com (Code: 000000)
-- Dashboard admin: CC2026admin
+- Admin bypass: cultureconnectorg@gmail.com (code: 000000)
+- Espace Coleen: Password Coleen2026
