@@ -1,5 +1,5 @@
 import React from 'react';
-import { Music, User, MapPin, Calendar, Landmark } from 'lucide-react';
+import { Music, User, MapPin, Calendar, Landmark, Play, Pause } from 'lucide-react';
 import CulturalReactions from './CulturalReactions';
 
 const CARD_ICONS = {
@@ -11,11 +11,11 @@ const CARD_ICONS = {
 };
 
 const CARD_TYPE_LABELS = {
-  musique: 'Musique',
-  artiste: 'Artiste',
-  lieu: 'Lieu',
-  evenement: 'Événement',
-  patrimoine: 'Patrimoine',
+  musique: 'MUSIQUE',
+  artiste: 'ARTISTE',
+  lieu: 'LIEU',
+  evenement: 'ÉVÉNEMENT',
+  patrimoine: 'PATRIMOINE',
 };
 
 const DIMENSION_COLORS = {
@@ -28,39 +28,20 @@ const DIMENSION_COLORS = {
   'Identité Diasporique': '#5B9BD5',
 };
 
-// Skeleton card for loading state
 export const CardSkeleton = () => (
-  <div
-    className="rounded-2xl overflow-hidden"
-    style={{ background: '#141414', border: '1px solid #1a1a1a' }}
-    data-testid="card-skeleton"
-  >
-    {/* Image skeleton */}
-    <div
-      className="w-full aspect-[16/10] relative"
-      style={{ background: '#1a1a1a' }}
-    >
-      <div className="absolute inset-0" style={{ animation: 'skeletonPulse 1.8s ease-in-out infinite' }} />
+  <div className="kn-card rounded-2xl overflow-hidden" data-testid="card-skeleton">
+    <div className="w-full relative" style={{ height: 280, background: '#141414' }}>
+      <div className="absolute inset-0 kn-skeleton-shimmer" />
     </div>
-    {/* Content skeleton */}
-    <div className="p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-full" style={{ background: '#222', animation: 'skeletonPulse 1.8s ease-in-out infinite 0.1s' }} />
-        <div className="h-3 rounded-full w-16" style={{ background: '#222', animation: 'skeletonPulse 1.8s ease-in-out infinite 0.15s' }} />
-      </div>
-      <div className="h-5 rounded-lg w-3/4" style={{ background: '#1c1c1c', animation: 'skeletonPulse 1.8s ease-in-out infinite 0.2s' }} />
-      <div className="h-3 rounded-full w-1/2" style={{ background: '#1a1a1a', animation: 'skeletonPulse 1.8s ease-in-out infinite 0.3s' }} />
-      <div className="space-y-1.5">
-        <div className="h-3 rounded-full w-full" style={{ background: '#181818', animation: 'skeletonPulse 1.8s ease-in-out infinite 0.4s' }} />
-        <div className="h-3 rounded-full w-5/6" style={{ background: '#181818', animation: 'skeletonPulse 1.8s ease-in-out infinite 0.5s' }} />
+    <div className="p-4 space-y-3" style={{ background: '#111' }}>
+      <div className="h-4 rounded-lg w-3/4 kn-skeleton-shimmer" />
+      <div className="h-3 rounded-full w-1/2 kn-skeleton-shimmer" style={{ animationDelay: '0.15s' }} />
+      <div className="flex gap-2 mt-2">
+        {[1,2,3,4,5].map(i => (
+          <div key={i} className="w-9 h-9 rounded-full kn-skeleton-shimmer" style={{ animationDelay: `${i * 0.08}s` }} />
+        ))}
       </div>
     </div>
-    <style>{`
-      @keyframes skeletonPulse {
-        0%, 100% { opacity: 0.4; }
-        50% { opacity: 0.8; }
-      }
-    `}</style>
   </div>
 );
 
@@ -69,164 +50,125 @@ const CulturalCard = ({ card, userId, onReact, index = 0 }) => {
   const typeLabel = CARD_TYPE_LABELS[card.card_type] || card.card_type;
   const dimColor = DIMENSION_COLORS[card.dimension] || '#C8A84B';
   const meta = card.meta || {};
+  const isEvent = card.card_type === 'evenement';
+  const isMusic = card.card_type === 'musique';
+
+  const daysUntil = (dateStr) => {
+    if (!dateStr) return null;
+    const diff = Math.ceil((new Date(dateStr) - Date.now()) / 86400000);
+    return diff > 0 ? diff : null;
+  };
+
+  const eventDays = isEvent ? daysUntil(meta.date) : null;
 
   return (
     <article
-      className="rounded-2xl overflow-hidden group cultural-card"
-      style={{
-        background: '#141414',
-        border: '1px solid #1a1a1a',
-        animationDelay: `${index * 60}ms`,
-      }}
+      className="kn-card rounded-2xl overflow-hidden group"
+      style={{ animationDelay: `${index * 50}ms` }}
       data-testid={`cultural-card-${card.id}`}
     >
-      {/* Image area */}
-      <div
-        className="w-full aspect-[16/10] relative overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${dimColor}25, #0a0a0a 60%, ${dimColor}10)`,
-        }}
-      >
+      {/* Full media area — TikTok style */}
+      <div className="w-full relative overflow-hidden" style={{ height: isEvent ? 320 : 280 }}>
+        {/* Background */}
         {card.image_url ? (
-          <img
-            src={card.image_url}
-            alt={card.title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
+          <img src={card.image_url} alt={card.title} className="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Icon
-              size={48}
-              style={{ color: dimColor, opacity: 0.3 }}
-            />
+          <div className="absolute inset-0" style={{
+            background: `linear-gradient(145deg, ${dimColor}20, #0a0a0a 40%, ${dimColor}08 80%, #0a0a0a)`,
+          }}>
+            <Icon size={64} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: dimColor, opacity: 0.12 }} />
           </div>
         )}
 
-        {/* Type badge */}
-        <div
-          className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-          style={{
-            background: 'rgba(10,10,10,0.75)',
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${dimColor}40`,
-          }}
-        >
-          <Icon size={12} style={{ color: dimColor }} />
-          <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: dimColor }}>
+        {/* Bottom gradient overlay */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.1) 70%, transparent 100%)',
+        }} />
+
+        {/* Type badge — top left */}
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-md"
+          style={{ background: 'rgba(200,168,75,0.15)', border: '1px solid rgba(200,168,75,0.3)', borderRadius: 6 }}>
+          <Icon size={11} style={{ color: '#C8A84B' }} />
+          <span className="text-[10px] font-semibold uppercase" style={{ color: '#C8A84B', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>
             {typeLabel}
           </span>
         </div>
 
-        {/* Duration if music */}
-        {card.duration && (
-          <div
-            className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md text-xs font-mono font-medium"
-            style={{ background: 'rgba(10,10,10,0.8)', color: '#fff' }}
-          >
+        {/* Duration — music only */}
+        {isMusic && card.duration && (
+          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[11px] font-mono font-medium"
+            style={{ background: 'rgba(10,10,10,0.7)', color: '#fff', backdropFilter: 'blur(8px)' }}>
             {card.duration}
           </div>
         )}
-      </div>
 
-      {/* Content */}
-      <div className="p-4">
-        {/* Dimension tag */}
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: dimColor }} />
-          <span className="text-[11px] font-medium" style={{ color: dimColor }}>
-            {card.dimension}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3
-          className="text-base font-bold leading-snug"
-          style={{ color: '#fff', fontFamily: "'DM Sans', 'Inter', sans-serif" }}
-        >
-          {card.title}
-        </h3>
-
-        {/* Subtitle */}
-        {card.subtitle && (
-          <p className="text-sm mt-0.5" style={{ color: '#888' }}>
-            {card.subtitle}
-          </p>
-        )}
-
-        {/* Description */}
-        {card.description && (
-          <p
-            className="text-sm mt-2 leading-relaxed line-clamp-3"
-            style={{ color: '#666' }}
-          >
-            {card.description}
-          </p>
-        )}
-
-        {/* Meta info */}
-        {Object.keys(meta).length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {meta.genre && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: '#1a1a1a', color: '#888' }}>
-                {meta.genre}
-              </span>
-            )}
-            {meta.origin && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: '#1a1a1a', color: '#888' }}>
-                {meta.origin}
-              </span>
-            )}
-            {meta.year && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: '#1a1a1a', color: '#888' }}>
-                {meta.year}
-              </span>
-            )}
-            {meta.commune && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: '#1a1a1a', color: '#888' }}>
-                <MapPin size={10} /> {meta.commune}
-              </span>
-            )}
-            {meta.date && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: '#1a1a1a', color: '#888' }}>
-                <Calendar size={10} /> {new Date(meta.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </span>
-            )}
+        {/* Event countdown */}
+        {isEvent && eventDays && (
+          <div className="absolute top-3 right-3 px-3 py-1.5 rounded-lg kn-countdown-pulse"
+            style={{ background: 'rgba(200,168,75,0.2)', border: '1px solid rgba(200,168,75,0.4)' }}>
+            <span className="text-sm font-black tabular-nums" style={{ color: '#C8A84B', fontFamily: "'Inter', sans-serif" }}>
+              J-{eventDays}
+            </span>
           </div>
         )}
 
-        {/* Reactions */}
-        <div className="mt-3 pt-3" style={{ borderTop: '1px solid #1a1a1a' }}>
-          <CulturalReactions
-            cardId={card.id}
-            reactions={card.reactions || {}}
-            userId={userId}
-            onReact={onReact}
-          />
+        {/* Music play button overlay */}
+        {isMusic && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
+            <Play size={24} style={{ color: '#fff', marginLeft: 2 }} />
+          </div>
+        )}
+
+        {/* Text overlay — bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          {/* Dimension dot */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: dimColor }} />
+            <span className="text-[10px] font-semibold uppercase" style={{ color: dimColor, letterSpacing: '0.06em' }}>{card.dimension}</span>
+          </div>
+
+          {/* Title */}
+          <h3 className="text-lg font-bold leading-tight" style={{ color: '#fff', fontFamily: "'Inter', sans-serif", fontWeight: 700, letterSpacing: '-0.02em' }}>
+            {card.title}
+          </h3>
+
+          {/* Subtitle */}
+          {card.subtitle && (
+            <p className="text-[13px] mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{card.subtitle}</p>
+          )}
+
+          {/* Meta tags — inline */}
+          {(meta.genre || meta.origin) && (
+            <div className="flex items-center gap-2 mt-2">
+              {meta.genre && <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>{meta.genre}</span>}
+              {meta.origin && <span className="text-[10px] px-2 py-0.5 rounded flex items-center gap-1" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}><MapPin size={8} />{meta.origin}</span>}
+              {meta.year && <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>{meta.year}</span>}
+            </div>
+          )}
+
+          {/* Event "Je participe" button */}
+          {isEvent && (
+            <button className="mt-3 px-5 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] active:scale-[0.97]"
+              style={{ background: '#C8A84B', color: '#000', fontFamily: "'Inter', sans-serif" }}
+              data-testid={`event-join-${card.id}`}>
+              Je participe
+            </button>
+          )}
+        </div>
+
+        {/* Reactions overlay — bottom right */}
+        <div className="absolute bottom-4 right-4">
+          <CulturalReactions cardId={card.id} reactions={card.reactions || {}} userId={userId} onReact={onReact} vertical />
         </div>
       </div>
 
-      <style>{`
-        .cultural-card {
-          animation: cardFadeIn 0.5s ease-out both;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-        }
-        .cultural-card:hover {
-          border-color: rgba(200, 168, 75, 0.3) !important;
-          box-shadow: 0 4px 24px rgba(200, 168, 75, 0.08);
-          transform: translateY(-2px);
-        }
-        @keyframes cardFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(16px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+      {/* Description — below image for non-event cards */}
+      {!isEvent && card.description && (
+        <div className="px-4 py-3" style={{ background: '#111', borderTop: '1px solid #1a1a1a' }}>
+          <p className="text-[13px] leading-relaxed line-clamp-2" style={{ color: '#888', lineHeight: 1.6 }}>{card.description}</p>
+        </div>
+      )}
     </article>
   );
 };

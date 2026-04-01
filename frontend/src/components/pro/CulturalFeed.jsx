@@ -162,20 +162,17 @@ const CulturalFeed = ({ userId }) => {
       </div>
 
       {/* Filter tabs */}
-      <div
-        className="flex gap-1 overflow-x-auto pb-3 mb-4 no-scrollbar"
-        data-testid="feed-filters"
-      >
+      <div className="flex gap-1.5 overflow-x-auto pb-3 mb-3 no-scrollbar" data-testid="feed-filters">
         {FILTER_TABS.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveFilter(tab.key)}
-            className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
+          <button key={tab.key} onClick={() => setActiveFilter(tab.key)}
+            className="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap active:scale-[0.97]"
             style={{
-              background: activeFilter === tab.key ? '#C8A84B' : '#141414',
+              background: activeFilter === tab.key ? '#C8A84B' : 'transparent',
               color: activeFilter === tab.key ? '#0a0a0a' : '#888',
-              border: `1px solid ${activeFilter === tab.key ? '#C8A84B' : '#222'}`,
+              border: `1px solid ${activeFilter === tab.key ? '#C8A84B' : '#1e1e1e'}`,
               minHeight: 36,
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: '0.02em',
             }}
             data-testid={`filter-${tab.key || 'all'}`}
           >
