@@ -1,13 +1,13 @@
 # CC2026 — KILTIKONET Platform — PRD
 
 ## Vision
-Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Amérique Latine et la Diaspora par la culture (musique, art, patrimoine, gastronomie, littérature, formation). Wallet Universel Kilti-Tokens, Stripe omnicanal, Growth Engine 4000 ghosts.
+Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Amerique Latine et la Diaspora par la culture (musique, art, patrimoine, gastronomie, litterature, formation). Wallet Universel Kilti-Tokens, Stripe omnicanal, Growth Engine 4000 ghosts.
 
 ## Architecture
 - **Frontend**: React 19, Tailwind CSS, PWA
 - **Backend**: FastAPI, MongoDB
 - **Fintech**: Stripe Checkout omnicanal, Wallet Universel (KT), FREK-ID terminal
-- **Intégrations**: Stripe, iTunes API, Wikipedia API
+- **Integrations**: Stripe, iTunes API, Wikipedia API
 
 ## Design System Premium
 - Fond: `#0a0a0b` (OLED Black)
@@ -15,32 +15,39 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Am�
 - Police: DM Sans
 - Texte secondaire: `#72727a`
 
-## Implémenté
+## Implemente
 
-### Fintech Centralisée (DONE - 01/04/2026)
+### Fintech Centralisee — Monnaie Forte (DONE - 01/04/2026)
 **Wallet Universel** :
-- Création on-demand par user_id
+- Creation on-demand par user_id
 - Liaison FREK-ID (scan NFC CC2026)
 - Lookup par FREK-ID pour terminaux
 - Sync legacy (registrations.jetons_solde)
 - Historique transactions par canal
+- **validity_extension: true** — KT reportables CC2027
 
-**Stripe Omnicanal** :
+**Stripe Omnicanal — Monnaie Forte** :
 - Checkout sessions (web + app + terminal)
-- 5 packs KT : 10/50/100/250(Diaspora)/500(Mécène)
-- Status polling avec crédit automatique
-- Metadata canal + FREK-ID + ecosystem
+- 5 packs KT Monnaie Forte :
+  - Pack Decouverte: 10EUR → 15 KT (+50%)
+  - Pack Culture: 25EUR → 40 KT (+60%)
+  - Pack Diaspora: 50EUR → 85 KT (+70%)
+  - Pack VIP: 100EUR → 180 KT (+80%)
+  - Pack Partenaire: 500EUR → 1000 KT (+100%)
+- Metadata Stripe: Factory Maker Studio EURL (Martinique/Bruxelles)
+- Status polling avec credit automatique
 
-**Shop CRUD** : 19 produits (8 catégories)
-**Terminal CC2026** : Débit par FREK-ID scan
-**Dashboard Admin** : Revenus, wallets, transactions, par canal
-**Ghost Bridge** : Feedback post-achat (notification institution ghost)
-**Célébration** : Animation dorée post-achat
+**Shop CRUD** : 19 produits (8 categories)
+**Terminal CC2026** : Debit par FREK-ID scan
+**Dashboard Admin Financier** : Float/Passif/Cash, adoption par zone, revenue par pack, entite legale
+**Ghost Bridge VIP** : DM automatique Artiste Certifie pour achat VIP/Diaspora
+**Promesse 2027** : Badge UI + validity_extension DB
+**Celebration** : Animation doree post-achat
 
 ### Growth Engine v2 (DONE)
-- 4000 profils : 40% Afrique (Lagos, Dakar, Abidjan) / 40% Latino (Salvador, Carthagène, La Havane) / 20% Diaspora
+- 4000 profils : 40% Afrique / 40% Latino / 20% Diaspora
 - 2028 posts sur 3 ans
-- 11 techniques de croissance implémentées
+- 11 techniques de croissance implementees
 
 ### Design Premium ITER.51 (DONE)
 - Feed TikTok scroll-snap, Bottom nav 5 tabs, Logo KILTIKONET gradient
@@ -58,6 +65,7 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Am�
 - GET /api/fintech/dashboard
 
 ## Tests
+- iteration_54: Backend 100% (23/23), Frontend 100% — Monnaie Forte + Admin Dashboard
 - iteration_53: Backend 100% (21/21), Frontend 100%
 
 ## Backlog
@@ -75,3 +83,4 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Am�
 
 ## Credentials
 - Admin: cultureconnectorg@gmail.com / 000000
+- Admin Dashboard: kk_admin_auth localStorage
