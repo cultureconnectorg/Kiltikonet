@@ -21,68 +21,77 @@
 - Dashboard Agents IA (10 agents)
 
 #### Phase 3 — Refonte LinkedIn + Admin (DONE — 27 Mars 2026)
-- **Espace Pro LinkedIn Culturel** : header banniere/photo/badges, feed, annuaire filtres, messagerie panel, recommandations
-- **Smart Engine triple acces** : Admin principal, DashboardCC2026, route /smart-engine
-- **Agents IA dans admin** : onglet dedie dans Admin principal
+- Espace Pro LinkedIn Culturel
+- Smart Engine triple acces
+- Agents IA dans admin
 
 #### Phase 4 — Export PDF + Config Production (DONE — 30 Mars 2026)
-- **hCaptcha production** : cle secrete configuree dans backend/.env
-- **Export PDF invitations** :
-  - Template PINT_TEMPLATE.pdf (14 pages, 14 types de badges)
-  - Superposition donnees participant (NOM, REPRESENTANT DE, ACCES, etc.)
-  - `GET /api/invitations/export-single/{badge_id}` — PDF unique
-  - `GET /api/invitations/export-batch?type_badge=VIP&limit=100` — PDF multi-pages
-  - Positions calibrees visuellement pour chaque type de layout (grilles de reference)
-  - Couleur GOLD pour pages EXPOSANT sombres (Platine, Diamant, VIP)
-  - **Tests : Iteration 39 — 16/16 tests passes (100%)**
-- **AWS SES** : Cles production injectees, domaine kiltikonet.fr verifie (SANDBOX — 200 emails/jour)
+- Export PDF invitations (14 templates, calibrage 100%)
+- AWS SES config production (sandbox)
+- Tests : Iteration 39 — 16/16 (100%)
 
 #### Phase 5 — CVL BRAIN + Globe 3D + Admin Tabs (DONE — 1 Avril 2026)
-- **CVL BRAIN (Intelligence Souveraine)** :
-  - Backend: `cvl_brain.py` (API Anthropic Claude), `cvl_brain_agents.py` (10 agents connectes)
-  - Routes: `brain.py` (4 endpoints: analyse, entreprise, evenement, alerte)
-  - DB: Collection `cvl_brain_analyses`
-  - UI: Badge BRAIN dans AIAgentsDashboard
-- **Globe 3D Premium** : Composant Globe3D refait avec `react-globe.gl`, textures Blue Marble, arcs gradient, 4 sources de lumiere, fond etoile, lazy loading, camera responsive
-- **Fix hCaptcha** : Widget retire des formulaires payants, verification non-bloquante
-- **Onglets Jetons/Trafic** : Migres en onglets natifs dans AdminDashboard (plus de routes isolees)
-- **Cles AWS SES** : Mises a jour (AKIAVJWEWGHLHYFRKEHY)
-- **Tests : Iteration 40 — Backend 14/14 (100%), Frontend 100%**
+- CVL BRAIN (Intelligence Souveraine Anthropic)
+- Globe 3D Premium (react-globe.gl, Blue Marble)
+- Fix hCaptcha non-bloquant pour Stripe
+- Onglets Jetons/Trafic dans AdminDashboard
+- Tests : Iteration 40 — Backend 14/14, Frontend 100%
+
+#### Phase 6 — Mgraph 3D Visualisation (DONE — 1 Avril 2026)
+- **Mgraph 3D interactif** dans Smart Engine onglet Mgraph
+  - D3.js v7 force simulation (layout + physique)
+  - Three.js r128 via CDN cdnjs.cloudflare.com
+  - Canvas WebGL isole du DOM React (useRef)
+  - 58 noeuds / 165 liens depuis MongoDB
+  - Noeuds = spheres 3D lumineuses par type :
+    - ART=#FFD700, VIP=#9B59B6, STF=#3498DB, SPO=#2ECC71
+    - INT=#FFFFFF, VIS=#00FFFF, BNV=#E67E22, EXP=#FFD700
+  - Pulsation selon Cultural Impact Score
+  - Liens lumineux (org=terracotta, type=gold, brain=violet)
+  - Particules ambiantes dorees (200 particules)
+  - Halo glow radial sur chaque noeud
+  - Interactions : rotation 1 doigt, pinch zoom, pan 2 doigts
+  - Tap noeud = popup profil (FREK-ID, score, type, org)
+  - Double tap = isole noeud + connexions
+  - Long press = analyse CVL BRAIN temps reel
+  - Refresh auto 30 secondes
+  - Mode plein ecran
+  - Fallback 2D SVG si WebGL indisponible
+  - Cleanup propre sur unmount
+- **Backend** : Endpoint /api/smart-engine/mgraph enrichi
+  - Noeuds depuis cc_badges (58 badges)
+  - Edges generees : org (meme organisation), type (meme badge), brain (high score)
+- **Cles AWS SES** mises a jour (AKIAVJWEWGHLHYFRKEHY)
+- **Tests : Iteration 41 — Backend 13/13 (100%), Frontend 100%**
 
 ### Architecture
 | Fichier | Role |
 |---------|------|
-| `backend/services/pdf_export.py` | Generation PDF invitations personnalisees |
-| `backend/services/cvl_brain.py` | Coeur IA Souveraine (Anthropic Claude) |
-| `backend/services/cvl_brain_agents.py` | Logique des 10 agents IA |
+| `backend/routes/smart_engine.py` | 8 flux CVLN + Mgraph enrichi |
+| `backend/services/cvl_brain.py` | Coeur IA Souveraine |
+| `backend/services/pdf_export.py` | Generation PDF invitations |
 | `backend/routes/brain.py` | Endpoints CVL BRAIN |
-| `backend/routes/smart_engine.py` | 8 flux CVLN |
-| `backend/routes/pro_social.py` | Feed, annuaire, recommandations |
-| `backend/routes/ai_agents.py` | Monitoring 10 agents |
-| `backend/services/hcaptcha.py` | Verification captcha |
-| `backend/templates/PINT_TEMPLATE.pdf` | Template 14 pages |
+| `frontend/src/components/MgraphView.jsx` | Visualisation 3D Mgraph |
+| `frontend/src/components/SmartEngineDashboard.jsx` | Dashboard CVLN |
 | `frontend/src/components/AdminDashboard.jsx` | Dashboard Admin (6 onglets) |
 | `frontend/src/components/Globe3D.jsx` | Globe 3D Blue Marble |
-| `frontend/src/components/AIAgentsDashboard.jsx` | Dashboard Agents IA + CVL BRAIN |
-| `frontend/src/components/JetonsAnalyticsDashboard.jsx` | Analytics Jetons |
-| `frontend/src/components/SiteAnalyticsDashboard.jsx` | Analytics Trafic |
 
 ### Tests
-- Iteration 36-38 : Tous 100% (hCaptcha, 4 Chantiers, Refonte LinkedIn)
-- Iteration 39 : 100% (Export PDF Invitations — 16/16 tests)
-- Iteration 40 : 100% (E2E Global — Backend 14/14, Frontend 100%)
+- Iteration 36-38 : 100% (hCaptcha, 4 Chantiers, Refonte LinkedIn)
+- Iteration 39 : 100% (Export PDF — 16/16)
+- Iteration 40 : 100% (E2E Global — 14/14 backend, frontend 100%)
+- Iteration 41 : 100% (Mgraph 3D — 13/13 backend, frontend 100%)
 
 ### Backlog
-- (P1) AWS SES : Sortir du Sandbox (action manuelle utilisateur dans console AWS)
-- (P2) Visualisation Mgraph interactive (D3.js)
+- (P1) AWS SES : Sortir du Sandbox (action manuelle console AWS)
 - (P2) IA externe pour recommandations (Phase 2 post-CC2026)
-- (P3) Vue 3D SmartEngine
+- (P3) Vue 3D SmartEngine (variantes supplementaires)
 
 ### Integrations
 | Service | Status |
 |---------|--------|
 | Stripe | Configures (live) |
 | hCaptcha | Production |
-| AWS SES | Sandbox (200/jour) — nouvelles cles configurees |
+| AWS SES | Sandbox (200/jour) — nouvelles cles |
 | Anthropic (CVL BRAIN) | Production (claude-sonnet-4) |
 | Cloudinary | Configures |
