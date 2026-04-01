@@ -398,7 +398,7 @@ export const RegistrationForm = () => {
                   ) : logoPreview ? (
                     <div className="flex flex-col items-center gap-2">
                       <div className="relative">
-                        <img src={logoPreview} alt="" className="w-20 h-20 object-cover border border-lightborder" />
+                        <img src={logoPreview} alt="Aperçu du logo uploadé" className="w-20 h-20 object-cover border border-lightborder" />
                         {uploadSuccess && (
                           <div className="absolute -top-2 -right-2 w-6 h-6 bg-sage rounded-full flex items-center justify-center">
                             <CheckCircle className="w-4 h-4 text-paper" />

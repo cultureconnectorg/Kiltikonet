@@ -432,7 +432,7 @@ const QuickSearch = ({ onCheckin }) => {
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <img
                   src={p.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.full_name)}&background=D4A84B&color=fff&size=40`}
-                  alt=""
+                  alt={p.full_name}
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                 />
                 <div className="min-w-0">

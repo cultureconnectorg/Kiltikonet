@@ -77,6 +77,7 @@ const CandidaturesAdmin = () => {
             onChange={e => setFilter(e.target.value)}
             className="w-full pl-8 pr-3 py-2 border border-[#ddd] rounded text-sm"
             placeholder="Rechercher nom, email, projet..."
+            aria-label="Rechercher une candidature"
             data-testid="candidatures-search"
           />
         </div>

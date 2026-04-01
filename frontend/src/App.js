@@ -91,6 +91,36 @@ const PageTracker = () => {
   return null;
 };
 
+// Dynamic document title per route (WCAG 2.4.2)
+const ROUTE_TITLES = {
+  '/': 'Accueil — Kilti Konet',
+  '/pricing': 'Tarifs — Kilti Konet',
+  '/concert': 'Concert — Kilti Konet',
+  '/programme': 'Programme — Kilti Konet',
+  '/catalogue': 'Catalogue — Kilti Konet',
+  '/jetons': 'Jetons CC — Kilti Konet',
+  '/appel-2026': 'Appel à projet CC2026 — Kilti Konet',
+  '/partnership': 'Partenariat — Kilti Konet',
+  '/badge-inscription': 'Inscription Badge — Kilti Konet',
+  '/admin': 'Administration — Kilti Konet',
+  '/smart-engine': 'Smart Engine — Kilti Konet',
+  '/espace-pro': 'Espace Pro — Kilti Konet',
+  '/accessibilite': 'Accessibilité — Kilti Konet',
+  '/mentions-legales': 'Mentions légales — Kilti Konet',
+  '/politique-confidentialite': 'Politique de confidentialité — Kilti Konet',
+  '/cgu': 'CGU — Kilti Konet',
+  '/cookies': 'Cookies — Kilti Konet',
+};
+const DocumentTitle = () => {
+  const location = useLocation();
+  useEffect(() => {
+    const path = location.pathname;
+    const matchedKey = Object.keys(ROUTE_TITLES).find(k => path === k || (k !== '/' && path.startsWith(k)));
+    document.title = matchedKey ? ROUTE_TITLES[matchedKey] : 'Kilti Konet — Culture Connect 2026';
+  }, [location.pathname]);
+  return null;
+};
+
 // Layout wrapper that conditionally shows Header and Mobile Nav
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -102,6 +132,7 @@ const AppLayout = ({ children }) => {
   return (
     <>
       <PageTracker />
+      <DocumentTitle />
       {showHeader && <Header />}
       <div className="pb-16 md:pb-0"> {/* Add padding for mobile nav on mobile only */}
         {children}

@@ -387,7 +387,7 @@ export const CatalogPage = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
               <Input
                 placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'}
-                value={filters.search}
+                aria-label={language === 'fr' ? 'Rechercher dans le catalogue' : 'Search the catalogue'}                value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className="pl-11 h-12 bg-paper border-lightborder text-charcoal rounded-none"
               />

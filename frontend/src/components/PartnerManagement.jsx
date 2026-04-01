@@ -393,6 +393,7 @@ export const PartnerManagement = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
                 <Input
                   placeholder={language === 'fr' ? 'Rechercher un participant...' : 'Search participant...'}
+                  aria-label={language === 'fr' ? 'Rechercher un participant' : 'Search a participant'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 rounded-none border-lightborder"

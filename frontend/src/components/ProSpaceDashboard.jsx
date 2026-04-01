@@ -253,7 +253,7 @@ const ProSpaceDashboard = () => {
           {/* Search */}
           <div className="flex-1 max-w-sm relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: C.dim }} />
-            <input placeholder="Rechercher..." className="w-full h-9 pl-9 pr-3 rounded text-sm" style={{ background: C.inputBg, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} />
+            <input placeholder="Rechercher..." aria-label="Rechercher dans le réseau" className="w-full h-9 pl-9 pr-3 rounded text-sm" style={{ background: C.inputBg, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} />
           </div>
           {/* Nav Items */}
           <nav className="hidden md:flex items-center gap-1">
@@ -275,10 +275,10 @@ const ProSpaceDashboard = () => {
           {/* Profile dropdown */}
           <div className="flex items-center gap-3 ml-2 pl-4 border-l" style={{ borderColor: C.border }}>
             <button onClick={() => setActiveSection('profile')} className="flex items-center gap-2" data-testid="nav-profile">
-              <img src={session.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(session.name)}&background=D4A84B&color=1C1A14`} alt="" className="w-7 h-7 rounded-full object-cover" />
+              <img src={session.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(session.name)}&background=D4A84B&color=1C1A14`} alt={`Photo de ${session.name}`} className="w-7 h-7 rounded-full object-cover" />
               <ChevronDown size={12} style={{ color: C.dim }} />
             </button>
-            <button onClick={handleLogout} className="p-1.5 rounded hover:bg-white/5" style={{ color: C.dim }} data-testid="logout-btn">
+            <button onClick={handleLogout} aria-label="Se déconnecter" className="p-1.5 rounded hover:bg-white/5" style={{ color: C.dim }} data-testid="logout-btn">
               <LogOut size={16} />
             </button>
           </div>
@@ -439,7 +439,7 @@ const FeedSection = ({ session }) => {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold" style={{ color: C.text }}>{post.author_name}</span>
                   {post.author_id === session.id && (
-                    <button onClick={() => deletePost(post.id)} className="ml-auto p-1 rounded hover:bg-white/10" style={{ color: C.dim }}><X size={14} /></button>
+                    <button onClick={() => deletePost(post.id)} aria-label="Supprimer le post" className="ml-auto p-1 rounded hover:bg-white/10" style={{ color: C.dim }}><X size={14} /></button>
                   )}
                 </div>
                 <p className="text-xs" style={{ color: C.muted }}>{PROFILE_LABELS[post.author_type] || ''}</p>
@@ -490,8 +490,8 @@ const FeedSection = ({ session }) => {
                 <div className="flex-1 flex gap-2">
                   <input value={commentInputs[post.id] || ''} onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
                     onKeyDown={(e) => e.key === 'Enter' && handleComment(post.id)}
-                    placeholder="Ajouter un commentaire..." className="flex-1 h-8 px-3 rounded-full text-xs" style={{ background: C.inputBg, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} />
-                  <button onClick={() => handleComment(post.id)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10" style={{ color: C.gold }}><Send size={14} /></button>
+                    placeholder="Ajouter un commentaire..." aria-label="Ajouter un commentaire" className="flex-1 h-8 px-3 rounded-full text-xs" style={{ background: C.inputBg, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} />
+                  <button onClick={() => handleComment(post.id)} aria-label="Envoyer le commentaire" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10" style={{ color: C.gold }}><Send size={14} /></button>
                 </div>
               </div>
             </div>
@@ -716,7 +716,7 @@ const NetworkPage = ({ connections, session, onConnect }) => {
         <div className="flex flex-wrap gap-3">
           <div className="flex-1 min-w-[200px] relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: C.dim }} />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher par nom, organisation..." className="w-full h-9 pl-9 pr-3 rounded text-sm" style={{ background: C.inputBg, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} data-testid="network-search" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher par nom, organisation..." aria-label="Rechercher par nom ou organisation" className="w-full h-9 pl-9 pr-3 rounded text-sm" style={{ background: C.inputBg, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} data-testid="network-search" />
           </div>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="h-9 px-3 rounded text-sm" style={{ background: C.inputBg, border: `1px solid ${C.border}`, color: C.text }}>
             <option value="">Tous les profils</option>

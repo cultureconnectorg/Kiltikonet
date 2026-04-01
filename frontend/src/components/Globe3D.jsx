@@ -255,6 +255,8 @@ export const Globe3D = () => {
         <div
           ref={containerRef}
           className="relative mx-auto flex justify-center items-center"
+          role="img"
+          aria-label="Globe 3D interactif montrant les territoires du réseau Culture Connect : Martinique (centre), Paris, Colombie, Haïti, Sénégal, Nigeria, Guadeloupe, UK, USA, Brésil. Des arcs lumineux connectent Fort-de-France aux différents points de la diaspora."
           style={{
             maxWidth: '900px',
             opacity: isVisible ? 1 : 0,

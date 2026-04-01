@@ -1049,7 +1049,7 @@ export const AdminDashboard = () => {
             <div className="flex flex-wrap items-center gap-3">
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
-                <Input placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                <Input placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'} aria-label={language === 'fr' ? 'Rechercher une inscription' : 'Search a registration'} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-10 bg-cream border-lightborder rounded-none text-sm" />
               </div>
               <Select value={filters.status} onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? '' : v }))}>
@@ -1207,7 +1207,7 @@ export const AdminDashboard = () => {
                         </td>
                         <td className="py-4 px-3">
                           <div className="flex items-center gap-3">
-                            <img src={reg.image} alt="" className="w-10 h-10 object-cover" />
+                            <img src={reg.image} alt={`Photo de ${reg.full_name}`} className="w-10 h-10 object-cover" />
                             <div>
                               <p className="font-medium text-charcoal">{reg.full_name}</p>
                               <p className="text-xs text-charcoal/50">{reg.email}</p>
@@ -1276,7 +1276,7 @@ export const AdminDashboard = () => {
               </div>
               
               <div className="text-center mb-8">
-                <img src={selectedReg.image} alt="" className="w-24 h-24 object-cover mx-auto mb-4" />
+                <img src={selectedReg.image} alt={`Photo de ${selectedReg.full_name}`} className="w-24 h-24 object-cover mx-auto mb-4" />
                 <h2 className="font-serif text-xl text-charcoal mb-1">{selectedReg.full_name}</h2>
                 <p className="text-charcoal/60">{selectedReg.organization_name}</p>
               </div>

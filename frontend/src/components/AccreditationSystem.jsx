@@ -562,6 +562,7 @@ const AccreditationsTab = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher..."
+              aria-label="Rechercher un participant"
               className="pl-10"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
               data-testid="search-input"
@@ -788,16 +789,16 @@ const AddParticipantModal = ({ newParticipant, setNewParticipant, onAdd, onClose
     <div className="rounded-lg p-6 w-full max-w-md" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
       <div className="flex items-center justify-between mb-4">
         <span className="text-lg font-bold" style={{ color: COLORS.gold, fontFamily: "'Syne', sans-serif" }}>Ajouter participant</span>
-        <button onClick={onClose} style={{ color: 'rgba(255,255,255,0.3)' }}><X className="w-5 h-5" /></button>
+        <button onClick={onClose} aria-label="Fermer" style={{ color: 'rgba(255,255,255,0.3)' }}><X className="w-5 h-5" /></button>
       </div>
       
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <Input value={newParticipant.Prenom} onChange={(e) => setNewParticipant(p => ({ ...p, Prenom: e.target.value }))} placeholder="Prenom *" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-prenom" />
-          <Input value={newParticipant.Nom} onChange={(e) => setNewParticipant(p => ({ ...p, Nom: e.target.value }))} placeholder="Nom *" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-nom" />
+          <Input value={newParticipant.Prenom} onChange={(e) => setNewParticipant(p => ({ ...p, Prenom: e.target.value }))} placeholder="Prenom *" aria-label="Prénom" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-prenom" />
+          <Input value={newParticipant.Nom} onChange={(e) => setNewParticipant(p => ({ ...p, Nom: e.target.value }))} placeholder="Nom *" aria-label="Nom" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-nom" />
         </div>
-        <Input value={newParticipant.Organisation} onChange={(e) => setNewParticipant(p => ({ ...p, Organisation: e.target.value }))} placeholder="Organisation" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-org" />
-        <Input value={newParticipant.Email} onChange={(e) => setNewParticipant(p => ({ ...p, Email: e.target.value }))} placeholder="Email" type="email" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-email" />
+        <Input value={newParticipant.Organisation} onChange={(e) => setNewParticipant(p => ({ ...p, Organisation: e.target.value }))} placeholder="Organisation" aria-label="Organisation" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-org" />
+        <Input value={newParticipant.Email} onChange={(e) => setNewParticipant(p => ({ ...p, Email: e.target.value }))} placeholder="Email" aria-label="Email" type="email" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-email" />
         <Input value={newParticipant.Telephone} onChange={(e) => setNewParticipant(p => ({ ...p, Telephone: e.target.value }))} placeholder="Telephone" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-phone" />
         <Select value={newParticipant['Type de badge']} onValueChange={(v) => setNewParticipant(p => ({ ...p, 'Type de badge': v }))}>
           <SelectTrigger style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="add-badge-type"><SelectValue /></SelectTrigger>
@@ -838,16 +839,16 @@ const EditParticipantModal = ({ participant, onUpdate, onClose }) => {
       <div className="rounded-lg p-6 w-full max-w-md" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
         <div className="flex items-center justify-between mb-4">
           <span className="text-lg font-bold" style={{ color: COLORS.gold, fontFamily: "'Syne', sans-serif" }}>Modifier participant</span>
-          <button onClick={onClose} style={{ color: 'rgba(255,255,255,0.3)' }}><X className="w-5 h-5" /></button>
+          <button onClick={onClose} aria-label="Fermer" style={{ color: 'rgba(255,255,255,0.3)' }}><X className="w-5 h-5" /></button>
         </div>
         
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Input value={data.Prenom || ''} onChange={(e) => setData(d => ({ ...d, Prenom: e.target.value }))} placeholder="Prenom" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-prenom" />
-            <Input value={data.Nom || ''} onChange={(e) => setData(d => ({ ...d, Nom: e.target.value }))} placeholder="Nom" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-nom" />
+            <Input value={data.Prenom || ''} onChange={(e) => setData(d => ({ ...d, Prenom: e.target.value }))} placeholder="Prenom" aria-label="Prénom" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-prenom" />
+            <Input value={data.Nom || ''} onChange={(e) => setData(d => ({ ...d, Nom: e.target.value }))} placeholder="Nom" aria-label="Nom" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-nom" />
           </div>
-          <Input value={data.Organisation || ''} onChange={(e) => setData(d => ({ ...d, Organisation: e.target.value }))} placeholder="Organisation" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-org" />
-          <Input value={data.Email || ''} onChange={(e) => setData(d => ({ ...d, Email: e.target.value }))} placeholder="Email" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-email" />
+          <Input value={data.Organisation || ''} onChange={(e) => setData(d => ({ ...d, Organisation: e.target.value }))} placeholder="Organisation" aria-label="Organisation" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-org" />
+          <Input value={data.Email || ''} onChange={(e) => setData(d => ({ ...d, Email: e.target.value }))} placeholder="Email" aria-label="Email" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-email" />
           <Select value={data['Type de badge'] || 'Artiste'} onValueChange={(v) => setData(d => ({ ...d, 'Type de badge': v }))}>
             <SelectTrigger style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="edit-badge-type"><SelectValue /></SelectTrigger>
             <SelectContent style={{ background: '#2A2820', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -1065,7 +1066,7 @@ const BadgeGeneratorTab = ({
           
           {!isManual ? (
             <>
-              <Input value={searchPicker} onChange={(e) => setSearchPicker(e.target.value)} placeholder="Rechercher participant..." className="mb-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="search-picker" />
+              <Input value={searchPicker} onChange={(e) => setSearchPicker(e.target.value)} placeholder="Rechercher participant..." aria-label="Rechercher un participant" className="mb-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }} data-testid="search-picker" />
               <div className="max-h-40 overflow-y-auto space-y-1">
                 {filteredPicker.map(p => (
                   <button key={p.id} onClick={() => loadToBadge(p)} className="w-full text-left p-2 rounded hover:bg-white/5 flex items-center gap-2" data-testid={`picker-${p.id}`}>
@@ -1274,7 +1275,7 @@ const QRCodesTab = ({ participants }) => {
       </style></head><body>
       <div class="grid">${qrCodes.map(p => `
         <div class="card">
-          <img src="${p.qrImage}"/>
+          <img src="${p.qrImage}" alt="QR code badge ${p.Prenom} ${p.Nom}"/>
           <div class="name">${p.Prenom} ${p.Nom}</div>
           <div class="id">${p['Type de badge']} - ID ${p.id}</div>
         </div>`).join('')}
