@@ -66,6 +66,14 @@
 - **Phase 4** : Correction responsive — breakpoint nav header de md (768px) a lg (1024px)
 - **Tests Iteration 46 — Backend 12/12 (100%), Frontend 100%**
 
+#### Phase 10 — Photos Catalogue, Routage & Finitions (DONE — 1 Avril 2026)
+- **Admin photo upload** : Bouton camera dans le modal admin pour changer la photo d'un participant via Cloudinary (PATCH /api/registrations/{id}/photo)
+- **Formulaire inscription** : Toggle "Apparaitre dans le catalogue pro" (show_in_catalog). Si coche, photo obligatoire avec message d'erreur explicite. Si decoche, photo optionnelle.
+- **Footer legal** : Lien "Accessibilite" ajoute discretement a cote des Mentions legales, CGU, Cookies
+- **Routage corrige** : /espace-coleen → /workspace/coleen (AIAgentsDashboard + SmartEngineDashboard)
+- **Audit routage** : Tous les liens internes verifies et fonctionnels
+- **Tests Iteration 47 — Backend 9/9 (100%), Frontend 100%**
+
 ### Architecture
 | Fichier | Role |
 |---------|------|
@@ -93,6 +101,7 @@
 - Iteration 44 : 100% (Appel a Projet — 18/18 backend, frontend 100%)
 - Iteration 45 : 100% (Immersion Jetons + Appel — 10/10 backend, frontend 100%)
 - Iteration 46 : 100% (Audit Accessibilite WCAG — 12/12 backend, frontend 100%)
+- Iteration 47 : 100% (Photos Catalogue, Routage, Finitions — 9/9 backend, frontend 100%)
 
 ### Backlog
 - (P1) Verifier emails candidature (Resend vs Brevo SMTP)
