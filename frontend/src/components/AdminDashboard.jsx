@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import SmartEngineDashboard from './SmartEngineDashboard';
 import AIAgentsDashboard from './AIAgentsDashboard';
+import JetonsAnalyticsDashboard from './JetonsAnalyticsDashboard';
+import SiteAnalyticsDashboard from './SiteAnalyticsDashboard';
 import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -598,7 +600,7 @@ export const AdminDashboard = () => {
                   <span className="hidden sm:inline">CC2026</span>
                 </Button>
                 <Button 
-                  onClick={() => navigate('/admin/analytics/jetons')} 
+                  onClick={() => setActiveTab('jetons')} 
                   className="h-9 sm:h-10 bg-[#C9A84C] text-[#1A1510] hover:bg-[#C9A84C]/90 font-syne text-xs sm:text-sm rounded-none" 
                   data-testid="analytics-jetons-button"
                 >
@@ -606,7 +608,7 @@ export const AdminDashboard = () => {
                   <span className="hidden sm:inline">Jetons</span>
                 </Button>
                 <Button 
-                  onClick={() => navigate('/admin/analytics/site')} 
+                  onClick={() => setActiveTab('trafic')} 
                   className="h-9 sm:h-10 bg-[#A65D47] text-white hover:bg-[#A65D47]/90 font-syne text-xs sm:text-sm rounded-none" 
                   data-testid="analytics-site-button"
                 >
@@ -716,6 +718,30 @@ export const AdminDashboard = () => {
                 Agents IA
               </button>
               <button
+                onClick={() => setActiveTab('jetons')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'jetons'
+                    ? 'border-[#C9A84C] text-[#C9A84C]'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-jetons"
+              >
+                <Coins className="w-4 h-4 inline mr-2" />
+                Jetons
+              </button>
+              <button
+                onClick={() => setActiveTab('trafic')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'trafic'
+                    ? 'border-[#A65D47] text-[#A65D47]'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-trafic"
+              >
+                <BarChart3 className="w-4 h-4 inline mr-2" />
+                Trafic
+              </button>
+              <button
                 onClick={() => setShowExportModal(true)}
                 className="ml-auto px-4 py-3 text-sm font-syne text-charcoal/50 hover:text-terracotta transition-colors"
                 data-testid="filtered-export-btn"
@@ -737,6 +763,14 @@ export const AdminDashboard = () => {
           ) : activeTab === 'ai-agents' ? (
             <div className="flex-1 overflow-auto">
               <AIAgentsDashboard />
+            </div>
+          ) : activeTab === 'jetons' ? (
+            <div className="flex-1 overflow-auto">
+              <JetonsAnalyticsDashboard />
+            </div>
+          ) : activeTab === 'trafic' ? (
+            <div className="flex-1 overflow-auto">
+              <SiteAnalyticsDashboard />
             </div>
           ) : (
             <div className="flex-1 overflow-auto">

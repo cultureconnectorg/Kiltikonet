@@ -144,7 +144,14 @@ const AIAgentsDashboard = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium text-[#F4F1EA] truncate">{agent.name}</div>
-                        <div className="text-[10px] truncate" style={{ color: cat.color }}>{cat.label}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] truncate" style={{ color: cat.color }}>{cat.label}</span>
+                          {agent.cvl_brain_connected && (
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${agent.cvl_brain_last_success !== false ? 'bg-cyan-500/15 text-cyan-400' : 'bg-orange-500/15 text-orange-400'}`}>
+                              BRAIN
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className={`w-2 h-2 rounded-full ${agent.enabled ? 'bg-green-500' : 'bg-red-500'}`} />
                     </div>
@@ -191,6 +198,35 @@ const AIAgentsDashboard = () => {
                   {agentDetail.enabled ? 'Actif' : 'Inactif'}
                 </Button>
               </div>
+
+              {/* CVL BRAIN Connection */}
+              {agentDetail.cvl_brain_connected && (
+                <div className="bg-gradient-to-r from-cyan-900/20 to-[#141414] border border-cyan-500/30 p-5 rounded-lg">
+                  <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide flex items-center gap-2 text-cyan-400">
+                    <Zap size={14} /> CVL BRAIN connecte
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-[#888]">Endpoint BRAIN</span>
+                      <p className="text-cyan-300 font-mono mt-1">{agentDetail.cvl_brain_endpoint || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-[#888]">Total appels</span>
+                      <p className="text-xl font-bold text-cyan-400 mt-1">{agentDetail.cvl_brain_total_calls || 0}</p>
+                    </div>
+                    <div>
+                      <span className="text-[#888]">Dernier appel</span>
+                      <p className="text-[#CCC] mt-1">{agentDetail.cvl_brain_last_call ? new Date(agentDetail.cvl_brain_last_call).toLocaleString('fr-FR') : 'Aucun'}</p>
+                    </div>
+                    <div>
+                      <span className="text-[#888]">Statut</span>
+                      <p className={`mt-1 font-medium ${agentDetail.cvl_brain_last_success !== false ? 'text-green-400' : 'text-red-400'}`}>
+                        {agentDetail.cvl_brain_last_success !== false ? 'Operationnel' : 'Erreur'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Metrics */}
               <div className="grid grid-cols-3 gap-3">

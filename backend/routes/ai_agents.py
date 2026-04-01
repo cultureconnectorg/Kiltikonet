@@ -20,126 +20,151 @@ AGENT_REGISTRY = [
     {
         "id": "smart-engine-cvln",
         "name": "Smart Engine CVLN",
-        "description": "Système de data centralisé — 8 flux (Prédictif, Mgraph, Live Audience, Creation Origin, Cultural Diffusion, Conversion, Verified Identity, Creative Network)",
+        "description": "Systeme de data centralise — 8 flux (Predictif, Mgraph, Live Audience, Creation Origin, Cultural Diffusion, Conversion, Verified Identity, Creative Network)",
         "type": "analytics",
         "category": "core",
         "endpoints": ["/api/smart-engine/predictive", "/api/smart-engine/mgraph", "/api/smart-engine/live-audience", "/api/smart-engine/creation-origin", "/api/smart-engine/cultural-diffusion", "/api/smart-engine/conversion", "/api/smart-engine/verified-identity", "/api/smart-engine/creative-network", "/api/smart-engine/dashboard"],
         "source_file": "routes/smart_engine.py",
         "auto_enabled": True,
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "/api/brain/smart-engine-flux",
     },
     {
         "id": "alert-engine",
         "name": "Moteur d'Alertes",
-        "description": "Détecte les anomalies (pic de trafic, conversion faible, deadlines, erreurs) et envoie des notifications automatiques à l'équipe",
+        "description": "Detecte les anomalies (pic de trafic, conversion faible, deadlines, erreurs) et envoie des notifications automatiques",
         "type": "monitoring",
         "category": "core",
         "endpoints": ["/api/smart-engine/check-alerts", "/api/smart-engine/alerts/rules", "/api/smart-engine/cron/check"],
         "source_file": "server.py (L.8093-8204)",
         "auto_enabled": True,
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "/api/brain/alert-check",
     },
     {
         "id": "badge-generator",
-        "name": "Générateur de Badges",
-        "description": "Génère automatiquement les badges CC2026 avec QR code, identifiant unique et intégration FREK pour chaque inscription",
+        "name": "Generateur de Badges",
+        "description": "Genere les badges CC2026 avec QR code, identifiant unique et integration FREK. CVL BRAIN enrichit chaque badge avec FREK-ID et score culturel",
         "type": "automation",
         "category": "core",
         "endpoints": ["/api/badges/inscrire", "/api/badges/generate-visual"],
         "source_file": "routes/badges.py",
         "auto_enabled": True,
-    },
-    {
-        "id": "batch-processor",
-        "name": "Processeur Batch",
-        "description": "Traite les opérations en masse : approbation batch, envoi groupé de badges par email, export PDF",
-        "type": "automation",
-        "category": "operations",
-        "endpoints": ["/api/registrations/batch/approve", "/api/registrations/batch/send-badges"],
-        "source_file": "server.py (L.1543-1623)",
-        "auto_enabled": True,
-    },
-    {
-        "id": "stripe-webhook",
-        "name": "Webhook Stripe",
-        "description": "Gère automatiquement les événements de paiement Stripe : confirmation, activation de badge, mise à jour du statut",
-        "type": "payment",
-        "category": "integrations",
-        "endpoints": ["/api/webhook/stripe"],
-        "source_file": "server.py (L.1007-1063)",
-        "auto_enabled": True,
-    },
-    {
-        "id": "cms-sanitizer",
-        "name": "Sanitiseur CMS",
-        "description": "Filtre automatiquement les références obsolètes ('Tropiques Atrium' → 'TOM') dans le contenu CMS côté backend et frontend",
-        "type": "content",
-        "category": "maintenance",
-        "endpoints": ["/api/cms/cleanup-atrium", "/api/public/content/{page}"],
-        "source_file": "server.py (L.4444), hooks/useCMSContent.js",
-        "auto_enabled": True,
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "/api/brain/enrich-badge",
     },
     {
         "id": "analytics-tracker",
         "name": "Tracker Analytics",
-        "description": "Collecte les événements utilisateur (pages vues, clics, scroll depth, sessions) pour alimenter le Smart Engine",
+        "description": "Collecte les evenements utilisateur et compile un rapport quotidien via CVL BRAIN",
         "type": "analytics",
         "category": "core",
         "endpoints": ["/api/analytics/batch", "/api/analytics/site"],
         "source_file": "routes/analytics.py, hooks/useAnalytics.js",
         "auto_enabled": True,
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "/api/brain/daily-report",
+    },
+    {
+        "id": "stripe-webhook",
+        "name": "Webhook Stripe",
+        "description": "Gere les evenements de paiement Stripe. CVL BRAIN met a jour le niveau_recuperation sur chaque paiement Jeton CC",
+        "type": "payment",
+        "category": "integrations",
+        "endpoints": ["/api/webhook/stripe"],
+        "source_file": "server.py (L.1007-1063)",
+        "auto_enabled": True,
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "/api/brain/stripe-payment",
     },
     {
         "id": "email-service",
         "name": "Service Email (SES)",
-        "description": "Envoie automatiquement les emails transactionnels : confirmations, QR codes, notifications, via AWS SES",
+        "description": "Envoie emails transactionnels via AWS SES. CVL BRAIN declenche un email si cultural_impact_score > 70",
         "type": "communication",
         "category": "integrations",
         "endpoints": ["/api/ses/send", "/api/ses/send-batch"],
         "source_file": "routes/ses.py, services/ses_service.py",
         "auto_enabled": False,
-        "warning": "AWS SES en mode Sandbox — emails limités aux adresses vérifiées",
+        "warning": "AWS SES en mode Sandbox",
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "auto-triggered",
     },
     {
         "id": "social-feed-engine",
         "name": "Moteur Social Pro",
-        "description": "Gère le fil d'actualité, les recommandations de connexions et l'annuaire professionnel de l'Espace Pro",
+        "description": "Gere le fil d'actualite et l'annuaire Espace Pro. CVL BRAIN enrichit chaque profil Pro avec FREK-ID et connexions diaspora",
         "type": "social",
         "category": "pro",
         "endpoints": ["/api/pro/social/feed", "/api/pro/social/posts", "/api/pro/social/directory", "/api/pro/social/recommendations/{profile_id}"],
         "source_file": "routes/pro_social.py",
         "auto_enabled": True,
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "/api/brain/pro-profile",
     },
     {
         "id": "hcaptcha-guard",
         "name": "Gardien hCaptcha",
-        "description": "Vérifie les tokens hCaptcha côté serveur pour protéger les formulaires d'inscription, contact et partenariat contre les bots",
+        "description": "Verifie les tokens hCaptcha pour proteger les formulaires contre les bots",
         "type": "security",
         "category": "security",
-        "endpoints": ["/api/contact", "/api/badges/inscrire", "/api/create-checkout-session"],
+        "endpoints": ["/api/contact", "/api/badges/inscrire"],
         "source_file": "services/hcaptcha.py",
         "auto_enabled": True,
+        "cvl_brain_connected": False,
+    },
+    {
+        "id": "cms-sanitizer",
+        "name": "Sanitiseur CMS",
+        "description": "Filtre les references obsoletes dans le contenu CMS",
+        "type": "content",
+        "category": "maintenance",
+        "endpoints": ["/api/cms/cleanup-atrium", "/api/public/content/{page}"],
+        "source_file": "server.py (L.4444)",
+        "auto_enabled": True,
+        "cvl_brain_connected": False,
+    },
+    {
+        "id": "batch-processor",
+        "name": "Processeur Batch",
+        "description": "Traite les operations en masse. CVL BRAIN analyse tous les profils non traites chaque nuit",
+        "type": "automation",
+        "category": "operations",
+        "endpoints": ["/api/registrations/batch/approve", "/api/registrations/batch/send-badges"],
+        "source_file": "server.py (L.1543-1623)",
+        "auto_enabled": True,
+        "cvl_brain_connected": True,
+        "cvl_brain_endpoint": "/api/brain/batch-process",
     },
 ]
 
 
 @router.get("/list")
 async def list_agents():
-    """Liste complète de tous les agents IA/automatisés du système"""
+    """Liste complete de tous les agents IA/automatises du systeme"""
+    # Get CVL BRAIN statuses
+    brain_statuses = {}
+    async for status in _db["cvl_brain_agent_status"].find({}, {"_id": 0}):
+        brain_statuses[status["agent_id"]] = status
+
     agents = []
     for agent in AGENT_REGISTRY:
-        # Check last activity from logs
         last_log = await _db.agent_logs.find_one(
             {"agent_id": agent["id"]}, {"_id": 0}, sort=[("timestamp", -1)]
         )
-        # Check override status
         override = await _db.agent_overrides.find_one(
             {"agent_id": agent["id"]}, {"_id": 0}
         )
+        brain_status = brain_statuses.get(agent["id"], {})
 
         agents.append({
             **agent,
             "enabled": override.get("enabled", agent["auto_enabled"]) if override else agent["auto_enabled"],
             "last_activity": last_log.get("timestamp") if last_log else None,
             "last_log_message": last_log.get("message") if last_log else None,
+            "cvl_brain_last_call": brain_status.get("last_call"),
+            "cvl_brain_last_success": brain_status.get("last_success"),
+            "cvl_brain_total_calls": brain_status.get("total_calls", 0),
         })
 
     # Stats
