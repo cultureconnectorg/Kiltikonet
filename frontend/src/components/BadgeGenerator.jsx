@@ -43,7 +43,7 @@ export const BadgeGenerator = ({ participant, onClose }) => {
   const isApproved = participant.status === 'approved';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80" role="dialog" aria-modal="true" aria-label="Aperçu du badge">
       <div className="relative max-w-sm w-full">
         <button onClick={onClose} className="absolute -top-10 right-0 text-paper/60 hover:text-paper flex items-center gap-2">
           {language === 'fr' ? 'Fermer' : 'Close'} <X className="w-4 h-4" />

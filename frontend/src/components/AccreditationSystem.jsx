@@ -785,7 +785,7 @@ const ParticipantCard = ({ participant, onClose, onValidate, onLoadBadge }) => {
 // ADD PARTICIPANT MODAL
 // ═══════════════════════════════════════════════════════════════
 const AddParticipantModal = ({ newParticipant, setNewParticipant, onAdd, onClose }) => (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Ajouter un participant">
     <div className="rounded-lg p-6 w-full max-w-md" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
       <div className="flex items-center justify-between mb-4">
         <span className="text-lg font-bold" style={{ color: COLORS.gold, fontFamily: "'Syne', sans-serif" }}>Ajouter participant</span>
@@ -835,7 +835,7 @@ const EditParticipantModal = ({ participant, onUpdate, onClose }) => {
   const [data, setData] = useState({ ...participant });
   
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Modifier un participant">
       <div className="rounded-lg p-6 w-full max-w-md" style={{ background: '#2A2820', border: `1px solid ${COLORS.gold}20` }}>
         <div className="flex items-center justify-between mb-4">
           <span className="text-lg font-bold" style={{ color: COLORS.gold, fontFamily: "'Syne', sans-serif" }}>Modifier participant</span>

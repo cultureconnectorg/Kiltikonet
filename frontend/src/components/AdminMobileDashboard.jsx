@@ -107,7 +107,7 @@ const QRScanner = ({ onScan, onClose, isActive }) => {
   if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col" role="dialog" aria-modal="true" aria-label="Scanner un badge">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/80 safe-area-top">
         <h2 className="text-white font-bold text-lg">Scanner un badge</h2>
@@ -183,7 +183,7 @@ const ScanResultModal = ({ result, onClose, onRetry }) => {
   if (!result) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="Résultat du scan">
       <div 
         className={`w-full max-w-sm rounded-2xl p-6 ${colors.bg} ${colors.border} border-2`}
         style={{ background: COLORS.card }}

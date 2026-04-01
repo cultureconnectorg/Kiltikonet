@@ -736,6 +736,9 @@ const MgraphView = () => {
       ref={containerRef}
       data-testid="mgraph-3d-container"
       className={`relative bg-black rounded-lg overflow-hidden ${fullscreen ? 'fixed inset-0 z-50' : ''}`}
+      role={fullscreen ? 'dialog' : undefined}
+      aria-modal={fullscreen ? 'true' : undefined}
+      aria-label="Visualisation Mgraph 3D"
       style={{ height: fullscreen ? '100vh' : '600px' }}
     >
       {/* Top bar */}

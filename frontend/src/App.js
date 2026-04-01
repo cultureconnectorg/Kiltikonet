@@ -42,6 +42,7 @@ import JetonsPage from "./components/JetonsPage";
 import JetonsAnalyticsDashboard from "./components/JetonsAnalyticsDashboard";
 import UserDashboard from "./components/UserDashboard";
 import AppelPage from "./components/AppelPage";
+import AccessibilitePage from "./components/AccessibilitePage";
 // Workspaces
 import WorkspaceLaurent from "./components/workspaces/WorkspaceLaurent";
 import WorkspaceTwina from "./components/workspaces/WorkspaceTwina";
@@ -190,6 +191,7 @@ function App() {
               <Route path="/inscription" element={<PricingPage />} />
               <Route path="/programme" element={<ProgramPage />} />
               <Route path="/appel-2026" element={<AppelPage />} />
+              <Route path="/accessibilite" element={<AccessibilitePage />} />
               <Route path="/concert" element={<ConcertPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />

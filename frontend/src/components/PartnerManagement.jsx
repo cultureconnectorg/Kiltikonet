@@ -372,7 +372,7 @@ export const PartnerManagement = () => {
 
       {/* Link Registration Modal */}
       {showLinkModal && selectedPartner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80" role="dialog" aria-modal="true" aria-label={language === 'fr' ? 'Lier un participant' : 'Link participant'}>
           <div className="bg-paper w-full max-w-lg">
             <div className="p-5 border-b border-lightborder flex items-center justify-between">
               <div>

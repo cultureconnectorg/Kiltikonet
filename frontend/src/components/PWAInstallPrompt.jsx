@@ -165,7 +165,7 @@ const PWAInstallPrompt = () => {
 
       {/* iOS Instructions Modal */}
       {showIOSInstructions && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-label="Installer sur iPhone">
           <div 
             className="w-full max-w-sm rounded-2xl p-6"
             style={{ background: '#1A1A14', border: '1px solid #D4A84B30' }}

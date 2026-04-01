@@ -775,11 +775,11 @@ const NetworkPage = ({ connections, session, onConnect }) => {
 const ProfileModal = ({ pro, onClose, session, isConnected, onConnect }) => {
   const Icon = PROFILE_ICONS[pro.profile_type] || Users;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-label={`Profil de ${pro.full_name}`} onClick={onClose}>
       <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-lg" style={{ background: C.surface, border: `1px solid ${C.border}` }} onClick={e => e.stopPropagation()} data-testid="profile-modal">
         {/* Banner */}
         <div className="h-32 relative rounded-t-lg" style={{ background: `linear-gradient(135deg, ${C.accent}50, ${C.gold}25)` }}>
-          <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-black/40" data-testid="close-profile-modal"><X size={16} style={{ color: '#fff' }} /></button>
+          <button onClick={onClose} aria-label="Fermer le profil" className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-black/40" data-testid="close-profile-modal"><X size={16} style={{ color: '#fff' }} /></button>
         </div>
         <div className="px-6 pb-6 -mt-12">
           <img src={pro.logo_url || pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.full_name)}&background=D4A84B&color=1C1A14&size=200`} alt={pro.full_name}

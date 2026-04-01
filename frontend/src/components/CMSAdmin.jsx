@@ -377,13 +377,13 @@ const SpeakersSection = () => {
         </Button>
       </div>
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-label="Intervenant">
           <div className="bg-paper rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-charcoal mb-4">{editingSpeaker ? 'Modifier' : 'Nouvel'} intervenant</h3>
             <div className="space-y-4">
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nom *" />
-              <Input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Rôle *" />
-              <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio (3-4 lignes)" className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none" rows={4} />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nom *" aria-label="Nom" />
+              <Input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Rôle *" aria-label="Rôle" />
+              <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio (3-4 lignes)" aria-label="Biographie" className="w-full px-3 py-2 border border-lightborder rounded-md text-sm resize-none" rows={4} />
             </div>
             <div className="flex gap-3 mt-6">
               <Button onClick={saveSpeaker} className="flex-1 bg-terracotta text-white"><Check className="w-4 h-4 mr-2" /> {editingSpeaker ? 'Mettre à jour' : 'Ajouter'}</Button>
@@ -499,12 +499,12 @@ const PartnersSection = () => {
         </Button>
       </div>
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-label="Partenaire">
           <div className="bg-paper rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-charcoal mb-4">{editingPartner ? 'Modifier' : 'Nouveau'} partenaire</h3>
             <div className="space-y-4">
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nom *" />
-              <Input value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="Site web (https://...)" />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nom *" aria-label="Nom du partenaire" />
+              <Input value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="Site web (https://...)" aria-label="URL du site web" />
             </div>
             <div className="flex gap-3 mt-6">
               <Button onClick={savePartner} className="flex-1 bg-terracotta text-white"><Check className="w-4 h-4 mr-2" /> {editingPartner ? 'Mettre à jour' : 'Ajouter'}</Button>
@@ -1498,7 +1498,7 @@ const PagesSection = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Page CMS">
           <div className="bg-paper rounded-lg p-6 w-full max-w-2xl my-8">
             <h3 className="text-lg font-semibold text-charcoal mb-4">{editingPage ? 'Modifier' : 'Nouvelle'} page</h3>
             <div className="space-y-4">
@@ -2051,9 +2051,10 @@ const IntentionSection = () => {
 
       {/* Preview Modal */}
       {showPreview && (
-        <div className="fixed inset-0 z-50 bg-[#1A1A1A] flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-[#1A1A1A] flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Aperçu du site">
           <button 
             onClick={() => setShowPreview(false)}
+            aria-label="Fermer l'aperçu"
             className="absolute top-4 right-4 text-white/50 hover:text-white"
           >
             <X className="w-8 h-8" />

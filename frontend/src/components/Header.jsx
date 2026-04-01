@@ -49,12 +49,12 @@ export const Header = () => {
           </button>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <button
                 key={link.path}
                 onClick={() => navigate(link.path)}
-                className={`text-sm font-body tracking-wide transition-colors ${
+                className={`text-sm font-body tracking-wide transition-colors whitespace-nowrap ${
                   isActive(link.path) ? 'text-terracotta' : 'text-charcoal/70 hover:text-charcoal'
                 }`}
               >
@@ -66,9 +66,12 @@ export const Header = () => {
           {/* Right side */}
           <div className="flex items-center gap-3">
             {/* Account Dropdown */}
-            <div className="relative hidden sm:block" ref={accountRef}>
+            <div className="relative hidden lg:block" ref={accountRef}>
               <button
                 onClick={() => setAccountOpen(!accountOpen)}
+                aria-expanded={accountOpen}
+                aria-haspopup="true"
+                aria-label="Menu du compte"
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-terracotta border border-terracotta/30 rounded-md hover:bg-terracotta/10 transition-colors"
                 data-testid="account-dropdown-btn"
               >
@@ -79,11 +82,13 @@ export const Header = () => {
                 <div
                   className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg border overflow-hidden"
                   style={{ background: '#FFFFFF', borderColor: 'rgba(26,21,16,0.1)' }}
+                  role="menu"
                   data-testid="account-dropdown-menu"
                 >
                   {accountLinks.map((item) => (
                     <button
                       key={item.path}
+                      role="menuitem"
                       onClick={() => { navigate(item.path); setAccountOpen(false); }}
                       className="flex items-center gap-3 w-full px-4 py-3 text-sm text-left transition-colors hover:bg-terracotta/5"
                       style={{ color: isActive(item.path) ? '#A65D47' : '#1A1510' }}
@@ -108,7 +113,7 @@ export const Header = () => {
             </button>
 
             {/* Mobile menu button */}
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-charcoal">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'} className="lg:hidden p-2 text-charcoal">
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -117,7 +122,7 @@ export const Header = () => {
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-paper border-t border-lightborder">
+        <div className="lg:hidden bg-paper border-t border-lightborder" role="navigation" aria-label="Navigation mobile">
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
               <button

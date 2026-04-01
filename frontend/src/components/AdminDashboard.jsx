@@ -1362,7 +1362,7 @@ export const AdminDashboard = () => {
 
       {/* Add Participant Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-charcoal/50 flex items-center justify-center z-50" onClick={() => setShowAddModal(false)}>
+        <div className="fixed inset-0 bg-charcoal/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label={language === 'fr' ? 'Ajouter un participant' : 'Add a participant'} onClick={() => setShowAddModal(false)}>
           <div className="bg-paper w-full max-w-lg mx-4 max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-lightborder">
               <div className="flex items-center justify-between">
@@ -1524,7 +1524,7 @@ export const AdminDashboard = () => {
 
       {/* Filtered Export Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80" role="dialog" aria-modal="true" aria-label={language === 'fr' ? 'Export ciblé' : 'Filtered Export'}>
           <div className="bg-paper w-full max-w-md">
             <div className="p-5 border-b border-lightborder flex items-center justify-between">
               <h3 className="font-serif text-lg text-charcoal">
@@ -1623,7 +1623,7 @@ export const AdminDashboard = () => {
 
       {/* Email History Modal */}
       {showEmailLogs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80" role="dialog" aria-modal="true" aria-label={language === 'fr' ? 'Historique des envois' : 'Send History'}>
           <div className="bg-paper w-full max-w-2xl max-h-[80vh] flex flex-col">
             <div className="p-5 border-b border-lightborder flex items-center justify-between shrink-0">
               <div>

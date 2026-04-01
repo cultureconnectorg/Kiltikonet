@@ -516,7 +516,7 @@ export const GuideModal = ({ guideId, isOpen, onClose }) => {
   const step = guide.steps[currentStep];
   
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-label={guide.title}>
       <div 
         className="w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl"
         style={{ background: '#2A2820', maxHeight: '90vh' }}
