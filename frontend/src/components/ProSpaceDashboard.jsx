@@ -129,7 +129,7 @@ const ProSpaceDashboard = () => {
   }, [session?.id]);
 
   useEffect(() => {
-    if (session?.id) axios.get(`${API}/ghost/jetons/${session.id}`).then(r => setJetonsBalance(r.data.jetons_solde || 0)).catch(() => {});
+    if (session?.id) axios.get(`${API}/wallet/${session.id}`).then(r => setJetonsBalance(r.data.balance || 0)).catch(() => {});
   }, [session?.id]);
 
   useEffect(() => {
@@ -235,10 +235,17 @@ const ProSpaceDashboard = () => {
           {/* Jetons Badge */}
           <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all hover:scale-[1.02]" data-testid="jetons-badge"
             style={{ background: '#1a1a1a', border: '1px solid rgba(232,213,160,0.3)', minHeight: 36, animation: 'jetonsPulse 3s ease-in-out infinite' }}
-            title="1 Jeton CC = 1.50€" aria-label={`${jetonsBalance} Jetons CC`}>
+            title="1 Kilti-Token = 1.50€" aria-label={`${jetonsBalance} Kilti-Tokens`}>
             <Zap size={16} style={{ color: '#E8D5A0' }} />
             <span className="text-sm font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{jetonsBalance}</span>
-            <span className="text-[10px] hidden sm:inline font-semibold" style={{ color: '#E8D5A0' }}>JCC</span>
+            <span className="text-[10px] hidden sm:inline font-semibold" style={{ color: '#E8D5A0' }}>KT</span>
+          </button>
+          {/* Recharge button */}
+          <button onClick={() => setActiveSection('shop')} data-testid="recharge-btn"
+            className="w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            style={{ background: 'rgba(232,213,160,0.15)', border: '1px solid rgba(232,213,160,0.3)' }}
+            aria-label="Recharger Kilti-Tokens">
+            <Plus size={14} style={{ color: '#E8D5A0' }} />
           </button>
 
           {/* Profile */}

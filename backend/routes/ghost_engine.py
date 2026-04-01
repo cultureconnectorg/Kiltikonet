@@ -29,159 +29,192 @@ _client = AsyncIOMotorClient(os.environ["MONGO_URL"])
 _db = _client[os.environ["DB_NAME"]]
 
 # ═══════════════════════════════════════════════════════════
-# NAME POOLS — 70% Caribéens réalistes, 30% Institutions
+# NAME POOLS — 40% Afrique · 40% Amérique Latine · 20% Diaspora
 # ═══════════════════════════════════════════════════════════
 FIRST_NAMES_F = [
-    "Marie-France","Christelle","Nathalie","Mylène","Karine","Stéphanie","Valérie",
-    "Fabienne","Sandra","Audrey","Sabrina","Anaïs","Jade","Louisa","Maryse","Sylviane",
-    "Régine","Danaé","Maëva","Jessie","Loriane","Tania","Vanessa","Camille","Océane",
-    "Corinne","Solange","Lucienne","Roseline","Jocelyne","Gladys","Monique","Yvette",
-    "Priscilla","Véronique","Claudine","Martine","Ginette","Francine","Arlette",
-    "Guylène","Suzy","Bernadette","Josiane","Danièle","Yolande","Béatrice","Isabelle",
-    "Murielle","Patricia","Cécile","Éliane","Huguette","Germaine","Albertine","Renée",
-    "Thérèse","Edmonde","Firmine","Léonie","Marcelle","Rolande","Simonne","Agathe",
+    # Afrique (40%)
     "Aminata","Fatou","Awa","Mariama","Kadiatou","Aïssatou","Fatoumata","Hawa",
     "Penda","Binta","Oumou","Salimata","Djeneba","Mariam","Ndeye","Rama","Sokhna",
-    "Naomi","Shéryl","Wendy","Kimberley","Samantha","Crystal","Destiny","Ayanna",
+    "Adaeze","Chioma","Ngozi","Amaka","Yetunde","Funke","Titilayo","Abiodun",
+    "Chiamaka","Nneka","Obiageli","Ezinne","Folake","Modupe","Oluwatoyin","Abosede",
+    "Adjoa","Akosua","Efua","Ama","Nana","Akua","Araba","Esi","Afua","Yaa",
+    # Amérique Latine (40%)
+    "Conceição","Luana","Tainá","Iracema","Jurema","Dandara","Makota","Anastácia",
+    "Yolanda","Carmen","Luz","Esperanza","Candelaria","Dolores","Marisol","Xiomara",
+    "Caridad","Alicia","Miriam","Yamilet","Dayami","Lisandra","Yanelis","Osmara",
+    "Soledad","Valentina","Camila","Gabriela","Fernanda","Paola","Andrea","Lucía",
+    "Margarita","Isabel","Rosa","Mercedes","Pilar","Dulce","Celia","Omara",
+    # Diaspora globale (20%)
+    "Marie-France","Christelle","Nathalie","Stéphanie","Audrey","Jade","Maëva",
+    "Naomi","Shéryl","Wendy","Ayanna","Crystal","Destiny","Kimberley","Simone",
+    "Maryse","Vanessa","Camille","Océane","Priscilla","Tania","Loriane",
 ]
 FIRST_NAMES_M = [
-    "Jean-Marc","Patrick","Thierry","Christophe","Joël","Kévin","Stéphane","Yannick",
-    "Fabrice","Gérard","Marc-Antoine","Jean-Philippe","Eddy","Frantz","Rudy","Serge",
-    "Tony","Ronald","Ange","Ludovic","Teddy","Harry","Steeve","Cédric","Rodrigue",
-    "Max","José","Léo","Yohan","Samuel","Pierre-Louis","Olivier","Sylvain","Claude",
-    "Éric","Alain","Gilles","Raymond","André","Fernand","Hector","Ismaël","Jocelyn",
-    "Damien","Raphaël","Gaël","Mickaël","Bryan","Jordan","Dylan","Axel","Kylian",
+    # Afrique (40%)
     "Alioune","Mamadou","Ousmane","Ibrahima","Moussa","Cheikh","Abdoulaye","Samba",
-    "Boubacar","Amadou","Seydou","Diallo","Lamine","Modou","Pape","Thierno","Mady",
-    "Dwayne","Tyrone","Marcus","Jamal","Kareem","André-Luc","Jean-Claude","Guy-Albert",
+    "Boubacar","Amadou","Seydou","Lamine","Modou","Pape","Thierno","Mady",
+    "Chukwuemeka","Obinna","Adebayo","Oluwaseun","Babajide","Ayodeji","Gbenga","Kayode",
+    "Chinedu","Emeka","Uche","Ikenna","Tochukwu","Nnamdi","Obi","Femi",
+    "Kwame","Kofi","Yaw","Kweku","Kojo","Kwesi","Nana","Ebo","Fiifi","Papa",
+    # Amérique Latine (40%)
+    "Davi","Kaíque","Ruan","Cauã","Vinícius","Caio","Matheus","Thiago",
+    "Pedro","Lucas","Rafael","Bruno","Leandro","Marcelo","Roberto","Carlos",
+    "Alejandro","Santiago","Sebastián","Mateo","Diego","Nicolás","Andrés","Emiliano",
+    "Jorge","Raúl","Ernesto","Reinaldo","Lázaro","Osmany","Yoandri","Maikel",
+    "Hernán","Pablo","Joaquín","Ignacio","Gonzalo","Tomás","Facundo","Agustín",
+    # Diaspora globale (20%)
+    "Jean-Marc","Patrick","Thierry","Yannick","Fabrice","Cédric","Rodrigue",
+    "Dwayne","Marcus","Jamal","Kareem","André-Luc","Jean-Claude","Samuel",
+    "Kévin","Stéphane","Raphaël","Gaël","Axel","Kylian","Damien",
 ]
 LAST_NAMES = [
-    "Césaire","Confiant","Chamoiseau","Glissant","Fanon","Zobel","Condé","Pineau",
-    "Maximin","Pépin","Bernabé","Ménil","Placoly","Gratiant","Tirolien","Lucrèce",
-    "Desportes","Perret","Maniga","Rangon","Larcher","Saint-Cyr","Bélénus","Castra",
-    "Fortuné","Galion","Juste","Kancel","Lamy","Marbot","Nardal","Thibault","Labbé",
-    "Jernidier","Appolinaire","Pinville","Célimène","Barthélémy","Réno","Melyon",
-    "Grandisson","Gustave","Nilor","Bossard","Konaté","Sow","Lubin","Selbonne",
-    "Régis","Volmar","Lafleur","Dufresne","Rippon","Jean-Baptiste","Saint-Louis",
-    "Noël","Emmanuel","Romélus","Beaubrun","Décius","Auguste","Janvier","Toussaint",
-    "Sylvestre","Diop","Ndiaye","Fall","Mbaye","Thiam","Gueye","Sarr","Cissé","Kane",
+    # Afrique
+    "Diop","Ndiaye","Fall","Mbaye","Thiam","Gueye","Sarr","Cissé","Kane",
     "Traoré","Keita","Bah","Barry","Camara","Sylla","Diallo","Touré","Sanogo",
-    "Belfort","Moïse","Précieux","Dorival","Butel","Lantin","Gravier","Rosier",
-    "Palmiste","Courcier","Mabiala","Moundélé","Ngoma","Bakayoko","Diabaté","Koulibaly",
-    "Dembélé","Fofana","Haidara","Coulibaly","Bamba","Sangaré","Ouattara","Sissoko",
+    "Konaté","Sow","Bakayoko","Diabaté","Koulibaly","Dembélé","Fofana","Haidara",
+    "Coulibaly","Bamba","Sangaré","Ouattara","Sissoko","Mabiala","Ngoma","Moundélé",
+    "Okonkwo","Adeyemi","Okafor","Balogun","Adesanya","Ogundimu","Olawale","Nwosu",
+    "Mensah","Asante","Boateng","Owusu","Agyeman","Appiah","Bonsu","Darkwa",
+    # Amérique Latine
+    "da Silva","Santos","Oliveira","Nascimento","Conceição","Araújo","Reis","Almeida",
+    "Pereira","Rocha","Moura","Tavares","Carvalho","Ribeiro","Fernandes","Machado",
+    "García","Rodríguez","Martínez","López","González","Hernández","Pérez","Torres",
+    "Valdés","Castillo","Morales","Fuentes","Delgado","Ramos","Guerrero","Mendoza",
+    # Diaspora
+    "Césaire","Confiant","Chamoiseau","Glissant","Fanon","Zobel","Condé","Pineau",
+    "Maximin","Bernabé","Nardal","Jean-Baptiste","Saint-Louis","Toussaint","Emmanuel",
+    "Belfort","Dorival","Grandisson","Gustave","Lafleur","Romélus","Beaubrun",
 ]
 ORIGINS = [
-    ("Martinique", 22), ("Guadeloupe", 18), ("Guyane", 8), ("Haïti", 12),
-    ("Sénégal", 6), ("Côte d'Ivoire", 5), ("France", 10), ("United Kingdom", 4),
-    ("Canada", 3), ("USA", 3), ("Dominique", 2), ("Sainte-Lucie", 2),
-    ("Trinidad", 2), ("Colombie", 1), ("Brésil", 1), ("Barbade", 1),
+    # Afrique (40%)
+    ("Nigeria", 12), ("Sénégal", 10), ("Côte d'Ivoire", 8), ("Ghana", 5), ("Mali", 5),
+    # Amérique Latine (40%)
+    ("Brésil", 14), ("Colombie", 8), ("Cuba", 7), ("Mexique", 5), ("Venezuela", 3), ("Pérou", 3),
+    # Diaspora globale (20%)
+    ("Martinique", 4), ("Guadeloupe", 3), ("Haïti", 4), ("France", 3), ("USA", 3), ("UK", 3),
 ]
 PROFILE_TYPES_INDIV = ["artist", "other", "press"]
 PROFILE_TYPES_INSTIT = ["institution", "label", "association", "galerie"]
 
 EXPERTISE_POOLS = {
-    "musique": ["zouk","gwoka","biguine","kompa","reggae","dancehall","jazz caribéen","bèlè","mazurka créole","rap caribéen","production musicale","DJ","arrangement"],
-    "arts": ["peinture","sculpture","photographie","art numérique","installation","street art","vidéo art","céramique","gravure","art textile"],
-    "patrimoine": ["tradition orale","patrimoine immatériel","architecture créole","musée","archives","mémoire","histoire coloniale","créolité"],
-    "gastronomie": ["cuisine créole","pâtisserie antillaise","rhum","épices","food","traiteur","restauration","agriculture bio"],
-    "litterature": ["poésie","roman","essai","édition","traduction créole","slam","conte","théâtre"],
-    "mode": ["stylisme","wax","madras","haute couture","bijouterie","accessoires","mode éthique"],
-    "tech": ["développement web","fintech","blockchain","IA","e-commerce","marketing digital"],
-    "formation": ["formation professionnelle","éducation culturelle","ateliers","masterclass","mentorat"],
-    "audiovisuel": ["documentaire","court-métrage","captation","podcast","radio","journalisme"],
+    "musique": ["afrobeat","afropop","highlife","jùjú","fuji","samba","bossa nova","forró","MPB","cumbia","salsa","son cubano","reggaeton","bachata","rumba","maracatu","zouk","kompa","gwoka"],
+    "arts": ["peinture","sculpture","photographie","art numérique","installation","street art","vidéo art","céramique","art textile","batik","kente weaving","muralisme"],
+    "patrimoine": ["tradition orale","patrimoine immatériel","architecture coloniale","musée","archives","mémoire","histoire esclavage","route transatlantique","oraliture","griots","candomblé","santería","vodou"],
+    "gastronomie": ["cuisine ouest-africaine","jollof rice","cuisine bahianaise","acarajé","moqueca","cuisine cubaine","cuisine colombienne","plantain","cassava","cuisine créole","cacao","café"],
+    "litterature": ["poésie","roman","essai","édition","traduction","slam","conte","théâtre","négritude","réalisme magique","littérature postcoloniale"],
+    "mode": ["stylisme","wax","ankara","kente","aso-oke","haute couture","mode éthique","bijouterie","accessoires","mode afro-futuriste","tissu madras"],
+    "tech": ["afrotech","fintech","blockchain","IA","e-commerce","marketing digital","mobile money","startup","innovation sociale"],
+    "formation": ["formation professionnelle","éducation culturelle","ateliers","masterclass","mentorat","alphabétisation","éducation numérique"],
+    "audiovisuel": ["Nollywood","cinéma novo","documentaire","court-métrage","podcast","captation","journalisme","cinéma cubain"],
 }
 
 BIO_TEMPLATES_INDIV = [
-    "Passionné·e de {expertise} depuis {years} ans. {origin_phrase} La culture caribéenne est mon moteur. {seeking_phrase}",
-    "{expertise_verb} de {origin}. {philosophy} Je crois en la puissance de notre héritage culturel pour transformer le présent.",
-    "Originaire de {origin}, {role} dans le domaine {domain}. {years} ans d'expérience au service de la création caribéenne.",
-    "Entre {origin} et le monde, je {action} notre culture. {philosophy} CC2026 est l'occasion de montrer ce dont nous sommes capables.",
-    "Man sé an moun {origin}. {creole_phrase} {years} ans que je vis pour {domain}. La transmission est mon combat.",
-    "De {origin} vers le monde. {expertise_verb} et {role2}. La diaspora porte en elle une richesse culturelle immense.",
-    "Artiste {domain} basé·e à {city}. {philosophy} Chaque œuvre est un pont entre mémoire et innovation.",
-    "Créateur·trice {domain} de {origin}. {years} ans à explorer les frontières entre tradition et modernité caribéenne.",
+    "Passionné·e de {expertise} depuis {years} ans. {origin_phrase} La connexion Afrique-Amérique Latine est mon moteur. {seeking_phrase}",
+    "{expertise_verb} de {origin}. {philosophy} Je crois en la puissance de notre héritage commun pour transformer le présent.",
+    "Originaire de {origin}, {role} dans le domaine {domain}. {years} ans à tisser des ponts culturels entre continents.",
+    "Entre {origin} et le monde, je {action} notre culture. {philosophy} KILTIKONET est l'espace pour ça.",
+    "De {city}, {origin}. {creole_phrase} {years} ans que je vis pour {domain}. La transmission est mon combat.",
+    "De {origin} vers le monde. {expertise_verb} et {role2}. La diaspora africaine et latino porte en elle une richesse immense.",
+    "Artiste {domain} basé·e à {city}. {philosophy} Chaque œuvre est un pont entre l'Afrique, les Amériques et le monde.",
+    "Créateur·trice {domain} de {origin}. {years} ans à explorer les frontières entre tradition ancestrale et innovation.",
 ]
 BIO_TEMPLATES_INSTIT = [
-    "{org_name} — {org_type} culturel·le basé·e à {city}, {origin}. Depuis {years} ans, nous accompagnons les créateurs caribéens.",
-    "Structure {org_type} dédiée à la {domain} caribéenne. Basée à {city}, {origin}. {years} ans d'engagement pour la culture.",
-    "{org_name} : {org_type} de {origin} spécialisé·e en {domain}. Notre mission : donner aux talents caribéens les moyens de rayonner.",
+    "{org_name} — {org_type} culturel·le basé·e à {city}, {origin}. Depuis {years} ans, nous connectons l'Afrique et l'Amérique Latine par la culture.",
+    "Structure {org_type} dédiée à la {domain}. Basée à {city}, {origin}. {years} ans d'engagement pour les cultures du Sud Global.",
+    "{org_name} : {org_type} de {origin} spécialisé·e en {domain}. Notre mission : valoriser le patrimoine commun afro-latino.",
 ]
 PHILOSOPHIES = [
     "La culture n'est pas un luxe, c'est un droit.","Notre identité est notre force.","Tradition et innovation ne s'opposent pas.",
-    "Chaque mot en créole est un acte de résistance.","L'art est notre meilleur ambassadeur.","La diaspora est un pont, pas une rupture.",
-    "Nou sé yonn.","La Caraïbe est un continent culturel.","Le patrimoine vit quand on le partage.",
-    "La musique est la langue universelle de la Caraïbe.","Sé lè ou konnèt ki koté ou sòti ki ou sav ki koté ou ka alé.",
+    "L'Afrique et l'Amérique Latine partagent un même souffle créatif.","L'art est notre meilleur ambassadeur.",
+    "La diaspora est un pont, pas une rupture.","Le Sud Global est le futur de la culture mondiale.",
+    "La route transatlantique nous unit plus qu'elle ne nous sépare.","Le patrimoine vit quand on le partage.",
+    "De Lagos à Salvador, de Dakar à La Havane, une même énergie.","Ubuntu: Je suis parce que nous sommes.",
+    "A luta continua — la lutte continue, par la culture.","Juntos somos más fuertes.",
+    "L'afrofuturisme est notre présent.","Nós somos a resistência.",
 ]
 CREOLE_PHRASES = [
-    "Man ka travay pou péyi-a.","Nou pé fè sa ansanm.","Sé konsa nou yé.","Fòs épi kouraj.",
-    "Kilti-nou sé richès-nou.","An ka bat pou sa man kwè.","Nou pa ka bliyé.","Tjenbé rèd pa moli.",
+    "Man ka travay pou péyi-a.","Nou pé fè sa ansanm.","Fòs épi kouraj.","Kilti-nou sé richès-nou.",
+    "É possível. A gente consegue.","Juntos podemos.","Ubuntu — nous sommes un.",
+    "Ashe! La force vitale est avec nous.","Axé! A força está conosco.",
+    "We move.","Na God.","Ça va aller, on avance.","Résistance et création.",
 ]
 CITIES = {
-    "Martinique": ["Fort-de-France","Le Lamentin","Saint-Pierre","Sainte-Anne","Le Robert","Le François"],
-    "Guadeloupe": ["Pointe-à-Pitre","Les Abymes","Sainte-Anne","Basse-Terre","Le Gosier","Saint-François"],
-    "Guyane": ["Cayenne","Kourou","Matoury","Saint-Laurent-du-Maroni","Rémire-Montjoly"],
-    "Haïti": ["Port-au-Prince","Cap-Haïtien","Jacmel","Les Cayes","Jérémie"],
-    "Sénégal": ["Dakar","Saint-Louis","Gorée","Thiès","Ziguinchor"],
-    "Côte d'Ivoire": ["Abidjan","Yamoussoukro","Grand-Bassam","Bouaké"],
-    "France": ["Paris","Marseille","Lyon","Bordeaux","Toulouse","Nantes"],
-    "United Kingdom": ["Londres","Birmingham","Manchester","Bristol"],
-    "Canada": ["Montréal","Toronto","Ottawa"],
-    "USA": ["New York","Miami","Brooklyn","Washington DC"],
-    "Dominique": ["Roseau"], "Sainte-Lucie": ["Castries"], "Trinidad": ["Port-of-Spain"],
-    "Colombie": ["Cali","Carthagène"], "Brésil": ["Salvador de Bahia","Rio"], "Barbade": ["Bridgetown"],
+    # Afrique
+    "Nigeria": ["Lagos","Abuja","Ibadan","Kano","Port Harcourt","Enugu","Aba","Benin City"],
+    "Sénégal": ["Dakar","Saint-Louis","Gorée","Thiès","Ziguinchor","Kaolack"],
+    "Côte d'Ivoire": ["Abidjan","Yamoussoukro","Grand-Bassam","Bouaké","San-Pédro"],
+    "Ghana": ["Accra","Kumasi","Cape Coast","Tamale","Takoradi"],
+    "Mali": ["Bamako","Timbuktu","Ségou","Mopti","Djenné"],
+    # Amérique Latine
+    "Brésil": ["Salvador de Bahia","Rio de Janeiro","São Paulo","Recife","Olinda","Belo Horizonte","Porto Alegre","Brasília"],
+    "Colombie": ["Carthagène","Bogotá","Cali","Medellín","Barranquilla","Santa Marta"],
+    "Cuba": ["La Havane","Santiago de Cuba","Trinidad","Camagüey","Cienfuegos"],
+    "Mexique": ["Mexico City","Oaxaca","Veracruz","Mérida","Guadalajara"],
+    "Venezuela": ["Caracas","Maracaibo","Barlovento"],
+    "Pérou": ["Lima","Cusco","Chincha"],
+    # Diaspora
+    "Martinique": ["Fort-de-France","Le Lamentin","Saint-Pierre"],
+    "Guadeloupe": ["Pointe-à-Pitre","Basse-Terre","Les Abymes"],
+    "Haïti": ["Port-au-Prince","Cap-Haïtien","Jacmel"],
+    "France": ["Paris","Marseille","Lyon","Bordeaux"],
+    "USA": ["New York","Miami","Brooklyn","Washington DC","Atlanta","Houston"],
+    "UK": ["Londres","Birmingham","Manchester","Bristol"],
 }
-ORG_TYPES = ["association","collectif","label","galerie","centre culturel","incubateur","fondation","compagnie","atelier","studio","école"]
+ORG_TYPES = ["association","collectif","label","galerie","centre culturel","incubateur","fondation","compagnie","atelier","studio","école","ONG","coopérative"]
 ORG_NAME_PARTS = [
-    "Kaz","Lakay","An Ba","Bwa","Mango","Karib","Kréyol","Neg","Péyi","Tanbou",
-    "Madras","Gwoka","Bèlè","Mas","Lakou","Véyé","Solèy","Lanmè","Tè","Dlo",
-    "Fwi","Kannaval","Matnik","Gwadloup","Ayiti","Afrik","Dyaspora","Kafé","Cho",
+    "Kaz","Lakay","Ubuntu","Ashe","Axé","Quilombo","Palenque","Sankofa",
+    "Banto","Yoruba","Griot","Balafon","Samba","Maracatu","Cumbia","Afro",
+    "Negritude","Resistência","Cimarrón","Mawon","Djembé","Kora","Berimbau",
+    "Orixá","Nkisi","Abya Yala","Pachamama","Ashanti","Mandé","Fela",
 ]
 
 # ═══════════════════════════════════════════════════════════
 # POST CONTENT POOLS — Rich templates for 3 years of content
 # ═══════════════════════════════════════════════════════════
 POST_TEMPLATES_CULTURE = [
-    "Soirée {event_type} incroyable hier soir à {city}. {count} personnes, une énergie folle. {creole} La culture caribéenne est VIVANTE. #CC2026",
-    "Nouveau projet en cours : {project}. Après {years} mois de travail, on approche du résultat final. Qui veut voir un aperçu ? 🎨",
-    "Retour de {place}. Inspiré·e comme jamais. Les rencontres avec les artistes locaux m'ont rappelé pourquoi je fais ce métier. {philosophy}",
-    "Atelier {domain} ce week-end à {city}. {count} participant·e·s, tous·tes passionné·e·s. La transmission fonctionne quand on y met du cœur. {creole}",
-    "Je viens de terminer {work}. {years} mois de création. C'est mon œuvre la plus personnelle. Elle parle de {origin}, de mémoire, de résilience.",
-    "Question pour la communauté : comment préserver {tradition} tout en l'ouvrant au monde contemporain ? Je cherche cet équilibre depuis {years} ans.",
-    "Collaboration avec {partner_name} — un·e artiste de {partner_origin}. Quand {origin} rencontre {partner_origin}, la magie opère. Résultat bientôt !",
-    "{city}, {hour}h du matin. {ambiance}. C'est dans ces moments que je comprends pourquoi notre culture est unique. {creole}",
-    "Lu / Vu / Écouté cette semaine : {reference}. Si vous ne connaissez pas, c'est le moment. Notre patrimoine a besoin qu'on le partage.",
-    "Merci à tou·te·s ceux·celles qui ont soutenu {project} avec leurs Jetons CC. {count} JCC récoltés ! Votre soutien fait la différence.",
-    "Journée de résidence à {place}. Travail sur {work}. Le calme de cet endroit est propice à la création. Parfois il faut se retirer pour mieux donner.",
-    "{domain} caribéen·ne : pas du folklore, pas de l'exotisme. De l'ART. De la CRÉATION. De la PENSÉE. Quand est-ce qu'on va enfin le comprendre ?",
-    "Mon coup de cœur de la semaine : {reference}. {opinion}. Allez voir / écouter / lire, vous ne serez pas déçu·e·s.",
-    "Préparation CC2026 : J-{days}. Mon projet {project} avance bien. {progress}. Vivement mai 2026 à Fort-de-France !",
+    "Soirée {event_type} incroyable hier soir à {city}. {count} personnes, une énergie folle. {creole} La culture du Sud Global est VIVANTE. #KILTIKONET",
+    "Nouveau projet en cours : {project}. Après {years} mois de travail, on approche du résultat final. La connexion Afrique-Amériques prend forme.",
+    "Retour de {place}. Inspiré·e comme jamais. Les liens entre l'Afrique et l'Amérique Latine sont plus forts que jamais. {philosophy}",
+    "Atelier {domain} ce week-end à {city}. {count} participant·e·s. La transmission fonctionne quand on y met du cœur. {creole}",
+    "Je viens de terminer {work}. {years} mois de création. Il parle de {origin}, de mémoire transatlantique, de résilience.",
+    "Question : comment préserver {tradition} tout en l'ouvrant au monde contemporain ? Ce dialogue Afrique-Amériques m'obsède depuis {years} ans.",
+    "Collaboration avec {partner_name} — un·e artiste de {partner_origin}. Quand {origin} rencontre {partner_origin}, c'est explosif. Résultat bientôt !",
+    "{city}, {hour}h du matin. {ambiance}. Ces moments me rappellent pourquoi nos cultures sont précieuses. {creole}",
+    "Lu / Vu / Écouté cette semaine : {reference}. Notre patrimoine commun a besoin qu'on le partage. #KILTIKONET",
+    "Merci à ceux qui ont soutenu {project} avec leurs Kilti-Tokens. {count} KT récoltés ! Votre soutien fait vivre la culture.",
+    "Résidence artistique à {place}. Travail sur {work}. Quand la créativité africaine et latino-américaine se mélangent... magie.",
+    "{domain} du Sud Global : pas du folklore, pas de l'exotisme. De l'ART. De la CRÉATION. De la PENSÉE. Le monde doit le comprendre.",
+    "Mon coup de cœur : {reference}. {opinion}. À découvrir absolument.",
+    "De Lagos à Salvador, de Dakar à La Havane — les routes de la culture nous connectent depuis 500 ans. {philosophy}",
 ]
 POST_TEMPLATES_EVENTS = [
-    "📅 Save the date : {event_name} le {date} à {city}. {description}. Billets bientôt disponibles sur KILTIKONET.",
-    "Retour sur {event_name} de la semaine dernière. {count} artistes, {count2} spectateur·trice·s, et des moments inoubliables. Vidéo récap' bientôt !",
-    "Recherche bénévoles pour {event_name} ({date}, {city}). Si tu crois en la culture caribéenne et que tu veux contribuer, contacte-moi !",
+    "Save the date : {event_name} le {date} à {city}. {description}. Billets sur KILTIKONET.",
+    "Retour sur {event_name}. {count} artistes, {count2} spectateur·trice·s. Afrique et Amérique Latine réunies par la culture.",
+    "Recherche bénévoles pour {event_name} ({date}, {city}). Si tu crois en la connexion culturelle Sud-Sud, rejoins-nous !",
 ]
 POST_TEMPLATES_COLLAB = [
-    "Recherche {role} pour un projet {domain} entre {origin} et {partner_origin}. Budget validé, deadline CC2026. DM ouverts. 📩",
-    "Qui connaît un·e bon·ne {role} à {city} ? Projet {domain} en cours, besoin urgent. La communauté KILTIKONET est mon premier réflexe.",
-    "Proposition de collaboration ouverte : j'offre mon expertise en {domain}, je cherche un·e partenaire en {partner_domain}. Construisons ensemble !",
+    "Recherche {role} pour un projet {domain} entre {origin} et {partner_origin}. Budget validé. DM ouverts.",
+    "Qui connaît un·e bon·ne {role} à {city} ? La communauté KILTIKONET est mon premier réflexe.",
+    "Collaboration ouverte : expertise {domain}, cherche partenaire en {partner_domain}. Pont Afrique-Amériques. Construisons ensemble !",
 ]
 COMMENT_TEMPLATES_POSITIVE = [
-    "Magnifique ! Fòs épi kouraj 🔥","Bèl travay ! La Caraïbe a besoin de ça.","Trop inspirant·e, merci pour ce partage.",
-    "C'est exactement ce genre de projets qui fait avancer notre culture.","Respect total. Continue comme ça.",
-    "Man ka soutni'w ! 💪","From {origin}, this is incredible. Big up !","Ça donne envie d'en faire plus. Merci.",
-    "La relève est là. Notre culture est entre de bonnes mains.","Wow, j'ai des frissons. Merci pour ce moment.",
-    "C'est pour ça que KILTIKONET existe. Pour connecter des gens comme nous.","Partagé ! Il faut que plus de monde voit ça.",
-    "Question : tu fais des ateliers ? J'aimerais apprendre.","Collaboration possible ? Je t'envoie un message.",
-    "Exactement ! Notre culture n'est pas du folklore, c'est de l'art vivant.","Bravo pour la démarche. Soutien total.",
-    "J'étais là, c'était magique. Vivement la prochaine.","Ce projet mérite plus de visibilité. Je partage.",
+    "Magnifique ! Ubuntu 🔥","Bèl travay ! Le Sud Global a besoin de ça.","Trop inspirant·e, merci pour ce partage.",
+    "C'est exactement ce genre de projets qui fait avancer nos cultures.","Respect total. Continue.",
+    "Axé! La force est avec toi 💪","From {origin}, this is incredible. Big up !","Ça donne envie d'en faire plus.",
+    "La relève est là. Nos cultures sont entre de bonnes mains.","Wow, j'ai des frissons. Merci.",
+    "KILTIKONET, c'est ça. Connecter les gens du Sud Global.","Partagé ! Plus de monde doit voir ça.",
+    "Tu fais des ateliers ? J'aimerais apprendre.","Collaboration possible ? Je t'envoie un message.",
+    "Nos cultures ne sont pas du folklore, c'est de l'art vivant.","Soutien total. Ashe!",
+    "J'étais là, c'était magique. Vivement la prochaine.","Ce projet mérite le monde entier.",
 ]
-EVENT_TYPES = ["gwoka","bèlè","zouk","kompa","spoken word","jam session","vernissage","dégustation","lecture","projection","atelier"]
+EVENT_TYPES = ["afrobeat","samba","cumbia","salsa","highlife","bossa nova","rumba","maracatu","spoken word","jam session","vernissage","dégustation","projection","atelier"]
 PROJECTS = [
-    "un documentaire sur la mémoire du gwoka","un album de zouk acoustique","une exposition sur le madras contemporain",
-    "un festival itinérant dans les mornes","un recueil de poésie trilingue","une collection capsule afro-caribéenne",
-    "un livre de recettes créoles oubliées","un court-métrage sur la diaspora","un podcast sur l'histoire coloniale",
-    "une application de patrimoine en réalité augmentée","un atelier mobile de percussion","un marché artisanal éphémère",
+    "un documentaire sur la route transatlantique des esclaves","un album fusionnant afrobeat et samba",
+    "une exposition sur l'art afro-brésilien","un festival itinérant Lagos-Salvador-Dakar",
+    "un recueil de poésie panafricain trilingue","une collection de mode afrofuturiste",
+    "un livre de recettes africaines et latino-américaines","un court-métrage sur la diaspora africaine au Brésil",
+    "un podcast sur les connexions culturelles Afrique-Amériques","une application de patrimoine en réalité augmentée",
+    "un atelier mobile de percussion africaine et brésilienne","un marché artisanal Afrique-Caraïbes-Amérique Latine",
 ]
 WORKS = [
     "mon nouveau morceau","ma dernière toile","mon recueil de poèmes","mon court-métrage","ma collection",
@@ -192,9 +225,15 @@ AMBIANCES = [
     "Le son du ka résonne au loin","L'odeur du café créole remplit l'air","La pluie tropicale tambourine sur les tôles",
 ]
 REFERENCES = [
-    "Aimé Césaire — Cahier d'un retour au pays natal","Maryse Condé — Moi, Tituba","Patrick Chamoiseau — Texaco",
-    "Kassav' — Zouk la sé sèl médikaman","Édouard Glissant — Traité du Tout-Monde","Frantz Fanon — Peau noire, masques blancs",
-    "Malavoi — Matébis","E.T. Mensah — Day by Day","Jocelyne Béroard — Siwo","Ralph Thamar — Caraïbes",
+    "Fela Kuti — Water No Get Enemy","Burna Boy — African Giant","Wizkid — Made in Lagos",
+    "Gilberto Gil — Refavela","Caetano Veloso — Tropicália","Jorge Ben Jor — A Tábua de Esmeralda",
+    "Celia Cruz — La Vida es un Carnaval","Buena Vista Social Club — Chan Chan","Rubén Blades — Pedro Navaja",
+    "Youssou N'Dour — 7 Seconds","Salif Keita — Soro","Ali Farka Touré — The River",
+    "Olodum — Faraó","Timbalada — Beija-Flor","Margareth Menezes — Dandalunda",
+    "Chinua Achebe — Things Fall Apart","Chimamanda Ngozi Adichie — Americanah",
+    "Jorge Amado — Bahia de Todos os Santos","Gabriel García Márquez — Cent ans de solitude",
+    "Léopold Sédar Senghor — Chants d'ombre","Aimé Césaire — Cahier d'un retour au pays natal",
+    "Wole Soyinka — Death and the King's Horseman","Maryse Condé — Moi, Tituba",
 ]
 
 # ═══════════════════════════════════════════════════════════

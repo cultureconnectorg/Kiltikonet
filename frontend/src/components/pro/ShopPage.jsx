@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Ticket, Zap, Music, Palette, UtensilsCrossed, Shirt, BookOpen, GraduationCap, Search, ChevronRight, Star } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ShoppingBag, Ticket, Zap, Music, Palette, UtensilsCrossed, Shirt, BookOpen, GraduationCap, Search, Star, Sparkles, X } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -9,7 +9,7 @@ const G = '#E8D5A0';
 const CATEGORIES = [
   { id: 'all', label: 'Tout', icon: ShoppingBag },
   { id: 'billetterie', label: 'Billetterie', icon: Ticket },
-  { id: 'jetons', label: 'Jetons CC', icon: Zap },
+  { id: 'jetons', label: 'Kilti-Tokens', icon: Zap },
   { id: 'musique', label: 'Musique', icon: Music },
   { id: 'art', label: 'Art', icon: Palette },
   { id: 'gastronomie', label: 'Gastronomie', icon: UtensilsCrossed },
@@ -18,42 +18,134 @@ const CATEGORIES = [
   { id: 'formation', label: 'Formation', icon: GraduationCap },
 ];
 
-// Products seeded locally (will be replaced by API when backend is ready)
-const SEED_PRODUCTS = [
-  { id: 'jcc-10', name: '10 Jetons CC', description: 'Pack de 10 jetons pour soutenir les artistes', price: 15, currency: 'EUR', category: 'jetons', image: null, badge: 'Populaire', stock: -1 },
-  { id: 'jcc-50', name: '50 Jetons CC', description: 'Pack de 50 jetons — economisez 10%', price: 67.50, currency: 'EUR', category: 'jetons', image: null, badge: 'Meilleur rapport', stock: -1 },
-  { id: 'jcc-100', name: '100 Jetons CC', description: 'Pack de 100 jetons — economisez 20%', price: 120, currency: 'EUR', category: 'jetons', image: null, badge: 'Premium', stock: -1 },
-  { id: 'ticket-cc2026', name: 'Pass CC2026 General', description: 'Acces complet au festival Culture Connect 2026 (20–23 Mai)', price: 45, currency: 'EUR', category: 'billetterie', image: null, badge: 'J-60', stock: 500 },
-  { id: 'ticket-cc2026-vip', name: 'Pass CC2026 VIP', description: 'Acces VIP + backstage + meet & greet artistes', price: 150, currency: 'EUR', category: 'billetterie', image: null, badge: 'VIP', stock: 100 },
-  { id: 'album-kassav', name: 'Kassav — Les Annees Or', description: 'Album digital compilation des plus grands classiques', price: 12, currency: 'EUR', category: 'musique', image: null },
-  { id: 'album-malavoi', name: 'Malavoi — Matebis', description: 'Chef-d\'oeuvre du biguine jazz contemporain', price: 10, currency: 'EUR', category: 'musique', image: null },
-  { id: 'print-selbonne', name: 'Ronald Selbonne — Tirage Signe', description: 'Reproduction numerotee 30x40cm sur papier Hahnemuhle', price: 85, currency: 'EUR', category: 'art', image: null, badge: 'Edition limitee' },
-  { id: 'spice-colombo', name: 'Kit Colombo Authentique', description: 'Melange d\'epices artisanal de Martinique — 3 sachets', price: 18, currency: 'EUR', category: 'gastronomie', image: null },
-  { id: 'tshirt-cc2026', name: 'T-Shirt CC2026 — Or Blanc', description: 'Coton bio, serigraphie logo KILTIKONET', price: 35, currency: 'EUR', category: 'mode', image: null, badge: 'Nouveau' },
-  { id: 'madras-scarf', name: 'Foulard Madras Signature', description: 'Tissu madras traditionnel reinterprete — creation exclusive', price: 55, currency: 'EUR', category: 'mode', image: null },
-  { id: 'book-conde', name: 'Maryse Conde — Memoires', description: 'Derniere edition incluant les inedits posthumes', price: 22, currency: 'EUR', category: 'litterature', image: null },
-  { id: 'workshop-bele', name: 'Atelier Bele — 2h', description: 'Initiation au Bele traditionnel avec maitre Ka', price: 40, currency: 'EUR', category: 'formation', image: null },
-  { id: 'workshop-creole', name: 'Cours Creole Martiniquais — 5 sessions', description: 'Apprendre les bases du creole avec un formateur certifie', price: 75, currency: 'EUR', category: 'formation', image: null },
-];
+const getCategoryIcon = (cat) => {
+  const found = CATEGORIES.find(c => c.id === cat);
+  return found ? found.icon : ShoppingBag;
+};
 
+// ═══════════════════════════════════════════════
+// CELEBRATION OVERLAY — Golden animation post-achat
+// ═══════════════════════════════════════════════
+const CelebrationOverlay = ({ tokens, onClose }) => {
+  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+      <div className="relative text-center kn-celebration-pop" data-testid="celebration-overlay">
+        <div className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center kn-glow-pulse"
+          style={{ background: `radial-gradient(circle, ${G}30, ${G}08)`, border: `2px solid ${G}40` }}>
+          <Sparkles size={40} style={{ color: G }} />
+        </div>
+        <h2 className="text-3xl font-black mb-2" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>
+          +{tokens} Kilti-Tokens
+        </h2>
+        <p className="text-sm" style={{ color: '#72727a' }}>
+          Merci de soutenir la culture du Sud Global !
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="kn-sparkle-float" style={{ animationDelay: `${i * 200}ms` }}>
+              <Zap size={12} style={{ color: G }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <style>{`
+        @keyframes celebrationPop {
+          0% { transform: scale(0.5); opacity: 0; }
+          60% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 0 30px ${G}20; }
+          50% { box-shadow: 0 0 60px ${G}40, 0 0 120px ${G}15; }
+        }
+        @keyframes sparkleFloat {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-40px) scale(0); opacity: 0; }
+        }
+        .kn-celebration-pop { animation: celebrationPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .kn-glow-pulse { animation: glowPulse 1.5s ease-in-out infinite; }
+        .kn-sparkle-float { animation: sparkleFloat 1.5s ease-out infinite; }
+      `}</style>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════
+// SHOP PAGE — Dynamic from API
+// ═══════════════════════════════════════════════
 const ShopPage = ({ session, jetonsBalance = 0 }) => {
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
-  const [products] = useState(SEED_PRODUCTS);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState(null);
+  const [celebration, setCelebration] = useState(null);
 
-  const filtered = products.filter(p => {
-    const matchCat = category === 'all' || p.category === category;
-    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
-  });
+  // Check for payment return
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    const sessionId = params.get('session_id');
 
-  const getCategoryIcon = (cat) => {
-    const found = CATEGORIES.find(c => c.id === cat);
-    return found ? found.icon : ShoppingBag;
+    if (payment === 'success' && sessionId) {
+      // Poll status
+      const checkStatus = async () => {
+        try {
+          const res = await axios.get(`${API}/shop/checkout/status/${sessionId}`);
+          if (res.data.payment_status === 'paid') {
+            const tokens = parseInt(new URLSearchParams(window.location.search).get('tokens') || '0');
+            setCelebration(tokens || 10);
+            toast.success('Paiement recu ! Kilti-Tokens credites.');
+          }
+        } catch { /* silent */ }
+      };
+      checkStatus();
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {};
+      if (category !== 'all') params.category = category;
+      if (search) params.search = search;
+      const res = await axios.get(`${API}/shop/products`, { params });
+      setProducts(res.data.products || []);
+    } catch {
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [category, search]);
+
+  useEffect(() => { loadProducts(); }, [loadProducts]);
+
+  const handleBuy = async (product) => {
+    setPurchasing(product.id);
+    try {
+      const res = await axios.post(`${API}/shop/checkout/create`, {
+        package_id: product.id,
+        user_id: session?.id,
+        origin_url: window.location.origin,
+      });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (err) {
+      toast.error('Erreur de paiement', { description: err.response?.data?.detail || 'Reessayez' });
+    } finally {
+      setPurchasing(null);
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-5" data-testid="shop-page">
+      {celebration && <CelebrationOverlay tokens={celebration} onClose={() => setCelebration(null)} />}
+
       {/* Header */}
       <div className="rounded-2xl p-5 relative overflow-hidden" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(232,213,160,0.06), transparent 60%)' }} />
@@ -65,17 +157,16 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
                   Marketplace
                 </span>
               </h1>
-              <p className="text-xs mt-1" style={{ color: '#72727a' }}>Decouvrez la culture caribeenne, soutenez les artistes</p>
+              <p className="text-xs mt-1" style={{ color: '#72727a' }}>Afrique · Amerique Latine · Diaspora — soutenez les artistes</p>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
               style={{ background: 'rgba(232,213,160,0.1)', border: '1px solid rgba(232,213,160,0.25)' }}>
               <Zap size={14} style={{ color: G }} />
               <span className="text-sm font-black tabular-nums" style={{ color: G }}>{jetonsBalance}</span>
-              <span className="text-[10px] font-bold" style={{ color: G }}>JCC</span>
+              <span className="text-[10px] font-bold" style={{ color: G }}>KT</span>
             </div>
           </div>
 
-          {/* Search */}
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: '#555' }} />
             <input value={search} onChange={e => setSearch(e.target.value)}
@@ -87,7 +178,7 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
         </div>
       </div>
 
-      {/* Category filters */}
+      {/* Categories */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" data-testid="shop-categories">
         {CATEGORIES.map(cat => {
           const CatIcon = cat.icon;
@@ -109,36 +200,44 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
       </div>
 
       {/* Products grid */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[1,2,3].map(i => (
+            <div key={i} className="rounded-2xl h-64 animate-pulse" style={{ background: '#141414' }} />
+          ))}
+        </div>
+      ) : products.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
           <ShoppingBag size={40} className="mx-auto mb-3" style={{ color: '#333' }} />
           <p className="text-sm" style={{ color: '#72727a' }}>Aucun produit dans cette categorie</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map(product => {
+          {products.map(product => {
             const CatIcon = getCategoryIcon(product.category);
-            const isJeton = product.category === 'jetons';
+            const isToken = product.category === 'jetons';
+            const isBuying = purchasing === product.id;
             return (
               <div key={product.id}
                 className="group rounded-2xl overflow-hidden transition-all hover:scale-[1.01]"
                 style={{ background: '#141414', border: '1px solid #1e1e1e' }}
                 data-testid={`product-${product.id}`}>
 
-                {/* Image placeholder */}
                 <div className="relative h-36 overflow-hidden"
-                  style={{ background: `linear-gradient(135deg, ${isJeton ? 'rgba(232,213,160,0.08)' : 'rgba(255,255,255,0.02)'}, #0a0a0b)` }}>
-                  <CatIcon size={40} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                    style={{ color: isJeton ? G : '#222', opacity: isJeton ? 0.3 : 0.15 }} />
-
+                  style={{ background: `linear-gradient(135deg, ${isToken ? 'rgba(232,213,160,0.08)' : 'rgba(255,255,255,0.02)'}, #0a0a0b)` }}>
+                  {product.image_url ? (
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <CatIcon size={40} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{ color: isToken ? G : '#222', opacity: isToken ? 0.3 : 0.15 }} />
+                  )}
                   {product.badge && (
                     <span className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ background: isJeton ? 'rgba(232,213,160,0.2)' : 'rgba(255,255,255,0.08)', color: isJeton ? G : '#fff', border: `1px solid ${isJeton ? 'rgba(232,213,160,0.3)' : 'rgba(255,255,255,0.1)'}` }}>
+                      style={{ background: isToken ? 'rgba(232,213,160,0.2)' : 'rgba(255,255,255,0.08)', color: isToken ? G : '#fff', border: `1px solid ${isToken ? 'rgba(232,213,160,0.3)' : 'rgba(255,255,255,0.1)'}` }}>
                       {product.badge}
                     </span>
                   )}
-
-                  {product.stock !== undefined && product.stock > 0 && product.stock < 50 && (
+                  {product.stock > 0 && product.stock < 50 && (
                     <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
                       style={{ background: 'rgba(232,90,79,0.15)', color: '#E85A4F' }}>
                       {product.stock} restants
@@ -146,7 +245,6 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
                   )}
                 </div>
 
-                {/* Info */}
                 <div className="p-4">
                   <h3 className="text-sm font-bold truncate" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>
                     {product.name}
@@ -155,19 +253,18 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between mt-3">
-                    <span className="text-base font-black" style={{ color: isJeton ? G : '#fff', fontFamily: "'DM Sans', sans-serif" }}>
-                      {product.price.toFixed(2)} {product.currency === 'EUR' ? 'EUR' : product.currency}
+                    <span className="text-base font-black" style={{ color: isToken ? G : '#fff', fontFamily: "'DM Sans', sans-serif" }}>
+                      {product.price?.toFixed(2)} {product.currency || 'EUR'}
                     </span>
-                    <button
-                      className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all hover:scale-[1.03] active:scale-[0.97]"
+                    <button onClick={() => handleBuy(product)} disabled={isBuying}
+                      className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50"
                       style={{
-                        background: isJeton ? G : 'rgba(255,255,255,0.06)',
-                        color: isJeton ? '#0a0a0b' : '#fff',
-                        border: isJeton ? 'none' : '1px solid #1e1e1e',
+                        background: isToken ? G : 'rgba(255,255,255,0.06)',
+                        color: isToken ? '#0a0a0b' : '#fff',
+                        border: isToken ? 'none' : '1px solid #1e1e1e',
                       }}
-                      onClick={() => toast.info('Paiement bientot disponible')}
                       data-testid={`buy-${product.id}`}>
-                      {isJeton ? 'Acheter' : 'Ajouter'}
+                      {isBuying ? 'Chargement...' : isToken ? 'Acheter' : 'Ajouter'}
                     </button>
                   </div>
                 </div>

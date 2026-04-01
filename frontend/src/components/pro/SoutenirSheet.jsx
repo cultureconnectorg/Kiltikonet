@@ -16,24 +16,25 @@ const SoutenirSheet = ({ targetName, targetId, userId, onClose }) => {
 
   useEffect(() => {
     if (userId) {
-      axios.get(`${API}/ghost/jetons/${userId}`)
-        .then(r => setBalance(r.data.jetons_solde || 0))
+      axios.get(`${API}/wallet/${userId}`)
+        .then(r => setBalance(r.data.balance || 0))
         .catch(() => setBalance(0));
     }
   }, [userId]);
 
   const handleSend = async () => {
     if (balance === null || balance < amount) {
-      toast.error('Solde insuffisant', { description: 'Achetez des Jetons CC dans le Shop' });
+      toast.error('Solde insuffisant', { description: 'Achetez des Kilti-Tokens dans le Shop' });
       return;
     }
     setSending(true);
     try {
-      await axios.post(`${API}/ghost/jetons/transfer`, {
+      await axios.post(`${API}/wallet/transfer`, {
         from_user_id: userId,
         to_user_id: targetId,
         amount: amount,
         reason: `Soutien a ${targetName}`,
+        channel: 'app',
       });
       setSent(true);
       toast.success(`${amount} JCC envoyes a ${targetName} !`);
