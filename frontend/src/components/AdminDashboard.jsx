@@ -11,7 +11,7 @@ import {
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
   Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
   BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown,
-  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins, Shield
+  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins, Shield, FileText
 } from 'lucide-react';
 import SmartEngineDashboard from './SmartEngineDashboard';
 import AIAgentsDashboard from './AIAgentsDashboard';
@@ -22,6 +22,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { PartnerManagement } from './PartnerManagement';
 import AdminNotifications from './AdminNotifications';
+import CandidaturesAdmin from './CandidaturesAdmin';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -744,6 +745,18 @@ export const AdminDashboard = () => {
                 Trafic
               </button>
               <button
+                onClick={() => setActiveTab('candidatures')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'candidatures'
+                    ? 'border-[#4A3AB7] text-[#4A3AB7]'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-candidatures"
+              >
+                <FileText className="w-4 h-4 inline mr-2" />
+                Candidatures
+              </button>
+              <button
                 onClick={() => setShowExportModal(true)}
                 className="ml-auto px-4 py-3 text-sm font-syne text-charcoal/50 hover:text-terracotta transition-colors"
                 data-testid="filtered-export-btn"
@@ -773,6 +786,10 @@ export const AdminDashboard = () => {
           ) : activeTab === 'trafic' ? (
             <div className="flex-1 overflow-auto">
               <SiteAnalyticsDashboard />
+            </div>
+          ) : activeTab === 'candidatures' ? (
+            <div className="flex-1 overflow-auto">
+              <CandidaturesAdmin />
             </div>
           ) : (
             <div className="flex-1 overflow-auto">

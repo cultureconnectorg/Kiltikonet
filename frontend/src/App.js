@@ -41,6 +41,7 @@ import BadgeInscription from "./components/BadgeInscription";
 import JetonsPage from "./components/JetonsPage";
 import JetonsAnalyticsDashboard from "./components/JetonsAnalyticsDashboard";
 import UserDashboard from "./components/UserDashboard";
+import AppelPage from "./components/AppelPage";
 // Workspaces
 import WorkspaceLaurent from "./components/workspaces/WorkspaceLaurent";
 import WorkspaceTwina from "./components/workspaces/WorkspaceTwina";
@@ -157,6 +158,7 @@ function App() {
               <Route path="/register" element={<PricingPage />} />
               <Route path="/inscription" element={<PricingPage />} />
               <Route path="/programme" element={<ProgramPage />} />
+              <Route path="/appel-2026" element={<AppelPage />} />
               <Route path="/concert" element={<ConcertPage />} />
               <Route path="/confirmation" element={<ConfirmationScreen />} />
               <Route path="/admin" element={<AdminDashboard />} />

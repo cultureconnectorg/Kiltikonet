@@ -1,0 +1,110 @@
+{
+  "summary": "Iteration 44 - CC2026 Appel a Projet Candidatures Testing Complete. Backend: 18/18 tests passed (100%). Frontend: All features working - /appel-2026 page with 7 sections (Hero, Qui sommes-nous, Laureats, Eligibilite, Criteres, Formulaire, Calendrier, Contact), Admin Dashboard Candidatures tab with table, filters, status change, export CSV.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "features_tested": {
+    "backend": {
+      "health_check": {"status": "PASSED", "endpoint": "GET /api/"},
+      "submit_candidature_success": {"status": "PASSED", "endpoint": "POST /api/candidatures/cc2026", "details": "Returns success:true and ID CC26-AAP-xxx"},
+      "submit_candidature_without_engagement": {"status": "PASSED", "endpoint": "POST /api/candidatures/cc2026", "details": "Returns 400 when engagement_cc=false"},
+      "submit_candidature_minimal": {"status": "PASSED", "endpoint": "POST /api/candidatures/cc2026", "details": "Works with only required fields"},
+      "list_candidatures": {"status": "PASSED", "endpoint": "GET /api/candidatures/cc2026", "details": "Returns candidatures array and total count"},
+      "list_candidatures_filtered": {"status": "PASSED", "endpoint": "GET /api/candidatures/cc2026?status=recue"},
+      "update_status_retenue": {"status": "PASSED", "endpoint": "PUT /api/candidatures/cc2026/{id}/status?status=retenue"},
+      "update_status_en_instruction": {"status": "PASSED", "endpoint": "PUT /api/candidatures/cc2026/{id}/status?status=en_instruction"},
+      "update_status_refusee": {"status": "PASSED", "endpoint": "PUT /api/candidatures/cc2026/{id}/status?status=refusee"},
+      "update_status_invalid": {"status": "PASSED", "endpoint": "PUT /api/candidatures/cc2026/{id}/status?status=invalide", "details": "Returns 400 for invalid status"},
+      "update_status_nonexistent": {"status": "PASSED", "endpoint": "PUT /api/candidatures/cc2026/NONEXISTENT/status", "details": "Returns 404"},
+      "export_csv": {"status": "PASSED", "endpoint": "GET /api/candidatures/cc2026/export", "details": "Returns CSV file with correct headers"},
+      "download_docx_fr": {"status": "PASSED", "endpoint": "GET /api/docs/AAP_CahierDesCharges_FR.docx"},
+      "download_docx_en": {"status": "PASSED", "endpoint": "GET /api/docs/AAP_CultureConnect2026_EN.docx"},
+      "download_docx_kw": {"status": "PASSED", "endpoint": "GET /api/docs/AAP_CultureConnect2026_KW.docx"},
+      "download_nonexistent": {"status": "PASSED", "endpoint": "GET /api/docs/fichier_inexistant.docx", "details": "Returns 404"},
+      "download_unsafe": {"status": "PASSED", "endpoint": "GET /api/docs/malicious_file.docx", "details": "Whitelist protection works"},
+      "full_flow": {"status": "PASSED", "details": "Create -> List -> Update Status -> Verify flow works"}
+    },
+    "frontend": {
+      "appel_page_loads": {"status": "PASSED", "notes": "/appel-2026 page loads correctly"},
+      "hero_section": {"status": "PASSED", "notes": "Hero with title 'Appel a projet Culture Connect 2026', subtitle, date limit badge '30 avril 2026', CTA buttons"},
+      "qui_sommes_nous": {"status": "PASSED", "notes": "Section with Kilti Konet and Culture Connect description"},
+      "laureate_cards": {"status": "PASSED", "notes": "4 cards: CC Certified, Cultural Impact Score, FREK-ID, Presence a Chimin Savann"},
+      "eligibility_cards": {"status": "PASSED", "notes": "3 cards: Artistes & createurs, Associations culturelles, Entreprises culturelles"},
+      "criteria_table": {"status": "PASSED", "notes": "5 rows: C1-C5 with percentages (25%, 20%, 20%, 20%, 15%)"},
+      "candidature_form": {"status": "PASSED", "notes": "11 fields: nom, email, organisation, territoire, profil, projet, description, impact, lien, format, engagement"},
+      "timeline": {"status": "PASSED", "notes": "5 steps: 15 avril, 30 avril, 10 mai, 20-23 mai, 23 mai"},
+      "contact_section": {"status": "PASSED", "notes": "Email appel2026@kiltikonet.fr visible"},
+      "admin_candidatures_tab": {"status": "PASSED", "notes": "Tab visible in Admin Dashboard, shows 15 candidatures"},
+      "admin_candidatures_table": {"status": "PASSED", "notes": "Table with NOM, PROJET, PROFIL, TERRITOIRE, DATE, STATUT, ACTION columns"},
+      "admin_status_change": {"status": "PASSED", "notes": "Status dropdown works for changing candidature status"},
+      "admin_export_csv": {"status": "PASSED", "notes": "Export CSV button present"},
+      "admin_search_filter": {"status": "PASSED", "notes": "Search input and status filter present"}
+    }
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_iteration44_candidatures.py",
+    "/app/test_reports/pytest/iteration44_candidatures_results.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "candidatures.py correctly implements all 6 endpoints with proper validation",
+    "DOCX files are served with whitelist protection (only 3 allowed filenames)",
+    "AppelPage.jsx has all required data-testid attributes for testing",
+    "CandidaturesAdmin.jsx properly integrates with backend APIs",
+    "AdminDashboard.jsx includes Candidatures tab after Trafic tab",
+    "Email confirmation uses Resend in test mode (onboarding@resend.dev)"
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_iteration44_candidatures.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% - 18/18 tests passed",
+    "frontend": "100% - All appel-2026 page sections + admin candidatures tab working"
+  },
+
+  "test_credentials": {
+    "api_url": "https://tarifs-update.preview.emergentagent.com",
+    "admin_password": "CC2026admin"
+  },
+
+  "seed_data_creation": "15 test candidatures created during backend testing (prefixed with 'Test Candidat' or 'Minimal Test')",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Iteration 44 complete. CC2026 Appel a Projet Candidatures feature fully tested: 6 backend endpoints (POST submit, GET list, PUT status, GET export CSV, GET docs) + frontend page /appel-2026 with 7 sections + Admin Dashboard Candidatures tab. 3 DOCX files available: AAP_CahierDesCharges_FR.docx, AAP_CultureConnect2026_EN.docx, AAP_CultureConnect2026_KW.docx. Valid statuses: recue, en_instruction, retenue, refusee.",
+
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": [],
+    "notes": "Email confirmation uses Resend in test mode (onboarding@resend.dev) - real emails not sent to candidates"
+  },
+
+  "api_endpoints_verified": {
+    "submit_candidature": "POST /api/candidatures/cc2026 - 200 OK with {success:true, id:CC26-AAP-xxx}",
+    "list_candidatures": "GET /api/candidatures/cc2026 - 200 OK with {candidatures:[], total:N}",
+    "list_filtered": "GET /api/candidatures/cc2026?status=recue - 200 OK",
+    "update_status": "PUT /api/candidatures/cc2026/{id}/status?status=retenue - 200 OK",
+    "invalid_status": "PUT /api/candidatures/cc2026/{id}/status?status=invalide - 400 Bad Request",
+    "export_csv": "GET /api/candidatures/cc2026/export - 200 OK (text/csv)",
+    "download_docx": "GET /api/docs/{filename}.docx - 200 OK (application/vnd.openxmlformats-officedocument.wordprocessingml.document)",
+    "nonexistent_doc": "GET /api/docs/fichier_inexistant.docx - 404 Not Found"
+  },
+
+  "rca_of_the_issue": null
+}
