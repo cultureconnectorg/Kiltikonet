@@ -11,7 +11,7 @@ import {
   Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
   Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
   BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown,
-  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins, Shield, FileText
+  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins, Shield, FileText, Camera
 } from 'lucide-react';
 import SmartEngineDashboard from './SmartEngineDashboard';
 import AIAgentsDashboard from './AIAgentsDashboard';
@@ -1276,8 +1276,41 @@ export const AdminDashboard = () => {
               </div>
               
               <div className="text-center mb-8">
-                <img src={selectedReg.image} alt={`Photo de ${selectedReg.full_name}`} className="w-24 h-24 object-cover mx-auto mb-4" />
-                <h2 className="font-serif text-xl text-charcoal mb-1">{selectedReg.full_name}</h2>
+                <div className="relative inline-block">
+                  <img src={selectedReg.image} alt={`Photo de ${selectedReg.full_name}`} className="w-24 h-24 object-cover mx-auto rounded-full border-2 border-lightborder" />
+                  <label
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-terracotta text-paper rounded-full flex items-center justify-center cursor-pointer hover:bg-terracotta/90 transition-colors shadow-md"
+                    title={language === 'fr' ? 'Changer la photo' : 'Change photo'}
+                    aria-label={language === 'fr' ? 'Changer la photo' : 'Change photo'}
+                    data-testid="admin-change-photo-btn"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024) { toast.error('Max 5 Mo'); return; }
+                        const fd = new FormData();
+                        fd.append('file', file);
+                        try {
+                          toast.loading('Upload en cours...');
+                          const res = await fetch(`${API}/registrations/${selectedReg.id}/photo`, { method: 'PATCH', body: fd });
+                          const data = await res.json();
+                          toast.dismiss();
+                          if (data.success) {
+                            toast.success(language === 'fr' ? 'Photo mise à jour' : 'Photo updated');
+                            setSelectedReg(prev => ({ ...prev, image: data.logo_url }));
+                            fetchRegistrations();
+                          } else { toast.error(data.detail || 'Erreur'); }
+                        } catch { toast.dismiss(); toast.error('Erreur upload'); }
+                      }}
+                    />
+                  </label>
+                </div>
+                <h2 className="font-serif text-xl text-charcoal mb-1 mt-3">{selectedReg.full_name}</h2>
                 <p className="text-charcoal/60">{selectedReg.organization_name}</p>
               </div>
               

@@ -341,7 +341,7 @@ const SmartEngineDashboard = () => {
       {/* Header */}
       <div className="border-b border-[#222] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/espace-coleen')} className="text-[#888] hover:text-[#F4F1EA]">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/workspace/coleen')} className="text-[#888] hover:text-[#F4F1EA]">
             <ArrowLeft size={16} className="mr-1" /> Retour
           </Button>
           <div>

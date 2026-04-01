@@ -696,6 +696,7 @@ class CheckoutRequest(BaseModel):
     siret_number: Optional[str] = None
     website_url: Optional[str] = None
     expertise_tags: Optional[str] = None  # NEW: Comma-separated expertise tags
+    show_in_catalog: Optional[bool] = False  # NEW: Catalogue pro visibility
     # For partnership
     company_name: Optional[str] = None
     contact_name: Optional[str] = None
@@ -924,7 +925,8 @@ async def create_checkout_session(request: Request, checkout_data: CheckoutReque
             "profile_image_url": checkout_data.profile_image_url or "",
             "siret_number": checkout_data.siret_number or "",
             "website_url": checkout_data.website_url or "",
-            "expertise_tags": checkout_data.expertise_tags or ""  # Comma-separated
+            "expertise_tags": checkout_data.expertise_tags or "",  # Comma-separated
+            "show_in_catalog": str(checkout_data.show_in_catalog or False)
         })
     else:
         metadata.update({
@@ -1114,7 +1116,7 @@ async def process_successful_payment(transaction: dict, metadata: dict):
             "expertise_tags": [t.strip() for t in (metadata.get("expertise_tags") or "").split(",") if t.strip()],
             "tier": tier,
             "status": "pending",
-            "show_in_catalog": False,
+            "show_in_catalog": metadata.get("show_in_catalog", "false").lower() == "true",
             "payment_session_id": session_id,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
@@ -1402,6 +1404,24 @@ async def update_catalog_visibility(registration_id: str, catalog_update: Catalo
         raise HTTPException(status_code=404, detail="Registration not found")
     
     return {"success": True, "show_in_catalog": catalog_update.show_in_catalog}
+
+@api_router.patch("/registrations/{registration_id}/photo")
+async def update_registration_photo(registration_id: str, file: UploadFile = File(...)):
+    """Upload or replace a participant photo via Cloudinary."""
+    reg = await db.registrations.find_one({"id": registration_id}, {"_id": 0, "id": 1})
+    if not reg:
+        raise HTTPException(status_code=404, detail="Registration not found")
+    
+    # upload_to_cloudinary returns a string URL, not a dict
+    image_url = await upload_to_cloudinary(file, folder="culture_connect/photos")
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Upload failed")
+    
+    await db.registrations.update_one(
+        {"id": registration_id},
+        {"$set": {"logo_url": image_url}}
+    )
+    return {"success": True, "logo_url": image_url}
 
 @api_router.delete("/registrations/{registration_id}")
 async def delete_registration(registration_id: str):

@@ -29,6 +29,10 @@ export const LegalFooter = () => {
         Cookies
       </Link>
       <span className="hidden sm:inline">·</span>
+      <Link to="/accessibilite" className="hover:text-terracotta transition-colors">
+        {language === 'fr' ? 'Accessibilité' : 'Accessibility'}
+      </Link>
+      <span className="hidden sm:inline">·</span>
       <button 
         onClick={handleManageCookies}
         className="hover:text-terracotta transition-colors"

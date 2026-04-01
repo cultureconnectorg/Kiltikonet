@@ -48,6 +48,7 @@ export const RegistrationForm = () => {
     profile_type: '', stand_request: 'no', stand_category: '', bio: '',
     language_preference: language, how_heard: '', siret_number: '', website_url: '',
     profile_image_url: '', // Cloudinary URL
+    show_in_catalog: false, // NEW: Catalogue Pro visibility
     expertise_tags: [] // NEW: Array of selected expertise tags
   });
   const [logoPreview, setLogoPreview] = useState(null);
@@ -151,6 +152,7 @@ export const RegistrationForm = () => {
       if (!formData.organization_name.trim()) newErrors.organization_name = true;
       if (!formData.profile_type) newErrors.profile_type = true;
       if (!formData.bio.trim()) newErrors.bio = true;
+      if (formData.show_in_catalog && !formData.profile_image_url) newErrors.profile_image_url = true;
     }
     if (step === 3) {
       if (!formData.how_heard) newErrors.how_heard = true;
@@ -191,6 +193,7 @@ export const RegistrationForm = () => {
         profile_image_url: formData.profile_image_url || null,
         siret_number: formData.siret_number || null,
         website_url: formData.website_url || null,
+        show_in_catalog: formData.show_in_catalog,
         // NEW: Expertise tags as comma-separated string (Stripe metadata limit)
         expertise_tags: (formData.expertise_tags || []).join(','),
         // hCaptcha token
@@ -376,15 +379,47 @@ export const RegistrationForm = () => {
                 <p className="text-xs text-charcoal/40 mt-1 text-right">{300 - formData.bio.length} {language === 'fr' ? 'caractères' : 'characters'}</p>
               </div>
               
+              {/* NEW: Show in catalog toggle - BEFORE photo upload */}
+              <div className="p-4 border border-lightborder bg-cream/50 rounded-sm">
+                <label className="flex items-start gap-3 cursor-pointer" data-testid="show-in-catalog-toggle">
+                  <input
+                    type="checkbox"
+                    checked={formData.show_in_catalog}
+                    onChange={(e) => handleInputChange('show_in_catalog', e.target.checked)}
+                    className="mt-1 w-4 h-4 accent-terracotta"
+                    aria-label={language === 'fr' ? 'Apparaître dans le catalogue pro' : 'Appear in the pro catalog'}
+                  />
+                  <div>
+                    <span className="text-sm font-semibold text-charcoal block">
+                      {language === 'fr' ? 'Apparaître dans le catalogue pro' : 'Appear in the pro catalog'}
+                    </span>
+                    <span className="text-xs text-charcoal/50">
+                      {language === 'fr'
+                        ? 'Votre profil, photo et organisation seront visibles par les autres participants accrédités.'
+                        : 'Your profile, photo and organization will be visible to other accredited participants.'}
+                    </span>
+                  </div>
+                </label>
+              </div>
+
               {/* NEW: Contextual image upload with immediate Cloudinary upload */}
               <div>
-                <Label className="text-charcoal/70 text-sm flex items-center gap-2">
+                <Label className={`text-charcoal/70 text-sm flex items-center gap-2 ${errors.profile_image_url ? 'text-terracotta' : ''}`}>
                   <Image className="w-4 h-4" />
                   {getImageUploadLabel()}
+                  {formData.show_in_catalog && <span className="text-terracotta">*</span>}
                 </Label>
+                {formData.show_in_catalog && !formData.profile_image_url && (
+                  <p className="text-xs text-terracotta mt-1 mb-2">
+                    {language === 'fr'
+                      ? 'Photo obligatoire pour apparaître dans le catalogue pro.'
+                      : 'Photo required to appear in the pro catalog.'}
+                  </p>
+                )}
                 <div 
                   onClick={() => !isUploading && fileInputRef.current?.click()}
                   className={`mt-1 border border-dashed bg-paper p-6 text-center cursor-pointer transition-all ${
+                    errors.profile_image_url ? 'border-terracotta bg-terracotta/5' :
                     isUploading ? 'border-terracotta/50 cursor-wait' : 
                     uploadSuccess ? 'border-sage bg-sage/5' : 
                     'border-lightborder hover:border-terracotta'
