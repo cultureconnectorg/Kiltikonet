@@ -43,11 +43,18 @@ CHANNELS = ["web", "app", "terminal", "api", "pos"]
 KT_EUR_RATE = 1.50  # 1 Kilti-Token = 1.50 EUR
 
 KILTI_PACKAGES = {
-    "kt-10":  {"name": "10 Kilti-Tokens",   "tokens": 10,  "price_eur": 15.00,  "badge": "Populaire"},
-    "kt-50":  {"name": "50 Kilti-Tokens",   "tokens": 50,  "price_eur": 67.50,  "badge": "-10%"},
-    "kt-100": {"name": "100 Kilti-Tokens",  "tokens": 100, "price_eur": 120.00, "badge": "-20%"},
-    "kt-250": {"name": "250 Kilti-Tokens",  "tokens": 250, "price_eur": 275.00, "badge": "Pack Diaspora"},
-    "kt-500": {"name": "500 Kilti-Tokens",  "tokens": 500, "price_eur": 500.00, "badge": "Pack Mécène"},
+    "kt-decouverte": {"name": "Pack Découverte",  "tokens": 15,   "price_eur": 10.00,  "badge": "Populaire",       "bonus_pct": 50},
+    "kt-culture":    {"name": "Pack Culture",      "tokens": 40,   "price_eur": 25.00,  "badge": "Bonus +60%",      "bonus_pct": 60},
+    "kt-diaspora":   {"name": "Pack Diaspora",     "tokens": 85,   "price_eur": 50.00,  "badge": "Bonus Premium",   "bonus_pct": 70},
+    "kt-vip":        {"name": "Pack VIP",          "tokens": 180,  "price_eur": 100.00, "badge": "Valeur x1.8",     "bonus_pct": 80},
+    "kt-partenaire": {"name": "Pack Partenaire",   "tokens": 1000, "price_eur": 500.00, "badge": "Institutionnel",  "bonus_pct": 100},
+}
+
+LEGAL_ENTITY = {
+    "business_name": "Factory Maker Studio EURL",
+    "business_location": "Martinique / Bruxelles",
+    "siren": "EURL-FMS-2026",
+    "ecosystem": "kiltikonet",
 }
 
 TX_TYPES = [
@@ -103,6 +110,8 @@ async def get_or_create_wallet(user_id: str, frek_id: str = None):
         "total_spent": 0,
         "total_earned": 0,
         "total_received": 0,
+        "validity_extension": True,
+        "validity_note": "KT valables CC2026, reportables CC2027",
         "status": "active",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -318,7 +327,7 @@ async def consume_tokens(data: dict):
 # ═══════════════════════════════════════════════════════════
 @router.get("/api/shop/packages")
 async def list_packages():
-    """Liste les packs Kilti-Tokens disponibles."""
+    """Liste les packs Kilti-Tokens — Monnaie Forte."""
     packages = []
     for pid, pkg in KILTI_PACKAGES.items():
         packages.append({
@@ -327,9 +336,12 @@ async def list_packages():
             "tokens": pkg["tokens"],
             "price": pkg["price_eur"],
             "currency": "EUR",
-            "unit_price": round(pkg["price_eur"] / pkg["tokens"], 2),
+            "bonus_pct": pkg.get("bonus_pct", 0),
             "badge": pkg.get("badge"),
-            "savings_pct": round((1 - (pkg["price_eur"] / pkg["tokens"]) / KT_EUR_RATE) * 100) if pkg["tokens"] > 10 else 0,
+            "marketing_label": f"Payez {int(pkg['price_eur'])}€, recevez {pkg['tokens']} KT",
+            "validity_extension": True,
+            "validity_note": "Reportable sur CC2027",
+            "legal_entity": LEGAL_ENTITY["business_name"],
         })
     return {"packages": packages}
 
@@ -388,7 +400,11 @@ async def create_checkout(data: dict, request: Request):
             "tokens": str(pkg.get("tokens", 0)),
             "product_name": pkg["name"],
             "channel": channel,
-            "ecosystem": "kiltikonet",
+            "ecosystem": LEGAL_ENTITY["ecosystem"],
+            "business_name": LEGAL_ENTITY["business_name"],
+            "business_location": LEGAL_ENTITY["business_location"],
+            "validity_extension": "true",
+            "validity_note": "KT reportables CC2027",
         },
     )
     session = await stripe.create_checkout_session(checkout_req)
@@ -429,10 +445,12 @@ async def check_checkout_status(session_id: str, request: Request):
         if tokens > 0 and user_id:
             await credit_wallet(user_id, tokens, "purchase",
                                 f"Achat {cs.get('product_name', 'KT')} via Stripe",
-                                channel, {"session_id": session_id, "amount_eur": cs.get("amount_eur")})
+                                channel, {"session_id": session_id, "amount_eur": cs.get("amount_eur"),
+                                          "validity_extension": True})
 
-            # Ghost Bridge — preuve de vie globale
-            asyncio.create_task(_ghost_bridge_feedback(user_id, cs.get("product_name", ""), channel))
+            # Ghost Bridge — preuve de vie globale (VIP/Diaspora/Standard)
+            asyncio.create_task(_ghost_bridge_feedback(
+                user_id, cs.get("product_name", ""), channel, cs.get("package_id", "")))
 
         await _db.kn_checkout_sessions.update_one(
             {"session_id": session_id},
@@ -516,11 +534,11 @@ async def seed_shop():
         return {"message": f"{existing} produits déjà présents", "seeded": False}
 
     products = [
-        {"id": "kt-10", "name": "10 Kilti-Tokens", "description": "Pack de 10 tokens pour soutenir les artistes", "price": 15.00, "currency": "EUR", "category": "jetons", "badge": "Populaire", "stock": -1, "order": 1},
-        {"id": "kt-50", "name": "50 Kilti-Tokens", "description": "Pack de 50 tokens — economisez 10%", "price": 67.50, "currency": "EUR", "category": "jetons", "badge": "-10%", "stock": -1, "order": 2},
-        {"id": "kt-100", "name": "100 Kilti-Tokens", "description": "Pack de 100 tokens — economisez 20%", "price": 120.00, "currency": "EUR", "category": "jetons", "badge": "-20%", "stock": -1, "order": 3},
-        {"id": "kt-250", "name": "250 Kilti-Tokens", "description": "Pack Diaspora — economisez 27%", "price": 275.00, "currency": "EUR", "category": "jetons", "badge": "Pack Diaspora", "stock": -1, "order": 4},
-        {"id": "kt-500", "name": "500 Kilti-Tokens", "description": "Pack Mecene — economisez 33%", "price": 500.00, "currency": "EUR", "category": "jetons", "badge": "Pack Mecene", "stock": -1, "order": 5},
+        {"id": "kt-decouverte", "name": "Pack Decouverte — 15 KT", "description": "Payez 10€, recevez 15 Kilti-Tokens. Bonus +50% inclus !", "price": 10.00, "currency": "EUR", "category": "jetons", "badge": "Populaire", "stock": -1, "order": 1},
+        {"id": "kt-culture", "name": "Pack Culture — 40 KT", "description": "Payez 25€, recevez 40 Kilti-Tokens. Bonus +60% !", "price": 25.00, "currency": "EUR", "category": "jetons", "badge": "Bonus +60%", "stock": -1, "order": 2},
+        {"id": "kt-diaspora", "name": "Pack Diaspora — 85 KT", "description": "Payez 50€, recevez 85 Kilti-Tokens. Bonus premium +70% !", "price": 50.00, "currency": "EUR", "category": "jetons", "badge": "Bonus Premium", "stock": -1, "order": 3},
+        {"id": "kt-vip", "name": "Pack VIP — 180 KT", "description": "Payez 100€, recevez 180 Kilti-Tokens. Doublement de la valeur !", "price": 100.00, "currency": "EUR", "category": "jetons", "badge": "Valeur x1.8", "stock": -1, "order": 4},
+        {"id": "kt-partenaire", "name": "Pack Partenaire — 1000 KT", "description": "Offre institutionnelle 500€ pour 1000 Kilti-Tokens.", "price": 500.00, "currency": "EUR", "category": "jetons", "badge": "Institutionnel", "stock": -1, "order": 5},
         {"id": "ticket-general", "name": "Pass General CC2026", "description": "Acces complet au festival Culture Connect 2026", "price": 45.00, "currency": "EUR", "category": "billetterie", "badge": "J-49", "stock": 500, "order": 10},
         {"id": "ticket-vip", "name": "Pass VIP CC2026", "description": "Acces VIP + backstage + meet & greet", "price": 150.00, "currency": "EUR", "category": "billetterie", "badge": "VIP", "stock": 100, "order": 11},
         {"id": "album-fela", "name": "Fela Kuti — Zombie (Remasterise)", "description": "Album digital remasterise du legendaire afrobeat", "price": 12.00, "currency": "EUR", "category": "musique", "order": 20},
@@ -579,49 +597,98 @@ GHOST_THANK_MESSAGES = [
     "Ta generosite alimente la resistance culturelle. Merci !",
 ]
 
-async def _ghost_bridge_feedback(user_id: str, product_name: str, channel: str):
+GHOST_VIP_MESSAGE = "Bienvenue dans le cercle VIP de KiltiKonet, ton soutien est precieux pour la culture !"
+
+GHOST_DIASPORA_MESSAGES = {
+    "kt-diaspora": "Felicitations pour ton passage au statut Diaspora, tes 85 KT sont prets a etre utilises !",
+    "kt-vip": "Bienvenue dans le cercle VIP de KiltiKonet ! Tes 180 KT t'ouvrent les portes de l'excellence culturelle.",
+    "kt-partenaire": "Merci pour votre engagement institutionnel ! 1000 KT activent votre partenariat premium avec KiltiKonet.",
+}
+
+async def _ghost_bridge_feedback(user_id: str, product_name: str, channel: str, package_id: str = ""):
     """Post-purchase: ghost sends thank you — preuve de vie globale."""
     try:
         await asyncio.sleep(random.randint(15, 90))
-        ghost = await _db.ghost_profiles_v2.find_one(
-            {"active": True, "profile_type": {"$in": ["institution", "label", "association"]}},
-            {"_id": 0, "id": 1, "full_name": 1, "image": 1}
-        )
+
+        # Determine ghost type based on package
+        is_vip_or_above = package_id in ("kt-vip", "kt-partenaire")
+        is_diaspora_or_above = package_id in ("kt-diaspora", "kt-vip", "kt-partenaire")
+
+        if is_vip_or_above:
+            # VIP/Partenaire: Ghost "Artiste Certifié"
+            ghost = await _db.ghost_profiles_v2.find_one(
+                {"active": True, "profile_type": {"$in": ["artist", "label"]}},
+                {"_id": 0, "id": 1, "full_name": 1, "image": 1}
+            )
+            ghost_type = "ghost_vip_welcome"
+            message = GHOST_DIASPORA_MESSAGES.get(package_id, GHOST_VIP_MESSAGE)
+        elif is_diaspora_or_above:
+            # Diaspora: Ghost institution
+            ghost = await _db.ghost_profiles_v2.find_one(
+                {"active": True, "profile_type": {"$in": ["institution", "association"]}},
+                {"_id": 0, "id": 1, "full_name": 1, "image": 1}
+            )
+            ghost_type = "ghost_diaspora_welcome"
+            message = GHOST_DIASPORA_MESSAGES.get(package_id, random.choice(GHOST_THANK_MESSAGES))
+        else:
+            # Standard: Ghost institution
+            ghost = await _db.ghost_profiles_v2.find_one(
+                {"active": True, "profile_type": {"$in": ["institution", "label", "association"]}},
+                {"_id": 0, "id": 1, "full_name": 1, "image": 1}
+            )
+            ghost_type = "ghost_thank_you"
+            message = random.choice(GHOST_THANK_MESSAGES)
+
         if not ghost:
             return
 
-        await _db.notifications.insert_one({
+        notification = {
             "id": str(uuid.uuid4()),
             "user_id": user_id,
             "from_id": ghost["id"],
             "from_name": ghost["full_name"],
             "from_image": ghost.get("image", ""),
-            "type": "ghost_thank_you",
-            "message": random.choice(GHOST_THANK_MESSAGES),
+            "from_badge": "Artiste Certifie" if is_vip_or_above else "Institution Partenaire",
+            "type": ghost_type,
+            "message": message,
             "product_name": product_name,
+            "package_id": package_id,
             "channel": channel,
+            "is_private_dm": is_vip_or_above,
             "read": False,
             "created_at": datetime.now(timezone.utc).isoformat(),
-        })
-        logger.info(f"Ghost bridge ({channel}): {ghost['full_name']} thanked {user_id}")
+        }
+        await _db.notifications.insert_one(notification)
+        logger.info(f"Ghost bridge ({channel}/{ghost_type}): {ghost['full_name']} → {user_id} [{package_id}]")
     except Exception as e:
         logger.warning(f"Ghost bridge error: {e}")
 
 
 # ═══════════════════════════════════════════════════════════
-# REVENUE DASHBOARD — Stats financières
+# REVENUE DASHBOARD — Stats financières & Float/Passif
 # ═══════════════════════════════════════════════════════════
 @router.get("/api/fintech/dashboard")
 async def fintech_dashboard():
-    """Dashboard financier pour admin."""
+    """Dashboard financier pour admin — Float, Passif, Cash, Adoption."""
     now = datetime.now(timezone.utc)
     day_ago = (now - timedelta(days=1)).isoformat()
     week_ago = (now - timedelta(days=7)).isoformat()
 
     total_wallets = await _db.kn_wallets.count_documents({})
     total_txs = await _db.kn_transactions.count_documents({})
-    purchases = await _db.kn_transactions.find({"type": "purchase"}, {"_id": 0, "amount": 1}).to_list(10000)
-    total_purchased = sum(t.get("amount", 0) for t in purchases)
+
+    # Purchases (Cash IN)
+    purchases = await _db.kn_transactions.find({"type": "purchase"}, {"_id": 0, "amount": 1, "metadata": 1}).to_list(10000)
+    total_kt_purchased = sum(t.get("amount", 0) for t in purchases)
+    total_eur_cash = sum(t.get("metadata", {}).get("amount_eur", 0) for t in purchases)
+
+    # KT still in wallets (Passif = obligations)
+    wallet_balances = await _db.kn_wallets.find({}, {"_id": 0, "balance": 1}).to_list(100000)
+    total_kt_in_wallets = sum(w.get("balance", 0) for w in wallet_balances)
+
+    # KT consumed (revenue realized)
+    consumptions_data = await _db.kn_transactions.find({"type": "consumption"}, {"_id": 0, "amount": 1}).to_list(10000)
+    total_kt_consumed = abs(sum(t.get("amount", 0) for t in consumptions_data))
 
     transfers = await _db.kn_transactions.count_documents({"type": "transfer_out"})
     consumptions = await _db.kn_transactions.count_documents({"type": "consumption"})
@@ -630,19 +697,50 @@ async def fintech_dashboard():
     sessions_paid = await _db.kn_checkout_sessions.count_documents({"status": "paid"})
 
     # Revenue by channel
-    pipeline = [
+    pipeline_channel = [
         {"$match": {"type": "purchase"}},
         {"$group": {"_id": "$channel", "total": {"$sum": "$amount"}, "count": {"$sum": 1}}},
     ]
-    by_channel = await _db.kn_transactions.aggregate(pipeline).to_list(10)
+    by_channel = await _db.kn_transactions.aggregate(pipeline_channel).to_list(10)
+
+    # Adoption by zone (ghost_profiles_v2 + real users wallets)
+    pipeline_zone = [
+        {"$match": {"active": True}},
+        {"$group": {"_id": "$location_zone", "count": {"$sum": 1}}},
+    ]
+    ghost_by_zone = await _db.ghost_profiles_v2.aggregate(pipeline_zone).to_list(20)
+
+    # FREK-ID stats
+    frek_linked = await _db.kn_wallets.count_documents({"frek_id": {"$ne": None, "$exists": True}})
+
+    # Paid sessions by package (revenue breakdown)
+    pipeline_packs = [
+        {"$match": {"status": "paid"}},
+        {"$group": {"_id": "$package_id", "count": {"$sum": 1}, "total_eur": {"$sum": "$amount_eur"}, "total_kt": {"$sum": "$tokens"}}},
+    ]
+    by_pack = await _db.kn_checkout_sessions.aggregate(pipeline_packs).to_list(10)
+
+    # Recent transactions (last 20)
+    recent_txs = await _db.kn_transactions.find({}, {"_id": 0}).sort("created_at", -1).limit(20).to_list(20)
 
     return {
+        "float": {
+            "cash_eur": round(total_eur_cash, 2),
+            "passif_kt": total_kt_in_wallets,
+            "kt_consumed": total_kt_consumed,
+            "kt_total_emitted": total_kt_purchased,
+            "margin_note": "Float = Cash EUR en banque. Passif = KT en circulation (obligations futures).",
+        },
         "wallets": total_wallets,
+        "frek_linked": frek_linked,
         "transactions": total_txs,
-        "tokens_in_circulation": total_purchased,
-        "eur_revenue": round(total_purchased * KT_EUR_RATE, 2),
         "transfers": transfers,
         "consumptions": consumptions,
         "checkout_sessions": {"total": sessions_total, "paid": sessions_paid},
         "revenue_by_channel": {r["_id"]: {"tokens": r["total"], "count": r["count"]} for r in by_channel},
+        "revenue_by_pack": {r["_id"]: {"count": r["count"], "eur": round(r.get("total_eur", 0), 2), "kt": r.get("total_kt", 0)} for r in by_pack},
+        "adoption_by_zone": {r["_id"]: r["count"] for r in ghost_by_zone if r["_id"]},
+        "recent_transactions": recent_txs,
+        "legal_entity": LEGAL_ENTITY,
+        "validity_extension": True,
     }

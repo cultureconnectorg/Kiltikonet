@@ -66,6 +66,8 @@ import MobileBottomNav from "./components/MobileBottomNav";
 import AdminMobileDashboard from "./components/AdminMobileDashboard";
 // Performance Dashboard
 import PerformanceDashboard from "./components/admin/PerformanceDashboard";
+// Admin Finance Dashboard
+import AdminFinanceDashboard from "./components/admin/AdminFinanceDashboard";
 // Device Detection Hook
 import useDeviceDetect from "./hooks/useDeviceDetect";
 // Analytics
@@ -201,6 +203,8 @@ function App() {
               <Route path="/admin/accreditation" element={<ProtectedRoute allowedRoles={['admin']}><AccreditationSystem /></ProtectedRoute>} />
               {/* Performance Dashboard */}
               <Route path="/admin/performance" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><PerformanceDashboard /></ProtectedRoute>} />
+              {/* Admin Finance Dashboard */}
+              <Route path="/admin/finance" element={<ProtectedRoute allowedRoles={['admin', 'founder', 'finance']}><AdminFinanceDashboard /></ProtectedRoute>} />
               {/* Admin Mobile Dashboard */}
               <Route path="/admin/mobile" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><AdminMobileDashboard /></ProtectedRoute>} />
               <Route path="/admin/terrain" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><AdminMobileDashboard /></ProtectedRoute>} />
