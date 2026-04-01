@@ -92,7 +92,7 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <defs>
           <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(200,168,75,0.15)" />
+            <stop offset="0%" stopColor="rgba(232,213,160,0.15)" />
             <stop offset="100%" stopColor="transparent" />
           </radialGradient>
           <filter id="gold-glow">
@@ -139,8 +139,8 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
         {progress > 0 && (
           <polygon
             points={polygon}
-            fill="rgba(200,168,75,0.12)"
-            stroke="#C8A84B"
+            fill="rgba(232,213,160,0.12)"
+            stroke="#E8D5A0"
             strokeWidth="1.5"
             filter="url(#gold-glow)"
             style={{ transition: 'all 0.1s ease-out' }}
@@ -153,8 +153,8 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
             key={i}
             cx={p.x} cy={p.y}
             r={compact ? 3 : 4}
-            fill="#C8A84B"
-            stroke="#0a0a0a"
+            fill="#E8D5A0"
+            stroke="#0a0a0b"
             strokeWidth="2"
           />
         ))}
@@ -168,7 +168,7 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
               x={pos.x} y={pos.y}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill={values[i] > 0 ? '#C8A84B' : '#555'}
+              fill={values[i] > 0 ? '#E8D5A0' : '#555'}
               fontSize={compact ? 8 : 10}
               fontWeight={values[i] > 0 ? 600 : 400}
               fontFamily="'DM Sans', 'Inter', sans-serif"

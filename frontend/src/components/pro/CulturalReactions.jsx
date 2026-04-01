@@ -4,7 +4,7 @@ const REACTION_CONFIG = [
   { type: 'feu', emoji: '\u{1F525}', label: 'Feu', color: '#ff6b35' },
   { type: 'rythme', emoji: '\u{1F941}', label: 'Rythme', color: '#8b4513' },
   { type: 'racines', emoji: '\u{1F33A}', label: 'Racines', color: '#ff69b4' },
-  { type: 'resistance', emoji: '\u270A', label: 'Résistance', color: '#C8A84B' },
+  { type: 'resistance', emoji: '\u270A', label: 'Résistance', color: '#E8D5A0' },
   { type: 'lumiere', emoji: '\u{1F4AB}', label: 'Lumière', color: '#ffffff' },
 ];
 
@@ -68,8 +68,8 @@ const CulturalReactions = ({ cardId, reactions = {}, userId, onReact, vertical =
               width: vertical ? 40 : 'auto',
               height: vertical ? 40 : 'auto',
               padding: vertical ? 0 : '6px 10px',
-              background: count > 0 ? 'rgba(200,168,75,0.12)' : (vertical ? 'rgba(0,0,0,0.4)' : 'transparent'),
-              border: vertical ? 'none' : `1px solid ${count > 0 ? 'rgba(200,168,75,0.25)' : '#1e1e1e'}`,
+              background: count > 0 ? 'rgba(232,213,160,0.12)' : (vertical ? 'rgba(0,0,0,0.4)' : 'transparent'),
+              border: vertical ? 'none' : `1px solid ${count > 0 ? 'rgba(232,213,160,0.25)' : '#1e1e1e'}`,
               backdropFilter: vertical ? 'blur(8px)' : 'none',
               transform: isAnimating ? 'scale(1.25)' : 'scale(1)',
               transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s',
@@ -89,11 +89,11 @@ const CulturalReactions = ({ cardId, reactions = {}, userId, onReact, vertical =
             </span>
 
             {count > 0 && !vertical && (
-              <span className="text-[11px] font-bold tabular-nums ml-1" style={{ color: '#C8A84B' }}>{count}</span>
+              <span className="text-[11px] font-bold tabular-nums ml-1" style={{ color: '#E8D5A0' }}>{count}</span>
             )}
 
             {count > 0 && vertical && (
-              <span className="absolute -bottom-0.5 text-[9px] font-bold tabular-nums" style={{ color: '#C8A84B' }}>{count}</span>
+              <span className="absolute -bottom-0.5 text-[9px] font-bold tabular-nums" style={{ color: '#E8D5A0' }}>{count}</span>
             )}
 
             {/* Colored burst particles */}

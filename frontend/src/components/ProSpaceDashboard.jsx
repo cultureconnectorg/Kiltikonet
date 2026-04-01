@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
 // ESPACE PRO CC2026 — Moteur d'Identité Culturelle Caribéenne
-// MOBILE-FIRST · PREMIUM UX · Fond #0a0a0a · Accent Or #C8A84B
+// MOBILE-FIRST · PREMIUM UX · Fond OLED #0a0a0b · Or Blanc #E8D5A0 · DM Sans
 // ═══════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -22,13 +22,14 @@ import ConstellationRadar from './pro/ConstellationRadar';
 import CulturalFeed from './pro/CulturalFeed';
 import CulturalReactions from './pro/CulturalReactions';
 import MobileNavigation from './pro/MobileNavigation';
+import ShopPage from './pro/ShopPage';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // ─── Design Tokens — Premium Dark ─────────────────────
 const C = {
-  bg: '#0a0a0a', surface: '#111111', card: '#141414', border: '#1a1a1a',
-  text: '#FFFFFF', muted: '#888888', dim: '#555555', gold: '#C8A84B',
+  bg: '#0a0a0b', surface: '#111111', card: '#141414', border: '#1a1a1a',
+  text: '#FFFFFF', muted: '#72727a', dim: '#555555', gold: '#E8D5A0',
   accent: '#C4714A', forest: '#4A5D4E', blue: '#5B9BD5', red: '#E85A4F',
   purple: '#8B5CF6', turquoise: '#2DD4BF', input: '#181818',
 };
@@ -76,7 +77,7 @@ const useProSession = () => {
 // ─── Avatar — Dégradé radial + anneau or au hover ────
 const Avatar = ({ src, name, type, size = 44, className = '', style = {}, ring = false }) => {
   const hasPhoto = src && !src.includes('ui-avatars.com');
-  const ringStyle = ring ? { border: '2px solid #C8A84B', boxShadow: '0 0 0 1px rgba(200,168,75,0.2)' } : {};
+  const ringStyle = ring ? { border: '2px solid #E8D5A0', boxShadow: '0 0 0 1px rgba(232,213,160,0.2)' } : {};
   if (hasPhoto) {
     return (
       <div className={`rounded-full flex-shrink-0 kn-avatar-ring ${className}`} style={{ width: size, height: size, ...ringStyle, ...style }}>
@@ -89,7 +90,7 @@ const Avatar = ({ src, name, type, size = 44, className = '', style = {}, ring =
   return (
     <div className={`rounded-full flex items-center justify-center flex-shrink-0 kn-avatar-ring ${className}`}
       style={{ width: size, height: size, background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #1e1e1e)', ...ringStyle, ...style }} aria-hidden="true">
-      <span style={{ fontSize: fs, fontWeight: 700, color: '#888', letterSpacing: 0.5, fontFamily: "'Inter', sans-serif" }}>{initials}</span>
+      <span style={{ fontSize: fs, fontWeight: 700, color: '#888', letterSpacing: 0.5, fontFamily: "'DM Sans', sans-serif" }}>{initials}</span>
     </div>
   );
 };
@@ -167,17 +168,17 @@ const ProSpaceDashboard = () => {
   const navItems = [
     { id: 'feed', label: 'Feed', icon: Home },
     { id: 'network', label: 'Réseau', icon: Users },
-    { id: 'opportunities', label: 'Emplois', icon: Briefcase },
+    { id: 'shop', label: 'Shop', icon: Briefcase },
     { id: 'events', label: 'Agenda', icon: Calendar },
   ];
 
   const handleMobileNav = (id) => {
     if (id === 'create') {
       setActiveSection('feed');
-      // Will scroll to create post area
+      // Trigger the create card FAB
       setTimeout(() => {
-        const el = document.querySelector('[data-testid="create-post-box"]');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const fab = document.querySelector('[data-testid="create-card-fab"]');
+        if (fab) fab.click();
       }, 100);
     } else {
       setActiveSection(id);
@@ -186,25 +187,23 @@ const ProSpaceDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'DM Sans', 'Inter', sans-serif" }} data-testid="pro-space-dashboard">
+    <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'DM Sans', sans-serif" }} data-testid="pro-space-dashboard">
       {showOnboarding && <ProOnboarding session={session} onComplete={handleOnboardingComplete} />}
 
       {/* ─── HEADER ─── */}
-      <header className="sticky top-0 z-50" style={{ background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(20px) saturate(1.8)', WebkitBackdropFilter: 'blur(20px) saturate(1.8)', borderBottom: '1px solid #1a1a1a' }}>
+      <header className="sticky top-0 z-50" style={{ background: 'rgba(10,10,11,0.92)', backdropFilter: 'blur(24px) saturate(1.8)', WebkitBackdropFilter: 'blur(24px) saturate(1.8)', borderBottom: '1px solid #1a1a1a' }}>
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
-          {/* Logo */}
-          <button onClick={() => setActiveSection('feed')} className="flex-shrink-0" aria-label="Accueil Espace Pro" data-testid="logo-home">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: C.gold }}>
-              <span className="font-black text-sm" style={{ color: '#0a0a0a' }}>CC</span>
-            </div>
+          {/* Logo KILTIKONET */}
+          <button onClick={() => setActiveSection('feed')} className="flex-shrink-0 flex items-center gap-2" aria-label="Accueil Espace Pro" data-testid="logo-home">
+            <span className="text-base font-black tracking-tight" style={{ background: 'linear-gradient(135deg, #FFFFFF, #E8D5A0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: "'DM Sans', sans-serif" }}>KILTIKONET</span>
           </button>
 
           {/* Search — desktop */}
           <div className="hidden sm:flex flex-1 max-w-xs relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: '#444' }} />
             <input placeholder="Rechercher..." aria-label="Rechercher dans le réseau"
-              className="w-full h-9 pl-10 pr-4 rounded-full text-sm focus:border-[#C8A84B]"
-              style={{ background: '#141414', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 36, transition: 'border-color 0.15s', fontFamily: "'Inter', sans-serif" }} />
+              className="w-full h-9 pl-10 pr-4 rounded-full text-sm focus:border-[#E8D5A0]"
+              style={{ background: '#141414', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 36, transition: 'border-color 0.15s', fontFamily: "'DM Sans', sans-serif" }} />
           </div>
 
           <div className="flex-1 sm:hidden" />
@@ -214,28 +213,28 @@ const ProSpaceDashboard = () => {
             {navItems.map(item => (
               <button key={item.id} onClick={() => setActiveSection(item.id)} data-testid={`nav-${item.id}`}
                 className="flex flex-col items-center px-4 py-1 transition-colors relative"
-                style={{ color: activeSection === item.id ? '#fff' : '#444', minHeight: 44, fontFamily: "'Inter', sans-serif" }}
+                style={{ color: activeSection === item.id ? '#fff' : '#444', minHeight: 44, fontFamily: "'DM Sans', sans-serif" }}
                 aria-current={activeSection === item.id ? 'page' : undefined}>
                 <item.icon size={20} />
                 <span className="text-[11px] mt-0.5 font-medium">{item.label}</span>
-                {activeSection === item.id && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded" style={{ background: '#C8A84B' }} />}
+                {activeSection === item.id && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded" style={{ background: '#E8D5A0' }} />}
               </button>
             ))}
             <button onClick={() => setShowMessages(!showMessages)} data-testid="nav-messages"
               className="flex flex-col items-center px-4 py-1 relative" style={{ color: showMessages ? '#fff' : '#444', minHeight: 44 }}>
               <MessageSquare size={20} />
-              <span className="text-[11px] mt-0.5 font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>Messages</span>
+              <span className="text-[11px] mt-0.5 font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>Messages</span>
               {unreadCount > 0 && <span className="absolute top-0 right-2 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center" style={{ background: '#E85A4F', color: '#fff' }}>{unreadCount}</span>}
             </button>
           </nav>
 
           {/* Jetons Badge */}
           <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all hover:scale-[1.02]" data-testid="jetons-badge"
-            style={{ background: '#1a1a1a', border: '1px solid rgba(200,168,75,0.3)', minHeight: 36, animation: 'jetonsPulse 3s ease-in-out infinite' }}
+            style={{ background: '#1a1a1a', border: '1px solid rgba(232,213,160,0.3)', minHeight: 36, animation: 'jetonsPulse 3s ease-in-out infinite' }}
             title="1 Jeton CC = 1.50€" aria-label={`${jetonsBalance} Jetons CC`}>
-            <Zap size={16} style={{ color: '#C8A84B' }} />
-            <span className="text-sm font-bold" style={{ color: '#C8A84B', fontFamily: "'Inter', sans-serif" }}>{jetonsBalance}</span>
-            <span className="text-[10px] hidden sm:inline font-semibold" style={{ color: '#C8A84B' }}>JCC</span>
+            <Zap size={16} style={{ color: '#E8D5A0' }} />
+            <span className="text-sm font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{jetonsBalance}</span>
+            <span className="text-[10px] hidden sm:inline font-semibold" style={{ color: '#E8D5A0' }}>JCC</span>
           </button>
 
           {/* Profile */}
@@ -253,13 +252,16 @@ const ProSpaceDashboard = () => {
       </header>
 
       {/* ─── MAIN ─── */}
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        {activeSection === 'feed' && <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />}
-        {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadAll} />}
-        {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadAll} />}
-        {activeSection === 'opportunities' && <OpportunitiesPage opportunities={opportunities} />}
-        {activeSection === 'events' && <EventsPage events={events} />}
-      </div>
+      {activeSection === 'feed' ? (
+        <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />
+      ) : (
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadAll} />}
+          {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadAll} />}
+          {activeSection === 'shop' && <ShopSection session={session} jetonsBalance={jetonsBalance} />}
+          {activeSection === 'events' && <EventsPage events={events} />}
+        </div>
+      )}
 
       {showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
       <CvlBrainFloat session={session} />
@@ -274,24 +276,24 @@ const ProSpaceDashboard = () => {
 
       {/* ─── Global CSS — Premium Design System ─── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
         :root {
-          --bg-primary: #0a0a0a;
+          --bg-primary: #0a0a0b;
           --bg-secondary: #111111;
           --bg-card: #141414;
           --bg-hover: #1a1a1a;
-          --accent-gold: #C8A84B;
-          --accent-gold-dim: rgba(200, 168, 75, 0.15);
+          --accent-gold: #E8D5A0;
+          --accent-gold-dim: rgba(232, 213, 160, 0.15);
           --text-primary: #FFFFFF;
-          --text-secondary: #888888;
+          --text-secondary: #72727a;
           --text-tertiary: #444444;
           --border-subtle: #1e1e1e;
-          --border-gold: rgba(200, 168, 75, 0.3);
-          --shadow-gold: 0 0 20px rgba(200, 168, 75, 0.1);
+          --border-gold: rgba(232, 213, 160, 0.3);
+          --shadow-gold: 0 0 20px rgba(232, 213, 160, 0.1);
         }
 
-        @keyframes jetonsPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(200,168,75,0); } 50% { box-shadow: 0 0 12px 2px rgba(200,168,75,0.2); } }
+        @keyframes jetonsPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(232,213,160,0); } 50% { box-shadow: 0 0 12px 2px rgba(232,213,160,0.2); } }
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .fade-slide-in { animation: fadeSlideIn 0.25s ease-out both; }
 
@@ -315,7 +317,7 @@ const ProSpaceDashboard = () => {
         }
         .kn-card:hover {
           transform: scale(1.01);
-          box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(200,168,75,0.08);
+          box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(232,213,160,0.08);
         }
         @keyframes knCardIn {
           from { opacity: 0; transform: translateY(12px); }
@@ -346,7 +348,7 @@ const ProSpaceDashboard = () => {
           transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
         .kn-avatar-ring:hover {
-          box-shadow: 0 0 0 2px rgba(200,168,75,0.4);
+          box-shadow: 0 0 0 2px rgba(232,213,160,0.4);
         }
 
         /* Burst particles */
@@ -379,79 +381,107 @@ const ProSpaceDashboard = () => {
 };
 
 // ═══════════════════════════════════════════════════════════
-// FEED LAYOUT — Cultural Identity Sidebar + Discovery Feed
+// FEED LAYOUT — Immersive TikTok on mobile, 3-column on desktop
 // ═══════════════════════════════════════════════════════════
-const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, culturalIdentity }) => (
-  <div className="flex gap-6 fade-slide-in">
-    {/* Left sidebar — Identity */}
-    <aside className="hidden lg:block w-64 flex-shrink-0 space-y-4">
-      {/* Profile Card */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
-        <div className="h-16 relative" style={{ background: 'linear-gradient(135deg, rgba(200,168,75,0.08), rgba(196,113,74,0.06))' }} />
-        <div className="px-4 pb-4 -mt-8 text-center">
-          <Avatar src={session.image} name={session.name} type={session.type} size={64} className="mx-auto" ring style={{ border: '3px solid #141414' }} />
-          <h3 className="text-sm font-bold mt-2" style={{ color: '#fff', fontFamily: "'Inter', sans-serif" }}>{session.name}</h3>
-          <p className="text-[11px]" style={{ color: '#888' }}>{PROFILE_LABELS[session.type] || 'Professionnel'}</p>
+const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, culturalIdentity }) => {
+  const [feedMode, setFeedMode] = useState('cultural'); // 'cultural' or 'social'
+
+  return (
+    <>
+      {/* MOBILE: Full-screen immersive cultural feed */}
+      <div className="md:hidden">
+        {/* Mode toggle pills */}
+        <div className="sticky top-14 z-20 flex gap-2 px-4 py-2" style={{ background: 'rgba(10,10,11,0.95)', backdropFilter: 'blur(12px)' }}>
+          <button onClick={() => setFeedMode('cultural')}
+            className="px-4 py-1.5 rounded-full text-xs font-bold transition-all"
+            style={{ background: feedMode === 'cultural' ? '#E8D5A0' : 'rgba(255,255,255,0.06)', color: feedMode === 'cultural' ? '#0a0a0b' : '#72727a' }}
+            data-testid="feed-mode-cultural">Découvrir</button>
+          <button onClick={() => setFeedMode('social')}
+            className="px-4 py-1.5 rounded-full text-xs font-bold transition-all"
+            style={{ background: feedMode === 'social' ? '#E8D5A0' : 'rgba(255,255,255,0.06)', color: feedMode === 'social' ? '#0a0a0b' : '#72727a' }}
+            data-testid="feed-mode-social">Communauté</button>
         </div>
-        <div className="px-4 pb-4">
-          <CulturalIdentityBar score={culturalIdentity?.score || 0} levelName={culturalIdentity?.level?.name || ''} />
-        </div>
-        <div className="border-t px-4 py-3" style={{ borderColor: '#1e1e1e' }}>
-          <div className="flex justify-around text-center">
-            <div>
-              <p className="text-lg font-bold" style={{ color: '#C8A84B', fontFamily: "'Inter', sans-serif" }}>{connections.length}</p>
-              <p className="text-[10px]" style={{ color: '#888' }}>Connexions</p>
+
+        {feedMode === 'cultural' ? (
+          <div className="px-2">
+            <CulturalFeed userId={session.id} />
+          </div>
+        ) : (
+          <div className="px-4 py-4">
+            <FeedSection session={session} />
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP: 3-column layout */}
+      <div className="hidden md:flex gap-6 max-w-5xl mx-auto px-4 py-6">
+        {/* Left sidebar — Identity */}
+        <aside className="hidden lg:block w-64 flex-shrink-0 space-y-4">
+          <div className="rounded-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
+            <div className="h-16 relative" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.08), rgba(196,113,74,0.06))' }} />
+            <div className="px-4 pb-4 -mt-8 text-center">
+              <Avatar src={session.image} name={session.name} type={session.type} size={64} className="mx-auto" ring style={{ border: '3px solid #141414' }} />
+              <h3 className="text-sm font-bold mt-2" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>{session.name}</h3>
+              <p className="text-[11px]" style={{ color: '#72727a' }}>{PROFILE_LABELS[session.type] || 'Professionnel'}</p>
             </div>
-            <div>
-              <p className="text-lg font-bold" style={{ color: '#C8A84B', fontFamily: "'Inter', sans-serif" }}>{profile?.views || 0}</p>
-              <p className="text-[10px]" style={{ color: '#888' }}>Vues</p>
+            <div className="px-4 pb-4">
+              <CulturalIdentityBar score={culturalIdentity?.score || 0} levelName={culturalIdentity?.level?.name || ''} />
             </div>
-            <div>
-              <p className="text-lg font-bold" style={{ color: '#C8A84B', fontFamily: "'Inter', sans-serif" }}>{jetonsBalance || 0}</p>
-              <p className="text-[10px]" style={{ color: '#888' }}>Jetons</p>
+            <div className="border-t px-4 py-3" style={{ borderColor: '#1e1e1e' }}>
+              <div className="flex justify-around text-center">
+                <div>
+                  <p className="text-lg font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{connections.length}</p>
+                  <p className="text-[10px]" style={{ color: '#72727a' }}>Connexions</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{profile?.views || 0}</p>
+                  <p className="text-[10px]" style={{ color: '#72727a' }}>Vues</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{jetonsBalance || 0}</p>
+                  <p className="text-[10px]" style={{ color: '#72727a' }}>Jetons</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Constellation Radar */}
-      <div className="rounded-2xl p-4" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
-        <h3 className="text-[10px] font-semibold uppercase mb-3" style={{ color: '#888', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>
-          Empreinte culturelle
-        </h3>
-        <ConstellationRadar dimensions={culturalIdentity?.dimensions || {}} compact={true} />
-      </div>
-    </aside>
-
-    {/* Center — Cultural Feed */}
-    <main className="flex-1 min-w-0">
-      {/* CC2026 Countdown */}
-      <div className="kn-card rounded-2xl p-4 relative overflow-hidden mb-4" data-testid="countdown-banner">
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(200,168,75,0.06), transparent 60%)' }} />
-        <div className="flex items-center justify-between flex-wrap gap-3 relative">
-          <div>
-            <h2 className="text-sm sm:text-base font-bold" style={{ color: '#fff', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>Culture Connect 2026</h2>
-            <p className="text-[11px] mt-0.5" style={{ color: '#888' }}>20–23 Mai · Parc de La Savane · Fort-de-France</p>
+          <div className="rounded-2xl p-4" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
+            <h3 className="text-[10px] font-semibold uppercase mb-3" style={{ color: '#72727a', letterSpacing: '0.08em', fontFamily: "'DM Sans', sans-serif" }}>
+              Empreinte culturelle
+            </h3>
+            <ConstellationRadar dimensions={culturalIdentity?.dimensions || {}} compact={true} />
           </div>
-          <div className="kn-countdown-pulse px-3 py-1.5 rounded-lg" style={{ background: 'rgba(200,168,75,0.12)', border: '1px solid rgba(200,168,75,0.3)' }}>
-            <span className="text-lg sm:text-xl font-black tabular-nums" style={{ color: '#C8A84B', fontFamily: "'Inter', sans-serif" }}>J-{getDaysUntil()}</span>
+        </aside>
+
+        {/* Center — Feed */}
+        <main className="flex-1 min-w-0">
+          {/* CC2026 Countdown */}
+          <div className="kn-card rounded-2xl p-4 relative overflow-hidden mb-4" data-testid="countdown-banner">
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(232,213,160,0.06), transparent 60%)' }} />
+            <div className="flex items-center justify-between flex-wrap gap-3 relative">
+              <div>
+                <h2 className="text-sm sm:text-base font-bold" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.02em' }}>Culture Connect 2026</h2>
+                <p className="text-[11px] mt-0.5" style={{ color: '#72727a' }}>20–23 Mai · Parc de La Savane · Fort-de-France</p>
+              </div>
+              <div className="kn-countdown-pulse px-3 py-1.5 rounded-lg" style={{ background: 'rgba(232,213,160,0.12)', border: '1px solid rgba(232,213,160,0.3)' }}>
+                <span className="text-lg sm:text-xl font-black tabular-nums" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>J-{getDaysUntil()}</span>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <FeedSection session={session} />
+          <div className="mt-4">
+            <CulturalFeed userId={session.id} />
+          </div>
+        </main>
+
+        {/* Right sidebar */}
+        <aside className="hidden xl:block w-72 flex-shrink-0 space-y-4">
+          <RecommendationsWidget session={session} />
+        </aside>
       </div>
-
-      <FeedSection session={session} />
-
-      <div className="mt-4">
-        <CulturalFeed userId={session.id} />
-      </div>
-    </main>
-
-    {/* Right sidebar */}
-    <aside className="hidden xl:block w-72 flex-shrink-0 space-y-4">
-      <RecommendationsWidget session={session} />
-    </aside>
-  </div>
-);
+    </>
+  );
+};
 
 // ═══════════════════════════════════════════════════════════
 // FEED SECTION — Countdown + Posts
@@ -523,17 +553,17 @@ const FeedSection = ({ session }) => {
             <textarea value={newPost} onChange={e => setNewPost(e.target.value)}
               placeholder="Partagez votre actualité culturelle..."
               rows={2} data-testid="new-post-input" aria-label="Nouveau post"
-              className="w-full p-3 rounded-xl text-sm resize-none focus:border-[#C8A84B]"
-              style={{ background: '#0a0a0a', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 56, lineHeight: 1.6, fontFamily: "'Inter', sans-serif", transition: 'border-color 0.15s' }} />
+              className="w-full p-3 rounded-xl text-sm resize-none focus:border-[#E8D5A0]"
+              style={{ background: '#0a0a0b', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 56, lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.15s' }} />
             <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
               <button onClick={generateWithBrain} disabled={generating} data-testid="generate-brain-btn"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.97]"
-                style={{ background: 'rgba(200,168,75,0.1)', color: '#C8A84B', border: '1px solid rgba(200,168,75,0.2)', minHeight: 36, fontFamily: "'Inter', sans-serif" }}>
+                style={{ background: 'rgba(232,213,160,0.1)', color: '#E8D5A0', border: '1px solid rgba(232,213,160,0.2)', minHeight: 36, fontFamily: "'DM Sans', sans-serif" }}>
                 <Sparkles size={16} /> {generating ? 'Génération...' : 'CVL BRAIN'}
               </button>
               <button disabled={!newPost.trim() || posting} onClick={createPost} data-testid="publish-post-btn"
                 className="px-5 py-2 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.97] disabled:opacity-40"
-                style={{ background: '#C8A84B', color: '#000', minHeight: 36, fontFamily: "'Inter', sans-serif" }}>
+                style={{ background: '#E8D5A0', color: '#000', minHeight: 36, fontFamily: "'DM Sans', sans-serif" }}>
                 {posting ? '...' : 'Publier'}
               </button>
             </div>
@@ -569,9 +599,9 @@ const FeedSection = ({ session }) => {
                   <div className="flex-1 min-w-0">
                     {/* Header line */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold truncate" style={{ color: '#fff', fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>{post.author_name}</span>
+                      <span className="text-sm font-bold truncate" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif", fontWeight: 700 }}>{post.author_name}</span>
                       <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{
-                        color: typeColor, border: `1px solid ${typeColor}30`, letterSpacing: '0.06em', fontFamily: "'Inter', sans-serif",
+                        color: typeColor, border: `1px solid ${typeColor}30`, letterSpacing: '0.06em', fontFamily: "'DM Sans', sans-serif",
                       }}>{PROFILE_LABELS[post.author_type] || ''}</span>
                       <span className="text-[11px] flex items-center gap-1" style={{ color: '#444' }}><Clock size={10} />{timeAgo(post.created_at)}</span>
                       {post.author_id === session.id && (
@@ -580,10 +610,10 @@ const FeedSection = ({ session }) => {
                     </div>
 
                     {/* Content */}
-                    <p className="text-[15px] whitespace-pre-wrap mt-2" style={{ color: '#fff', lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>{post.content}</p>
+                    <p className="text-[15px] whitespace-pre-wrap mt-2" style={{ color: '#fff', lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>{post.content}</p>
                     {post.tags?.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {post.tags.map(t => <span key={t} className="text-xs font-medium" style={{ color: '#C8A84B' }}>#{t}</span>)}
+                        {post.tags.map(t => <span key={t} className="text-xs font-medium" style={{ color: '#E8D5A0' }}>#{t}</span>)}
                       </div>
                     )}
 
@@ -603,7 +633,7 @@ const FeedSection = ({ session }) => {
                         {post.comments?.map(c => (
                           <div key={c.id} className="flex gap-2">
                             <Avatar name={c.author_name} type="other" size={28} />
-                            <div className="flex-1 p-2 rounded-lg" style={{ background: '#0a0a0a' }}>
+                            <div className="flex-1 p-2 rounded-lg" style={{ background: '#0a0a0b' }}>
                               <span className="text-[11px] font-semibold" style={{ color: '#fff' }}>{c.author_name}</span>
                               <p className="text-[12px] mt-0.5" style={{ color: '#888', lineHeight: 1.5 }}>{c.content}</p>
                             </div>
@@ -616,9 +646,9 @@ const FeedSection = ({ session }) => {
                               onKeyDown={e => e.key === 'Enter' && handleComment(post.id)}
                               placeholder="Commentaire..." aria-label="Ajouter un commentaire"
                               className="flex-1 px-3 rounded-full text-xs"
-                              style={{ background: '#0a0a0a', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 32, fontFamily: "'Inter', sans-serif" }} />
+                              style={{ background: '#0a0a0b', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 32, fontFamily: "'DM Sans', sans-serif" }} />
                             <button onClick={() => handleComment(post.id)} aria-label="Envoyer"
-                              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/5" style={{ color: '#C8A84B' }}>
+                              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/5" style={{ color: '#E8D5A0' }}>
                               <Send size={12} />
                             </button>
                           </div>
@@ -662,7 +692,7 @@ const RecommendationsWidget = ({ session }) => {
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
       <div className="px-4 py-3 border-b" style={{ borderColor: '#1e1e1e' }}>
-        <h3 className="text-xs font-semibold uppercase" style={{ color: '#888', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Profils suggérés</h3>
+        <h3 className="text-xs font-semibold uppercase" style={{ color: '#888', letterSpacing: '0.08em', fontFamily: "'DM Sans', sans-serif" }}>Profils suggérés</h3>
       </div>
       {recs.length === 0 ? (
         <div className="p-5 text-center"><p className="text-xs" style={{ color: '#444' }}>Complétez votre profil pour recevoir des suggestions</p></div>
@@ -671,14 +701,14 @@ const RecommendationsWidget = ({ session }) => {
           <div className="flex items-center gap-3">
             <Avatar name={r.full_name} type={r.profile_type} size={40} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate" style={{ color: '#fff', fontFamily: "'Inter', sans-serif" }}>{truncName(r.full_name)}</p>
+              <p className="text-sm font-semibold truncate" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>{truncName(r.full_name)}</p>
               <p className="text-[11px] truncate" style={{ color: '#888' }}>{PROFILE_LABELS[r.profile_type] || 'Professionnel'}</p>
             </div>
             <button onClick={() => sendConnect(r.id)} data-testid={`connect-${r.id}`}
               className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.97]"
-              style={{ background: 'transparent', border: '1px solid rgba(200,168,75,0.4)', color: '#C8A84B', minHeight: 32, fontFamily: "'Inter', sans-serif" }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#C8A84B'; e.currentTarget.style.color = '#000'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#C8A84B'; }}>
+              style={{ background: 'transparent', border: '1px solid rgba(232,213,160,0.4)', color: '#E8D5A0', minHeight: 32, fontFamily: "'DM Sans', sans-serif" }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#E8D5A0'; e.currentTarget.style.color = '#000'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#E8D5A0'; }}>
               Rejoindre
             </button>
           </div>
@@ -1028,6 +1058,13 @@ const MessagesPanel = ({ messages, session, onUpdate, onClose }) => {
     </div>
   );
 };
+
+// ═══════════════════════════════════════════════════════════
+// SHOP SECTION — Marketplace wrapper
+// ═══════════════════════════════════════════════════════════
+const ShopSection = ({ session, jetonsBalance }) => (
+  <ShopPage session={session} jetonsBalance={jetonsBalance} />
+);
 
 // ═══════════════════════════════════════════════════════════
 // OPPORTUNITIES & EVENTS

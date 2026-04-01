@@ -6,7 +6,6 @@ import CreateCulturalCard from './CreateCulturalCard';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
 const G = '#E8D5A0';
 
 const FILTER_TABS = [
@@ -14,7 +13,7 @@ const FILTER_TABS = [
   { key: 'musique', label: 'Musique' },
   { key: 'artiste', label: 'Artistes' },
   { key: 'lieu', label: 'Lieux' },
-  { key: 'evenement', label: 'Événements' },
+  { key: 'evenement', label: 'Events' },
   { key: 'patrimoine', label: 'Patrimoine' },
 ];
 
@@ -25,21 +24,13 @@ const CulturalFeed = ({ userId }) => {
   const [hasMore, setHasMore] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [activeFilter, setActiveFilter] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
-  const sentinelRef = useRef(null);
   const feedRef = useRef(null);
   const skipRef = useRef(0);
-  const touchStartY = useRef(0);
-  const pullRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const loadCards = useCallback(async (reset = false) => {
     const skip = reset ? 0 : skipRef.current;
-    if (reset) {
-      setLoading(true);
-      setCards([]);
-    } else {
-      setLoadingMore(true);
-    }
+    if (reset) { setLoading(true); setCards([]); } else { setLoadingMore(true); }
 
     try {
       const params = { limit: 10, skip };
@@ -69,78 +60,39 @@ const CulturalFeed = ({ userId }) => {
     }
   }, [userId, activeFilter]);
 
-  // Initial load + filter change
-  useEffect(() => {
-    skipRef.current = 0;
-    loadCards(true);
-  }, [activeFilter, loadCards]);
+  useEffect(() => { skipRef.current = 0; loadCards(true); }, [activeFilter, loadCards]);
 
-  // Infinite scroll observer
+  // Scroll-snap observer: detect current card in view
   useEffect(() => {
-    if (!sentinelRef.current) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && hasMore && !loadingMore && !loading) {
-          loadCards(false);
+    const container = feedRef.current;
+    if (!container || cards.length === 0) return;
+
+    const handleScroll = () => {
+      const children = container.children;
+      const containerRect = container.getBoundingClientRect();
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        if (!child.dataset.cardIndex) continue;
+        const rect = child.getBoundingClientRect();
+        const overlap = Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top);
+        if (overlap > containerRect.height * 0.5) {
+          setCurrentIndex(parseInt(child.dataset.cardIndex));
+          break;
         }
-      },
-      { rootMargin: '200px' }
-    );
-    obs.observe(sentinelRef.current);
-    return () => obs.disconnect();
-  }, [hasMore, loadingMore, loading, loadCards]);
-
-  // Pull to refresh (mobile)
-  useEffect(() => {
-    const el = feedRef.current;
-    if (!el) return;
-
-    const onTouchStart = (e) => {
-      if (el.scrollTop <= 0) {
-        touchStartY.current = e.touches[0].clientY;
+      }
+      // Load more when near bottom
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 300 && hasMore && !loadingMore && !loading) {
+        loadCards(false);
       }
     };
-    const onTouchMove = (e) => {
-      if (touchStartY.current === 0) return;
-      const diff = e.touches[0].clientY - touchStartY.current;
-      if (diff > 0 && el.scrollTop <= 0 && pullRef.current) {
-        const clamped = Math.min(diff * 0.4, 60);
-        pullRef.current.style.height = `${clamped}px`;
-        pullRef.current.style.opacity = clamped / 60;
-      }
-    };
-    const onTouchEnd = async () => {
-      if (pullRef.current) {
-        const h = parseFloat(pullRef.current.style.height || '0');
-        if (h > 40) {
-          setRefreshing(true);
-          skipRef.current = 0;
-          await loadCards(true);
-          setRefreshing(false);
-        }
-        pullRef.current.style.height = '0px';
-        pullRef.current.style.opacity = '0';
-      }
-      touchStartY.current = 0;
-    };
-
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchmove', onTouchMove, { passive: true });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
-    return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-      el.removeEventListener('touchend', onTouchEnd);
-    };
-  }, [loadCards]);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [cards.length, hasMore, loadingMore, loading, loadCards]);
 
   const handleReact = useCallback(async (cardId, reactionType) => {
     const res = await axios.post(`${API}/cultural-reactions`, {
-      user_id: userId,
-      card_id: cardId,
-      reaction_type: reactionType,
+      user_id: userId, card_id: cardId, reaction_type: reactionType,
     });
-    // Update card reactions in state
     setCards(prev => prev.map(c => {
       if (c.id === cardId && res.data.counts) {
         return { ...c, reactions: res.data.counts, total_reactions: res.data.total };
@@ -151,97 +103,84 @@ const CulturalFeed = ({ userId }) => {
   }, [userId]);
 
   return (
-    <div ref={feedRef} data-testid="cultural-feed">
-      {/* Pull to refresh indicator */}
-      <div
-        ref={pullRef}
-        className="flex items-center justify-center overflow-hidden"
-        style={{ height: 0, opacity: 0, transition: 'height 0.2s, opacity 0.2s' }}
-      >
-        <div
-          className="w-6 h-6 border-2 border-t-transparent rounded-full"
-          style={{
-            borderColor: '#C8A84B',
-            animation: refreshing ? 'spin 0.8s linear infinite' : 'none',
-          }}
-        />
-      </div>
-
-      {/* Filter tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-3 mb-3 no-scrollbar" data-testid="feed-filters">
-        {FILTER_TABS.map(tab => (
-          <button key={tab.key} onClick={() => setActiveFilter(tab.key)}
-            className="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap active:scale-[0.97]"
-            style={{
-              background: activeFilter === tab.key ? '#C8A84B' : 'transparent',
-              color: activeFilter === tab.key ? '#0a0a0a' : '#888',
-              border: `1px solid ${activeFilter === tab.key ? '#C8A84B' : '#1e1e1e'}`,
-              minHeight: 36,
-              fontFamily: "'Inter', sans-serif",
-              letterSpacing: '0.02em',
-            }}
-            data-testid={`filter-${tab.key || 'all'}`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Cards */}
-      {loading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <CardSkeleton key={i} />
+    <div className="relative" data-testid="cultural-feed">
+      {/* Filter tabs - overlay on top */}
+      <div className="sticky top-14 z-30 pb-2 pt-2" style={{ background: 'linear-gradient(to bottom, #0a0a0b 70%, transparent)' }}>
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-1" data-testid="feed-filters">
+          {FILTER_TABS.map(tab => (
+            <button key={tab.key} onClick={() => setActiveFilter(tab.key)}
+              className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap active:scale-[0.97]"
+              style={{
+                background: activeFilter === tab.key ? G : 'rgba(255,255,255,0.06)',
+                color: activeFilter === tab.key ? '#0a0a0b' : '#72727a',
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+              data-testid={`filter-${tab.key || 'all'}`}
+            >
+              {tab.label}
+            </button>
           ))}
+        </div>
+      </div>
+
+      {/* TikTok-style scroll-snap feed */}
+      {loading ? (
+        <div className="space-y-4 px-1">
+          {Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={i} />)}
         </div>
       ) : cards.length === 0 ? (
-        <div
-          className="rounded-2xl p-12 text-center"
-          style={{ background: '#141414', border: '1px solid #1a1a1a' }}
-        >
-          <p className="text-base" style={{ color: '#555' }}>
-            Aucun contenu pour ce filtre
-          </p>
+        <div className="rounded-2xl p-12 text-center" style={{ background: '#141414', border: '1px solid #1a1a1a' }}>
+          <p className="text-base" style={{ color: '#555' }}>Aucun contenu pour ce filtre</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div ref={feedRef} className="kn-snap-feed" data-testid="snap-feed-container">
           {cards.map((card, i) => (
-            <CulturalCard
-              key={card.id}
-              card={card}
-              userId={userId}
-              onReact={handleReact}
-              index={i}
-            />
+            <div key={card.id} data-card-index={i} className="kn-snap-item">
+              <CulturalCard
+                card={card}
+                userId={userId}
+                onReact={handleReact}
+                index={i}
+                isActive={currentIndex === i}
+              />
+            </div>
           ))}
+          {/* Load more sentinel */}
+          {loadingMore && (
+            <div className="flex justify-center py-8">
+              <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: G }} />
+            </div>
+          )}
         </div>
       )}
-
-      {/* Loading more indicator */}
-      {loadingMore && (
-        <div className="py-6 flex justify-center">
-          <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: G }} />
-        </div>
-      )}
-
-      {/* Infinite scroll sentinel */}
-      <div ref={sentinelRef} className="h-1" />
 
       {/* Floating create button */}
       <button onClick={() => setShowCreate(true)} data-testid="create-card-fab"
-        className="fixed bottom-24 md:bottom-8 right-4 w-12 h-12 rounded-2xl flex items-center justify-center z-40 transition-transform hover:scale-105 active:scale-95"
-        style={{ background: G, boxShadow: `0 4px 20px ${G}40`, animation: 'fabPulse 2s ease-in-out infinite' }}
-        aria-label="Créer une carte culturelle">
-        <Plus size={24} style={{ color: '#000' }} strokeWidth={2.5} />
+        className="fixed bottom-24 md:bottom-8 right-4 w-14 h-14 rounded-full flex items-center justify-center z-40 transition-transform hover:scale-105 active:scale-95"
+        style={{ background: G, boxShadow: `0 4px 24px ${G}40` }}
+        aria-label="Creer une carte culturelle">
+        <Plus size={26} style={{ color: '#0a0a0b' }} strokeWidth={2.5} />
       </button>
+
+      {/* Card index indicator */}
+      {cards.length > 1 && (
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1.5" data-testid="feed-progress">
+          {cards.slice(0, Math.min(cards.length, 8)).map((_, i) => (
+            <div key={i} className="w-1 rounded-full transition-all duration-200" style={{
+              height: currentIndex === i ? 16 : 6,
+              background: currentIndex === i ? G : 'rgba(255,255,255,0.15)',
+            }} />
+          ))}
+        </div>
+      )}
 
       {/* Create modal */}
       {showCreate && (
         <CreateCulturalCard
           userId={userId}
           onClose={() => setShowCreate(false)}
-          onPublished={(data) => {
-            toast.success('Ta carte enrichit la mémoire caribéenne 🌺');
+          onPublished={() => {
+            toast.success('Ta carte enrichit la memoire caribeenne');
             skipRef.current = 0;
             loadCards(true);
           }}
@@ -249,13 +188,27 @@ const CulturalFeed = ({ userId }) => {
       )}
 
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fabPulse {
-          0%, 100% { box-shadow: 0 4px 20px ${G}30; }
-          50% { box-shadow: 0 4px 28px ${G}50; }
+        .kn-snap-feed {
+          scroll-snap-type: y mandatory;
+          overflow-y: auto;
+          height: calc(100vh - 140px);
+          -webkit-overflow-scrolling: touch;
+          scroll-behavior: smooth;
         }
+        .kn-snap-item {
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+          min-height: calc(100vh - 160px);
+          display: flex;
+          align-items: stretch;
+          padding: 4px 0;
+        }
+        .kn-snap-item > * { width: 100%; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .kn-snap-feed::-webkit-scrollbar { display: none; }
+        .kn-snap-feed { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

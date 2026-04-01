@@ -52,10 +52,10 @@ const CulturalIdentityBar = ({ score = 0, levelName = '', cardsPublished = 0 }) 
     <div ref={ref} className="w-full" data-testid="cultural-identity-bar">
       {/* Score display */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] font-semibold uppercase" style={{ color: '#C8A84B', letterSpacing: '0.12em', fontFamily: "'Inter', sans-serif" }}>
+        <span className="text-[10px] font-semibold uppercase" style={{ color: '#E8D5A0', letterSpacing: '0.12em', fontFamily: "'DM Sans', sans-serif" }}>
           {hidden ? 'Identité culturelle' : displayLevel}
         </span>
-        <span className="text-xl font-bold tabular-nums" style={{ color: '#fff', fontFamily: "'Inter', sans-serif" }}>
+        <span className="text-xl font-bold tabular-nums" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>
           {hidden ? '--' : animatedScore}
           <span className="text-[10px] font-normal ml-0.5" style={{ color: '#444' }}>/100</span>
         </span>
@@ -65,8 +65,8 @@ const CulturalIdentityBar = ({ score = 0, levelName = '', cardsPublished = 0 }) 
       <div className="relative w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#1e1e1e' }}>
         <div className="h-full rounded-full" style={{
           width: `${pct}%`,
-          background: 'linear-gradient(90deg, #8B6914, #C8A84B, #E8C86B)',
-          boxShadow: pct > 0 ? '0 0 8px rgba(200,168,75,0.3)' : 'none',
+          background: 'linear-gradient(90deg, #B8A06A, #E8D5A0, #F0E4C4)',
+          boxShadow: pct > 0 ? '0 0 8px rgba(232,213,160,0.3)' : 'none',
           transition: 'none',
         }}>
           {pct > 0 && <div className="absolute inset-0 rounded-full kn-shimmer" />}
@@ -78,7 +78,7 @@ const CulturalIdentityBar = ({ score = 0, levelName = '', cardsPublished = 0 }) 
         {/* Connecting line */}
         <div className="absolute top-[5px] left-3 right-3 h-px" style={{ background: '#1e1e1e' }} />
         <div className="absolute top-[5px] left-3 h-px" style={{
-          background: '#C8A84B',
+          background: '#E8D5A0',
           width: `${Math.min(100, (pct / 100) * 100)}%`,
           maxWidth: 'calc(100% - 24px)',
           transition: 'width 0.8s ease-out',
@@ -93,14 +93,14 @@ const CulturalIdentityBar = ({ score = 0, levelName = '', cardsPublished = 0 }) 
               <div key={l.name} className="flex flex-col items-center relative"
                 onMouseEnter={() => setTooltip(i)} onMouseLeave={() => setTooltip(null)}>
                 <div className="w-[10px] h-[10px] rounded-full border-2 transition-all cursor-pointer" style={{
-                  background: isPast ? '#C8A84B' : '#0a0a0a',
-                  borderColor: isPast ? '#C8A84B' : '#333',
-                  boxShadow: isActive ? '0 0 8px rgba(200,168,75,0.4)' : 'none',
+                  background: isPast ? '#E8D5A0' : '#0a0a0b',
+                  borderColor: isPast ? '#E8D5A0' : '#333',
+                  boxShadow: isActive ? '0 0 8px rgba(232,213,160,0.4)' : 'none',
                 }} />
                 <span className="text-[9px] mt-1.5 whitespace-nowrap" style={{
-                  color: isActive ? '#C8A84B' : isPast ? '#888' : '#333',
+                  color: isActive ? '#E8D5A0' : isPast ? '#888' : '#333',
                   fontWeight: isActive ? 700 : 400,
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
                 }}>
                   {l.name}
                 </span>
@@ -108,7 +108,7 @@ const CulturalIdentityBar = ({ score = 0, levelName = '', cardsPublished = 0 }) 
                 {/* Tooltip */}
                 {tooltip === i && (
                   <div className="absolute bottom-full mb-2 px-3 py-1.5 rounded-lg text-[10px] whitespace-nowrap z-10"
-                    style={{ background: '#1a1a1a', color: '#888', border: '1px solid #2a2a2a', fontFamily: "'Inter', sans-serif" }}>
+                    style={{ background: '#1a1a1a', color: '#888', border: '1px solid #2a2a2a', fontFamily: "'DM Sans', sans-serif" }}>
                     {l.desc}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0" style={{
                       borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '4px solid #1a1a1a',

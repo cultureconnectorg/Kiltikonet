@@ -820,6 +820,50 @@ async def _award_jetons(user_id: str, amount: int, reason: str):
     logger.info(f"Awarded {amount} Jetons to {user_id}: {reason}")
 
 
+@router.post("/jetons/transfer")
+async def transfer_jetons(data: dict):
+    """Transfert de Jetons CC entre utilisateurs (Soutenir)."""
+    from_id = data.get("from_user_id")
+    to_id = data.get("to_user_id")
+    amount = data.get("amount", 0)
+    reason = data.get("reason", "Soutien")
+
+    if not from_id or not to_id or amount <= 0:
+        raise HTTPException(status_code=400, detail="from_user_id, to_user_id et amount > 0 requis")
+
+    # Check sender balance
+    sender = await _db.registrations.find_one({"id": from_id}, {"_id": 0, "jetons_solde": 1})
+    if not sender:
+        sender = await _db.cc_badges.find_one({"badge_id": from_id}, {"_id": 0, "jetons_solde": 1})
+    if not sender or (sender.get("jetons_solde", 0) or 0) < amount:
+        raise HTTPException(status_code=400, detail="Solde insuffisant")
+
+    # Debit sender
+    result = await _db.registrations.update_one({"id": from_id}, {"$inc": {"jetons_solde": -amount}})
+    if result.modified_count == 0:
+        await _db.cc_badges.update_one({"badge_id": from_id}, {"$inc": {"jetons_solde": -amount}})
+
+    # Credit receiver
+    result = await _db.registrations.update_one({"id": to_id}, {"$inc": {"jetons_solde": amount}})
+    if result.modified_count == 0:
+        await _db.cc_badges.update_one({"badge_id": to_id}, {"$inc": {"jetons_solde": amount}})
+
+    # Log transactions
+    now = datetime.now(timezone.utc).isoformat()
+    await _db.jetons_transactions.insert_one({
+        "user_id": from_id, "amount": -amount, "reason": f"Soutien envoyé: {reason}",
+        "target_user_id": to_id, "type": "transfer_out", "created_at": now,
+    })
+    await _db.jetons_transactions.insert_one({
+        "user_id": to_id, "amount": amount, "reason": f"Soutien reçu de {from_id}",
+        "source_user_id": from_id, "type": "transfer_in", "created_at": now,
+    })
+
+    logger.info(f"Transfer {amount} JCC from {from_id} to {to_id}: {reason}")
+    return {"success": True, "amount": amount, "message": f"{amount} JCC transférés"}
+
+
+
 @router.post("/rewards/trigger")
 async def trigger_reward(data: dict):
     """Déclenche une récompense Jetons CC."""
