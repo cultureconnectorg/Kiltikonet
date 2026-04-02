@@ -1,89 +1,19 @@
 {
-  "name": "Culture Connect 2026",
-  "short_name": "CC2026",
-  "description": "Le premier marché culturel international de la Caraïbe - Fort-de-France, Martinique",
-  "start_url": "/",
-  "scope": "/",
-  "display": "standalone",
-  "background_color": "#1A1A14",
-  "theme_color": "#D4A84B",
-  "orientation": "portrait-primary",
-  "lang": "fr",
+  "short_name": "CultureConnect",
+  "name": "Culture Connect Pro",
+  "description": "Espace professionnel - Culture Connect 2026 Martinique",
   "icons": [
     {
-      "src": "/logo.png",
-      "sizes": "72x72",
+      "src": "/icon-512.png",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["entertainment", "events", "music", "business"],
-  "screenshots": [],
-  "shortcuts": [
-    {
-      "name": "Dashboard CC2026",
-      "short_name": "Dashboard",
-      "description": "Accéder au dashboard opérationnel",
-      "url": "/dashboard-cc2026",
-      "icons": [{"src": "/logo.png", "sizes": "192x192"}]
-    },
-    {
-      "name": "Espace Pro",
-      "short_name": "Espace Pro",
-      "description": "Accéder à l'espace professionnel",
-      "url": "/espace-pro",
-      "icons": [{"src": "/logo.png", "sizes": "192x192"}]
-    },
-    {
-      "name": "Catalogue",
-      "short_name": "Catalogue",
-      "description": "Explorer le catalogue des participants",
-      "url": "/catalogue",
-      "icons": [{"src": "/logo.png", "sizes": "192x192"}]
-    }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false
+  "start_url": "/espace-pro",
+  "background_color": "#0a0a0b",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "theme_color": "#214F4B"
 }

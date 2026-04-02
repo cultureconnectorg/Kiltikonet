@@ -2,10 +2,11 @@
 
 // Service Worker - Culture Connect 2026 PWA
 // Cache versioning
-const CACHE_VERSION = 'cc2026-v3.0';
+const CACHE_VERSION = 'cc2026-v4.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
+const AUTH_CACHE = `${CACHE_VERSION}-auth`;
 const SCAN_QUEUE_STORE = 'cc2026-offline-scans';
 
 // Files to cache immediately on install
@@ -13,9 +14,16 @@ const STATIC_FILES = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icon-512.png',
   '/logo.png',
   '/static/css/main.css',
   '/static/js/main.js'
+];
+
+// Auth-related API routes to cache for offline session persistence
+const AUTH_ROUTES = [
+  '/api/pro/verify-code',
+  '/api/pro/profile'
 ];
 
 // API routes to cache for offline
@@ -52,7 +60,7 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
-            .filter((name) => name.startsWith('cc2026-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE && name !== API_CACHE)
+            .filter((name) => name.startsWith('cc2026-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE && name !== API_CACHE && name !== AUTH_CACHE)
             .map((name) => {
               console.log('[SW] Deleting old cache:', name);
               return caches.delete(name);
@@ -80,6 +88,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip chrome-extension and other protocols
   if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // Auth API requests - Cache successful responses for offline session persistence
+  if (url.pathname.startsWith('/api/') && AUTH_ROUTES.some(r => url.pathname.includes(r))) {
+    event.respondWith(networkFirstStrategy(request, AUTH_CACHE));
     return;
   }
 

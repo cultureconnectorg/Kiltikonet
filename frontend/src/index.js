@@ -17,8 +17,10 @@ if ('serviceWorker' in navigator) {
         const newWorker = registration.installing;
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New content available, show update notification
-            console.log('[PWA] New content available, please refresh');
+            // New SW ready — force activation and reload for fresh cache
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+            console.log('[PWA] Nouvelle version détectée, activation...');
+            window.location.reload();
           }
         });
       });
