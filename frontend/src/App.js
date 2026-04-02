@@ -68,6 +68,9 @@ import AdminMobileDashboard from "./components/AdminMobileDashboard";
 import PerformanceDashboard from "./components/admin/PerformanceDashboard";
 // Admin Finance Dashboard
 import AdminFinanceDashboard from "./components/admin/AdminFinanceDashboard";
+// Standalone Pro Pages
+import MessagesPage from "./components/pro/MessagesPage";
+import NetworkStandalonePage from "./components/pro/NetworkPage";
 // Device Detection Hook
 import useDeviceDetect from "./hooks/useDeviceDetect";
 // Analytics
@@ -248,6 +251,8 @@ function App() {
               {/* Espace Pro CC2026 - LinkedIn Culturel */}
               <Route path="/espace-pro" element={<ProSpaceDashboard />} />
               <Route path="/espace-pro/connexion" element={<ProSpaceLogin />} />
+              <Route path="/espace-pro/messages" element={<MessagesPage />} />
+              <Route path="/espace-pro/reseau" element={<NetworkStandalonePage />} />
               {/* Legal pages */}
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />

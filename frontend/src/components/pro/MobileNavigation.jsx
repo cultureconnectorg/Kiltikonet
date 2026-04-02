@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Compass, Users, PlusCircle, ShoppingBag, User } from 'lucide-react';
 
 const TABS = [
   { id: 'feed', label: 'Feed', icon: Compass },
-  { id: 'network', label: 'Reseau', icon: Users },
+  { id: 'network', label: 'Reseau', icon: Users, route: '/espace-pro/reseau' },
   { id: 'create', label: 'Creer', icon: PlusCircle },
   { id: 'shop', label: 'Shop', icon: ShoppingBag },
   { id: 'settings', label: 'Profil', icon: User },
@@ -11,11 +12,16 @@ const TABS = [
 
 const MobileNavigation = ({ activeSection, onNavigate, feedBadge = 0, networkBadge = 0 }) => {
   const [tapped, setTapped] = useState(null);
+  const navigate = useNavigate();
 
-  const handleTap = (id) => {
-    setTapped(id);
+  const handleTap = (tab) => {
+    setTapped(tab.id);
     setTimeout(() => setTapped(null), 200);
-    onNavigate(id);
+    if (tab.route) {
+      navigate(tab.route);
+    } else {
+      onNavigate(tab.id);
+    }
   };
 
   return (
@@ -44,7 +50,7 @@ const MobileNavigation = ({ activeSection, onNavigate, feedBadge = 0, networkBad
 
             if (tab.id === 'create') {
               return (
-                <button key={tab.id} onClick={() => handleTap(tab.id)}
+                <button key={tab.id} onClick={() => handleTap(tab)}
                   className="relative flex items-center justify-center -mt-5"
                   style={{ minHeight: 44, minWidth: 44, transform: isTapped ? 'scale(0.9)' : 'scale(1)', transition: 'transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
                   aria-label="Creer" data-testid="mobile-nav-create">
@@ -57,7 +63,7 @@ const MobileNavigation = ({ activeSection, onNavigate, feedBadge = 0, networkBad
             }
 
             return (
-              <button key={tab.id} onClick={() => handleTap(tab.id)}
+              <button key={tab.id} onClick={() => handleTap(tab)}
                 className="relative flex flex-col items-center justify-center gap-0.5 flex-1"
                 style={{ minHeight: 44, minWidth: 44, transform: isTapped ? 'scale(0.88)' : 'scale(1)', transition: 'transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
                 aria-current={isActive ? 'page' : undefined} aria-label={tab.label}

@@ -167,9 +167,17 @@ const ProSpaceDashboard = () => {
   );
 
   const unreadCount = messages.filter(m => !m.read && m.to === session.id).length;
+  const handleNavClick = (id) => {
+    if (id === 'network') {
+      navigate('/espace-pro/reseau');
+    } else {
+      setActiveSection(id);
+    }
+  };
+
   const navItems = [
     { id: 'feed', label: 'Feed', icon: Home },
-    { id: 'network', label: 'Réseau', icon: Users },
+    { id: 'network', label: 'Reseau', icon: Users },
     { id: 'shop', label: 'Shop', icon: Briefcase },
     { id: 'events', label: 'Agenda', icon: Calendar },
     { id: 'settings', label: 'Profil', icon: Settings },
@@ -214,7 +222,7 @@ const ProSpaceDashboard = () => {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-0.5" role="navigation" aria-label="Navigation principale">
             {navItems.map(item => (
-              <button key={item.id} onClick={() => setActiveSection(item.id)} data-testid={`nav-${item.id}`}
+              <button key={item.id} onClick={() => handleNavClick(item.id)} data-testid={`nav-${item.id}`}
                 className="flex flex-col items-center px-4 py-1 transition-colors relative"
                 style={{ color: activeSection === item.id ? '#fff' : '#444', minHeight: 44, fontFamily: "'DM Sans', sans-serif" }}
                 aria-current={activeSection === item.id ? 'page' : undefined}>
@@ -223,8 +231,8 @@ const ProSpaceDashboard = () => {
                 {activeSection === item.id && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded" style={{ background: '#E8D5A0' }} />}
               </button>
             ))}
-            <button onClick={() => setShowMessages(!showMessages)} data-testid="nav-messages"
-              className="flex flex-col items-center px-4 py-1 relative" style={{ color: showMessages ? '#fff' : '#444', minHeight: 44 }}>
+            <button onClick={() => navigate('/espace-pro/messages')} data-testid="nav-messages"
+              className="flex flex-col items-center px-4 py-1 relative" style={{ color: '#444', minHeight: 44 }}>
               <MessageSquare size={20} />
               <span className="text-[11px] mt-0.5 font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>Messages</span>
               {unreadCount > 0 && <span className="absolute top-0 right-2 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center" style={{ background: '#E85A4F', color: '#fff' }}>{unreadCount}</span>}

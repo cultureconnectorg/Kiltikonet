@@ -600,20 +600,20 @@ class RegistrationResponse(BaseModel):
     
     id: str
     full_name: str
-    organization_name: str
-    country: str
-    email: str
-    phone: str
-    profile_type: str
-    stand_request: bool
+    organization_name: Optional[str] = ""
+    country: Optional[str] = ""
+    email: Optional[str] = ""
+    phone: Optional[str] = ""
+    profile_type: Optional[str] = "other"
+    stand_request: Optional[bool] = False
     stand_category: Optional[str] = None
-    bio: str
+    bio: Optional[str] = ""
     logo_url: Optional[str] = None
-    language_preference: str
-    how_heard: str
-    status: str = "pending"
-    show_in_catalog: bool = False
-    created_at: str
+    language_preference: Optional[str] = "fr"
+    how_heard: Optional[str] = ""
+    status: Optional[str] = "pending"
+    show_in_catalog: Optional[bool] = False
+    created_at: Optional[str] = ""
     tier: Optional[str] = None
     expertise_tags: Optional[List[str]] = None  # NEW: Expertise tags
 
