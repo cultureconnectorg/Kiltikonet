@@ -20,7 +20,7 @@ import logging
 import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
 logger = logging.getLogger(__name__)
@@ -413,12 +413,14 @@ def get_fadeout_params(real_count):
 # SEED ENDPOINT — Generate 4000 profiles + 3 years content
 # ═══════════════════════════════════════════════════════════
 @router.post("/engine/seed")
-async def seed_growth_engine(data: dict = {}):
+async def seed_growth_engine(data: dict = None):
     """
     Génère la population fantôme v2 et le contenu sur 3 ans.
     Paramètres optionnels : { "count": 4000, "years": 3 }
     Idempotent — ne re-seed pas si déjà fait.
     """
+    if data is None:
+        data = {}
     count = data.get("count", 4000)
     years = data.get("years", 3)
 

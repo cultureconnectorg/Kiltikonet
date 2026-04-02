@@ -4,7 +4,6 @@ Connects CVL BRAIN to the 10 automated agents of kiltikonet.
 Stores analyses in MongoDB collection: cvl_brain_analyses
 """
 import os
-import json
 import logging
 from datetime import datetime, timezone, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient

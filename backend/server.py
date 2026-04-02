@@ -23,8 +23,6 @@ from reportlab.lib.pagesizes import A6
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 import requests
 
 ROOT_DIR = Path(__file__).parent
@@ -186,8 +184,10 @@ class RealtimeEvent(BaseModel):
     timestamp: str = ""
     source_client: str = ""  # Added to track origin
 
-async def broadcast_event(event_type: str, data: dict = {}, source_client: str = "", channels: List[str] = None):
+async def broadcast_event(event_type: str, data: dict = None, source_client: str = "", channels: List[str] = None):
     """Broadcast an event to all connected clients (WebSocket + SSE)"""
+    if data is None:
+        data = {}
     event = RealtimeEvent(
         event_type=event_type,
         data=data,
@@ -1192,7 +1192,7 @@ async def process_successful_payment(transaction: dict, metadata: dict):
         if email:
             asyncio.create_task(send_email_async(
                 email,
-                f"Bienvenue parmi nos partenaires — Culture Connect 2026",
+                "Bienvenue parmi nos partenaires — Culture Connect 2026",
                 get_partner_welcome_email(
                     metadata.get("company_name", ""),
                     tier,
@@ -3617,7 +3617,7 @@ app.include_router(cultural_analytics_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek
-from services.baserow_service import mirror_badge as _br_mirror, update_mirror as _br_update_mirror
+from services.baserow_service import update_mirror as _br_update_mirror
 
 @app.get("/api/activer-badge/{qr_token}")
 async def activer_badge(qr_token: str):
@@ -4533,14 +4533,6 @@ async def cleanup_atrium_references(tenant_id: str = DEFAULT_TENANT):
     return {"success": True, "updated_documents": updated}
 
 
-    page = await db.cms_pages.find_one(
-        {"slug": slug, "tenant_id": tenant_id, "published": True}, 
-        {"_id": 0}
-    )
-    if not page:
-        raise HTTPException(status_code=404, detail="Page not found")
-    return page
-
 # ================== MAP TERRITORIES API ==================
 DEFAULT_MAP_TERRITORIES = [
     {"id": "martinique", "name": "Fort-de-France", "lat": 14.6, "lon": -61.0, "color": "#A65D47", "size": "primary", "label": "Martinique", "isCenter": True, "active": True},
@@ -5071,7 +5063,7 @@ async def get_admin_notifications(limit: int = 50, unread_only: bool = False):
     return {"notifications": notifs, "unread_count": unread_count}
 
 @app.post("/api/admin/notifications/read-all")
-async def mark_all_notifications_read():
+async def mark_all_admin_notifications_read():
     """Mark all notifications as read"""
     result = await db.admin_notifications.update_many({}, {"$set": {"read": True}})
     return {"marked": result.modified_count}
@@ -6067,7 +6059,6 @@ Allow: /programme
 
 # ================== ESPACE PRO CC2026 - LinkedIn Culturel ==================
 
-import random
 import string
 import secrets
 
@@ -6828,15 +6819,7 @@ async def export_badges_pdf_batch(
         pos_idx = i % 4
         x, y = positions[pos_idx]
         
-        # Generate individual badge PDF
-        badge_bytes = generate_badge_pdf_buffer(reg)
-        
-        # Draw the badge as a form XObject
-        from reportlab.lib.utils import ImageReader
-        from PyPDF2 import PdfReader as PyPdfReader
-        
-        # Convert badge PDF to image for embedding
-        # Simpler approach: draw badge content directly at position
+        # Draw badge content directly at position
         _draw_badge_on_canvas(c_merged, reg, x, y, badge_w, badge_h)
         
         # New page after every 4 badges
@@ -7277,7 +7260,7 @@ async def dashboard_cc2026_live():
 @app.get("/api/admin/reconcile")
 async def admin_reconcile():
     """Force sync between MongoDB badges and Baserow mirror"""
-    from services.baserow_service import mirror_badge, find_by_badge_id
+    from services.baserow_service import mirror_badge
     
     badges = await db.cc_badges.find({}, {"_id": 0}).to_list(1000)
     synced = 0
@@ -8034,7 +8017,7 @@ async def get_site_analytics(days: int = 30):
     
     # Referrer sources
     referrer_pipeline = [
-        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}, "data.referrer": {"$ne": ""}, "data.referrer": {"$ne": None}}},
+        {"$match": {"event_type": "page_view", "created_at": {"$gte": cutoff_iso}, "$and": [{"data.referrer": {"$ne": ""}}, {"data.referrer": {"$ne": None}}]}},
         {"$group": {
             "_id": "$data.referrer",
             "count": {"$sum": 1}
@@ -8724,43 +8707,6 @@ async def get_smart_insights():
         },
         "generated_at": now.isoformat()
     }
-
-@app.get("/api/team/notifications")
-async def get_team_notifications(limit: int = 50, unread_only: bool = False):
-    """Get team-wide notifications (Smart Engine alerts)"""
-    query = {}
-    if unread_only:
-        query["read"] = False
-    
-    notifications = await db.team_notifications.find(
-        query,
-        {"_id": 0}
-    ).sort("created_at", -1).limit(limit).to_list(limit)
-    
-    unread_count = await db.team_notifications.count_documents({"read": False})
-    
-    return {
-        "notifications": notifications,
-        "unread_count": unread_count
-    }
-
-@app.post("/api/team/notifications/mark-all-read")
-async def mark_all_team_notifications_read(user_id: str = "admin"):
-    """Mark all team notifications as read"""
-    await db.team_notifications.update_many(
-        {},
-        {"$addToSet": {"read_by": user_id}, "$set": {"read": True}}
-    )
-    return {"success": True}
-
-@app.patch("/api/team/notifications/{notification_id}/read")
-async def mark_team_notification_read(notification_id: str, user_id: str = "admin"):
-    """Mark a specific team notification as read"""
-    await db.team_notifications.update_one(
-        {"id": notification_id},
-        {"$addToSet": {"read_by": user_id}}
-    )
-    return {"success": True}
 
 # Background task to check alerts periodically (call via cron or scheduler)
 @app.post("/api/smart-engine/cron/check")

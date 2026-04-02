@@ -112,7 +112,7 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
           const r = (radius / rings) * (i + 1);
           return (
             <circle
-              key={i}
+              key={`ring-${i}`}
               cx={cx} cy={cy} r={r}
               fill="none"
               stroke={i === rings - 1 ? '#333' : '#1f1f1f'}
@@ -126,7 +126,7 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
           const end = getAxisEnd(i);
           return (
             <line
-              key={i}
+              key={`axis-${i}`}
               x1={cx} y1={cy}
               x2={end.x} y2={end.y}
               stroke="#222"
@@ -150,7 +150,7 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
         {/* Data points */}
         {dataPoints.map((p, i) => (
           <circle
-            key={i}
+            key={`point-${i}`}
             cx={p.x} cy={p.y}
             r={compact ? 3 : 4}
             fill="#E8D5A0"
@@ -164,7 +164,7 @@ const ConstellationRadar = ({ dimensions = {}, compact = false }) => {
           const pos = getLabelPos(i);
           return (
             <text
-              key={i}
+              key={`label-${label}`}
               x={pos.x} y={pos.y}
               textAnchor="middle"
               dominantBaseline="middle"

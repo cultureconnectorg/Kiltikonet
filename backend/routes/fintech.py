@@ -27,7 +27,6 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Request
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["fintech"])
@@ -671,9 +670,6 @@ async def _ghost_bridge_feedback(user_id: str, product_name: str, channel: str, 
 @router.get("/api/fintech/dashboard")
 async def fintech_dashboard():
     """Dashboard financier pour admin — Float, Passif, Cash, Adoption."""
-    now = datetime.now(timezone.utc)
-    day_ago = (now - timedelta(days=1)).isoformat()
-    week_ago = (now - timedelta(days=7)).isoformat()
 
     total_wallets = await _db.kn_wallets.count_documents({})
     total_txs = await _db.kn_transactions.count_documents({})

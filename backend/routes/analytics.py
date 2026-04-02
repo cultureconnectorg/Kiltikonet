@@ -3,7 +3,6 @@ Analytics Routes — Jetons Dashboard with FREK Core data
 """
 import os
 import logging
-import asyncio
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter
 from motor.motor_asyncio import AsyncIOMotorClient

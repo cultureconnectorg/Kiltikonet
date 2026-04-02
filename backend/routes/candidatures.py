@@ -8,7 +8,7 @@ GET /api/docs/{filename} — serve DOCX files
 """
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 import uuid

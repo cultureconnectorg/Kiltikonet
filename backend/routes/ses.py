@@ -5,8 +5,6 @@ import os
 import logging
 import asyncio
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -204,7 +202,6 @@ async def request_production():
             sesv2.get_account
         )
 
-        is_sandbox = result.get("EnforcementStatus", "") == "HEALTHY"  # noqa: F841
         production_access = result.get("ProductionAccessEnabled", False)
         sending_enabled = result.get("SendingEnabled", False)
 

@@ -16,7 +16,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from fastapi import APIRouter, HTTPException, Request
 from services.frek_client import frek_client
-from services.baserow_service import mirror_badge, update_mirror
+from services.baserow_service import mirror_badge
 from services import ses_service
 from services.hcaptcha import verify_hcaptcha
 

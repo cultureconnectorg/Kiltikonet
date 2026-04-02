@@ -279,7 +279,7 @@ def _get_source(card_type: str) -> str:
 
 
 async def _recalculate_user_score(user_id: str) -> dict:
-    from routes.cultural_identity import REACTION_DIMENSION_BOOST, REACTION_TYPES, _get_level
+    from routes.cultural_identity import REACTION_DIMENSION_BOOST, _get_level
 
     reactions_given = await _db.cultural_reactions.count_documents({"user_id": user_id})
     reactions_received = await _db.cultural_reactions.count_documents({"target_author_id": user_id})

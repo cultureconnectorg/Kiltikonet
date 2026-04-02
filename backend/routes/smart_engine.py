@@ -241,7 +241,7 @@ async def get_creation_origin():
     """Creation Origin — Origines géographiques et culturelles"""
     # Country distribution
     country_pipeline = [
-        {"$match": {"country": {"$ne": None, "$ne": ""}}},
+        {"$match": {"country": {"$nin": [None, ""]}}},
         {"$group": {"_id": "$country", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}}
     ]
@@ -250,7 +250,7 @@ async def get_creation_origin():
 
     # From badges
     badge_countries = await _db.cc_badges.aggregate([
-        {"$match": {"organisation": {"$ne": None, "$ne": ""}}},
+        {"$match": {"organisation": {"$nin": [None, ""]}}},
         {"$group": {"_id": "$organisation", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}},
         {"$limit": 20}
@@ -283,7 +283,7 @@ async def get_creation_origin():
         "stream": "creation-origin",
         "countries": [{"country": c["_id"], "count": c["count"]} for c in reg_countries],
         "organizations": [{"org": o["_id"], "count": o["count"]} for o in badge_countries],
-        "languages": [{"lang": l["_id"] or "fr", "count": l["count"]} for l in languages],
+        "languages": [{"lang": lang["_id"] or "fr", "count": lang["count"]} for lang in languages],
         "profile_types": [{"type": p["_id"] or "other", "count": p["count"]} for p in profiles],
         "devices": [{"type": d["_id"], "count": d["count"]} for d in devices],
         "generated_at": datetime.now(timezone.utc).isoformat()

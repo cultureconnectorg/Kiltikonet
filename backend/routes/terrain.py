@@ -5,7 +5,6 @@ Extracted from server.py for maintainability.
 import os
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient

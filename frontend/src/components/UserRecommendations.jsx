@@ -31,7 +31,7 @@ const UserRecommendations = ({ badgeId, colors }) => {
         ]);
         setConnections(cRes);
         setEvents(eRes);
-      } catch { /* silent */ }
+      } catch (err) { if (process.env.NODE_ENV === 'development') console.warn('[UserRecommendations] Fetch failed:', err); }
       setLoading(false);
     };
     fetchAll();

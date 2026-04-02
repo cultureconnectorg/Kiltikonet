@@ -474,8 +474,8 @@ Comment puis-je vous aider ?`
                 { label: 'En retard', value: taskStats.en_retard, color: '#ef4444', icon: AlertCircle },
                 { label: 'Aujourd\'hui', value: taskStats.en_cours, color: COLORS.terracotta, icon: Clock },
                 { label: 'À faire', value: taskStats.a_faire, color: 'rgba(255,255,255,0.5)', icon: Circle }
-              ].map((stat, i) => (
-                <div key={i} className="rounded-lg p-3 sm:p-4 text-center" style={{ background: '#2A2820', border: `1px solid ${stat.color}30` }}>
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-lg p-3 sm:p-4 text-center" style={{ background: '#2A2820', border: `1px solid ${stat.color}30` }}>
                   <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2" style={{ color: stat.color }} />
                   <div className="text-xl sm:text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
                   <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{stat.label}</div>
@@ -1113,7 +1113,7 @@ Comment puis-je vous aider ?`
                       <div className="text-xs font-bold mb-2" style={{ color: COLORS.gold }}>Décisions</div>
                       <ul className="space-y-1">
                         {note.decisions.map((d, i) => (
-                          <li key={i} className="text-sm text-white">• {d}</li>
+                          <li key={`dec-${i}-${d.slice(0,8)}`} className="text-sm text-white">• {d}</li>
                         ))}
                       </ul>
                     </div>
@@ -1121,7 +1121,7 @@ Comment puis-je vous aider ?`
                       <div className="text-xs font-bold mb-2" style={{ color: COLORS.terracotta }}>Actions</div>
                       <ul className="space-y-1">
                         {note.actions.map((a, i) => (
-                          <li key={i} className="text-sm text-white">• {a}</li>
+                          <li key={`act-${i}-${a.slice(0,8)}`} className="text-sm text-white">• {a}</li>
                         ))}
                       </ul>
                     </div>

@@ -5,7 +5,7 @@ Routes /api/pro/social/ pour le LinkedIn Culturel CC2026
 import os
 import uuid
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -112,14 +112,15 @@ async def create_post(data: PostCreate):
 
 async def _trigger_ghost_comment(post_id: str):
     """Delayed ghost comment on a real user's post."""
-    import asyncio, secrets as _sec
+    import asyncio
+    import secrets as _sec
     try:
         delay = _sec.randbelow(540) + 60  # 1-10 min
         await asyncio.sleep(delay)
         import httpx
         async with httpx.AsyncClient() as client:
             await client.post(
-                f"http://localhost:8001/api/ghost/engine/auto-comment",
+                "http://localhost:8001/api/ghost/engine/auto-comment",
                 json={"post_id": post_id},
                 timeout=30
             )
@@ -133,7 +134,7 @@ async def _trigger_reward(user_id: str, event: str):
         import httpx
         async with httpx.AsyncClient() as client:
             await client.post(
-                f"http://localhost:8001/api/ghost/rewards/trigger",
+                "http://localhost:8001/api/ghost/rewards/trigger",
                 json={"user_id": user_id, "event": event},
                 timeout=10
             )
@@ -149,7 +150,7 @@ async def _trigger_social_validation(post_id: str, author_id: str):
         import httpx
         async with httpx.AsyncClient() as client:
             await client.post(
-                f"http://localhost:8001/api/growth/engine/social-validation",
+                "http://localhost:8001/api/growth/engine/social-validation",
                 json={"post_id": post_id, "author_id": author_id},
                 timeout=30
             )

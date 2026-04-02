@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const __DEV__ = process.env.NODE_ENV === 'development';
-const log = (...args) => { if (__DEV__) log(...args); };
+const log = (...args) => { if (__DEV__) console.log(...args); };
 
 /**
  * 🔄 BIDIRECTIONAL REALTIME SYNC HOOK
