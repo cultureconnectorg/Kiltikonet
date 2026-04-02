@@ -369,8 +369,8 @@ const WorkspaceLaurent = () => {
                       Aucune session récente
                     </div>
                   ) : (
-                    sessions.map((session, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    sessions.map((session) => (
+                      <div key={session._id} className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                         <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
                           style={{ background: getRoleColor(session.role), color: '#fff' }}>
                           {session._id?.substring(0, 2).toUpperCase() || '??'}
@@ -405,7 +405,7 @@ const WorkspaceLaurent = () => {
                   {logs.slice(0, 10).map((log, idx) => {
                     const IconComponent = getActionIcon(log.action);
                     return (
-                      <div key={idx} className="flex items-center gap-3 p-2 rounded" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <div key={log.timestamp || `log-${idx}`} className="flex items-center gap-3 p-2 rounded" style={{ background: 'rgba(255,255,255,0.03)' }}>
                         <IconComponent className="w-4 h-4" style={{ color: getRoleColor(log.role) }} />
                         <div className="flex-1 min-w-0">
                           <span className="text-xs font-medium text-white">{log.user}</span>
@@ -431,7 +431,7 @@ const WorkspaceLaurent = () => {
               {logs.map((log, idx) => {
                 const IconComponent = getActionIcon(log.action);
                 return (
-                  <div key={idx} className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div key={log.timestamp || `flog-${idx}`} className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${getRoleColor(log.role)}20` }}>
                       <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: getRoleColor(log.role) }} />
                     </div>

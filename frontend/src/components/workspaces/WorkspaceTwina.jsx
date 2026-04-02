@@ -292,8 +292,8 @@ const WorkspaceTwina = () => {
                     </p>
                     
                     <div className="grid grid-cols-3 gap-4">
-                      {(cmsContent?.partners || []).slice(0, 6).map((partner, idx) => (
-                        <div key={idx} className="p-4 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                      {(cmsContent?.partners || []).slice(0, 6).map((partner) => (
+                        <div key={partner.company_name || partner.logo_url} className="p-4 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
                           {partner.logo_url ? (
                             <img src={partner.logo_url} alt={partner.company_name} className="h-12 mx-auto object-contain mb-2" />
                           ) : (

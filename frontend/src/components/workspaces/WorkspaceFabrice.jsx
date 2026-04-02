@@ -385,7 +385,7 @@ const WorkspaceFabrice = () => {
                     </div>
                   ) : (
                     history.map((item, idx) => (
-                      <div key={idx} className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                      <div key={item.time || `hist-${idx}`} className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
                         <div className="text-xs font-bold" style={{ color: COLORS.gold }}>{item.time}</div>
                         <div className="text-sm text-white truncate">{item.text}</div>
                       </div>
@@ -404,8 +404,8 @@ const WorkspaceFabrice = () => {
             <div className="lg:col-span-3 rounded-lg p-4 sm:p-6" style={{ background: '#2A2820', border: `1px solid ${COLORS.purple}20` }}>
               <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: COLORS.purple }}>Séquenceur d'écrans - 22 mai 2026</h2>
               <div className="space-y-2 sm:space-y-3">
-                {sequence.map((item, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                {sequence.map((item) => (
+                  <div key={item.time} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                     <div className="flex items-center gap-3 sm:gap-4">
                       <div className="text-lg sm:text-xl font-bold" style={{ color: COLORS.gold, minWidth: '60px' }}>{item.time}</div>
                       <div className={`w-3 h-3 rounded-full flex-shrink-0 ${item.sent ? 'bg-green-400' : 'bg-white/20'}`} />

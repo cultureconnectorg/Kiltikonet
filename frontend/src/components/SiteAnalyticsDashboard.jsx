@@ -204,7 +204,7 @@ export default function SiteAnalyticsDashboard() {
                     {data.top_pages.map((p, i) => {
                       const maxV = data.top_pages[0]?.views || 1;
                       return (
-                        <div key={i} className="flex items-center gap-3">
+                        <div key={p.page || `page-${i}`} className="flex items-center gap-3">
                           <span className="text-xs w-5 text-right font-bold" style={{ color: C.terra }}>{i + 1}</span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
@@ -242,8 +242,8 @@ export default function SiteAnalyticsDashboard() {
                 </h3>
                 {(data.referrers || []).length > 0 ? (
                   <div className="space-y-2">
-                    {data.referrers.map((r, i) => (
-                      <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: C.light }}>
+                    {data.referrers.map((r) => (
+                      <div key={r.source} className="flex items-center justify-between p-2 rounded-lg" style={{ background: C.light }}>
                         <span className="text-xs truncate flex-1" style={{ color: C.dark }}>{cleanReferrer(r.source)}</span>
                         <span className="text-xs font-bold ml-2" style={{ color: C.purple }}>{r.count}</span>
                       </div>
@@ -274,7 +274,7 @@ export default function SiteAnalyticsDashboard() {
                     </thead>
                     <tbody>
                       {data.recent_activity.map((a, i) => (
-                        <tr key={i} className="border-t" style={{ borderColor: C.warm }}>
+                        <tr key={a.created_at || `act-${i}`} className="border-t" style={{ borderColor: C.warm }}>
                           <td className="py-1.5" style={{ color: C.muted, fontFamily: 'monospace' }}>{formatTime(a.created_at)}</td>
                           <td className="py-1.5 font-medium" style={{ color: C.dark }}>{PAGE_LABELS[a.data?.page] || a.data?.page}</td>
                           <td className="py-1.5" style={{ color: C.muted, fontFamily: 'monospace' }}>{a.ip || '-'}</td>

@@ -41,7 +41,7 @@ const BarSimple = ({ data, labelKey, valueKey, color = '#A65D47', maxItems = 8 }
   return (
     <div className="space-y-2">
       {items.map((d, i) => (
-        <div key={i} className="flex items-center gap-3">
+        <div key={d[labelKey] || `bar-${i}`} className="flex items-center gap-3">
           <span className="text-xs text-[#999] w-28 truncate">{d[labelKey] || '-'}</span>
           <div className="flex-1 bg-[#222] rounded-full h-5 overflow-hidden">
             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(d[valueKey] / max) * 100}%`, backgroundColor: color }} />
@@ -101,10 +101,10 @@ const PredictiveView = ({ data }) => (
     <Section title="Tendance inscriptions (quotidien)">
       {data.daily_registrations?.length ? (
         <div className="flex items-end gap-1 h-32">
-          {data.daily_registrations.map((d, i) => {
+          {data.daily_registrations.map((d) => {
             const max = Math.max(...data.daily_registrations.map(x => x.count), 1);
             return (
-              <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+              <div key={d._id} className="flex-1 flex flex-col items-center justify-end gap-1">
                 <span className="text-[10px] text-[#888]">{d.count}</span>
                 <div className="w-full bg-[#7A8F6D] rounded-t transition-all" style={{ height: `${(d.count / max) * 100}%`, minHeight: 2 }} />
                 <span className="text-[8px] text-[#555] rotate-45">{d._id?.slice(5)}</span>
@@ -209,8 +209,8 @@ const ConversionView = ({ data }) => {
     <div className="space-y-6">
       <Section title="Entonnoir de conversion">
         <div className="space-y-3">
-          {steps.map((s, i) => (
-            <div key={i} className="flex items-center gap-3">
+          {steps.map((s) => (
+            <div key={s.label} className="flex items-center gap-3">
               <span className="text-xs text-[#999] w-24">{s.label}</span>
               <div className="flex-1 bg-[#222] rounded-full h-8 overflow-hidden">
                 <div className="h-full rounded-full flex items-center px-3 transition-all duration-700" style={{ width: `${Math.max((s.value / max) * 100, 5)}%`, backgroundColor: s.color }}>
@@ -252,8 +252,8 @@ const VerifiedIdentityView = ({ data }) => (
     </div>
     <Section title="Derniers badges">
       <div className="space-y-2">
-        {(data.recent_badges || []).map((b, i) => (
-          <div key={i} className="flex items-center gap-3 text-xs py-1 border-b border-[#222]">
+        {(data.recent_badges || []).map((b) => (
+          <div key={b.badge_id} className="flex items-center gap-3 text-xs py-1 border-b border-[#222]">
             <span className="text-[#A65D47] font-mono w-16">{b.badge_id?.slice(-6)}</span>
             <span className="text-[#F4F1EA] flex-1">{b.prenom} {b.nom}</span>
             <span className="text-[#888] px-2 py-0.5 bg-[#1A1A1A] rounded">{b.type_badge}</span>
@@ -277,7 +277,7 @@ const CreativeNetworkView = ({ data }) => (
       {data.top_connected?.length ? (
         <div className="space-y-2">
           {data.top_connected.map((p, i) => (
-            <div key={i} className="flex items-center gap-3 text-xs py-2 border-b border-[#222]">
+            <div key={p.name || `conn-${i}`} className="flex items-center gap-3 text-xs py-2 border-b border-[#222]">
               <span className="w-6 h-6 rounded-full bg-[#A65D47] flex items-center justify-center text-white font-bold">{i + 1}</span>
               <span className="text-[#F4F1EA] flex-1">{p.name}</span>
               <span className="text-[#888] px-2 py-0.5 bg-[#1A1A1A] rounded">{p.type}</span>

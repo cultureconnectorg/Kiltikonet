@@ -33,6 +33,11 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Ame
 ### Fintech Monnaie Forte (DONE - 01/04/2026)
 - 5 packs KT, Stripe Factory Maker Studio EURL, Dashboard Admin Financier
 
+### Code Quality Audit Round 5 (DONE - 02/04/2026)
+- Index-as-key restants corrigés: WorkspaceTwina (partner keys), WorkspaceLaurent (session._id, log timestamps), WorkspaceFabrice (item.time, sequence time), SmartEngineDashboard (5 occurrences: label/badge_id/name/_id), SiteAnalyticsDashboard (3 occurrences: page/source/created_at)
+- Confirmed FALSE POSITIVE x5: translations.js = UI labels, not secrets
+- localStorage -> httpOnly cookies: remains P2 backlog
+
 ### Code Quality Audit Round 4 (DONE - 02/04/2026)
 - Index-as-key fixes: WorkspaceGwen (label/title keys), PerformanceDashboard (_id keys), UserRecommendations (title/name keys), WorkspaceAlirio (msg id, q string keys)
 - AccreditationSystem: sort/filter in JSX -> useMemo (sortedByType, sortedByTerritory, sortedBySector)
