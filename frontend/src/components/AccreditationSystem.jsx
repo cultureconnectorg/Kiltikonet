@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { 
   Users, Search, RefreshCw, CheckCircle, XCircle, Download, 
@@ -1467,6 +1467,10 @@ const StatisticsTab = ({ participants, stats }) => {
     </div>
   );
 
+  const sortedByType = useMemo(() => Object.entries(liveStats.byType).sort((a, b) => b[1] - a[1]), [liveStats.byType]);
+  const sortedByTerritory = useMemo(() => Object.entries(liveStats.byTerritory).sort((a, b) => b[1] - a[1]), [liveStats.byTerritory]);
+  const sortedBySector = useMemo(() => Object.entries(liveStats.bySector).sort((a, b) => b[1] - a[1]), [liveStats.bySector]);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header with Live Status */}
@@ -1566,7 +1570,7 @@ const StatisticsTab = ({ participants, stats }) => {
           Répartition par type de badge
         </div>
         <div className="space-y-3">
-          {Object.entries(liveStats.byType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
+          {sortedByType.map(([type, count]) => (
             <StatBar key={type} label={type} value={count} total={liveStats.total} color={(BADGE_COLORS[type] || BADGE_COLORS['Artiste']).bg} />
           ))}
         </div>
@@ -1578,7 +1582,7 @@ const StatisticsTab = ({ participants, stats }) => {
           Territoires représentés
         </div>
         <div className="space-y-3">
-          {Object.entries(liveStats.byTerritory).sort((a, b) => b[1] - a[1]).map(([terr, count]) => (
+          {sortedByTerritory.map(([terr, count]) => (
             <StatBar key={terr} label={terr} value={count} total={liveStats.total} color={COLORS.gold} />
           ))}
         </div>
@@ -1590,7 +1594,7 @@ const StatisticsTab = ({ participants, stats }) => {
           Secteurs d'activité
         </div>
         <div className="space-y-3">
-          {Object.entries(liveStats.bySector).sort((a, b) => b[1] - a[1]).map(([sector, count]) => (
+          {sortedBySector.map(([sector, count]) => (
             <StatBar key={sector} label={sector} value={count} total={liveStats.total} color={COLORS.teal} />
           ))}
         </div>

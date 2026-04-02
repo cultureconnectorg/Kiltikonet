@@ -87,7 +87,7 @@ const UserRecommendations = ({ badgeId, colors }) => {
         <div className="px-5 pb-4 space-y-2">
           {events.recommendations.map((evt, i) => (
             <div
-              key={i}
+              key={evt.title || `evt-${i}`}
               className="p-3 rounded-lg transition-all hover:shadow-sm"
               style={{ background: C.bg }}
               data-testid={`user-reco-event-${i}`}
@@ -114,7 +114,7 @@ const UserRecommendations = ({ badgeId, colors }) => {
               {evt.reasons?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {evt.reasons.map((r, j) => (
-                    <span key={j} className="text-xs px-1.5 py-0.5 rounded" style={{ background: `${C.gold}15`, color: C.gold, fontSize: 9 }}>{r}</span>
+                    <span key={`reason-${j}-${r.slice(0,8)}`} className="text-xs px-1.5 py-0.5 rounded" style={{ background: `${C.gold}15`, color: C.gold, fontSize: 9 }}>{r}</span>
                   ))}
                 </div>
               )}
@@ -128,7 +128,7 @@ const UserRecommendations = ({ badgeId, colors }) => {
         <div className="px-5 pb-4 space-y-2">
           {connections.recommendations.map((p, i) => (
             <div
-              key={i}
+              key={p.name || `person-${i}`}
               className="flex items-center gap-3 p-3 rounded-lg transition-all hover:shadow-sm"
               style={{ background: C.bg }}
               data-testid={`user-reco-person-${i}`}

@@ -786,8 +786,8 @@ const WorkspaceGwen = () => {
                     { label: 'Logistique', amount: budget.logistique, color: COLORS.gold },
                     { label: 'Communication', amount: budget.communication, color: '#3b82f6' },
                     { label: 'Divers', amount: budget.divers, color: '#6b7280' }
-                  ].map((item, idx) => (
-                    <div key={idx} className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  ].map((item) => (
+                    <div key={item.label} className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-white">{item.label}</span>
                         <span className="font-bold text-white">{item.amount.toLocaleString()}€</span>
@@ -849,8 +849,8 @@ const WorkspaceGwen = () => {
                   { title: 'Confirmer line-up', date: '2026-03-15', priority: 'high' },
                   { title: 'Contrats GUSO', date: '2026-03-20', priority: 'high' },
                   { title: 'Planning sécurité', date: '2026-04-01', priority: 'normal' }
-                ].map((task, idx) => (
-                  <div key={idx} className="p-3 rounded-lg" style={{ 
+                ].map((task) => (
+                  <div key={task.title} className="p-3 rounded-lg" style={{ 
                     background: 'rgba(255,255,255,0.05)', 
                     borderLeft: `3px solid ${task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? COLORS.terracotta : COLORS.gold}` 
                   }}>

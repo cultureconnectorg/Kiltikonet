@@ -863,7 +863,7 @@ Comment puis-je vous aider ?`
               
               <div className="h-96 overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div key={msg.id || `msg-${idx}`} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div 
                       className="max-w-[80%] p-4 rounded-lg"
                       style={{ background: msg.role === 'user' ? COLORS.terracotta : 'rgba(255,255,255,0.05)' }}
@@ -916,9 +916,9 @@ Comment puis-je vous aider ?`
                     "Rédige un email de relance CTM",
                     "Prépare l'ordre du jour demain",
                     "Liste les actions en attente"
-                  ].map((q, idx) => (
+                  ].map((q) => (
                     <button
-                      key={idx}
+                      key={q}
                       onClick={() => setInputMessage(q)}
                       className="w-full text-left p-2 rounded text-sm transition-all hover:bg-white/5"
                       style={{ color: 'rgba(255,255,255,0.6)' }}

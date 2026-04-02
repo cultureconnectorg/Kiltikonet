@@ -281,8 +281,8 @@ const PerformanceDashboard = () => {
                 <div className="text-xs font-semibold mb-2" style={{ color: COLORS.gold }}>
                   Sections Introduction les plus vues
                 </div>
-                {metrics.intro_sections.slice(0, 4).map((section, idx) => (
-                  <div key={idx} className="flex justify-between text-xs py-1">
+                {metrics.intro_sections.slice(0, 4).map((section) => (
+                  <div key={section._id} className="flex justify-between text-xs py-1">
                     <span style={{ color: 'rgba(255,255,255,0.6)' }}>{section._id}</span>
                     <span style={{ color: COLORS.gold }}>{section.count}</span>
                   </div>
@@ -323,8 +323,8 @@ const PerformanceDashboard = () => {
                 <div className="text-xs font-semibold mb-2" style={{ color: COLORS.purple }}>
                   Activité par type
                 </div>
-                {metrics.pro_activity.map((activity, idx) => (
-                  <div key={idx} className="flex justify-between text-xs py-1">
+                {metrics.pro_activity.map((activity) => (
+                  <div key={activity._id} className="flex justify-between text-xs py-1">
                     <span style={{ color: 'rgba(255,255,255,0.6)' }}>{activity._id}</span>
                     <span style={{ color: COLORS.purple }}>{activity.count}</span>
                   </div>
@@ -342,7 +342,7 @@ const PerformanceDashboard = () => {
 
             <div className="space-y-2 mb-4">
               {(metrics?.top_pages || []).slice(0, 6).map((page, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                <div key={page._id || `page-${idx}`} className="flex items-center justify-between p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-xs font-bold" style={{ color: COLORS.teal }}>{idx + 1}</span>
                     <span className="text-xs text-white truncate">{page._id || 'Page inconnue'}</span>
