@@ -29,6 +29,10 @@ import jwt as pyjwt
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Environment mode
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+IS_PRODUCTION = ENVIRONMENT == 'production'
+
 # Session / Cookie auth
 SESSION_SECRET = os.environ.get('SESSION_SECRET', 'fallback-dev-secret')
 SESSION_COOKIE_NAME = 'kk_session'
@@ -117,6 +121,32 @@ api_router = APIRouter(prefix="/api")
 api_v1_router = APIRouter(prefix="/api/v1")
 
 
+# ── Global Rate Limiter (production) ──
+_rate_limit_store: Dict[str, list] = {}
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_MAX = 120     # requests per window per IP
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Basic IP-based rate limiting for production."""
+    if IS_PRODUCTION:
+        client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+        now = datetime.now(timezone.utc).timestamp()
+        
+        # Clean old entries and add new one
+        window_start = now - RATE_LIMIT_WINDOW
+        hits = _rate_limit_store.get(client_ip, [])
+        hits = [t for t in hits if t > window_start]
+        
+        if len(hits) >= RATE_LIMIT_MAX:
+            return JSONResponse(status_code=429, content={"detail": "Trop de requêtes. Réessayez dans quelques secondes."})
+        
+        hits.append(now)
+        _rate_limit_store[client_ip] = hits
+    
+    return await call_next(request)
+
+
 # ── Auth middleware: populate request.state.session from cookie ──
 @app.middleware("http")
 async def session_cookie_middleware(request: Request, call_next):
@@ -142,6 +172,26 @@ async def auth_logout():
     response = JSONResponse(content={"success": True})
     clear_session_cookie(response)
     return response
+
+
+# ── Admin / Workspace guard helpers ──
+ADMIN_ROLES = {"admin", "founder"}
+WORKSPACE_ROLES = {"admin", "founder", "design", "event", "press", "business", "finance", "captions", "analyst", "partnerships"}
+
+def require_admin(request: Request):
+    """Raise 403 if the caller is not admin or founder."""
+    session = getattr(request.state, "session", None)
+    if not session or session.get("role") not in ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
+    return session
+
+def require_workspace(request: Request):
+    """Raise 403 if the caller has no workspace role."""
+    session = getattr(request.state, "session", None)
+    if not session or session.get("role") not in WORKSPACE_ROLES:
+        raise HTTPException(status_code=403, detail="Accès réservé aux membres de l'équipe")
+    return session
+
 
 # ================== BIDIRECTIONAL REALTIME SYNC (WebSocket + SSE) ==================
 from fastapi import WebSocket, WebSocketDisconnect
@@ -2180,8 +2230,9 @@ async def add_workspace_log(log: WorkspaceLog):
     return {"success": True, "log_id": log_entry["id"]}
 
 @api_router.get("/workspace/logs")
-async def get_workspace_logs(limit: int = 100, user: Optional[str] = None):
+async def get_workspace_logs(request: Request, limit: int = 100, user: Optional[str] = None):
     """Get workspace activity logs (for admin dashboard)"""
+    require_workspace(request)
     query = {}
     if user:
         query["user"] = user
@@ -2194,8 +2245,9 @@ async def get_workspace_logs(limit: int = 100, user: Optional[str] = None):
     return {"logs": logs}
 
 @api_router.get("/workspace/sessions")
-async def get_workspace_sessions():
+async def get_workspace_sessions(request: Request):
     """Get all active/recent sessions grouped by user"""
+    require_workspace(request)
     # Get login events from last 30 days
     thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
     
@@ -2236,19 +2288,20 @@ class UpdatePasswordRequest(BaseModel):
     updated_by: str
 
 @api_router.post("/workspace/update-password")
-async def update_workspace_password(request: UpdatePasswordRequest):
+async def update_workspace_password(request: Request, req_body: UpdatePasswordRequest):
     """Update workspace password (founder only)"""
+    session = require_admin(request)
     # Store password update in database
     password_entry = {
-        "workspace_id": request.workspace_id,
-        "password": request.new_password,
-        "updated_by": request.updated_by,
+        "workspace_id": req_body.workspace_id,
+        "password": req_body.new_password,
+        "updated_by": req_body.updated_by,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
     # Upsert the password
     await db.workspace_passwords.update_one(
-        {"workspace_id": request.workspace_id},
+        {"workspace_id": req_body.workspace_id},
         {"$set": password_entry},
         upsert=True
     )
@@ -2256,15 +2309,15 @@ async def update_workspace_password(request: UpdatePasswordRequest):
     # Log the action
     log_entry = {
         "id": str(uuid.uuid4()),
-        "user": request.updated_by,
+        "user": req_body.updated_by,
         "role": "founder",
         "action": "password_update",
-        "details": f"Mot de passe mis à jour pour {request.workspace_id}",
+        "details": f"Mot de passe mis à jour pour {req_body.workspace_id}",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
     await db.workspace_logs.insert_one(log_entry)
     
-    return {"success": True, "message": f"Mot de passe mis à jour pour {request.workspace_id}"}
+    return {"success": True, "message": f"Mot de passe mis à jour pour {req_body.workspace_id}"}
 
 # ================== INTERNAL MESSAGING SYSTEM ==================
 
@@ -2902,8 +2955,9 @@ class ManualPartner(BaseModel):
     show_on_landing: bool = True
 
 @api_router.get("/partners/admin")
-async def get_partners_admin():
+async def get_partners_admin(request: Request):
     """Get all partners with full details for admin"""
+    require_admin(request)
     partners = await db.partners.find({}, {"_id": 0}).to_list(100)
     
     # Enrich with sponsored registrations info
@@ -2920,8 +2974,9 @@ async def get_partners_admin():
     return {"partners": partners, "total": len(partners)}
 
 @api_router.post("/partners/manual")
-async def create_manual_partner(data: ManualPartner):
+async def create_manual_partner(request: Request, data: ManualPartner):
     """Admin manual partner creation (without payment)"""
+    require_admin(request)
     partner_id = str(uuid.uuid4())
     
     partner = {
@@ -5137,22 +5192,27 @@ async def realtime_status():
 # ================== ADMIN NOTIFICATIONS ENDPOINTS ==================
 
 @app.get("/api/admin/notifications")
-async def get_admin_notifications(limit: int = 50, unread_only: bool = False):
+async def get_admin_notifications(request: Request, limit: int = 50, unread_only: bool = False):
     """Get admin notification history"""
+    require_admin(request)
     query = {"read": False} if unread_only else {}
     notifs = await db.admin_notifications.find(query, {"_id": 0}).sort("timestamp", -1).to_list(limit)
     unread_count = await db.admin_notifications.count_documents({"read": {"$ne": True}})
     return {"notifications": notifs, "unread_count": unread_count}
 
 @app.post("/api/admin/notifications/read-all")
-async def mark_all_admin_notifications_read():
+async def mark_all_admin_notifications_read(request: Request):
     """Mark all notifications as read"""
+    require_admin(request)
     result = await db.admin_notifications.update_many({}, {"$set": {"read": True}})
     return {"marked": result.modified_count}
 
 @app.post("/api/admin/notifications/test")
-async def send_test_notification():
+async def send_test_notification(request: Request):
     """Send a test notification for debugging"""
+    require_admin(request)
+    if IS_PRODUCTION:
+        raise HTTPException(status_code=403, detail="Route désactivée en production")
     notif = {
         "category": "system",
         "title": "Notification test",
@@ -5277,11 +5337,12 @@ async def manual_broadcast(event_type: str = Form(...), data: str = Form("{}")):
 # ================== SMART ENGINE INDEXATION ==================
 
 @app.post("/api/smart-engine/index-contacts")
-async def index_contacts_to_smart_engine():
+async def index_contacts_to_smart_engine(request: Request):
     """
     Index all 44 contacts from registrations to Smart Engine profiles.
     This creates searchable vector embeddings for AI-powered recommendations.
     """
+    require_admin(request)
     try:
         # Get all registrations
         registrations = await db.registrations.find({}, {"_id": 0}).to_list(500)
@@ -5330,12 +5391,14 @@ async def index_contacts_to_smart_engine():
 
 @app.get("/api/smart-engine/profiles")
 async def get_smart_engine_profiles(
+    request: Request,
     profile_type: Optional[str] = None,
     country: Optional[str] = None,
     search: Optional[str] = None,
     limit: int = 50
 ):
     """Get indexed Smart Engine profiles with optional filters"""
+    require_workspace(request)
     try:
         query = {}
         if profile_type:
@@ -5357,8 +5420,9 @@ async def get_smart_engine_profiles(
         return {"profiles": [], "total": 0, "error": str(e)}
 
 @app.delete("/api/smart-engine/purge")
-async def purge_smart_engine():
+async def purge_smart_engine(request: Request):
     """Purge all mock data from Smart Engine (admin only)"""
+    require_admin(request)
     try:
         result = await db.smart_profiles.delete_many({})
         return {
@@ -5732,12 +5796,13 @@ class AdminAccreditationRequest(BaseModel):
     zones_acces: Optional[str] = ""
 
 @app.post("/api/admin/accreditation")
-async def admin_add_accreditation(data: AdminAccreditationRequest):
+async def admin_add_accreditation(request: Request, data: AdminAccreditationRequest):
     """
     Route 3: Admin ajoute participant manuellement
     - Crée UNIQUEMENT dans Baserow (pas dans MongoDB)
     - Génère l'ID Baserow directement
     """
+    require_admin(request)
     try:
         baserow_data = {
             "Prenom": data.prenom,
@@ -6477,6 +6542,8 @@ async def pro_verify_code(request: ProVerifyCode):
 @app.get("/api/pro/dev/get-code/{email}")
 async def dev_get_code(email: str):
     """DEV ONLY: Get stored access code for testing"""
+    if IS_PRODUCTION:
+        raise HTTPException(status_code=404, detail="Not Found")
     stored = pro_access_codes.get(email.lower())
     if not stored:
         raise HTTPException(status_code=404, detail="No code found")
@@ -7349,8 +7416,9 @@ async def dashboard_cc2026_live():
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/admin/reconcile")
-async def admin_reconcile():
+async def admin_reconcile(request: Request):
     """Force sync between MongoDB badges and Baserow mirror"""
+    require_admin(request)
     from services.baserow_service import mirror_badge
     
     badges = await db.cc_badges.find({}, {"_id": 0}).to_list(1000)
@@ -7399,8 +7467,9 @@ class BatchEmailRequest(BaseModel):
     dry_run: bool = True
 
 @app.post("/api/admin/batch-email")
-async def admin_batch_email(req: BatchEmailRequest):
+async def admin_batch_email(request: Request, req: BatchEmailRequest):
     """Send batch emails to all badge holders (or filtered by type)"""
+    require_admin(request)
     from services import ses_service
     
     TEMPLATE_MAP = {
@@ -7940,8 +8009,9 @@ async def create_team_notification(notif_data):
     return notification
 
 @app.get("/api/analytics/dashboard")
-async def get_analytics_dashboard(days: int = 7):
+async def get_analytics_dashboard(request: Request, days: int = 7):
     """Get analytics dashboard data for admin"""
+    require_admin(request)
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     
     # Aggregate analytics
@@ -8026,8 +8096,9 @@ async def get_analytics_dashboard(days: int = 7):
 
 
 @app.get("/api/analytics/site")
-async def get_site_analytics(days: int = 30):
+async def get_site_analytics(request: Request, days: int = 30):
     """Comprehensive site analytics - traffic, visitors, pages, devices"""
+    require_workspace(request)
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(days=days)
     cutoff_iso = cutoff.isoformat()
@@ -8164,8 +8235,9 @@ async def get_site_analytics(days: int = 30):
     }
 
 @app.get("/api/analytics/behavior/{user_id}")
-async def get_user_behavior(user_id: str, days: int = 30):
+async def get_user_behavior(request: Request, user_id: str, days: int = 30):
     """Get detailed behavior analysis for a specific user"""
+    require_workspace(request)
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     
     events = await db.analytics_events.find(
@@ -8453,8 +8525,9 @@ DEFAULT_ALERT_RULES = [
 ]
 
 @app.get("/api/smart-engine/stats")
-async def get_smart_engine_stats():
+async def get_smart_engine_stats(request: Request):
     """Get Smart Engine statistics and health"""
+    require_workspace(request)
     now = datetime.now(timezone.utc)
     yesterday = now - timedelta(days=1)
     last_hour = now - timedelta(hours=1)
@@ -8512,8 +8585,9 @@ async def get_smart_engine_stats():
     }
 
 @app.get("/api/smart-engine/alerts/rules")
-async def get_alert_rules():
+async def get_alert_rules(request: Request):
     """Get all alert rules"""
+    require_workspace(request)
     rules = await db.smart_alert_rules.find({}, {"_id": 0}).to_list(100)
     if not rules:
         # Initialize with defaults
@@ -8523,8 +8597,9 @@ async def get_alert_rules():
     return rules
 
 @app.post("/api/smart-engine/alerts/rules")
-async def create_alert_rule(rule: SmartAlertRule):
+async def create_alert_rule(request: Request, rule: SmartAlertRule):
     """Create a new alert rule"""
+    require_admin(request)
     rule_doc = rule.dict()
     rule_doc["id"] = rule_doc.get("id") or str(uuid.uuid4())
     rule_doc["created_at"] = datetime.now(timezone.utc).isoformat()
@@ -8533,8 +8608,9 @@ async def create_alert_rule(rule: SmartAlertRule):
     return {"success": True, "rule": rule_doc}
 
 @app.patch("/api/smart-engine/alerts/rules/{rule_id}")
-async def update_alert_rule(rule_id: str, enabled: bool = None):
+async def update_alert_rule(request: Request, rule_id: str, enabled: bool = None):
     """Update an alert rule (enable/disable)"""
+    require_admin(request)
     update = {}
     if enabled is not None:
         update["enabled"] = enabled
@@ -8547,8 +8623,9 @@ async def update_alert_rule(rule_id: str, enabled: bool = None):
     return {"success": True}
 
 @app.post("/api/smart-engine/check-alerts")
-async def check_and_trigger_alerts():
+async def check_and_trigger_alerts(request: Request):
     """Check all alert conditions and trigger notifications"""
+    require_admin(request)
     now = datetime.now(timezone.utc)
     alerts_triggered = []
     
@@ -8663,8 +8740,9 @@ def format_alert_message(condition_type, details):
     return messages.get(condition_type, "Alerte déclenchée")
 
 @app.get("/api/smart-engine/insights")
-async def get_smart_insights():
+async def get_smart_insights(request: Request):
     """Get AI-generated insights from analytics data"""
+    require_workspace(request)
     now = datetime.now(timezone.utc)
     week_ago = now - timedelta(days=7)
     
@@ -8801,9 +8879,10 @@ async def get_smart_insights():
 
 # Background task to check alerts periodically (call via cron or scheduler)
 @app.post("/api/smart-engine/cron/check")
-async def smart_engine_cron_check():
+async def smart_engine_cron_check(request: Request):
     """Cron endpoint to check alerts - call every 15 minutes"""
-    result = await check_and_trigger_alerts()
+    require_admin(request)
+    result = await check_and_trigger_alerts(request)
     return {"success": True, "result": result}
 
 

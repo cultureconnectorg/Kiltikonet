@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"3dc04839b1844d04852c09a87d02da0d","collectionName":"kn_wallets","type":"collection"}

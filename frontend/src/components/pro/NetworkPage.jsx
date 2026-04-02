@@ -221,9 +221,9 @@ const NetworkPage = () => {
   const countries = [...new Set(pros.map(p => p.country).filter(Boolean))].sort();
   const profileTypes = [...new Set(pros.map(p => p.profile_type).filter(Boolean))];
   const stats = {
-    total: pros.length,
-    connected: connections.length,
-    countries: countries.length,
+    total: pros.length || '--',
+    connected: connections.length || '--',
+    countries: countries.length || '--',
   };
 
   if (!session) return null;

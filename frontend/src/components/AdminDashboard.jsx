@@ -600,7 +600,7 @@ export const AdminDashboard = () => {
                   <Users className="w-4 h-4 text-charcoal/60" />
                 </div>
                 <div>
-                  <p className="text-2xl font-serif text-charcoal">{counts.total}</p>
+                  <p className="text-2xl font-serif text-charcoal">{counts.total || '--'}</p>
                   <p className="text-xs text-charcoal/50">Total</p>
                 </div>
               </div>
