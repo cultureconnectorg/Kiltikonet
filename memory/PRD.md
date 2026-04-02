@@ -15,38 +15,53 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Ame
 
 ## Implemente
 
+### Pages Standalone (DONE - 02/04/2026)
+**Messages** (`/espace-pro/messages`) :
+- Layout split responsive (liste conversations / zone chat)
+- Recherche, read receipts (check/double-check), polling 8s
+- Envoi message, back navigation, empty states
+
+**Reseau** (`/espace-pro/reseau`) :
+- Stats bar (total pros, connexions, pays)
+- Tabs "Decouvrir" / "Mes connexions"
+- Filtres par type de profil et pays
+- Grille de cartes pro avec couleurs par type (artist=or, label=violet, institution=vert, etc.)
+- Modales profil avec infos contact (visible uniquement si connecte)
+- Bouton "Se connecter" avec confirmation toast
+
 ### Code Quality Audit (DONE - 02/04/2026)
-**Corrections critiques appliquees :**
-- Secrets hardcodes dans tests → env vars (test_iteration38, test_hcaptcha, test_final_features)
-- postMessage wildcard '*' → window.location.origin (index.js)
-- random → secrets/secrets.choice dans ghost_engine.py + ghost_profiles.py (72+ instances)
-- CSP headers deja en place (X-Frame-Options, HSTS, X-XSS-Protection)
-- Hook deps: useOfflineSync corrige (syncPendingChanges ajouté)
-- Console logs: useRealtime.js nettoyé (dev-only logging)
-- Variable inutilisee (day_ago) supprimee dans ghost_engine
+- Secrets hardcodes → env vars dans tests
+- postMessage wildcard → origin restreint
+- random → secrets dans ghost_engine/ghost_profiles
+- Hooks deps corriges, console.log nettoyes
 
 ### Securite FREK-ID (DONE - 02/04/2026)
-- FREK-ID unique (36^8 combos) + MongoDB unique sparse index
-- Anti-Bot: Rate limiting 5/h, emails jetables bloques, OTP cooldown 60s
+- FREK-ID unique (36^8 combos) + MongoDB index unique sparse
+- Anti-Bot: Rate limiting, emails jetables bloques, OTP cooldown
 - Anti-Fraude: 1 email = 1 FREK-ID, detection IP suspecte
 
 ### Login/Inscription + Profil + RGPD (DONE - 02/04/2026)
-- Magic Link auto-inscription, Footer Legal, FREK-ID display, Langue FR/EN/ES/PT
-- RGPD: Export JSON + Suppression compte
+- Magic Link auto-inscription, Footer Legal, FREK-ID display
+- Selecteur de langue FR/EN/ES/PT, RGPD export + suppression
 
 ### Fintech Monnaie Forte (DONE - 01/04/2026)
 - 5 packs KT, Stripe metadata Factory Maker Studio EURL
-- Dashboard Admin Financier, Ghost Bridge VIP, Promesse ecosysteme
+- Dashboard Admin Financier, Ghost Bridge VIP
+
+## Routes Frontend
+- `/espace-pro` — Dashboard principal (Feed, Shop, Agenda, Profil)
+- `/espace-pro/connexion` — Login/Register Magic Link
+- `/espace-pro/messages` — Messages standalone
+- `/espace-pro/reseau` — Network standalone
+- `/admin/finance` — Dashboard financier admin
 
 ## Tests
+- iteration_57: Backend 100% (12/12), Frontend 100% — Messages + Network standalone
 - iteration_56: Backend 100% — Security FREK-ID
 - iteration_55: Backend 100%, Frontend 100% — Login/Settings/RGPD
 - iteration_54: Backend 100%, Frontend 100% — Monnaie Forte
 
 ## Backlog
-### P1
-- Messages standalone page
-- Network standalone page
 ### P2
 - Mgraph D3.js interactif
 ### P3
