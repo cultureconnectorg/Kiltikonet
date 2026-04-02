@@ -171,7 +171,7 @@ const NetworkPage = () => {
   const [activeTab, setActiveTab] = useState('discover');
 
   useEffect(() => {
-    const stored = localStorage.getItem('cc2026_pro_session');
+    const stored = sessionStorage.getItem('cc2026_pro_session');
     if (stored) {
       setSession(JSON.parse(stored));
     } else {

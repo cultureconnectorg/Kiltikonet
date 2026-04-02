@@ -189,51 +189,50 @@ const CUSTOM_PERMISSIONS_KEY = 'cc2026_custom_permissions';
  * Vérifie d'abord les permissions personnalisées, sinon utilise les défauts
  */
 export const getUserPermissions = (role) => {
-  // Vérifier les permissions personnalisées dans localStorage
+  // Check custom permissions in sessionStorage
   try {
-    const customPerms = localStorage.getItem(CUSTOM_PERMISSIONS_KEY);
+    const customPerms = sessionStorage.getItem(CUSTOM_PERMISSIONS_KEY);
     if (customPerms) {
       const parsed = JSON.parse(customPerms);
       if (parsed[role]) {
         return parsed[role];
       }
     }
-  } catch (e) {
+  } catch {
   }
   
-  // Retourner les permissions par défaut
+  // Return defaults
   return DEFAULT_ROLE_PERMISSIONS[role] || [];
 };
 
 /**
- * Sauvegarde les permissions personnalisées pour un rôle
+ * Save custom permissions for a role
  */
 export const saveCustomPermissions = (role, permissions) => {
   try {
-    const existing = localStorage.getItem(CUSTOM_PERMISSIONS_KEY);
+    const existing = sessionStorage.getItem(CUSTOM_PERMISSIONS_KEY);
     const customPerms = existing ? JSON.parse(existing) : {};
     customPerms[role] = permissions;
-    localStorage.setItem(CUSTOM_PERMISSIONS_KEY, JSON.stringify(customPerms));
+    sessionStorage.setItem(CUSTOM_PERMISSIONS_KEY, JSON.stringify(customPerms));
     return true;
-  } catch (e) {
-    console.error('Error saving custom permissions', e);
+  } catch {
     return false;
   }
 };
 
 /**
- * Réinitialise les permissions d'un rôle aux valeurs par défaut
+ * Reset permissions for a role to defaults
  */
 export const resetPermissions = (role) => {
   try {
-    const existing = localStorage.getItem(CUSTOM_PERMISSIONS_KEY);
+    const existing = sessionStorage.getItem(CUSTOM_PERMISSIONS_KEY);
     if (existing) {
       const customPerms = JSON.parse(existing);
       delete customPerms[role];
-      localStorage.setItem(CUSTOM_PERMISSIONS_KEY, JSON.stringify(customPerms));
+      sessionStorage.setItem(CUSTOM_PERMISSIONS_KEY, JSON.stringify(customPerms));
     }
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };

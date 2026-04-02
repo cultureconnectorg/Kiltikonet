@@ -34,10 +34,10 @@ export const AdminLogin = ({ onLogin }) => {
     
     try {
       // Try workspace login first
-      const response = await axios.post(`${API}/workspace/login`, { password });
+      const response = await axios.post(`${API}/workspace/login`, { password }, { withCredentials: true });
       
       if (response.data.success) {
-        // Store user info with new saveSession function
+        // Cache display data in sessionStorage (auth is via httpOnly cookie now)
         const sessionData = {
           name: response.data.user,
           role: response.data.role,
@@ -62,8 +62,9 @@ export const AdminLogin = ({ onLogin }) => {
     } catch (err) {
       // If workspace login fails, try old admin verify for backwards compatibility
       try {
-        const adminResponse = await axios.post(`${API}/admin/verify`, { password });
+        const adminResponse = await axios.post(`${API}/admin/verify`, { password }, { withCredentials: true });
         if (adminResponse.data.success) {
+          saveSession({ name: 'Admin', role: 'admin' }, false);
           onLogin('admin', null);
           return;
         }

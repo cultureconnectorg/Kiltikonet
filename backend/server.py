@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, File, UploadFile, Form, HTTPException, Query, Request, BackgroundTasks
-from fastapi.responses import StreamingResponse, Response
+from fastapi.responses import StreamingResponse, Response, JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -24,9 +24,54 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
 import requests
+import jwt as pyjwt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Session / Cookie auth
+SESSION_SECRET = os.environ.get('SESSION_SECRET', 'fallback-dev-secret')
+SESSION_COOKIE_NAME = 'kk_session'
+SESSION_MAX_AGE = 7 * 24 * 3600  # 7 days
+
+
+def create_session_token(payload: dict) -> str:
+    """Sign a session payload into a JWT token."""
+    data = {
+        **payload,
+        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(timezone.utc) + timedelta(seconds=SESSION_MAX_AGE),
+    }
+    return pyjwt.encode(data, SESSION_SECRET, algorithm="HS256")
+
+
+def decode_session_token(token: str) -> dict | None:
+    """Decode and verify a session JWT. Returns None on failure."""
+    try:
+        return pyjwt.decode(token, SESSION_SECRET, algorithms=["HS256"])
+    except (pyjwt.ExpiredSignatureError, pyjwt.InvalidTokenError):
+        return None
+
+
+def set_session_cookie(response, payload: dict):
+    """Attach an httpOnly session cookie to a response."""
+    token = create_session_token(payload)
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=SESSION_MAX_AGE,
+        path="/",
+    )
+    return response
+
+
+def clear_session_cookie(response):
+    """Remove the session cookie."""
+    response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    return response
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -54,11 +99,13 @@ BASE_URL = os.environ.get("BASE_URL", "https://kiltikonet.fr")
 # Create the main app
 app = FastAPI()
 
-# CORS middleware
+# CORS middleware — explicit origins required for httpOnly cookies
+_cors_raw = os.environ.get('CORS_ORIGINS', '')
+_cors_origins = [o.strip().strip('"') for o in _cors_raw.split(',') if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -68,6 +115,33 @@ api_router = APIRouter(prefix="/api")
 
 # Create a v1 router for new API endpoints
 api_v1_router = APIRouter(prefix="/api/v1")
+
+
+# ── Auth middleware: populate request.state.session from cookie ──
+@app.middleware("http")
+async def session_cookie_middleware(request: Request, call_next):
+    token = request.cookies.get(SESSION_COOKIE_NAME)
+    request.state.session = decode_session_token(token) if token else None
+    response = await call_next(request)
+    return response
+
+
+# ── Session endpoints ──
+@app.get("/api/auth/me")
+async def auth_me(request: Request):
+    """Return the current user from the httpOnly cookie. No localStorage needed."""
+    session = getattr(request.state, 'session', None)
+    if not session:
+        return JSONResponse(status_code=401, content={"authenticated": False})
+    return {"authenticated": True, "session": session}
+
+
+@app.post("/api/auth/logout")
+async def auth_logout():
+    """Clear the session cookie."""
+    response = JSONResponse(content={"success": True})
+    clear_session_cookie(response)
+    return response
 
 # ================== BIDIRECTIONAL REALTIME SYNC (WebSocket + SSE) ==================
 from fastapi import WebSocket, WebSocketDisconnect
@@ -1984,7 +2058,9 @@ async def export_registrations_filtered(
 @api_router.post("/admin/verify")
 async def verify_admin(admin: AdminVerify):
     if admin.password == "CC2026admin":
-        return {"success": True}
+        response = JSONResponse(content={"success": True})
+        set_session_cookie(response, {"role": "admin", "email": "admin@kiltikonet.fr"})
+        return response
     raise HTTPException(status_code=401, detail="Invalid password")
 
 # ================== WORKSPACE LOGIN & LOGS ==================
@@ -2076,12 +2152,18 @@ async def workspace_login(request: WorkspaceLoginRequest, req: Request):
     }
     await db.workspace_logs.insert_one(log_entry)
     
-    return {
+    response = JSONResponse(content={
         "success": True,
         "user": user_info["name"],
         "role": user_info["role"],
         "redirect": user_info["redirect"]
-    }
+    })
+    set_session_cookie(response, {
+        "role": user_info["role"],
+        "name": user_info["name"],
+        "redirect": user_info["redirect"]
+    })
+    return response
 
 @api_router.post("/workspace/log")
 async def add_workspace_log(log: WorkspaceLog):
@@ -6380,7 +6462,16 @@ async def pro_verify_code(request: ProVerifyCode):
         "timestamp": datetime.now(timezone.utc).isoformat()
     })
     
-    return {"success": True, "profile": registration}
+    response = JSONResponse(content={"success": True, "profile": registration})
+    set_session_cookie(response, {
+        "role": "pro",
+        "email": email,
+        "name": registration.get("full_name", ""),
+        "profile_id": registration.get("id", ""),
+        "profile_type": registration.get("profile_type", ""),
+        "is_admin": registration.get("is_admin", False),
+    })
+    return response
 
 # DEV ONLY - Get code for testing (should be removed in production)
 @app.get("/api/pro/dev/get-code/{email}")

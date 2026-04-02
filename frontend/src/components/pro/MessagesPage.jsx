@@ -51,7 +51,7 @@ const MessagesPage = () => {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('cc2026_pro_session');
+    const stored = sessionStorage.getItem('cc2026_pro_session');
     if (stored) {
       setSession(JSON.parse(stored));
     } else {

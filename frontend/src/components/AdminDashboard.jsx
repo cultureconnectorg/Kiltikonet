@@ -80,22 +80,27 @@ export const AdminDashboard = () => {
     bio: ''
   });
   
-  // Check for existing session on mount and redirect non-admin users
+  // Check for existing session on mount
   useEffect(() => {
     const { session } = getSession();
-    if (session) {
-      if (session.role === 'admin') {
-        setIsAuthenticated(true);
-      }
-      // For non-admin users, show admin login instead of redirecting
-      // This allows workspace users to login as admin if needed
-    } else {
-      // Check old localStorage auth
-      const adminAuth = localStorage.getItem('kk_admin_auth');
-      if (adminAuth) {
-        setIsAuthenticated(true);
-      }
+    if (session && session.role === 'admin') {
+      setIsAuthenticated(true);
+      return;
     }
+    // No sessionStorage cache — check cookie via API
+    const checkCookie = async () => {
+      try {
+        const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.session?.role === 'admin') {
+            saveSession({ name: data.session.name || 'Admin', role: 'admin' }, false);
+            setIsAuthenticated(true);
+          }
+        }
+      } catch { /* silent */ }
+    };
+    checkCookie();
   }, [navigate]);
   
   const fetchRegistrations = useCallback(async () => {
@@ -574,10 +579,11 @@ export const AdminDashboard = () => {
                   <Download className="w-4 h-4 mr-2" /> CSV
                 </Button>
                 <AdminNotifications />
-                <Button onClick={() => { 
+                <Button onClick={async () => { 
                   setIsAuthenticated(false); 
                   sessionStorage.removeItem('workspace_user');
-                  localStorage.removeItem('kk_admin_auth');
+                  sessionStorage.removeItem('cc2026_session');
+                  try { await fetch(`${BACKEND_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
                   navigate('/admin'); 
                 }} variant="outline" className="h-9 sm:h-10 border-lightborder text-charcoal/50 rounded-none" data-testid="logout-button">
                   <LogOut className="w-4 h-4" />

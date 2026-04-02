@@ -592,10 +592,10 @@ const AdminMobileDashboard = () => {
   // Check admin role
   const getAdminSession = () => {
     try {
-      const persistent = localStorage.getItem('cc2026_session');
-      if (persistent) {
-        const session = JSON.parse(persistent);
-        if (session.createdAt && (Date.now() - session.createdAt) < 30 * 24 * 60 * 60 * 1000) {
+      const cached = sessionStorage.getItem('cc2026_session');
+      if (cached) {
+        const session = JSON.parse(cached);
+        if (session.createdAt && (Date.now() - session.createdAt) < 8 * 60 * 60 * 1000) {
           return session;
         }
       }
@@ -885,9 +885,10 @@ const AdminMobileDashboard = () => {
             <span className="text-sm font-medium" style={{ color: COLORS.text }}>Dashboard</span>
           </button>
           <button
-            onClick={() => {
-              localStorage.removeItem('cc2026_session');
+            onClick={async () => {
+              sessionStorage.removeItem('cc2026_session');
               sessionStorage.removeItem('workspace_user');
+              try { await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
               navigate('/admin');
             }}
             className="p-4 rounded-xl flex items-center gap-3"

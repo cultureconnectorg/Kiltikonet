@@ -62,17 +62,37 @@ const useProSession = () => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const stored = localStorage.getItem('cc2026_pro_session');
+    // Check sessionStorage first
+    const stored = sessionStorage.getItem('cc2026_pro_session');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        if (parsed.createdAt && (Date.now() - parsed.createdAt) < 7 * 24 * 60 * 60 * 1000) setSession(parsed);
-        else localStorage.removeItem('cc2026_pro_session');
-      } catch { localStorage.removeItem('cc2026_pro_session'); }
+        if (parsed.createdAt && (Date.now() - parsed.createdAt) < 7 * 24 * 60 * 60 * 1000) { setSession(parsed); setLoading(false); return; }
+        else sessionStorage.removeItem('cc2026_pro_session');
+      } catch { sessionStorage.removeItem('cc2026_pro_session'); }
     }
-    setLoading(false);
+    // Fallback: verify via httpOnly cookie
+    const checkCookie = async () => {
+      try {
+        const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.session?.role === 'pro') {
+            const proSession = { ...data.session, createdAt: Date.now() };
+            sessionStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
+            setSession(proSession);
+          }
+        }
+      } catch { /* silent */ }
+      setLoading(false);
+    };
+    checkCookie();
   }, []);
-  const logout = () => { localStorage.removeItem('cc2026_pro_session'); setSession(null); };
+  const logout = async () => {
+    sessionStorage.removeItem('cc2026_pro_session');
+    setSession(null);
+    try { await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
+  };
   return { session, loading, logout, isAuthenticated: !!session };
 };
 
@@ -120,7 +140,7 @@ const ProSpaceDashboard = () => {
 
   useEffect(() => {
     if (session?.id) {
-      const done = localStorage.getItem(`cc2026_onboarding_${session.id}`);
+      const done = sessionStorage.getItem(`cc2026_onboarding_${session.id}`);
       if (!done) {
         axios.get(`${API}/pro/profile/${session.id}`).then(r => {
           if (r.data && !r.data.onboarding_completed) setShowOnboarding(true);
@@ -1159,9 +1179,9 @@ const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
     setLanguage(lang);
     try {
       await axios.post(`${API}/pro/update-language`, { user_id: session.id, language: lang });
-      const stored = JSON.parse(localStorage.getItem('cc2026_pro_session') || '{}');
+      const stored = JSON.parse(sessionStorage.getItem('cc2026_pro_session') || '{}');
       stored.language = lang;
-      localStorage.setItem('cc2026_pro_session', JSON.stringify(stored));
+      sessionStorage.setItem('cc2026_pro_session', JSON.stringify(stored));
       toast.success('Langue mise a jour');
     } catch { toast.error('Erreur'); }
   };
@@ -1184,7 +1204,8 @@ const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
     setDeleting(true);
     try {
       await axios.post(`${API}/pro/delete-account`, { user_id: session.id, email: session.email });
-      localStorage.removeItem('cc2026_pro_session');
+      sessionStorage.removeItem('cc2026_pro_session');
+      try { await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
       toast.success('Compte supprime');
       window.location.href = '/espace-pro/connexion';
     } catch { toast.error('Erreur de suppression'); }
@@ -1355,11 +1376,11 @@ export const ProSpaceLogin = () => {
       if (res.data.success) {
         if (res.data.bypass) {
           try {
-            const verifyRes = await axios.post(`${API}/pro/verify-code`, { email, code: '000000' });
+            const verifyRes = await axios.post(`${API}/pro/verify-code`, { email, code: '000000' }, { withCredentials: true });
             if (verifyRes.data.success) {
               const p = verifyRes.data.profile;
               const proSession = { id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() };
-              localStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
+              sessionStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
               toast.success(`Bienvenue ${p.full_name} !`);
               navigate('/espace-pro', { replace: true });
               return;
@@ -1379,11 +1400,11 @@ export const ProSpaceLogin = () => {
     if (!accessCode) return;
     setVerifying(true);
     try {
-      const res = await axios.post(`${API}/pro/verify-code`, { email, code: accessCode });
+      const res = await axios.post(`${API}/pro/verify-code`, { email, code: accessCode }, { withCredentials: true });
       if (res.data.success) {
         const p = res.data.profile;
         const proSession = { id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() };
-        localStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
+        sessionStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
         toast.success(p.is_new_user ? 'Compte cree avec succes !' : `Bienvenue ${p.full_name} !`);
         navigate('/espace-pro', { replace: true });
       }

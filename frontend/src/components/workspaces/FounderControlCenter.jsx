@@ -87,7 +87,7 @@ const FounderControlCenter = ({ onClose }) => {
       lastActivity: Date.now()
     };
     sessionStorage.setItem('workspace_user', JSON.stringify(sessionData));
-    localStorage.setItem('cc2026_session', JSON.stringify({ ...sessionData, rememberMe: true }));
+    sessionStorage.setItem('cc2026_session', JSON.stringify({ ...sessionData, rememberMe: true }));
     navigate(workspace.path);
     toast.success(`Accès au workspace de ${workspace.name}`);
     onClose?.();

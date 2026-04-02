@@ -29,15 +29,13 @@ const MobileBottomNav = () => {
   // Get user sessions - recalculate on forceUpdate
   const getAdminSession = () => {
     try {
-      // Check persistent session first
-      const persistent = localStorage.getItem('cc2026_session');
-      if (persistent) {
-        const session = JSON.parse(persistent);
-        if (session.createdAt && (Date.now() - session.createdAt) < 30 * 24 * 60 * 60 * 1000) {
+      const cached = sessionStorage.getItem('cc2026_session');
+      if (cached) {
+        const session = JSON.parse(cached);
+        if (session.createdAt && (Date.now() - session.createdAt) < 8 * 60 * 60 * 1000) {
           return session;
         }
       }
-      // Then check temp session
       const temp = sessionStorage.getItem('workspace_user');
       if (temp) return JSON.parse(temp);
     } catch {}
@@ -46,7 +44,7 @@ const MobileBottomNav = () => {
 
   const getProSession = () => {
     try {
-      return JSON.parse(localStorage.getItem('cc2026_pro_session') || '{}');
+      return JSON.parse(sessionStorage.getItem('cc2026_pro_session') || '{}');
     } catch { return {}; }
   };
 

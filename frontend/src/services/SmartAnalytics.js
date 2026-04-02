@@ -23,8 +23,8 @@ const getSessionId = () => {
 // User ID si connecté
 const getUserId = () => {
   try {
-    const adminSession = JSON.parse(localStorage.getItem('cc2026_admin_session') || '{}');
-    const proSession = JSON.parse(localStorage.getItem('cc2026_pro_session') || '{}');
+    const adminSession = JSON.parse(sessionStorage.getItem('cc2026_session') || '{}');
+    const proSession = JSON.parse(sessionStorage.getItem('cc2026_pro_session') || '{}');
     return adminSession.id || proSession.id || null;
   } catch {
     return null;
