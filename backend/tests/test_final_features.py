@@ -14,7 +14,9 @@ import os
 import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
-ADMIN_PASSWORD = "CC2026admin"
+if not BASE_URL:
+    pytest.skip("REACT_APP_BACKEND_URL not set", allow_module_level=True)
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'CC2026admin')
 
 class TestBatchBadgeProgress:
     """Tests for real-time batch progress tracking (Feature P3 #1)"""

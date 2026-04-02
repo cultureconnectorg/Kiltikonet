@@ -92,10 +92,10 @@ if (window.location.search.includes('ve=1')) {
       };
       
       if (window.opener) {
-        window.opener.postMessage(message, '*');
+        window.opener.postMessage(message, window.location.origin);
       }
       if (window.parent !== window) {
-        window.parent.postMessage(message, '*');
+        window.parent.postMessage(message, window.location.origin);
       }
     }, true);
     

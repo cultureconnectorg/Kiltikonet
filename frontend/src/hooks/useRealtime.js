@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
+const __DEV__ = process.env.NODE_ENV === 'development';
+const log = (...args) => { if (__DEV__) log(...args); };
 
 /**
  * 🔄 BIDIRECTIONAL REALTIME SYNC HOOK
@@ -26,7 +28,7 @@ const API = process.env.REACT_APP_BACKEND_URL || '';
  * // Subscribe to updates
  * useEffect(() => {
  *   return subscribe('territories_updated', (data) => {
- *     console.log('Globe updated!', data);
+ *     log('Globe updated!', data);
  *     refetchTerritories();
  *   });
  * }, [subscribe]);
@@ -68,7 +70,7 @@ export const useBidirectionalSync = () => {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('🔗 Bidirectional sync connected');
+        log('🔗 Bidirectional sync connected');
         setIsConnected(true);
         reconnectAttempts.current = 0;
         
@@ -87,7 +89,7 @@ export const useBidirectionalSync = () => {
           // Handle connection confirmation
           if (data.event_type === 'connected') {
             setClientId(data.client_id);
-            console.log(`🆔 Client ID: ${data.client_id}`);
+            log(`🆔 Client ID: ${data.client_id}`);
             return;
           }
 
@@ -105,7 +107,7 @@ export const useBidirectionalSync = () => {
 
           // Skip update confirmations for listeners (sender already knows)
           if (data.event_type === 'update_confirmed') {
-            console.log(`✅ Update confirmed: ${data.type}`);
+            log(`✅ Update confirmed: ${data.type}`);
             return;
           }
 
@@ -116,7 +118,7 @@ export const useBidirectionalSync = () => {
             try {
               callback(data.data || data, data);
             } catch (e) {
-              console.error('Listener error:', e);
+              log('Listener error:', e);
             }
           });
 
@@ -126,18 +128,18 @@ export const useBidirectionalSync = () => {
             try {
               callback(data.data || data, data);
             } catch (e) {
-              console.error('Wildcard listener error:', e);
+              log('Wildcard listener error:', e);
             }
           });
 
-          console.log(`📡 Realtime event: ${eventType}`, data.data || '');
+          log(`📡 Realtime event: ${eventType}`, data.data || '');
         } catch (e) {
-          console.error('Error parsing WebSocket message:', e);
+          log('Error parsing WebSocket message:', e);
         }
       };
 
       ws.onclose = (event) => {
-        console.log('🔌 Bidirectional sync disconnected');
+        log('🔌 Bidirectional sync disconnected');
         setIsConnected(false);
         setClientId(null);
 
@@ -145,7 +147,7 @@ export const useBidirectionalSync = () => {
         if (reconnectAttempts.current < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(1.5, reconnectAttempts.current), 30000);
           reconnectAttempts.current++;
-          console.log(`🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current})`);
+          log(`🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current})`);
           
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
@@ -154,11 +156,11 @@ export const useBidirectionalSync = () => {
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        log('WebSocket error:', error);
       };
 
     } catch (error) {
-      console.error('Failed to create WebSocket:', error);
+      log('Failed to create WebSocket:', error);
       // Fallback to SSE could be implemented here
     }
   }, []);
@@ -224,11 +226,11 @@ export const useBidirectionalSync = () => {
     
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(message));
-      console.log(`📤 Sent update: ${type}`);
+      log(`📤 Sent update: ${type}`);
     } else {
       // Queue message for when connection is restored
       pendingMessagesRef.current.push(message);
-      console.log(`📦 Queued update: ${type} (will send when connected)`);
+      log(`📦 Queued update: ${type} (will send when connected)`);
     }
   }, []);
 
@@ -274,7 +276,7 @@ export const useRealtimeRefetch = (eventType, refetchFn, deps = []) => {
 
   useEffect(() => {
     const unsubscribe = subscribe(eventType, () => {
-      console.log(`🔄 Auto-refetch: ${eventType}`);
+      log(`🔄 Auto-refetch: ${eventType}`);
       refetchFn();
     });
     return unsubscribe;

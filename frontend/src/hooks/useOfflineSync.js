@@ -30,7 +30,7 @@ export const useOfflineSync = (onStatusChange) => {
           setLastSync(new Date(lastSyncTime));
         }
       } catch (error) {
-        console.error('[useOfflineSync] Init failed:', error);
+        // DEV: console.warn('[useOfflineSync] Init failed:', error);
       }
     };
     
@@ -59,7 +59,8 @@ export const useOfflineSync = (onStatusChange) => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [onStatusChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onStatusChange, syncPendingChanges]);
 
   // Save task status (works offline)
   const saveTaskStatus = useCallback(async (taskId, done, workspaceId) => {
@@ -73,7 +74,7 @@ export const useOfflineSync = (onStatusChange) => {
       
       return true;
     } catch (error) {
-      console.error('[useOfflineSync] Failed to save task:', error);
+      // DEV: console.warn('[useOfflineSync] Failed to save task:', error);
       return false;
     }
   }, []);
@@ -88,7 +89,7 @@ export const useOfflineSync = (onStatusChange) => {
       });
       return statusMap;
     } catch (error) {
-      console.error('[useOfflineSync] Failed to get local statuses:', error);
+      // DEV: console.warn('[useOfflineSync] Failed to get local statuses:', error);
       return {};
     }
   }, []);
@@ -100,7 +101,7 @@ export const useOfflineSync = (onStatusChange) => {
       await offlineCache.setMeta('last_sync', new Date().toISOString());
       setLastSync(new Date());
     } catch (error) {
-      console.error('[useOfflineSync] Failed to update from server:', error);
+      // DEV: console.warn('[useOfflineSync] Failed to update from server:', error);
     }
   }, []);
 
@@ -118,7 +119,7 @@ export const useOfflineSync = (onStatusChange) => {
       setSyncStatus('idle');
       return result;
     } catch (error) {
-      console.error('[useOfflineSync] Sync failed:', error);
+      // DEV: console.warn('[useOfflineSync] Sync failed:', error);
       setSyncStatus('error');
       return { synced: 0, failed: 0 };
     }
@@ -127,7 +128,7 @@ export const useOfflineSync = (onStatusChange) => {
   // Force refresh from server
   const forceRefresh = useCallback(async (fetchFn) => {
     if (!navigator.onLine) {
-      console.log('[useOfflineSync] Cannot refresh - offline');
+      // DEV: console.log('[useOfflineSync] Cannot refresh - offline');
       return false;
     }
     
@@ -145,7 +146,7 @@ export const useOfflineSync = (onStatusChange) => {
       setSyncStatus('idle');
       return true;
     } catch (error) {
-      console.error('[useOfflineSync] Refresh failed:', error);
+      // DEV: console.warn('[useOfflineSync] Refresh failed:', error);
       setSyncStatus('error');
       return false;
     }
@@ -158,7 +159,7 @@ export const useOfflineSync = (onStatusChange) => {
       setPendingCount(0);
       setLastSync(null);
     } catch (error) {
-      console.error('[useOfflineSync] Clear failed:', error);
+      // DEV: console.warn('[useOfflineSync] Clear failed:', error);
     }
   }, []);
 

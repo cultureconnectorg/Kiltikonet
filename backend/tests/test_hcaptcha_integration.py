@@ -12,9 +12,11 @@ import requests
 import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+if not BASE_URL:
+    pytest.skip("REACT_APP_BACKEND_URL not set", allow_module_level=True)
 
-# hCaptcha test credentials
-HCAPTCHA_TEST_TOKEN = "10000000-aaaa-bbbb-cccc-000000000001"
+# hCaptcha test credentials (public test key from hCaptcha docs)
+HCAPTCHA_TEST_TOKEN = os.environ.get('HCAPTCHA_TEST_TOKEN', '10000000-aaaa-bbbb-cccc-000000000001')
 
 
 class TestHCaptchaService:

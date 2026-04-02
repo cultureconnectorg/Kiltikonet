@@ -13,7 +13,8 @@ Architecture :
 """
 import os
 import uuid
-import random
+import secrets
+import random as _rng
 import hashlib
 import logging
 import asyncio
@@ -242,7 +243,7 @@ REFERENCES = [
 def _pick_origin():
     """Weighted random origin."""
     total = sum(w for _, w in ORIGINS)
-    r = random.randint(1, total)
+    r = _rng.randint(1, total)
     acc = 0
     for name, w in ORIGINS:
         acc += w
@@ -251,9 +252,9 @@ def _pick_origin():
     return "Martinique"
 
 def _gen_org_name():
-    parts = random.sample(ORG_NAME_PARTS, 2)
-    suffix = random.choice(["Lab","Studio","Collective","Productions","Network","House","Space","Academy","Factory"])
-    return f"{parts[0]} {parts[1]} {suffix}" if random.random() > 0.5 else f"{parts[0]}'{parts[1]}"
+    parts = _rng.sample(ORG_NAME_PARTS, 2)
+    suffix = secrets.choice(["Lab","Studio","Collective","Productions","Network","House","Space","Academy","Factory"])
+    return f"{parts[0]} {parts[1]} {suffix}" if _rng.random() > 0.5 else f"{parts[0]}'{parts[1]}"
 
 def _avatar_url(name, idx):
     colors = ["4A5D4E","C4714A","5B9BD5","8B5CF6","2DD4BF","E85A4F","E8D5A0"]
@@ -262,49 +263,49 @@ def _avatar_url(name, idx):
 
 def generate_ghost_profile(idx):
     """Generate a single ghost profile from pools."""
-    is_institution = random.random() < 0.30
+    is_institution = _rng.random() < 0.30
     origin = _pick_origin()
-    city = random.choice(CITIES.get(origin, [origin]))
+    city = secrets.choice(CITIES.get(origin, [origin]))
 
     if is_institution:
         org_name = _gen_org_name()
         full_name = org_name
-        profile_type = random.choice(PROFILE_TYPES_INSTIT)
-        domain = random.choice(list(EXPERTISE_POOLS.keys()))
-        tags = random.sample(EXPERTISE_POOLS[domain], min(4, len(EXPERTISE_POOLS[domain])))
-        years = random.randint(3, 25)
-        bio = random.choice(BIO_TEMPLATES_INSTIT).format(
-            org_name=org_name, org_type=random.choice(ORG_TYPES), city=city,
+        profile_type = secrets.choice(PROFILE_TYPES_INSTIT)
+        domain = secrets.choice(list(EXPERTISE_POOLS.keys()))
+        tags = _rng.sample(EXPERTISE_POOLS[domain], min(4, len(EXPERTISE_POOLS[domain])))
+        years = _rng.randint(3, 25)
+        bio = secrets.choice(BIO_TEMPLATES_INSTIT).format(
+            org_name=org_name, org_type=secrets.choice(ORG_TYPES), city=city,
             origin=origin, domain=domain, years=years,
         )
     else:
-        is_female = random.random() < 0.52
-        first = random.choice(FIRST_NAMES_F if is_female else FIRST_NAMES_M)
-        last = random.choice(LAST_NAMES)
+        is_female = _rng.random() < 0.52
+        first = secrets.choice(FIRST_NAMES_F if is_female else FIRST_NAMES_M)
+        last = secrets.choice(LAST_NAMES)
         full_name = f"{first} {last}"
-        profile_type = random.choice(PROFILE_TYPES_INDIV)
+        profile_type = secrets.choice(PROFILE_TYPES_INDIV)
         org_name = ""
-        domain = random.choice(list(EXPERTISE_POOLS.keys()))
-        tags = random.sample(EXPERTISE_POOLS[domain], min(4, len(EXPERTISE_POOLS[domain])))
-        years = random.randint(2, 30)
+        domain = secrets.choice(list(EXPERTISE_POOLS.keys()))
+        tags = _rng.sample(EXPERTISE_POOLS[domain], min(4, len(EXPERTISE_POOLS[domain])))
+        years = _rng.randint(2, 30)
 
-        role = random.choice(["artiste","créateur·trice","professionnel·le","passionné·e","entrepreneur·e"])
-        action = random.choice(["transmets","partage","défends","célèbre","réinvente","documente"])
-        expertise_verb = random.choice(["Musicien·ne","Artiste","Créateur·trice","Auteur·trice","Cinéaste","Photographe","Designer"])
-        role2 = random.choice(["formateur·trice","mentor·e","activiste culturel·le","chercheur·euse"])
+        role = secrets.choice(["artiste","créateur·trice","professionnel·le","passionné·e","entrepreneur·e"])
+        action = secrets.choice(["transmets","partage","défends","célèbre","réinvente","documente"])
+        expertise_verb = secrets.choice(["Musicien·ne","Artiste","Créateur·trice","Auteur·trice","Cinéaste","Photographe","Designer"])
+        role2 = secrets.choice(["formateur·trice","mentor·e","activiste culturel·le","chercheur·euse"])
 
-        bio = random.choice(BIO_TEMPLATES_INDIV).format(
+        bio = secrets.choice(BIO_TEMPLATES_INDIV).format(
             expertise=tags[0] if tags else domain, years=years, origin=origin,
-            origin_phrase=f"Originaire de {city}, {origin}.", philosophy=random.choice(PHILOSOPHIES),
-            seeking_phrase=f"En recherche de collaborations pour CC2026.",
+            origin_phrase=f"Originaire de {city}, {origin}.", philosophy=secrets.choice(PHILOSOPHIES),
+            seeking_phrase="En recherche de collaborations pour CC2026.",
             expertise_verb=expertise_verb, domain=domain, role=role, action=action,
-            city=city, creole_phrase=random.choice(CREOLE_PHRASES), role2=role2,
+            city=city, creole_phrase=secrets.choice(CREOLE_PHRASES), role2=role2,
             partner_origin=_pick_origin(),
         )
 
     ghost_id = f"gv2_{idx:04d}"
-    score = random.randint(45, 95)
-    jetons = random.randint(5, 50)
+    score = _rng.randint(45, 95)
+    jetons = _rng.randint(5, 50)
 
     return {
         "id": ghost_id,
@@ -326,7 +327,7 @@ def generate_ghost_profile(idx):
         "status": "approved",
         "retiring": False,
         "retirement_date": None,
-        "activity_level": round(random.uniform(0.3, 1.0), 2),
+        "activity_level": round(_rng.uniform(0.3, 1.0), 2),
         "arrival_day": idx // 13,  # ~13 per day
         "created_at": None,
         "last_activity": None,
@@ -341,29 +342,29 @@ def generate_ghost_post(author, post_idx, base_date):
     domain = author["expertise_tags"][0] if author.get("expertise_tags") else "culture"
 
     templates = POST_TEMPLATES_CULTURE + POST_TEMPLATES_EVENTS + POST_TEMPLATES_COLLAB
-    template = random.choice(templates)
+    template = secrets.choice(templates)
 
     try:
         content = template.format(
-            event_type=random.choice(EVENT_TYPES), city=city, count=random.randint(15, 200),
-            count2=random.randint(50, 1000), creole=random.choice(CREOLE_PHRASES),
-            project=random.choice(PROJECTS), years=random.randint(2, 18), place=city,
-            philosophy=random.choice(PHILOSOPHIES), domain=domain, origin=origin,
-            work=random.choice(WORKS), tradition=domain, partner_name=random.choice(FIRST_NAMES_F + FIRST_NAMES_M),
-            partner_origin=_pick_origin(), hour=random.randint(5, 8),
-            ambiance=random.choice(AMBIANCES), reference=random.choice(REFERENCES),
+            event_type=secrets.choice(EVENT_TYPES), city=city, count=_rng.randint(15, 200),
+            count2=_rng.randint(50, 1000), creole=secrets.choice(CREOLE_PHRASES),
+            project=secrets.choice(PROJECTS), years=_rng.randint(2, 18), place=city,
+            philosophy=secrets.choice(PHILOSOPHIES), domain=domain, origin=origin,
+            work=secrets.choice(WORKS), tradition=domain, partner_name=secrets.choice(FIRST_NAMES_F + FIRST_NAMES_M),
+            partner_origin=_pick_origin(), hour=_rng.randint(5, 8),
+            ambiance=secrets.choice(AMBIANCES), reference=secrets.choice(REFERENCES),
             opinion="Un chef-d'œuvre absolu", event_name=f"Festival {domain.title()} {city}",
-            date=f"{random.randint(1,28)}/{random.randint(1,12)}", description="Un événement unique",
-            role=random.choice(["musicien·ne","graphiste","vidéaste","photographe","rédacteur·trice"]),
-            partner_domain=random.choice(list(EXPERTISE_POOLS.keys())),
-            days=random.randint(10, 365), progress="On avance bien",
+            date=f"{_rng.randint(1,28)}/{_rng.randint(1,12)}", description="Un événement unique",
+            role=secrets.choice(["musicien·ne","graphiste","vidéaste","photographe","rédacteur·trice"]),
+            partner_domain=secrets.choice(list(EXPERTISE_POOLS.keys())),
+            days=_rng.randint(10, 365), progress="On avance bien",
         )
     except (KeyError, IndexError):
-        content = f"Nouvelle étape dans mon parcours {domain} à {city}. {random.choice(PHILOSOPHIES)} {random.choice(CREOLE_PHRASES)}"
+        content = f"Nouvelle étape dans mon parcours {domain} à {city}. {secrets.choice(PHILOSOPHIES)} {secrets.choice(CREOLE_PHRASES)}"
 
     post_date = base_date + timedelta(
-        days=random.randint(0, 30), hours=random.randint(7, 22),
-        minutes=random.randint(0, 59)
+        days=_rng.randint(0, 30), hours=_rng.randint(7, 22),
+        minutes=_rng.randint(0, 59)
     )
 
     return {
@@ -373,12 +374,12 @@ def generate_ghost_post(author, post_idx, base_date):
         "author_image": author["image"],
         "author_type": author["profile_type"],
         "content": content[:1000],
-        "tags": random.sample(author.get("expertise_tags", []), min(2, len(author.get("expertise_tags", [])))),
+        "tags": _rng.sample(author.get("expertise_tags", []), min(2, len(author.get("expertise_tags", [])))),
         "likes": [],
         "likes_count": 0,
         "comments": [],
         "comments_count": 0,
-        "views_count": random.randint(5, 150),
+        "views_count": _rng.randint(5, 150),
         "is_ghost": True,
         "generation": 2,
         "created_at": post_date.isoformat(),
@@ -433,7 +434,7 @@ async def seed_growth_engine(data: dict = {}):
     for i in range(count):
         p = generate_ghost_profile(i)
         while p["full_name"] in seen_names:
-            p = generate_ghost_profile(i + random.randint(1000, 9000))
+            p = generate_ghost_profile(i + _rng.randint(1000, 9000))
         seen_names.add(p["full_name"])
         profiles.append(p)
 
@@ -447,8 +448,8 @@ async def seed_growth_engine(data: dict = {}):
     initial_batch = 200
     for p in profiles[:initial_batch]:
         p["active"] = True
-        p["created_at"] = (now - timedelta(days=random.randint(1, 90))).isoformat()
-        p["last_activity"] = (now - timedelta(hours=random.randint(0, 48))).isoformat()
+        p["created_at"] = (now - timedelta(days=_rng.randint(1, 90))).isoformat()
+        p["last_activity"] = (now - timedelta(hours=_rng.randint(0, 48))).isoformat()
 
     # Insert profiles in batches
     batch_size = 500
@@ -468,7 +469,7 @@ async def seed_growth_engine(data: dict = {}):
         month_start = now - timedelta(days=(years * 365) - (month_offset * 30))
 
         for _ in range(posts_this_month):
-            author = random.choice(active_profiles)
+            author = secrets.choice(active_profiles)
             post = generate_ghost_post(author, post_idx, month_start)
             posts.append(post)
             post_idx += 1
@@ -477,22 +478,22 @@ async def seed_growth_engine(data: dict = {}):
     active_ids = [p["id"] for p in active_profiles]
     for post in posts:
         # Random likes from other ghosts
-        num_likes = random.randint(1, min(25, len(active_ids)))
-        likers = random.sample([i for i in active_ids if i != post["author_id"]], min(num_likes, len(active_ids) - 1))
+        num_likes = _rng.randint(1, min(25, len(active_ids)))
+        likers = _rng.sample([i for i in active_ids if i != post["author_id"]], min(num_likes, len(active_ids) - 1))
         post["likes"] = likers
         post["likes_count"] = len(likers)
 
         # Random comments
-        num_comments = random.choices([0, 1, 2, 3, 4], weights=[30, 35, 20, 10, 5])[0]
+        num_comments = secrets.choices([0, 1, 2, 3, 4], weights=[30, 35, 20, 10, 5])[0]
         comments = []
         for _ in range(num_comments):
-            commenter = random.choice([p for p in active_profiles if p["id"] != post["author_id"]])
-            comment_text = random.choice(COMMENT_TEMPLATES_POSITIVE)
+            commenter = secrets.choice([p for p in active_profiles if p["id"] != post["author_id"]])
+            comment_text = secrets.choice(COMMENT_TEMPLATES_POSITIVE)
             try:
                 comment_text = comment_text.format(origin=commenter["country"])
             except (KeyError, IndexError):
                 pass
-            comment_date = datetime.fromisoformat(post["created_at"]) + timedelta(hours=random.randint(1, 72))
+            comment_date = datetime.fromisoformat(post["created_at"]) + timedelta(hours=_rng.randint(1, 72))
             comments.append({
                 "id": str(uuid.uuid4()),
                 "author_id": commenter["id"],
@@ -547,7 +548,7 @@ async def process_daily_arrival():
     for p_brief in to_activate[:3]:
         full_p = await _db.ghost_profiles_v2.find_one({"id": p_brief["id"]}, {"_id": 0})
         if full_p:
-            post = generate_ghost_post(full_p, random.randint(100000, 999999), now - timedelta(hours=random.randint(0, 6)))
+            post = generate_ghost_post(full_p, _rng.randint(100000, 999999), now - timedelta(hours=_rng.randint(0, 6)))
             post["id"] = f"gv2_arr_{str(uuid.uuid4())[:8]}"
             await _db.pro_posts.insert_one(post)
 
@@ -596,11 +597,11 @@ async def _staggered_engagement(post_id, author_id, ghosts):
     """Background: add likes and comments with realistic delays."""
     try:
         # Likes: 2-8 ghosts, staggered over 5-60 min
-        num_likes = random.randint(2, min(8, len(ghosts)))
-        likers = random.sample(ghosts, num_likes)
+        num_likes = _rng.randint(2, min(8, len(ghosts)))
+        likers = _rng.sample(ghosts, num_likes)
 
         for i, ghost in enumerate(likers):
-            delay = random.randint(30, 3600)  # 30s to 60min
+            delay = _rng.randint(30, 3600)  # 30s to 60min
             await asyncio.sleep(min(delay, 120))  # Cap at 2min in practice
             await _db.pro_posts.update_one(
                 {"id": post_id, "likes": {"$ne": ghost["id"]}},
@@ -608,13 +609,13 @@ async def _staggered_engagement(post_id, author_id, ghosts):
             )
 
         # Comments: 1-3 ghosts, staggered over 10-120 min
-        num_comments = random.choices([1, 2, 3], weights=[50, 35, 15])[0]
-        commenters = random.sample([g for g in ghosts if g not in likers[:2]], min(num_comments, len(ghosts) - 2))
+        num_comments = secrets.choices([1, 2, 3], weights=[50, 35, 15])[0]
+        commenters = _rng.sample([g for g in ghosts if g not in likers[:2]], min(num_comments, len(ghosts) - 2))
 
         for ghost in commenters:
-            delay = random.randint(60, 600)
+            delay = _rng.randint(60, 600)
             await asyncio.sleep(min(delay, 120))
-            comment_text = random.choice(COMMENT_TEMPLATES_POSITIVE)
+            comment_text = secrets.choice(COMMENT_TEMPLATES_POSITIVE)
             try:
                 comment_text = comment_text.format(origin=ghost.get("country", "Martinique"))
             except (KeyError, IndexError):
@@ -636,7 +637,7 @@ async def _staggered_engagement(post_id, author_id, ghosts):
         if author_id:
             await _db.registrations.update_one(
                 {"id": author_id},
-                {"$inc": {"views": random.randint(3, 15)}}
+                {"$inc": {"views": _rng.randint(3, 15)}}
             )
 
         logger.info(f"Social validation: {num_likes} likes + {num_comments} comments on {post_id}")
@@ -668,7 +669,7 @@ async def run_fadeout():
 
         now = datetime.now(timezone.utc)
         for g in to_retire_v2:
-            fade_days = random.randint(3, 14)
+            fade_days = _rng.randint(3, 14)
             await _db.ghost_profiles_v2.update_one(
                 {"id": g["id"]},
                 {"$set": {
@@ -708,14 +709,14 @@ async def proof_of_life():
 
     total_online = active_v2 + active_v1 + real_users
     # Simulate online fraction (20-40% of total at any time)
-    online_now = max(5, int(total_online * random.uniform(0.20, 0.40)))
+    online_now = max(5, int(total_online * _rng.uniform(0.20, 0.40)))
     # Typing indicators
-    typing_count = random.randint(0, min(3, online_now // 10))
+    typing_count = _rng.randint(0, min(3, online_now // 10))
 
     # Recent activity (last hour)
     hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     recent_posts = await _db.pro_posts.count_documents({"created_at": {"$gte": hour_ago}})
-    recent_reactions = random.randint(recent_posts * 2, recent_posts * 5 + 10)
+    recent_reactions = _rng.randint(recent_posts * 2, recent_posts * 5 + 10)
 
     return {
         "online_now": online_now,
@@ -723,7 +724,7 @@ async def proof_of_life():
         "recent_posts_1h": recent_posts,
         "recent_reactions_1h": recent_reactions,
         "total_members": total_online,
-        "new_today": random.randint(3, 15),
+        "new_today": _rng.randint(3, 15),
     }
 
 
@@ -759,10 +760,10 @@ async def trigger_reward(data: dict):
     config = REWARD_EVENTS.get(event, REWARD_EVENTS["random_bonus"])
 
     # Chance check
-    if random.random() > config["chance"]:
+    if _rng.random() > config["chance"]:
         return {"rewarded": False, "reason": "Pas de chance cette fois", "event": event}
 
-    amount = random.randint(config["min"], config["max"])
+    amount = _rng.randint(config["min"], config["max"])
     if amount <= 0:
         return {"rewarded": False, "reason": "Pas de récompense pour cet événement", "event": event}
 
@@ -921,13 +922,13 @@ async def creation_nudge(user_id: str):
             "Ta prochaine carte culturelle pourrait inspirer toute la communauté.",
             "Les meilleurs contributeurs gagnent jusqu'à 20 JCC par publication.",
         ]
-        nudge = {"type": "create", "message": random.choice(nudges), "reward_hint": "+5 JCC"}
+        nudge = {"type": "create", "message": secrets.choice(nudges), "reward_hint": "+5 JCC"}
     elif ratio > 5:
         nudges = [
             "Tu crées beaucoup, bravo ! Prends un moment pour découvrir ce que les autres partagent.",
             "As-tu vu les dernières cartes culturelles ? Des pépites t'attendent.",
         ]
-        nudge = {"type": "discover", "message": random.choice(nudges)}
+        nudge = {"type": "discover", "message": secrets.choice(nudges)}
 
     return {
         "user_id": user_id,
@@ -1034,7 +1035,6 @@ async def get_deeplink(content_type: str, content_id: str):
 async def growth_engine_stats():
     """Stats complètes du moteur de croissance."""
     now = datetime.now(timezone.utc)
-    day_ago = (now - timedelta(days=1)).isoformat()
     week_ago = (now - timedelta(days=7)).isoformat()
 
     v2_total = await _db.ghost_profiles_v2.count_documents({})

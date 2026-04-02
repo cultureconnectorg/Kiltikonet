@@ -13,10 +13,12 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://tarifs-update.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+if not BASE_URL:
+    pytest.skip("REACT_APP_BACKEND_URL not set", allow_module_level=True)
 
-# Test token for hCaptcha (test mode)
-HCAPTCHA_TEST_TOKEN = "10000000-aaaa-bbbb-cccc-000000000001"
+# hCaptcha test credentials (public test key from hCaptcha docs)
+HCAPTCHA_TEST_TOKEN = os.environ.get('HCAPTCHA_TEST_TOKEN', '10000000-aaaa-bbbb-cccc-000000000001')
 
 
 class TestSmartEngineDashboard:

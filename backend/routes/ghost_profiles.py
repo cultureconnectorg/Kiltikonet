@@ -6,7 +6,8 @@ Retrait progressif quand de vrais utilisateurs arrivent.
 """
 import os
 import uuid
-import random
+import secrets
+import random as _rng
 import logging
 import asyncio
 from datetime import datetime, timezone, timedelta
@@ -315,7 +316,7 @@ async def seed_ghost_profiles():
             "status": "approved",
             "retiring": False,
             "retirement_date": None,
-            "created_at": (now - timedelta(days=random.randint(7, 60))).isoformat(),
+            "created_at": (now - timedelta(days=_rng.randint(7, 60))).isoformat(),
             "last_activity": now.isoformat(),
             "activity_count": 0,
         })
@@ -328,11 +329,11 @@ async def seed_ghost_profiles():
         ghost = next((p for p in GHOST_PROFILES_SEED if p["id"] == post_data["author_id"]), None)
         if not ghost:
             continue
-        days_ago = random.randint(1, 14)
-        hours_ago = random.randint(0, 23)
+        days_ago = _rng.randint(1, 14)
+        hours_ago = _rng.randint(0, 23)
         post_time = now - timedelta(days=days_ago, hours=hours_ago)
-        likes_count = random.randint(2, 15)
-        ghost_likers = random.sample([g["id"] for g in GHOST_PROFILES_SEED if g["id"] != post_data["author_id"]], min(likes_count, 18))
+        likes_count = _rng.randint(2, 15)
+        ghost_likers = _rng.sample([g["id"] for g in GHOST_PROFILES_SEED if g["id"] != post_data["author_id"]], min(likes_count, 18))
         posts_to_insert.append({
             "id": f"ghost_post_{i+1:03d}",
             "author_id": post_data["author_id"],
@@ -360,11 +361,11 @@ async def seed_ghost_profiles():
     ]
 
     for post in posts_to_insert:
-        num_comments = random.randint(0, 3)
+        num_comments = _rng.randint(0, 3)
         available = [c for c in comment_templates if c[0] != post["author_id"]]
-        chosen = random.sample(available, min(num_comments, len(available)))
+        chosen = _rng.sample(available, min(num_comments, len(available)))
         for c_id, c_name, c_content in chosen:
-            comment_time = datetime.fromisoformat(post["created_at"]) + timedelta(hours=random.randint(1, 48))
+            comment_time = datetime.fromisoformat(post["created_at"]) + timedelta(hours=_rng.randint(1, 48))
             post["comments"].append({
                 "id": str(uuid.uuid4()),
                 "author_id": c_id,
@@ -511,7 +512,7 @@ async def trigger_ghost_comment(data: dict):
     if not ghosts:
         return {"success": False, "reason": "Aucun fantôme actif"}
 
-    ghost = random.choice(ghosts)
+    ghost = secrets.choice(ghosts)
 
     # Generate comment based on post content (use templates for now, CVL BRAIN for enrichment)
     comment_content = await _generate_ghost_comment(post["content"], ghost)
@@ -572,8 +573,8 @@ Ne dis jamais "Super post". Sois toi-même."""
     ]
     country = ghost.get("country", "")
     if country in ("Martinique", "Guadeloupe", "Guyane"):
-        return random.choice(templates_creole + templates_fr)
-    return random.choice(templates_fr)
+        return secrets.choice(templates_creole + templates_fr)
+    return secrets.choice(templates_fr)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -619,7 +620,7 @@ async def ghost_welcome_connections(data: dict):
         scored.append((g, score))
 
     scored.sort(key=lambda x: x[1], reverse=True)
-    chosen = [s[0] for s in scored[:random.randint(2, 3)]]
+    chosen = [s[0] for s in scored[:_rng.randint(2, 3)]]
 
     connections_sent = []
     for ghost in chosen:
@@ -678,11 +679,11 @@ async def complete_onboarding(data: OnboardingData):
 
     # Generate FREK-ID
     prefix = data.cultural_practice[:3].upper()
-    suffix = str(random.randint(1000, 9999))
+    suffix = str(_rng.randint(1000, 9999))
     frek_id = f"FREK-{prefix}-{suffix}"
 
     # Calculate cultural impact score
-    score = random.randint(45, 75)
+    score = _rng.randint(45, 75)
 
     # Try CVL BRAIN evaluation
     brain_analysis = None
@@ -740,7 +741,7 @@ Réponds en français avec un peu de créole si pertinent."""
 async def _delayed_ghost_welcome(user_id: str):
     """Envoie des demandes ghost après un délai aléatoire."""
     try:
-        await asyncio.sleep(random.randint(10, 60))
+        await asyncio.sleep(_rng.randint(10, 60))
         ghosts = await _db.ghost_profiles.find(
             {"active": True, "retiring": False}, {"_id": 0}
         ).to_list(20)
@@ -750,7 +751,7 @@ async def _delayed_ghost_welcome(user_id: str):
         if not user:
             return
 
-        chosen = random.sample(ghosts, min(random.randint(2, 3), len(ghosts)))
+        chosen = _rng.sample(ghosts, min(_rng.randint(2, 3), len(ghosts)))
         for ghost in chosen:
             existing = await _db.pro_connections.find_one({
                 "$or": [
@@ -1185,7 +1186,7 @@ async def discovery_feed(user_id: str = None, limit: int = 20):
             if tag in TAG_TO_DIMENSION:
                 dims_hit.add(TAG_TO_DIMENSION[tag])
         impact_dim = list(dims_hit)[0] if dims_hit else "patrimoine"
-        impact_pts = random.randint(2, 6)
+        impact_pts = _rng.randint(2, 6)
 
         cards.append({
             **p,
@@ -1220,8 +1221,8 @@ async def discovery_feed(user_id: str = None, limit: int = 20):
             "offering": g.get("offering", ""),
             "impact_hint": {
                 "dimension": comp_dim,
-                "points": random.randint(4, 8),
-                "text": f"Cet artiste complète ton empreinte {comp_dim.capitalize()} de +{random.randint(4, 8)} points"
+                "points": _rng.randint(4, 8),
+                "text": f"Cet artiste complète ton empreinte {comp_dim.capitalize()} de +{_rng.randint(4, 8)} points"
             },
             "created_at": g.get("created_at", datetime.now(timezone.utc).isoformat()),
         })
@@ -1280,7 +1281,7 @@ async def discovery_feed(user_id: str = None, limit: int = 20):
     cards.extend(heritage_cards)
 
     # Shuffle intelligently: mix card types but keep some order
-    random.shuffle(cards)
+    _rng.shuffle(cards)
 
     # Put event card near top
     evt_idx = next((i for i, c in enumerate(cards) if c.get("card_type") == "evenement"), None)
