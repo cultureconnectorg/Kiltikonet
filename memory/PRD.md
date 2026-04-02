@@ -16,48 +16,41 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Ame
 
 ## Implemente
 
+### Securite FREK-ID (DONE - 02/04/2026)
+- **FREK-ID unique** : Alphabet A-Z+0-9 (36^8 = 2.8 trillion combos), collision-proof avec boucle while + index MongoDB unique sparse
+- **Anti-Bot** : Rate limiting 5/heure par IP, blocage emails jetables (44 domaines), cooldown OTP 60s
+- **Anti-Fraude** : 1 email = 1 FREK-ID, detection IP suspecte (3+ inscriptions = flag), admin exempt du rate limit
+- **Future** : Possibilite de lier numero de telephone ou OAuth Google/Apple
+
 ### Login/Inscription Unifie (DONE - 02/04/2026)
-- **Magic Link** : saisie email, envoi OTP, verification
-- **Auto-inscription** : si email inconnu, creation profil + FREK-ID unique (FREK-XXXX-XXXX)
-- **Admin bypass** : cultureconnectorg@gmail.com / 000000
-- **Footer Legal** : Mentions Legales (Factory Maker Studio EURL), Conditions KT, Politique FREK-ID, Confidentialite
-- **Trust Signals** : Chiffre E2E, RGPD, KT Ecosystem
+- Magic Link avec auto-inscription + FREK-ID unique
+- Footer Legal : Factory Maker Studio EURL, Conditions KT, Politique FREK-ID
+- Trust Signals : Chiffre E2E, RGPD, KT Ecosystem
 
 ### Profil & Parametres (DONE - 02/04/2026)
-- **FREK-ID** visible dans profil (badge violet)
-- **Selecteur de langue** : FR, EN, ES, PT
-- **Ecosysteme KT** : mention validite etendue (CC2026, CC2027 et suivants)
-- **RGPD** : Export donnees JSON + Suppression de compte (irreversible, KT non rembourses)
+- FREK-ID visible, selecteur de langue FR/EN/ES/PT
+- RGPD : Export JSON + Suppression de compte (KT non rembourses)
 
 ### Fintech — Monnaie Forte (DONE - 01/04/2026)
 - 5 packs : Decouverte 10EUR→15KT, Culture 25EUR→40KT, Diaspora 50EUR→85KT, VIP 100EUR→180KT, Partenaire 500EUR→1000KT
 - Metadata Stripe : Factory Maker Studio EURL
-- Promesse ecosysteme : KT valables toutes editions CC
-- Ghost Bridge VIP : DM Artiste Certifie pour achats >=50EUR
-- Dashboard Admin Financier : Float/Passif/Cash, adoption par zone, revenue par pack
+- Dashboard Admin Financier : Float/Passif/Cash
 
 ### Growth Engine v2 (DONE)
 - 4000 profils : 40% Afrique / 40% Latino / 20% Diaspora
-- 2028 posts sur 3 ans
 
-## Endpoints
-### Auth/Pro
-- POST /api/pro/request-access (auto-register)
-- POST /api/pro/verify-code
-- POST /api/pro/update-language
-- POST /api/pro/delete-account
-- GET /api/pro/export-data/{user_id}
-
-### Fintech
-- GET/POST /api/wallet/{user_id}
-- GET /api/shop/packages
-- POST /api/shop/checkout/create
-- GET /api/fintech/dashboard
+## Securite
+- MongoDB unique sparse index sur frek_id
+- Rate limit : 5 req/heure par IP (in-memory)
+- OTP cooldown : 60s par email
+- 44 domaines email jetables bloques
+- Detection IP suspecte (3+ auto_register/heure)
+- Admin bypass exempt de toutes les securites
 
 ## Tests
-- iteration_55: Backend 100% (19/19), Frontend 100% — Login/Settings/RGPD
-- iteration_54: Backend 100% (23/23), Frontend 100% — Monnaie Forte
-- iteration_53: Backend 100% (21/21), Frontend 100%
+- iteration_56: Backend 100% — Security hardening
+- iteration_55: Backend 100% (19/19), Frontend 100%
+- iteration_54: Backend 100% (23/23), Frontend 100%
 
 ## Backlog
 ### P1

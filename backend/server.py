@@ -6163,22 +6163,7 @@ async def pro_request_access(request: ProAccessRequest, req: Request):
     email_lower = request.email.lower().strip()
     client_ip = req.headers.get("x-forwarded-for", req.client.host if req.client else "unknown").split(",")[0].strip()
     
-    # ── Rate Limit Check ──
-    if _check_rate_limit(client_ip):
-        logger.warning(f"[RATE_LIMIT] IP {client_ip} blocked — too many requests")
-        raise HTTPException(status_code=429, detail="Trop de tentatives. Reessayez dans quelques minutes.")
-    
-    # ── Disposable Email Check ──
-    if is_disposable_email(email_lower):
-        logger.warning(f"[DISPOSABLE_EMAIL] Rejected: {email_lower} from IP {client_ip}")
-        raise HTTPException(status_code=400, detail="Les adresses email temporaires ne sont pas acceptees.")
-    
-    # ── OTP Cooldown Check ──
-    cooldown = _check_otp_cooldown(email_lower)
-    if cooldown > 0:
-        raise HTTPException(status_code=429, detail=f"Veuillez patienter {cooldown}s avant de demander un nouveau code.")
-    
-    # FORCE_VERIFY_BYPASS — admin emails get instant access without code
+    # FORCE_VERIFY_BYPASS — admin emails skip ALL security checks
     BYPASS_EMAILS = [
         os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr"),
         "admin@kiltikonet.fr",
@@ -6196,6 +6181,21 @@ async def pro_request_access(request: ProAccessRequest, req: Request):
         }
         logger.info(f"[FORCE_VERIFY_BYPASS] Admin bypass for {email_lower}, code=000000")
         return {"success": True, "message": "Code envoyé par email", "bypass": True}
+    
+    # ── Rate Limit Check ──
+    if _check_rate_limit(client_ip):
+        logger.warning(f"[RATE_LIMIT] IP {client_ip} blocked — too many requests")
+        raise HTTPException(status_code=429, detail="Trop de tentatives. Reessayez dans quelques minutes.")
+    
+    # ── Disposable Email Check ──
+    if is_disposable_email(email_lower):
+        logger.warning(f"[DISPOSABLE_EMAIL] Rejected: {email_lower} from IP {client_ip}")
+        raise HTTPException(status_code=400, detail="Les adresses email temporaires ne sont pas acceptees.")
+    
+    # ── OTP Cooldown Check ──
+    cooldown = _check_otp_cooldown(email_lower)
+    if cooldown > 0:
+        raise HTTPException(status_code=429, detail=f"Veuillez patienter {cooldown}s avant de demander un nouveau code.")
     
     # ── Find existing user ──
     registration = await db.registrations.find_one(
