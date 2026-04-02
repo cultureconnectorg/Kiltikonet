@@ -12,7 +12,7 @@ import logging
 import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -294,8 +294,11 @@ def ghost_avatar_url(name: str) -> str:
 # SEED — Injecter les 20 profils + posts dans MongoDB
 # ═══════════════════════════════════════════════════════════════
 @router.post("/seed")
-async def seed_ghost_profiles():
-    """Seed les 20 profils fantômes et leurs posts. Idempotent."""
+async def seed_ghost_profiles(request: Request):
+    """Seed les 20 profils fantômes et leurs posts. Idempotent. Admin only."""
+    session = getattr(request.state, "session", None)
+    if not session or session.get("role") not in ("admin", "founder"):
+        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
     existing = await _db.ghost_profiles.count_documents({})
     if existing >= 20:
         return {"success": True, "message": f"{existing} profils fantômes déjà présents", "seeded": False}

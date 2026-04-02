@@ -1,91 +1,80 @@
 # CC2026 — KILTIKONET Platform — PRD
 
 ## Vision
-Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Amerique Latine et la Diaspora par la culture. Wallet Universel Kilti-Tokens, Stripe omnicanal, Growth Engine 4000 ghosts.
+Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Amerique Latine et la Diaspora par la culture. Wallet Universel Kilti-Tokens, Stripe omnicanal.
 
 ## Architecture
-- **Frontend**: React 19, Tailwind CSS, PWA
-- **Backend**: FastAPI, MongoDB
+- **Frontend**: React 19, Tailwind CSS, PWA (Service Worker v5.0)
+- **Backend**: FastAPI, MongoDB, JWT via httpOnly cookies
 - **Fintech**: Stripe Checkout omnicanal, Wallet Universel (KT), FREK-ID terminal
+- **Auth**: httpOnly cookies (kk_session), CORS credentials=true, origines explicites
 
 ## Design System
 - Fond: `#0a0a0b` (OLED Black), Or blanc: `#E8D5A0`, Police: DM Sans
 
-## Implemente
+## Implemented
 
-### Code Quality Audit Round 2 (DONE - 02/04/2026)
-- random → secrets dans fintech.py, shop_payments.py, pro_social.py, badges.py
-- Empty catch blocks → tous avec console.warn descriptif
-- Array index-as-key → corriges dans ShopPage, CulturalFeed
-- useOfflineSync: logs conditionnels dev-only restaures
-- translations.js: FAUX POSITIF confirme (traductions, pas des secrets)
+### GO-LIVE Phase 1 — Audit MongoDB (DONE - 02/04/2026)
+- Script audit `/app/backend/scripts/audit_mongodb.py` : scan de 57 collections
+- Rapport détaillé avec classification par collection (test/réel/ambigu)
+- Identification de 4233 documents test sur 7509 total
+- Cartes culturelles : 18 cartes légitimes identifiées, 1 doublon détecté
 
-### Pages Standalone (DONE - 02/04/2026)
-- Messages (`/espace-pro/messages`): split layout, search, polling, read receipts
-- Reseau (`/espace-pro/reseau`): directory, filters type+pays, modales profil
+### GO-LIVE Phase 2 — Nettoyage sélectif (DONE - 02/04/2026)
+- Backup complet : `/app/backend/scripts/mongodb_backup_pre_phase2/`
+- Script nettoyage `/app/backend/scripts/cleanup_phase2.py`
+- 6326 documents supprimés : ghost_profiles_v2 (4000), pro_posts (2052), cc_badges (71/77), registrations (21/23), etc.
+- Cartes culturelles : 18 gardées (17 uniques + 1 Culture Connect 2026), 1 doublon supprimé
+- Données Stripe réelles préservées (14 payment_transactions)
+- Base finale : ~1200 documents réels
 
-### Securite FREK-ID (DONE - 02/04/2026)
-- Unique index MongoDB, rate limiting, anti-bot, anti-fraude
+### GO-LIVE Phase 3 — Sécurisation routes admin (DONE - 02/04/2026)
+- Helpers `require_admin()` et `require_workspace()` créés (server.py L152-175)
+- Routes admin protégées (403 sans cookie) : /admin/notifications, /admin/accreditation, /admin/reconcile, /admin/batch-email, /smart-engine/purge, /smart-engine/index-contacts, /smart-engine/check-alerts, /smart-engine/cron/check, /analytics/dashboard, /partners/admin, /partners/manual
+- Routes workspace protégées : /workspace/logs, /workspace/sessions, /workspace/update-password, /smart-engine/profiles, /smart-engine/stats, /smart-engine/alerts/rules, /smart-engine/insights, /analytics/site, /analytics/behavior
+- Ghost seed endpoint protégé : /ghost/seed (admin only)
+- Login routes (verify/login) restent ouvertes
 
-### Login/Inscription + Profil + RGPD (DONE - 02/04/2026)
-- Magic Link auto-inscription, Footer Legal, langue FR/EN/ES/PT, export+suppression
+### GO-LIVE Phase 4 — Mode Production (DONE - 02/04/2026)
+- Flag `ENVIRONMENT=development|production` ajouté (.env + server.py)
+- Route `/api/pro/dev/get-code` retourne 404 en production
+- Route `/api/admin/notifications/test` désactivée en production
+- Rate limiting global : 120 req/IP/60s (middleware, activé en production uniquement)
+- Tracking anonyme `/api/analytics/batch` reste ouvert (pas d'auth)
 
-### Fintech Monnaie Forte (DONE - 01/04/2026)
-- 5 packs KT, Stripe Factory Maker Studio EURL, Dashboard Admin Financier
+### GO-LIVE Phase 5 — Vitrine publique (DONE - 02/04/2026)
+- Compteurs à 0 affichent '--' : AdminDashboard, NetworkPage
+- Service Worker v5.0 : cache invalidation agressive, notification SW_UPDATED aux clients
 
 ### Auth Migration: localStorage → httpOnly Cookies (DONE - 02/04/2026)
 - Backend: JWT signed session token (SESSION_SECRET), set_cookie httpOnly/secure/samesite=lax/max_age=7j
-- Middleware: session_cookie_middleware reads cookie on every request, populates request.state.session
-- Endpoints: /api/auth/me (verify session), /api/auth/logout (clear cookie)
-- All 3 login endpoints set cookie: /api/admin/verify, /api/workspace/login, /api/pro/verify-code
-- CORS: explicit origins (kiltikonet.fr + preview), credentials=true
-- Frontend: ZERO localStorage for auth. sessionStorage for display cache only
-- axios.defaults.withCredentials = true globally
-- Files migrated: ProtectedRoute, AdminLogin, AdminDashboard, ProSpaceDashboard, AdminMobileDashboard, MobileBottomNav, NetworkPage, MessagesPage, FounderControlCenter, SmartAnalytics, permissions.js
-
-### Console Cleanup + AdminDashboard Split (DONE - 02/04/2026)
-- P2-1: 28 console.log + 21 console.warn removed. 65 console.error kept (catch blocks)
-- P2-3: AdminDashboard 1745→1046 lines (-40%). Extracted: AdminInsightsPanel, AdminRegistrationDetail, AdminModals
-
-### Code Quality Audit Round 5 (DONE - 02/04/2026)
-- Index-as-key restants corrigés: WorkspaceTwina (partner keys), WorkspaceLaurent (session._id, log timestamps), WorkspaceFabrice (item.time, sequence time), SmartEngineDashboard (5 occurrences: label/badge_id/name/_id), SiteAnalyticsDashboard (3 occurrences: page/source/created_at)
-- Confirmed FALSE POSITIVE x5: translations.js = UI labels, not secrets
-- localStorage -> httpOnly cookies: remains P2 backlog
-
-### Code Quality Audit Round 4 (DONE - 02/04/2026)
-- Index-as-key fixes: WorkspaceGwen (label/title keys), PerformanceDashboard (_id keys), UserRecommendations (title/name keys), WorkspaceAlirio (msg id, q string keys)
-- AccreditationSystem: sort/filter in JSX -> useMemo (sortedByType, sortedByTerritory, sortedBySector)
-- Confirmed FALSE POSITIVE (4th time): translations.js contains UI labels not secrets
-
-### Code Quality Audit Round 3 (DONE - 02/04/2026)
-- CRITICAL: useRealtime.js recursive log() -> console.log() (stack overflow fix)
-- Dead code removed: orphan slug/tenant_id block in server.py
-- Mutable defaults fixes: broadcast_event(), seed_growth_engine() -> None pattern
-- Duplicate dict keys: $ne -> $nin (smart_engine), data.referrer -> $and (analytics)
-- Duplicate functions removed: 3 team notification endpoints (kept earlier defs)
-- Renamed conflicting function: mark_all_admin_notifications_read
-- Unused imports cleaned: 15+ across routes/analytics, fintech, ghost_engine, ses, etc.
-- Empty catch fixed: UserRecommendations.jsx
-- Index-as-key fixed: WorkspaceAlirio.jsx (stat.label), ConstellationRadar.jsx (ring-/axis-/point-/label-)
+- 3 login endpoints set cookie: /api/admin/verify, /api/workspace/login, /api/pro/verify-code
+- CORS: explicit origins, credentials=true
+- Frontend: ZERO localStorage for auth, axios withCredentials=true
 
 ### PWA Configuration (DONE - 02/04/2026)
-- manifest.json : CultureConnect, theme #214F4B, bg #0a0a0b, icon-512.png, start_url /espace-pro
-- index.html : meta theme-color, apple-touch-icon, apple-mobile-web-app-capable, black-translucent
-- Service Worker v4.0 : AUTH_CACHE offline, auto-reload sur update, invalidation ancien cache
-- index.js : SKIP_WAITING + reload automatique pour forcer activation du nouveau SW
+- manifest.json, theme-color, apple-touch-icon, Service Worker v5.0
+- Offline scan queue (IndexedDB), background sync, push notifications
+
+### Code Quality (DONE - 02/04/2026)
+- 5 rounds d'audit : console.log cleanup, index-as-key fixes, AdminDashboard split (-40%), useMemo optimizations
+- useRealtime.js: recursive log() fix (stack overflow)
+- random → secrets dans modules fintech
 
 ## Tests
-- iteration_59: Backend 100%, Frontend 100% (Code Quality Audit)
+- iteration_62: Backend 100%, Frontend 100% (GO-LIVE Phases 2-5)
+- iteration_61: Backend 100%, Frontend 100% (Auth Cookie Migration)
+- iteration_59-60: Backend 100%, Frontend 100% (Code Quality)
 - iteration_58: Backend 100%, Frontend 100% (PWA)
-- iteration_57: Backend 100%, Frontend 100%
-- iteration_56: Backend 100%
-- iteration_55: Backend 100%, Frontend 100%
-- iteration_54: Backend 100%, Frontend 100%
 
 ## Backlog
 - (P2) Mgraph D3.js interactif
 - (P3) Vue 3D SmartEngine
-- (P3) AWS SES sortie Sandbox
+- (P3) AWS SES sortie Sandbox (action manuelle utilisateur)
+- (P3) Ajout d'images aux 18 cartes culturelles
 
 ## Credentials
-- Admin: cultureconnectorg@gmail.com / 000000
+- Admin: password CC2026admin (via /api/admin/verify)
+- Workspace Coleen: password Coleen2026 (via /api/workspace/login)
+- Pro: cultureconnectorg@gmail.com / code OTP bypass 000000
+- Backup MongoDB pre-phase2: /app/backend/scripts/mongodb_backup_pre_phase2/
