@@ -91,7 +91,7 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
             setCelebration(res.data.tokens || 15);
             toast.success('Paiement recu ! Kilti-Tokens credites.');
           }
-        } catch { /* silent */ }
+        } catch (e) { console.warn('[Shop] Payment status check:', e.message); }
       };
       checkStatus();
       window.history.replaceState({}, '', window.location.pathname);
@@ -282,8 +282,8 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
       {/* Products grid (non-token) */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[1,2,3].map(i => (
-            <div key={i} className="rounded-2xl h-64 animate-pulse" style={{ background: '#141414' }} />
+          {['skeleton-1','skeleton-2','skeleton-3'].map(id => (
+            <div key={id} className="rounded-2xl h-64 animate-pulse" style={{ background: '#141414' }} />
           ))}
         </div>
       ) : (category !== 'jetons' && nonTokenProducts.length === 0 && !showPacks) ? (

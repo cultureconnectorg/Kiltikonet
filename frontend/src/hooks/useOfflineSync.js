@@ -30,7 +30,7 @@ export const useOfflineSync = (onStatusChange) => {
           setLastSync(new Date(lastSyncTime));
         }
       } catch (error) {
-        // DEV: console.warn('[useOfflineSync] Init failed:', error);
+        if (process.env.NODE_ENV === 'development') console.warn('[useOfflineSync] Init failed:', error);
       }
     };
     
@@ -74,7 +74,7 @@ export const useOfflineSync = (onStatusChange) => {
       
       return true;
     } catch (error) {
-      // DEV: console.warn('[useOfflineSync] Failed to save task:', error);
+      if (process.env.NODE_ENV === 'development') console.warn('[useOfflineSync] Failed to save task:', error);
       return false;
     }
   }, []);
@@ -89,7 +89,7 @@ export const useOfflineSync = (onStatusChange) => {
       });
       return statusMap;
     } catch (error) {
-      // DEV: console.warn('[useOfflineSync] Failed to get local statuses:', error);
+      if (process.env.NODE_ENV === 'development') console.warn('[useOfflineSync] Failed to get local statuses:', error);
       return {};
     }
   }, []);
@@ -101,7 +101,7 @@ export const useOfflineSync = (onStatusChange) => {
       await offlineCache.setMeta('last_sync', new Date().toISOString());
       setLastSync(new Date());
     } catch (error) {
-      // DEV: console.warn('[useOfflineSync] Failed to update from server:', error);
+      if (process.env.NODE_ENV === 'development') console.warn('[useOfflineSync] Failed to update from server:', error);
     }
   }, []);
 
@@ -119,7 +119,7 @@ export const useOfflineSync = (onStatusChange) => {
       setSyncStatus('idle');
       return result;
     } catch (error) {
-      // DEV: console.warn('[useOfflineSync] Sync failed:', error);
+      if (process.env.NODE_ENV === 'development') console.warn('[useOfflineSync] Sync failed:', error);
       setSyncStatus('error');
       return { synced: 0, failed: 0 };
     }
@@ -146,7 +146,7 @@ export const useOfflineSync = (onStatusChange) => {
       setSyncStatus('idle');
       return true;
     } catch (error) {
-      // DEV: console.warn('[useOfflineSync] Refresh failed:', error);
+      if (process.env.NODE_ENV === 'development') console.warn('[useOfflineSync] Refresh failed:', error);
       setSyncStatus('error');
       return false;
     }
@@ -159,7 +159,7 @@ export const useOfflineSync = (onStatusChange) => {
       setPendingCount(0);
       setLastSync(null);
     } catch (error) {
-      // DEV: console.warn('[useOfflineSync] Clear failed:', error);
+      if (process.env.NODE_ENV === 'development') console.warn('[useOfflineSync] Clear failed:', error);
     }
   }, []);
 

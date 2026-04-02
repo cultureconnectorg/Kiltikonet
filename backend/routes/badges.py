@@ -6,7 +6,7 @@ Primary storage: MongoDB | Mirror: Baserow table 865847
 import os
 import uuid
 import string
-import random
+import secrets
 import logging
 import asyncio
 from datetime import datetime, timezone
@@ -63,7 +63,7 @@ ZONE_ACCESS = {
 
 def _generate_code5() -> str:
     chars = string.ascii_uppercase + string.digits
-    return "".join(random.choices(chars, k=5))
+    return "".join(secrets.choice(chars) for _ in range(5))
 
 
 def _generate_badge_id(badge_type: str) -> str:

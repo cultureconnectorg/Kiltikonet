@@ -19,7 +19,8 @@ Collections MongoDB :
 """
 import os
 import uuid
-import random
+import secrets
+import random as _rng
 import logging
 import asyncio
 from datetime import datetime, timezone, timedelta
@@ -608,7 +609,7 @@ GHOST_DIASPORA_MESSAGES = {
 async def _ghost_bridge_feedback(user_id: str, product_name: str, channel: str, package_id: str = ""):
     """Post-purchase: ghost sends thank you — preuve de vie globale."""
     try:
-        await asyncio.sleep(random.randint(15, 90))
+        await asyncio.sleep(_rng.randint(15, 90))
 
         # Determine ghost type based on package
         is_vip_or_above = package_id in ("kt-vip", "kt-partenaire")
@@ -629,7 +630,7 @@ async def _ghost_bridge_feedback(user_id: str, product_name: str, channel: str, 
                 {"_id": 0, "id": 1, "full_name": 1, "image": 1}
             )
             ghost_type = "ghost_diaspora_welcome"
-            message = GHOST_DIASPORA_MESSAGES.get(package_id, random.choice(GHOST_THANK_MESSAGES))
+            message = GHOST_DIASPORA_MESSAGES.get(package_id, secrets.choice(GHOST_THANK_MESSAGES))
         else:
             # Standard: Ghost institution
             ghost = await _db.ghost_profiles_v2.find_one(
@@ -637,7 +638,7 @@ async def _ghost_bridge_feedback(user_id: str, product_name: str, channel: str, 
                 {"_id": 0, "id": 1, "full_name": 1, "image": 1}
             )
             ghost_type = "ghost_thank_you"
-            message = random.choice(GHOST_THANK_MESSAGES)
+            message = secrets.choice(GHOST_THANK_MESSAGES)
 
         if not ghost:
             return

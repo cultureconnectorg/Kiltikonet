@@ -8,7 +8,8 @@ Shop & Payments — Backend CRUD + Stripe Checkout + Ghost Bridge
 """
 import os
 import uuid
-import random
+import secrets
+import random as _rng
 import logging
 import asyncio
 from datetime import datetime, timezone
@@ -280,7 +281,7 @@ GHOST_THANK_YOU_MESSAGES = [
 async def _ghost_bridge_feedback(user_id: str, product_name: str):
     """Post-purchase: ghost institution sends thank you notification."""
     try:
-        await asyncio.sleep(random.randint(15, 120))
+        await asyncio.sleep(_rng.randint(15, 120))
 
         # Pick a random active ghost institution
         ghost = await _db.ghost_profiles_v2.find_one(
@@ -295,7 +296,7 @@ async def _ghost_bridge_feedback(user_id: str, product_name: str):
         if not ghost:
             return
 
-        message = random.choice(GHOST_THANK_YOU_MESSAGES)
+        message = secrets.choice(GHOST_THANK_YOU_MESSAGES)
 
         # Create notification
         await _db.notifications.insert_one({

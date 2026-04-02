@@ -112,9 +112,9 @@ async def create_post(data: PostCreate):
 
 async def _trigger_ghost_comment(post_id: str):
     """Delayed ghost comment on a real user's post."""
-    import asyncio, random
+    import asyncio, secrets as _sec
     try:
-        delay = random.randint(60, 600)  # 1-10 min
+        delay = _sec.randbelow(540) + 60  # 1-10 min
         await asyncio.sleep(delay)
         import httpx
         async with httpx.AsyncClient() as client:
@@ -144,7 +144,8 @@ async def _trigger_social_validation(post_id: str, author_id: str):
     """Trigger growth engine social validation (v2 ghost engagement)."""
     try:
         import asyncio
-        await asyncio.sleep(random.randint(10, 60))
+        import secrets as _sec2
+        await asyncio.sleep(_sec2.randbelow(50) + 10)
         import httpx
         async with httpx.AsyncClient() as client:
             await client.post(
@@ -270,11 +271,13 @@ async def get_directory(
     ).to_list(50)
 
     # Merge and shuffle slightly for natural feel
-    import random
+    import secrets as _sec3
     all_pros = professionals + ghosts
     if len(all_pros) > 2:
-        # Light shuffle to mix ghosts with real profiles
-        random.shuffle(all_pros)
+        # Fisher-Yates shuffle using secrets for unpredictability
+        for i in range(len(all_pros) - 1, 0, -1):
+            j = _sec3.randbelow(i + 1)
+            all_pros[i], all_pros[j] = all_pros[j], all_pros[i]
 
     total = await _db.registrations.count_documents(query) + len(ghosts)
 

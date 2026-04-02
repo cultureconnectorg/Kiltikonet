@@ -126,7 +126,7 @@ const CulturalFeed = ({ userId }) => {
       {/* TikTok-style scroll-snap feed */}
       {loading ? (
         <div className="space-y-4 px-1">
-          {Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={i} />)}
+          {Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={`skeleton-${i}`} />)}
         </div>
       ) : cards.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={{ background: '#141414', border: '1px solid #1a1a1a' }}>
@@ -165,8 +165,8 @@ const CulturalFeed = ({ userId }) => {
       {/* Card index indicator */}
       {cards.length > 1 && (
         <div className="fixed right-4 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1.5" data-testid="feed-progress">
-          {cards.slice(0, Math.min(cards.length, 8)).map((_, i) => (
-            <div key={i} className="w-1 rounded-full transition-all duration-200" style={{
+          {cards.slice(0, Math.min(cards.length, 8)).map((c, i) => (
+            <div key={c.id || `dot-${i}`} className="w-1 rounded-full transition-all duration-200" style={{
               height: currentIndex === i ? 16 : 6,
               background: currentIndex === i ? G : 'rgba(255,255,255,0.15)',
             }} />
