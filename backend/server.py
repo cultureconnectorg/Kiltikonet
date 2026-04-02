@@ -4969,6 +4969,7 @@ async def create_indexes():
         await db.registrations.create_index("country")
         await db.registrations.create_index("tier")
         await db.registrations.create_index("email", unique=False)
+        await db.registrations.create_index("frek_id", unique=True, sparse=True)
         await db.registrations.create_index("expertise_tags")
         
         # Partners collection indexes
@@ -6068,10 +6069,77 @@ Allow: /programme
 
 import random
 import string
+import secrets
 
-# Generate 6-digit access code
+# ─── FREK-ID Generator — Collision-proof, High Entropy ───
+FREK_ALPHABET = string.ascii_uppercase + string.digits  # 36 chars → 36^8 = 2.8 trillion combos
+
+async def generate_unique_frek_id() -> str:
+    """Generate a cryptographically unique FREK-ID with DB collision check."""
+    for _ in range(20):
+        seg1 = ''.join(secrets.choice(FREK_ALPHABET) for _ in range(4))
+        seg2 = ''.join(secrets.choice(FREK_ALPHABET) for _ in range(4))
+        frek_id = f"FREK-{seg1}-{seg2}"
+        existing = await db.registrations.find_one({"frek_id": frek_id}, {"_id": 0, "frek_id": 1})
+        if not existing:
+            return frek_id
+    raise HTTPException(status_code=500, detail="FREK-ID generation failed after 20 attempts")
+
+# ─── OTP Generator ──────────────────────────────────────
 def generate_access_code():
-    return ''.join(random.choices(string.digits, k=6))
+    return ''.join(secrets.choice(string.digits) for _ in range(6))
+
+# ─── Disposable Email Blocklist ──────────────────────────
+DISPOSABLE_DOMAINS = {
+    "tempmail.com", "temp-mail.org", "guerrillamail.com", "guerrillamail.de",
+    "throwaway.email", "mailinator.com", "yopmail.com", "yopmail.fr",
+    "trashmail.com", "trashmail.net", "sharklasers.com", "guerrillamailblock.com",
+    "grr.la", "dispostable.com", "maildrop.cc", "10minutemail.com",
+    "getairmail.com", "mailnesia.com", "tempail.com", "tempr.email",
+    "discard.email", "discardmail.com", "fakeinbox.com", "mailcatch.com",
+    "trash-mail.com", "binkmail.com", "bobmail.info", "chammy.info",
+    "spamgourmet.com", "mytemp.email", "mohmal.com", "emailondeck.com",
+    "33mail.com", "getnada.com", "burnermail.io", "inboxbear.com",
+    "jetable.org", "nada.email", "crazymailing.com", "harakirimail.com",
+    "mailscrap.com", "tmail.ws", "tmpmail.net", "tmpmail.org",
+}
+
+def is_disposable_email(email: str) -> bool:
+    domain = email.split("@")[-1].lower()
+    if domain in DISPOSABLE_DOMAINS:
+        return True
+    parts = domain.split(".")
+    if len(parts) >= 2:
+        base = ".".join(parts[-2:])
+        if base in DISPOSABLE_DOMAINS:
+            return True
+    return False
+
+# ─── Rate Limiting — In-memory with IP tracking ─────────
+_rate_limit_store = {}  # ip -> [timestamps]
+_otp_cooldown_store = {}  # email -> last_sent_timestamp
+
+RATE_LIMIT_MAX = 5        # max requests per window
+RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
+OTP_COOLDOWN_SECONDS = 60 # 60s between OTP sends for same email
+
+def _check_rate_limit(ip: str) -> bool:
+    """Returns True if rate limited (should block)."""
+    now = datetime.now(timezone.utc).timestamp()
+    if ip not in _rate_limit_store:
+        _rate_limit_store[ip] = []
+    _rate_limit_store[ip] = [t for t in _rate_limit_store[ip] if now - t < RATE_LIMIT_WINDOW]
+    if len(_rate_limit_store[ip]) >= RATE_LIMIT_MAX:
+        return True
+    _rate_limit_store[ip].append(now)
+    return False
+
+def _check_otp_cooldown(email: str) -> int:
+    """Returns seconds remaining in cooldown, or 0 if clear."""
+    now = datetime.now(timezone.utc).timestamp()
+    last_sent = _otp_cooldown_store.get(email, 0)
+    remaining = int(OTP_COOLDOWN_SECONDS - (now - last_sent))
+    return max(0, remaining)
 
 # Store temporary access codes
 pro_access_codes = {}
@@ -6087,12 +6155,28 @@ class ProVerifyToken(BaseModel):
     token: str
 
 @app.post("/api/pro/request-access")
-async def pro_request_access(request: ProAccessRequest):
-    """Request access code for Pro Space - checks if email exists in registrations"""
+async def pro_request_access(request: ProAccessRequest, req: Request):
+    """Request access code for Pro Space — auto-register if unknown email."""
     if not request.email or not request.email.strip():
         raise HTTPException(status_code=400, detail="Email requis")
     
     email_lower = request.email.lower().strip()
+    client_ip = req.headers.get("x-forwarded-for", req.client.host if req.client else "unknown").split(",")[0].strip()
+    
+    # ── Rate Limit Check ──
+    if _check_rate_limit(client_ip):
+        logger.warning(f"[RATE_LIMIT] IP {client_ip} blocked — too many requests")
+        raise HTTPException(status_code=429, detail="Trop de tentatives. Reessayez dans quelques minutes.")
+    
+    # ── Disposable Email Check ──
+    if is_disposable_email(email_lower):
+        logger.warning(f"[DISPOSABLE_EMAIL] Rejected: {email_lower} from IP {client_ip}")
+        raise HTTPException(status_code=400, detail="Les adresses email temporaires ne sont pas acceptees.")
+    
+    # ── OTP Cooldown Check ──
+    cooldown = _check_otp_cooldown(email_lower)
+    if cooldown > 0:
+        raise HTTPException(status_code=429, detail=f"Veuillez patienter {cooldown}s avant de demander un nouveau code.")
     
     # FORCE_VERIFY_BYPASS — admin emails get instant access without code
     BYPASS_EMAILS = [
@@ -6113,13 +6197,12 @@ async def pro_request_access(request: ProAccessRequest):
         logger.info(f"[FORCE_VERIFY_BYPASS] Admin bypass for {email_lower}, code=000000")
         return {"success": True, "message": "Code envoyé par email", "bypass": True}
     
-    # Find user by email (check registrations AND cc_badges)
+    # ── Find existing user ──
     registration = await db.registrations.find_one(
         {"email": email_lower, "status": "approved"}, {"_id": 0}
     )
     if registration and not registration.get("frek_id"):
-        import hashlib as _hl2
-        frek_id = f"FREK-{_hl2.sha256(email_lower.encode()).hexdigest()[:4].upper()}-{_hl2.sha256(registration.get('id','x').encode()).hexdigest()[:4].upper()}"
+        frek_id = await generate_unique_frek_id()
         await db.registrations.update_one({"email": email_lower}, {"$set": {"frek_id": frek_id}})
         registration["frek_id"] = frek_id
     if not registration:
@@ -6133,9 +6216,17 @@ async def pro_request_access(request: ProAccessRequest):
             }
     
     if not registration:
-        # AUTO-INSCRIPTION — Créer un nouveau profil avec FREK-ID unique
-        import hashlib as _hl
-        frek_id = f"FREK-{_hl.sha256(f'{email_lower}{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:4].upper()}-{_hl.sha256(email_lower.encode()).hexdigest()[:4].upper()}"
+        # ── AUTO-INSCRIPTION — Unique FREK-ID + Suspicious IP Detection ──
+        frek_id = await generate_unique_frek_id()
+        
+        # Check for suspicious multi-account from same IP
+        recent_registrations_from_ip = await db.pro_access_logs.count_documents({
+            "ip": client_ip,
+            "action": "auto_register",
+            "timestamp": {"$gte": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()}
+        })
+        is_suspicious = recent_registrations_from_ip >= 3
+        
         new_profile = {
             "id": f"pro_{str(uuid.uuid4())[:12]}",
             "email": email_lower,
@@ -6147,15 +6238,30 @@ async def pro_request_access(request: ProAccessRequest):
             "is_new_user": True,
             "language": "fr",
             "validity_extension": True,
+            "suspicious": is_suspicious,
+            "registration_ip": client_ip,
             "registered_at": datetime.now(timezone.utc).isoformat(),
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.registrations.insert_one({**new_profile})
         new_profile.pop("_id", None)
         registration = new_profile
-        logger.info(f"[AUTO_REGISTER] New profile created for {email_lower} with FREK-ID {frek_id}")
+        
+        # Log the auto-registration for suspicious IP tracking
+        await db.pro_access_logs.insert_one({
+            "email": email_lower, "profile_id": new_profile["id"],
+            "action": "auto_register", "ip": client_ip, "frek_id": frek_id,
+            "suspicious": is_suspicious,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        if is_suspicious:
+            logger.warning(f"[SUSPICIOUS] Multiple registrations from IP {client_ip} — FREK-ID {frek_id} flagged")
+        else:
+            logger.info(f"[AUTO_REGISTER] New profile for {email_lower} — FREK-ID {frek_id}")
     
     code = generate_access_code()
+    _otp_cooldown_store[email_lower] = datetime.now(timezone.utc).timestamp()
     pro_access_codes[email_lower] = {
         "code": code,
         "expires": datetime.now(timezone.utc) + timedelta(minutes=10),
