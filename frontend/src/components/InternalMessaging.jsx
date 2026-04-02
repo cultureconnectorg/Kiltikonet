@@ -87,7 +87,6 @@ const InternalMessaging = ({ currentUser, isFounder = false }) => {
         wsRef.current = new WebSocket(wsUrl);
         
         wsRef.current.onopen = () => {
-          console.log('Chat WebSocket connected');
           // Attendre que la connexion soit vraiment prête avant d'envoyer
           if (wsRef.current.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
@@ -134,14 +133,12 @@ const InternalMessaging = ({ currentUser, isFounder = false }) => {
         };
         
         wsRef.current.onclose = () => {
-          console.log('Chat WebSocket disconnected');
           if (!isClosing) {
             reconnectTimeout = setTimeout(connectWS, 3000);
           }
         };
         
         wsRef.current.onerror = (error) => {
-          console.log('Chat WebSocket error, will reconnect...');
         };
       } catch (e) {
         console.error('WebSocket connection error:', e);

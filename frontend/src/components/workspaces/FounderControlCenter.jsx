@@ -66,7 +66,6 @@ const FounderControlCenter = ({ onClose }) => {
       const res = await axios.get(`${API}/workspace/logs?limit=50`);
       setActivityLogs(res.data.logs || []);
     } catch (e) {
-      console.warn('Could not load logs');
     }
   };
   
@@ -75,7 +74,6 @@ const FounderControlCenter = ({ onClose }) => {
       const res = await axios.get(`${API}/registrations`);
       setRegistrations(res.data.registrations || []);
     } catch (e) {
-      console.warn('Could not load registrations');
     }
   };
   

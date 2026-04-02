@@ -37,7 +37,6 @@ class OfflineCache {
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('[OfflineCache] Database initialized');
         resolve(this.db);
       };
 
@@ -62,7 +61,6 @@ class OfflineCache {
           db.createObjectStore(STORES.CACHE_META, { keyPath: 'key' });
         }
 
-        console.log('[OfflineCache] Database schema created');
       };
     });
   }
@@ -87,7 +85,6 @@ class OfflineCache {
     return new Promise((resolve, reject) => {
       const request = store.put(taskData);
       request.onsuccess = () => {
-        console.log(`[OfflineCache] Task ${taskId} saved locally`);
         
         // If offline, add to sync queue
         if (!this.isOnline) {
@@ -151,7 +148,6 @@ class OfflineCache {
 
     return new Promise((resolve, reject) => {
       transaction.oncomplete = () => {
-        console.log(`[OfflineCache] Bulk updated ${statuses.length} tasks`);
         resolve();
       };
       transaction.onerror = () => reject(transaction.error);
@@ -175,7 +171,6 @@ class OfflineCache {
     return new Promise((resolve, reject) => {
       const request = store.add(queueItem);
       request.onsuccess = () => {
-        console.log('[OfflineCache] Action added to sync queue');
         this.pendingSyncQueue.push(queueItem);
         resolve(request.result);
       };
@@ -206,7 +201,6 @@ class OfflineCache {
       const request = store.clear();
       request.onsuccess = () => {
         this.pendingSyncQueue = [];
-        console.log('[OfflineCache] Sync queue cleared');
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -260,13 +254,11 @@ class OfflineCache {
   // ═══════════════════════════════════════════════════════════════
   handleOnline() {
     this.isOnline = true;
-    console.log('[OfflineCache] Back online - triggering sync');
     this.syncPendingActions();
   }
 
   handleOffline() {
     this.isOnline = false;
-    console.log('[OfflineCache] Went offline - local storage active');
   }
 
   async syncPendingActions() {
@@ -280,7 +272,6 @@ class OfflineCache {
       return { synced: 0, failed: 0 };
     }
 
-    console.log(`[OfflineCache] Syncing ${pendingActions.length} pending actions...`);
     
     let synced = 0;
     let failed = 0;
@@ -314,7 +305,6 @@ class OfflineCache {
     }
 
     this.syncInProgress = false;
-    console.log(`[OfflineCache] Sync complete: ${synced} synced, ${failed} failed`);
     
     return { synced, failed };
   }
@@ -346,7 +336,6 @@ class OfflineCache {
       });
     }
 
-    console.log('[OfflineCache] All data cleared');
   }
 }
 

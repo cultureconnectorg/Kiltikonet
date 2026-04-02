@@ -244,7 +244,6 @@ export const CatalogPage = () => {
         const suggestionsRes = await axios.get(`${API_V1}/search/match?limit=5`);
         setSectorKeywords(suggestionsRes.data.suggestions || []);
       } catch (e) {
-        console.log('Suggestions not available');
       }
     } catch (error) {
       console.error('Error fetching catalog:', error);

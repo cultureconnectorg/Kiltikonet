@@ -64,7 +64,7 @@ const MessagesPage = () => {
     try {
       const res = await axios.get(`${API}/pro/messages/${session.id}`);
       setMessages(res.data.messages || []);
-    } catch (e) { console.warn('[Messages] Load failed:', e.message); }
+    } catch { /* silent */ }
     finally { setLoading(false); }
   }, [session?.id]);
 
@@ -111,7 +111,7 @@ const MessagesPage = () => {
   };
 
   const markAsRead = async (msgId) => {
-    try { await axios.post(`${API}/pro/messages/${msgId}/read`); } catch (e) { console.warn('[Messages] Mark read failed:', e.message); }
+    try { await axios.post(`${API}/pro/messages/${msgId}/read`); } catch { /* silent */ }
   };
 
   // Mark messages as read when opening conversation

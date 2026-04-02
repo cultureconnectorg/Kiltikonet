@@ -111,7 +111,6 @@ const IntroSequence = ({ onComplete }) => {
           setIntention(res.data);
         }
       } catch (err) {
-        console.log('Using default intention');
         // Default intention
         setIntention({
           mot_annee: 'NOU.',
@@ -145,7 +144,6 @@ const IntroSequence = ({ onComplete }) => {
           country_code: data.country_code,
         }));
       } catch (err) {
-        console.log('Territory detection failed');
       }
     };
     detectTerritory();

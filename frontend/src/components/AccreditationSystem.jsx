@@ -1448,14 +1448,12 @@ const StatisticsTab = ({ participants, stats }) => {
     toast.success('Export Observatoire termine');
   };
 
-  if (!liveParticipants.length) {
-    return (
-      <div className="text-center py-12 font-mono text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>
-        CHARGEZ LES DONNEES BASEROW
-      </div>
-    );
-  }
+  // Memoized sorted data - MUST be called before any early returns (React hooks rules)
+  const sortedByType = useMemo(() => Object.entries(liveStats.byType || {}).sort((a, b) => b[1] - a[1]), [liveStats.byType]);
+  const sortedByTerritory = useMemo(() => Object.entries(liveStats.byTerritory || {}).sort((a, b) => b[1] - a[1]), [liveStats.byTerritory]);
+  const sortedBySector = useMemo(() => Object.entries(liveStats.bySector || {}).sort((a, b) => b[1] - a[1]), [liveStats.bySector]);
 
+  // StatBar component for rendering stat bars
   const StatBar = ({ label, value, total, color = COLORS.terracotta }) => (
     <div className="flex items-center gap-3">
       <span className="w-32 text-sm truncate" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: "'Syne', sans-serif" }}>{label}</span>
@@ -1467,9 +1465,13 @@ const StatisticsTab = ({ participants, stats }) => {
     </div>
   );
 
-  const sortedByType = useMemo(() => Object.entries(liveStats.byType).sort((a, b) => b[1] - a[1]), [liveStats.byType]);
-  const sortedByTerritory = useMemo(() => Object.entries(liveStats.byTerritory).sort((a, b) => b[1] - a[1]), [liveStats.byTerritory]);
-  const sortedBySector = useMemo(() => Object.entries(liveStats.bySector).sort((a, b) => b[1] - a[1]), [liveStats.bySector]);
+  if (!liveParticipants.length) {
+    return (
+      <div className="text-center py-12 font-mono text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>
+        CHARGEZ LES DONNEES BASEROW
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

@@ -8,30 +8,33 @@ import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { 
   Download, LogOut, Users, Clock, CheckCircle, XCircle, 
-  Search, Mail, MapPin, Building2, Calendar, X, RefreshCw,
-  Mic2, Globe, Newspaper, MoreHorizontal, Trash2, BookOpen, Eye, EyeOff, Plus,
-  BarChart3, TrendingUp, Map, PieChart, Tag, Sparkles, Handshake, FileDown,
-  CheckSquare, Square, Send, History, AlertCircle, Loader2, Settings, QrCode, Coins, Shield, FileText, Camera
+  Search, Mail, MoreHorizontal, Trash2, Eye, EyeOff, Plus,
+  BarChart3, Handshake, FileDown,
+  CheckSquare, Square, Send, History, Loader2, Coins, Shield, FileText,
+  Sparkles, QrCode, RefreshCw, BookOpen, Settings, Calendar, X
 } from 'lucide-react';
 import SmartEngineDashboard from './SmartEngineDashboard';
 import AIAgentsDashboard from './AIAgentsDashboard';
 import JetonsAnalyticsDashboard from './JetonsAnalyticsDashboard';
 import SiteAnalyticsDashboard from './SiteAnalyticsDashboard';
-import { profileTypes, countryList, expertiseTags as expertiseTagsList } from '../lib/translations';
+import { profileTypes, countryList } from '../lib/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { PartnerManagement } from './PartnerManagement';
 import AdminNotifications from './AdminNotifications';
 import CandidaturesAdmin from './CandidaturesAdmin';
 import GhostPopulationAdmin from './GhostPopulationAdmin';
+import AdminInsightsPanel from './admin/AdminInsightsPanel';
+import AdminRegistrationDetail from './admin/AdminRegistrationDetail';
+import { AdminAddParticipantModal, AdminExportModal, AdminEmailHistoryModal } from './admin/AdminModals';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const API_V1 = `${BACKEND_URL}/api/v1`;
 
 const profileIcons = {
-  'artist': Mic2, 'label': Building2, 'booking_agency': Globe,
-  'institution': Building2, 'press': Newspaper, 'other': MoreHorizontal
+  'artist': Users, 'label': Users, 'booking_agency': Users,
+  'institution': Users, 'press': Users, 'other': MoreHorizontal
 };
 
 const placeholderImages = [
@@ -40,60 +43,6 @@ const placeholderImages = [
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop'
 ];
-
-// Mini Bar Chart Component
-const MiniBarChart = ({ data, maxValue, color = 'terracotta' }) => {
-  const colorClasses = {
-    terracotta: 'bg-terracotta',
-    sage: 'bg-sage',
-    charcoal: 'bg-charcoal'
-  };
-  return (
-    <div className="flex items-end gap-1 h-12">
-      {data.map((value, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <div 
-            className={`w-full ${colorClasses[color]} opacity-80 transition-all`}
-            style={{ height: `${Math.max((value / maxValue) * 100, 4)}%` }}
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Mini Donut/Pie representation
-const MiniDonut = ({ segments, size = 48 }) => {
-  const total = segments.reduce((acc, s) => acc + s.value, 0);
-  let currentAngle = 0;
-  
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32">
-      {segments.map((segment, i) => {
-        const angle = total > 0 ? (segment.value / total) * 360 : 0;
-        const startAngle = currentAngle;
-        const endAngle = currentAngle + angle;
-        currentAngle = endAngle;
-        
-        const start = polarToCartesian(16, 16, 12, startAngle);
-        const end = polarToCartesian(16, 16, 12, endAngle);
-        const largeArc = angle > 180 ? 1 : 0;
-        
-        const d = angle >= 360 
-          ? `M 16 4 A 12 12 0 1 1 15.99 4` 
-          : `M 16 16 L ${start.x} ${start.y} A 12 12 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
-        
-        return <path key={i} d={d} fill={segment.color} opacity="0.85" />;
-      })}
-      <circle cx="16" cy="16" r="6" fill="#F4F1EA" />
-    </svg>
-  );
-};
-
-const polarToCartesian = (cx, cy, r, angle) => {
-  const rad = (angle - 90) * Math.PI / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-};
 
 export const AdminDashboard = () => {
   const { t, language } = useLanguage();
@@ -810,243 +759,16 @@ export const AdminDashboard = () => {
             </div>
           ) : (
             <div className="flex-1 overflow-auto">
-          {/* Insights Section - Business Intelligence */}
-          {stats && showInsights && (
-            <div className="border-b border-lightborder bg-cream px-6 py-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-terracotta" />
-                  <h3 className="text-sm font-syne text-charcoal uppercase tracking-wider">
-                    {language === 'fr' ? 'Insights Management' : 'Management Insights'}
-                  </h3>
-                </div>
-                <button onClick={() => setShowInsights(false)} className="text-charcoal/40 hover:text-charcoal">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Conversion Rates */}
-                <div className="bg-paper border border-lightborder p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-4 h-4 text-sage" />
-                    <span className="text-xs text-charcoal/50 uppercase">
-                      {language === 'fr' ? 'Taux de conversion' : 'Conversion Rates'}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-charcoal/60">{language === 'fr' ? 'Inscription → Approbation' : 'Registration → Approval'}</span>
-                      <span className="text-lg font-serif text-sage">{stats.conversion_rates?.registration_to_approval_percent || 0}%</span>
-                    </div>
-                    <div className="w-full bg-lightborder h-1.5">
-                      <div className="bg-sage h-1.5" style={{ width: `${stats.conversion_rates?.registration_to_approval_percent || 0}%` }} />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Profile Distribution */}
-                <div className="bg-paper border border-lightborder p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <PieChart className="w-4 h-4 text-terracotta" />
-                    <span className="text-xs text-charcoal/50 uppercase">
-                      {language === 'fr' ? 'Par profil' : 'By Profile'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MiniDonut 
-                      segments={Object.entries(stats.by_profile_type || {}).map(([key, value], i) => ({
-                        value,
-                        color: ['#A65D47', '#4A5D4E', '#1A1A1A', '#8B7355', '#6B8E7B'][i % 5]
-                      }))}
-                    />
-                    <div className="flex-1 space-y-1">
-                      {Object.entries(stats.by_profile_type || {}).slice(0, 3).map(([key, value]) => (
-                        <div key={key} className="flex justify-between text-xs">
-                          <span className="text-charcoal/60 truncate">{getProfileLabel(key)}</span>
-                          <span className="text-charcoal font-medium">{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Geographic Distribution */}
-                <div className="bg-paper border border-lightborder p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Map className="w-4 h-4 text-terracotta" />
-                    <span className="text-xs text-charcoal/50 uppercase">
-                      {language === 'fr' ? 'Territoires' : 'Territories'}
-                    </span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {Object.entries(stats.by_country || {}).slice(0, 4).map(([country, count]) => (
-                      <div key={country} className="flex items-center gap-2">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-xs mb-0.5">
-                            <span className="text-charcoal/60">{country}</span>
-                            <span className="text-charcoal">{count}</span>
-                          </div>
-                          <div className="w-full bg-lightborder h-1">
-                            <div 
-                              className="bg-terracotta/70 h-1" 
-                              style={{ width: `${Math.min((count / (stats.summary?.total_registrations || 1)) * 100, 100)}%` }} 
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Tier Distribution */}
-                <div className="bg-paper border border-lightborder p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Users className="w-4 h-4 text-sage" />
-                    <span className="text-xs text-charcoal/50 uppercase">
-                      {language === 'fr' ? 'Par formule' : 'By Tier'}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-charcoal/60">Émergent</span>
-                      <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700">{stats.by_tier?.emerging || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-charcoal/60">Professionnel</span>
-                      <span className="text-xs px-2 py-0.5 bg-sage/10 text-sage">{stats.by_tier?.professional || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-charcoal/60">Institutionnel</span>
-                      <span className="text-xs px-2 py-0.5 bg-terracotta/10 text-terracotta">{stats.by_tier?.institutional || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Top 5 Interests / Expertise Tags */}
-              {stats.by_expertise && Object.keys(stats.by_expertise).length > 0 && (
-                <div className="col-span-2 lg:col-span-4 mt-4 pt-4 border-t border-lightborder">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Tag className="w-4 h-4 text-terracotta" />
-                    <span className="text-xs text-charcoal/50 uppercase font-syne">
-                      {language === 'fr' ? 'Top 5 des Intérêts / Expertises' : 'Top 5 Interests / Expertise'}
-                    </span>
-                    <Sparkles className="w-3 h-3 text-sage ml-auto" />
-                  </div>
-                  <div className="grid grid-cols-5 gap-3">
-                    {Object.entries(stats.by_expertise).slice(0, 5).map(([tag, count], index) => {
-                      const maxCount = Math.max(...Object.values(stats.by_expertise));
-                      const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
-                      const colors = ['#A65D47', '#4A5D4E', '#1A1A1A', '#8B7355', '#6B8E7B'];
-                      return (
-                        <div key={tag} className="bg-paper border border-lightborder p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-charcoal/60 truncate capitalize">
-                              {tag.replace(/_/g, ' ')}
-                            </span>
-                            <span className="text-lg font-serif text-charcoal">{count}</span>
-                          </div>
-                          <div className="w-full bg-lightborder h-2">
-                            <div 
-                              className="h-2 transition-all" 
-                              style={{ 
-                                width: `${percentage}%`,
-                                backgroundColor: colors[index % colors.length]
-                              }} 
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* Marché Culturel highlight if present */}
-                  {stats.by_expertise['marche_culturel'] && stats.by_expertise['marche_culturel'] > 0 && (
-                    <div className="mt-3 flex items-center gap-2 p-2 bg-terracotta/5 border border-terracotta/20">
-                      <span className="text-xs text-terracotta font-syne uppercase">Marché Culturel:</span>
-                      <span className="text-sm text-charcoal font-medium">{stats.by_expertise['marche_culturel']}</span>
-                      <span className="text-xs text-charcoal/50">
-                        {language === 'fr' ? 'demandes de stand' : 'stand requests'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Partners summary if any */}
-              {stats.partners?.total > 0 && (
-                <div className="mt-4 pt-4 border-t border-lightborder flex items-center gap-6">
-                  <span className="text-xs text-charcoal/50 uppercase">{language === 'fr' ? 'Partenaires' : 'Partners'}:</span>
-                  <span className="text-sm text-charcoal">{stats.partners.total} total</span>
-                  <span className="text-xs text-charcoal/50">
-                    Bronze: {stats.partners.by_tier?.bronze || 0} · 
-                    Silver: {stats.partners.by_tier?.silver || 0} · 
-                    Gold: {stats.partners.by_tier?.gold || 0}
-                  </span>
-                </div>
-              )}
-
-              {/* Advanced Stats - Revenue Estimates */}
-              {advancedStats && (
-                <div className="mt-4 pt-4 border-t border-lightborder">
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="w-4 h-4 text-sage" />
-                    <span className="text-xs text-charcoal/50 uppercase font-syne">
-                      {language === 'fr' ? 'Rapport partenaires' : 'Partner Report'}
-                    </span>
-                    <button 
-                      onClick={() => window.open(`${API_V1}/report/summary`, '_blank')}
-                      className="ml-auto text-xs text-terracotta hover:underline"
-                    >
-                      {language === 'fr' ? 'Voir rapport complet' : 'View full report'}
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Revenue Estimate */}
-                    <div className="bg-sage/10 border border-sage/30 p-4">
-                      <p className="text-xs text-sage uppercase mb-1">
-                        {language === 'fr' ? 'Revenus estimés' : 'Estimated Revenue'}
-                      </p>
-                      <p className="text-2xl font-serif text-charcoal">
-                        {advancedStats.kpis?.total_revenue_estimate?.toLocaleString() || 0}€
-                      </p>
-                    </div>
-                    
-                    {/* Badges Sent */}
-                    <div className="bg-terracotta/10 border border-terracotta/30 p-4">
-                      <p className="text-xs text-terracotta uppercase mb-1">
-                        {language === 'fr' ? 'Badges envoyés' : 'Badges Sent'}
-                      </p>
-                      <p className="text-2xl font-serif text-charcoal">
-                        {advancedStats.kpis?.badges_sent || 0}
-                      </p>
-                    </div>
-                    
-                    {/* Email Delivery Rate */}
-                    <div className="bg-paper border border-lightborder p-4">
-                      <p className="text-xs text-charcoal/50 uppercase mb-1">
-                        {language === 'fr' ? 'Taux délivrabilité' : 'Delivery Rate'}
-                      </p>
-                      <p className="text-2xl font-serif text-charcoal">
-                        {advancedStats.kpis?.email_delivery_rate || 100}%
-                      </p>
-                    </div>
-                    
-                    {/* Stand Requests */}
-                    <div className="bg-paper border border-lightborder p-4">
-                      <p className="text-xs text-charcoal/50 uppercase mb-1">
-                        {language === 'fr' ? 'Demandes stand' : 'Stand Requests'}
-                      </p>
-                      <p className="text-2xl font-serif text-charcoal">
-                        {advancedStats.marche_culturel?.stand_requests || 0}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Insights Section */}
+          <AdminInsightsPanel
+            stats={stats}
+            advancedStats={advancedStats}
+            showInsights={showInsights}
+            setShowInsights={setShowInsights}
+            language={language}
+            getProfileLabel={getProfileLabel}
+            API_V1={API_V1}
+          />
           
           {/* Toggle Insights Button (if hidden) */}
           {stats && !showInsights && (
@@ -1279,466 +1001,47 @@ export const AdminDashboard = () => {
         </div>
         
         {/* Detail Panel */}
-        {selectedReg && (
-          <div className="hidden lg:block fixed right-0 top-20 w-[420px] h-[calc(100vh-5rem)] border-l border-lightborder bg-cream overflow-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <p className="text-xs text-charcoal/50 uppercase tracking-wider mb-2">{language === 'fr' ? 'Détail inscription' : 'Registration Detail'}</p>
-                  <StatusBadge status={selectedReg.status} />
-                </div>
-                <button onClick={() => setSelectedReg(null)} className="p-2 hover:bg-paper transition-colors">
-                  <X className="w-4 h-4 text-charcoal/50" />
-                </button>
-              </div>
-              
-              <div className="text-center mb-8">
-                <div className="relative inline-block">
-                  <img src={selectedReg.image} alt={`Photo de ${selectedReg.full_name}`} className="w-24 h-24 object-cover mx-auto rounded-full border-2 border-lightborder" />
-                  <label
-                    className="absolute bottom-0 right-0 w-8 h-8 bg-terracotta text-paper rounded-full flex items-center justify-center cursor-pointer hover:bg-terracotta/90 transition-colors shadow-md"
-                    title={language === 'fr' ? 'Changer la photo' : 'Change photo'}
-                    aria-label={language === 'fr' ? 'Changer la photo' : 'Change photo'}
-                    data-testid="admin-change-photo-btn"
-                  >
-                    <Camera className="w-4 h-4" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        if (file.size > 5 * 1024 * 1024) { toast.error('Max 5 Mo'); return; }
-                        const fd = new FormData();
-                        fd.append('file', file);
-                        try {
-                          toast.loading('Upload en cours...');
-                          const res = await fetch(`${API}/registrations/${selectedReg.id}/photo`, { method: 'PATCH', body: fd });
-                          const data = await res.json();
-                          toast.dismiss();
-                          if (data.success) {
-                            toast.success(language === 'fr' ? 'Photo mise à jour' : 'Photo updated');
-                            setSelectedReg(prev => ({ ...prev, image: data.logo_url }));
-                            fetchRegistrations();
-                          } else { toast.error(data.detail || 'Erreur'); }
-                        } catch { toast.dismiss(); toast.error('Erreur upload'); }
-                      }}
-                    />
-                  </label>
-                </div>
-                <h2 className="font-serif text-xl text-charcoal mb-1 mt-3">{selectedReg.full_name}</h2>
-                <p className="text-charcoal/60">{selectedReg.organization_name}</p>
-              </div>
-              
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="w-4 h-4 text-charcoal/40" />
-                  <a href={`mailto:${selectedReg.email}`} className="text-terracotta hover:underline">{selectedReg.email}</a>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-charcoal/70">
-                  <MapPin className="w-4 h-4 text-charcoal/40" />
-                  {getCountryLabel(selectedReg.country)}
-                </div>
-                <div className="flex items-center gap-3 text-sm text-charcoal/70">
-                  <Building2 className="w-4 h-4 text-charcoal/40" />
-                  {getProfileLabel(selectedReg.profile_type)}
-                </div>
-                {selectedReg.stand_request && (
-                  <div className="flex items-center gap-3 text-sm text-charcoal/70">
-                    <Calendar className="w-4 h-4 text-charcoal/40" />
-                    Stand: {selectedReg.stand_category || 'Oui'}
-                  </div>
-                )}
-              </div>
-              
-              {selectedReg.bio && (
-                <div className="mb-8">
-                  <p className="text-xs text-charcoal/50 uppercase tracking-wider mb-2">Bio</p>
-                  <p className="text-sm text-charcoal/70 leading-relaxed">{selectedReg.bio}</p>
-                </div>
-              )}
-
-              {/* Catalog Toggle */}
-              <div className="mb-8 p-4 border border-lightborder bg-paper">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-charcoal">{language === 'fr' ? 'Visible au catalogue' : 'Visible in catalog'}</p>
-                    <p className="text-xs text-charcoal/50">{language === 'fr' ? 'Afficher ce profil publiquement' : 'Show this profile publicly'}</p>
-                  </div>
-                  <button
-                    onClick={() => handleCatalogToggle(selectedReg.id, !selectedReg.show_in_catalog)}
-                    className={`px-4 py-2 text-sm font-syne transition-colors ${selectedReg.show_in_catalog 
-                      ? 'bg-sage text-paper' 
-                      : 'border border-lightborder text-charcoal/60 hover:border-sage'}`}
-                  >
-                    {selectedReg.show_in_catalog 
-                      ? (language === 'fr' ? 'Visible' : 'Visible')
-                      : (language === 'fr' ? 'Masqué' : 'Hidden')
-                    }
-                  </button>
-                </div>
-              </div>
-              
-              {/* Status Actions */}
-              <div className="space-y-3 mb-6">
-                <p className="text-xs text-charcoal/50 uppercase tracking-wider">{language === 'fr' ? 'Changer le statut' : 'Change status'}</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => handleStatusChange(selectedReg.id, 'pending')}
-                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'pending' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-lightborder text-charcoal/60 hover:border-amber-500'}`}>
-                    {language === 'fr' ? 'Attente' : 'Pending'}
-                  </button>
-                  <button onClick={() => handleStatusChange(selectedReg.id, 'approved')}
-                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'approved' ? 'border-sage bg-sage/10 text-sage' : 'border-lightborder text-charcoal/60 hover:border-sage'}`}>
-                    {language === 'fr' ? 'Approuver' : 'Approve'}
-                  </button>
-                  <button onClick={() => handleStatusChange(selectedReg.id, 'rejected')}
-                    className={`py-3 text-sm font-syne border transition-colors ${selectedReg.status === 'rejected' ? 'border-terracotta bg-terracotta/10 text-terracotta' : 'border-lightborder text-charcoal/60 hover:border-terracotta'}`}>
-                    {language === 'fr' ? 'Refuser' : 'Reject'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Delete */}
-              <button onClick={() => handleDelete(selectedReg.id)}
-                className="w-full py-3 text-sm font-syne border border-terracotta/30 text-terracotta hover:bg-terracotta/10 transition-colors">
-                <Trash2 className="w-4 h-4 inline mr-2" />
-                {language === 'fr' ? 'Supprimer cette inscription' : 'Delete this registration'}
-              </button>
-            </div>
-          </div>
-        )}
+        <AdminRegistrationDetail
+          selectedReg={selectedReg}
+          setSelectedReg={setSelectedReg}
+          handleStatusChange={handleStatusChange}
+          handleCatalogToggle={handleCatalogToggle}
+          handleDelete={handleDelete}
+          getProfileLabel={getProfileLabel}
+          getCountryLabel={getCountryLabel}
+          fetchRegistrations={fetchRegistrations}
+          language={language}
+          API={API}
+        />
       </div>
 
-      {/* Add Participant Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-charcoal/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label={language === 'fr' ? 'Ajouter un participant' : 'Add a participant'} onClick={() => setShowAddModal(false)}>
-          <div className="bg-paper w-full max-w-lg mx-4 max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-lightborder">
-              <div className="flex items-center justify-between">
-                <h2 className="font-serif text-xl text-charcoal">
-                  {language === 'fr' ? 'Ajouter un participant' : 'Add a participant'}
-                </h2>
-                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-cream transition-colors">
-                  <X className="w-5 h-5 text-charcoal/50" />
-                </button>
-              </div>
-            </div>
-            
-            <form onSubmit={handleAddParticipant} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                    {language === 'fr' ? 'Nom complet' : 'Full name'} *
-                  </label>
-                  <Input
-                    required
-                    value={newParticipant.full_name}
-                    onChange={(e) => setNewParticipant(prev => ({ ...prev, full_name: e.target.value }))}
-                    className="bg-cream border-lightborder rounded-none"
-                    data-testid="add-participant-fullname"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                    Organisation *
-                  </label>
-                  <Input
-                    required
-                    value={newParticipant.organization_name}
-                    onChange={(e) => setNewParticipant(prev => ({ ...prev, organization_name: e.target.value }))}
-                    className="bg-cream border-lightborder rounded-none"
-                    data-testid="add-participant-org"
-                  />
-                </div>
-              </div>
+      {/* Modals */}
+      <AdminAddParticipantModal
+        showAddModal={showAddModal}
+        setShowAddModal={setShowAddModal}
+        newParticipant={newParticipant}
+        setNewParticipant={setNewParticipant}
+        handleAddParticipant={handleAddParticipant}
+        language={language}
+        t={t}
+      />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">Email *</label>
-                  <Input
-                    type="email"
-                    required
-                    value={newParticipant.email}
-                    onChange={(e) => setNewParticipant(prev => ({ ...prev, email: e.target.value }))}
-                    className="bg-cream border-lightborder rounded-none"
-                    data-testid="add-participant-email"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                    {language === 'fr' ? 'Téléphone' : 'Phone'} *
-                  </label>
-                  <Input
-                    required
-                    value={newParticipant.phone}
-                    onChange={(e) => setNewParticipant(prev => ({ ...prev, phone: e.target.value }))}
-                    className="bg-cream border-lightborder rounded-none"
-                    data-testid="add-participant-phone"
-                  />
-                </div>
-              </div>
+      <AdminExportModal
+        showExportModal={showExportModal}
+        setShowExportModal={setShowExportModal}
+        exportFilters={exportFilters}
+        setExportFilters={setExportFilters}
+        language={language}
+        t={t}
+        API={API}
+      />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                    {language === 'fr' ? 'Pays' : 'Country'} *
-                  </label>
-                  <Select value={newParticipant.country} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, country: v }))}>
-                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-country">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-paper border-lightborder max-h-60">
-                      {countryList.map(c => (
-                        <SelectItem key={c.value} value={c.value}>{c.value}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                    {language === 'fr' ? 'Type de profil' : 'Profile type'} *
-                  </label>
-                  <Select value={newParticipant.profile_type} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, profile_type: v }))}>
-                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-profile">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-paper border-lightborder">
-                      {profileTypes.map(p => (
-                        <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                    {language === 'fr' ? 'Formule' : 'Tier'}
-                  </label>
-                  <Select value={newParticipant.tier} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, tier: v }))}>
-                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-tier">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-paper border-lightborder">
-                      <SelectItem value="emerging">{language === 'fr' ? 'Émergent (50€)' : 'Emerging (50€)'}</SelectItem>
-                      <SelectItem value="professional">{language === 'fr' ? 'Professionnel (150€)' : 'Professional (150€)'}</SelectItem>
-                      <SelectItem value="institutional">{language === 'fr' ? 'Institutionnel (300€)' : 'Institutional (300€)'}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">Statut</label>
-                  <Select value={newParticipant.status} onValueChange={(v) => setNewParticipant(prev => ({ ...prev, status: v }))}>
-                    <SelectTrigger className="bg-cream border-lightborder rounded-none" data-testid="add-participant-status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-paper border-lightborder">
-                      <SelectItem value="pending">{language === 'fr' ? 'En attente' : 'Pending'}</SelectItem>
-                      <SelectItem value="approved">{language === 'fr' ? 'Approuvé' : 'Approved'}</SelectItem>
-                      <SelectItem value="rejected">{language === 'fr' ? 'Refusé' : 'Rejected'}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newParticipant.show_in_catalog}
-                    onChange={(e) => setNewParticipant(prev => ({ ...prev, show_in_catalog: e.target.checked }))}
-                    className="w-4 h-4 accent-sage"
-                    data-testid="add-participant-catalog"
-                  />
-                  <span className="text-sm text-charcoal">
-                    {language === 'fr' ? 'Afficher dans le catalogue public' : 'Show in public catalog'}
-                  </span>
-                </label>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}
-                  className="flex-1 h-11 border-lightborder text-charcoal rounded-none font-syne">
-                  {language === 'fr' ? 'Annuler' : 'Cancel'}
-                </Button>
-                <Button type="submit" className="flex-1 h-11 bg-sage text-paper rounded-none font-syne" data-testid="add-participant-submit">
-                  {language === 'fr' ? 'Ajouter' : 'Add'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Filtered Export Modal */}
-      {showExportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80" role="dialog" aria-modal="true" aria-label={language === 'fr' ? 'Export ciblé' : 'Filtered Export'}>
-          <div className="bg-paper w-full max-w-md">
-            <div className="p-5 border-b border-lightborder flex items-center justify-between">
-              <h3 className="font-serif text-lg text-charcoal">
-                {language === 'fr' ? 'Export ciblé' : 'Filtered Export'}
-              </h3>
-              <button onClick={() => setShowExportModal(false)} className="text-charcoal/50 hover:text-charcoal">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-5 space-y-4">
-              <div>
-                <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                  {language === 'fr' ? 'Filtrer par profil' : 'Filter by profile'}
-                </label>
-                <Select 
-                  value={exportFilters.profileType}
-                  onValueChange={(v) => setExportFilters(prev => ({ ...prev, profileType: v === 'all' ? '' : v }))}
-                >
-                  <SelectTrigger className="rounded-none border-lightborder">
-                    <SelectValue placeholder={language === 'fr' ? 'Tous les profils' : 'All profiles'} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-paper border-lightborder">
-                    <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
-                    {profileTypes.map(p => <SelectItem key={p.value} value={p.value}>{t(p.labelKey)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-2">
-                  {language === 'fr' ? 'Filtrer par expertises' : 'Filter by expertise'}
-                </label>
-                <div className="flex flex-wrap gap-2 p-3 border border-lightborder bg-cream max-h-48 overflow-y-auto">
-                  {expertiseTagsList.map((tag) => {
-                    const isSelected = exportFilters.expertiseTags.includes(tag.value);
-                    return (
-                      <button
-                        key={tag.value}
-                        type="button"
-                        onClick={() => {
-                          setExportFilters(prev => ({
-                            ...prev,
-                            expertiseTags: isSelected
-                              ? prev.expertiseTags.filter(t => t !== tag.value)
-                              : [...prev.expertiseTags, tag.value]
-                          }));
-                        }}
-                        className={`px-2 py-1 text-xs font-syne transition-all border ${
-                          isSelected 
-                            ? 'border-sage bg-sage text-paper' 
-                            : 'border-lightborder bg-paper text-charcoal/70 hover:border-terracotta'
-                        }`}
-                      >
-                        {language === 'fr' ? tag.labelFr : tag.labelEn}
-                      </button>
-                    );
-                  })}
-                </div>
-                {exportFilters.expertiseTags.length > 0 && (
-                  <p className="text-xs text-sage mt-2">
-                    {exportFilters.expertiseTags.length} {language === 'fr' ? 'tag(s) sélectionné(s)' : 'tag(s) selected'}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setExportFilters({ expertiseTags: [], profileType: '' });
-                    setShowExportModal(false);
-                  }}
-                  className="flex-1 h-11 border-lightborder text-charcoal rounded-none font-syne"
-                >
-                  {language === 'fr' ? 'Annuler' : 'Cancel'}
-                </Button>
-                <Button 
-                  onClick={() => {
-                    const params = new URLSearchParams();
-                    if (exportFilters.profileType) params.append('profile_type', exportFilters.profileType);
-                    if (exportFilters.expertiseTags.length > 0) params.append('expertise_tags', exportFilters.expertiseTags.join(','));
-                    window.open(`${API}/registrations/export/filtered?${params.toString()}`, '_blank');
-                    setShowExportModal(false);
-                  }}
-                  className="flex-1 h-11 bg-terracotta text-paper rounded-none font-syne"
-                >
-                  <FileDown className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Exporter CSV' : 'Export CSV'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Email History Modal */}
-      {showEmailLogs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80" role="dialog" aria-modal="true" aria-label={language === 'fr' ? 'Historique des envois' : 'Send History'}>
-          <div className="bg-paper w-full max-w-2xl max-h-[80vh] flex flex-col">
-            <div className="p-5 border-b border-lightborder flex items-center justify-between shrink-0">
-              <div>
-                <h3 className="font-serif text-lg text-charcoal">
-                  {language === 'fr' ? 'Historique des envois' : 'Send History'}
-                </h3>
-                <p className="text-xs text-charcoal/50">
-                  {emailLogs.length} {language === 'fr' ? 'email(s) récent(s)' : 'recent email(s)'}
-                </p>
-              </div>
-              <button onClick={() => setShowEmailLogs(false)} className="text-charcoal/50 hover:text-charcoal">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-auto p-5">
-              {emailLogs.length === 0 ? (
-                <div className="text-center py-12 text-charcoal/50">
-                  <Mail className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                  <p>{language === 'fr' ? 'Aucun envoi pour le moment' : 'No emails sent yet'}</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {emailLogs.map((log, idx) => (
-                    <div key={log.id || idx} className={`flex items-center gap-3 p-3 border ${
-                      log.status === 'sent' ? 'border-sage/30 bg-sage/5' : 'border-terracotta/30 bg-terracotta/5'
-                    }`}>
-                      {log.status === 'sent' ? (
-                        <CheckCircle className="w-4 h-4 text-sage shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-terracotta shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-charcoal truncate">{log.recipient_name}</p>
-                        <p className="text-xs text-charcoal/50 truncate">{log.recipient_email}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className={`text-xs px-2 py-0.5 ${
-                          log.email_type === 'badge' ? 'bg-terracotta/20 text-terracotta' : 'bg-sage/20 text-sage'
-                        }`}>
-                          {log.email_type}
-                        </span>
-                        <p className="text-xs text-charcoal/40 mt-1">
-                          {new Date(log.sent_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
-                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="p-5 border-t border-lightborder shrink-0 flex justify-end">
-              <Button 
-                onClick={() => setShowEmailLogs(false)}
-                className="h-10 bg-charcoal text-paper rounded-none font-syne"
-              >
-                {language === 'fr' ? 'Fermer' : 'Close'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminEmailHistoryModal
+        showEmailLogs={showEmailLogs}
+        setShowEmailLogs={setShowEmailLogs}
+        emailLogs={emailLogs}
+        language={language}
+      />
     </div>
   );
 };

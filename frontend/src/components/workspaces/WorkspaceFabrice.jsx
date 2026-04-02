@@ -88,7 +88,7 @@ const WorkspaceFabrice = () => {
     // Try WebSocket connection
     try {
       wsRef.current = new WebSocket(`${BACKEND_URL.replace('http', 'ws')}/ws/captions`);
-      wsRef.current.onopen = () => console.log('Caption WS connected');
+      wsRef.current.onopen = () => {};
       wsRef.current.onmessage = (e) => {
         const data = JSON.parse(e.data);
         if (data.type === 'caption') {
@@ -96,7 +96,6 @@ const WorkspaceFabrice = () => {
         }
       };
     } catch (error) {
-      console.log('WebSocket not available');
     }
     
     return () => wsRef.current?.close();

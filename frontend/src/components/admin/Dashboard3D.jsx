@@ -270,7 +270,6 @@ class ThreeErrorBoundary extends React.Component {
   }
   
   componentDidCatch(error, errorInfo) {
-    console.warn('3D rendering failed, falling back to 2D:', error.message);
   }
   
   render() {

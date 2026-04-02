@@ -1712,7 +1712,6 @@ const IntentionSection = () => {
         setIntention(prev => ({ ...prev, ...res.data }));
       }
     } catch (error) {
-      console.log('Using default intention');
     } finally {
       setLoading(false);
     }
@@ -2210,7 +2209,6 @@ const MapFondsSection = () => {
       setTerritories(mapRes.data?.territories || []);
       setSiteConfig(configRes.data || siteConfig);
     } catch (error) {
-      console.log('Loading default config');
     } finally {
       setLoading(false);
     }

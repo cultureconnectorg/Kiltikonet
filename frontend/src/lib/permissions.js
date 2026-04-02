@@ -199,7 +199,6 @@ export const getUserPermissions = (role) => {
       }
     }
   } catch (e) {
-    console.warn('Error reading custom permissions');
   }
   
   // Retourner les permissions par défaut

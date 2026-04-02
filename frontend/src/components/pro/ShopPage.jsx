@@ -91,7 +91,7 @@ const ShopPage = ({ session, jetonsBalance = 0 }) => {
             setCelebration(res.data.tokens || 15);
             toast.success('Paiement recu ! Kilti-Tokens credites.');
           }
-        } catch (e) { console.warn('[Shop] Payment status check:', e.message); }
+        } catch { /* silent */ }
       };
       checkStatus();
       window.history.replaceState({}, '', window.location.pathname);

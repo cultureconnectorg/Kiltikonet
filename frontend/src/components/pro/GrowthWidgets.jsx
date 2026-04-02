@@ -17,7 +17,7 @@ export const ProofOfLifeBadge = () => {
       try {
         const res = await axios.get(`${API}/growth/engine/proof-of-life`);
         setData(res.data);
-      } catch (e) { console.warn('[Growth] Proof of life:', e.message); }
+      } catch (e) { /* silent in production */ }
     };
     load();
     const interval = setInterval(load, 30000); // Refresh every 30s
@@ -51,7 +51,7 @@ export const OnboardingWidget = ({ userId }) => {
     if (!userId) return;
     axios.get(`${API}/growth/engine/onboarding/${userId}`)
       .then(r => setData(r.data))
-      .catch(e => console.warn('[Onboarding]', e.message));
+      .catch(() => {});
   }, [userId]);
 
   if (!data || data.progress_pct >= 100) return null;
@@ -69,7 +69,7 @@ export const OnboardingWidget = ({ userId }) => {
           total_earned: prev.total_earned + res.data.rewarded,
         }));
       }
-    } catch (e) { console.warn('[Onboarding] Step:', e.message); }
+    } catch { /* silent */ }
     setCompleting(null);
   };
 
@@ -140,7 +140,7 @@ export const CreationNudge = ({ userId }) => {
     if (!userId) return;
     axios.get(`${API}/growth/engine/creation-nudge/${userId}`)
       .then(r => { if (r.data.nudge) setNudge(r.data.nudge); })
-      .catch((e) => { console.warn('[Nudge]', e.message); });
+      .catch(() => {});
   }, [userId]);
 
   if (!nudge) return null;

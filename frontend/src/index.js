@@ -10,7 +10,6 @@ if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/'
       });
-      console.log('[PWA] Service Worker registered:', registration.scope);
       
       // Check for updates periodically
       registration.addEventListener('updatefound', () => {
@@ -19,13 +18,11 @@ if ('serviceWorker' in navigator) {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
             // New SW ready — force activation and reload for fresh cache
             newWorker.postMessage({ type: 'SKIP_WAITING' });
-            console.log('[PWA] Nouvelle version détectée, activation...');
             window.location.reload();
           }
         });
       });
     } catch (error) {
-      console.log('[PWA] Service Worker registration failed:', error);
     }
   });
   
@@ -101,7 +98,6 @@ if (window.location.search.includes('ve=1')) {
       }
     }, true);
     
-    console.log('Visual Editor mode enabled');
   }, 1500);
 }
 

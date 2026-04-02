@@ -194,7 +194,7 @@ const NetworkPage = () => {
       }
       setPros(allPros);
       setConnections(connRes.data.connections || []);
-    } catch (e) { console.warn('[Network] Load failed:', e.message); }
+    } catch { /* silent */ }
     finally { setLoading(false); }
   }, [session?.id]);
 

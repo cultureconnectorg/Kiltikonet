@@ -67,7 +67,6 @@ class SmartAnalytics {
     // Track scroll depth
     this.initScrollTracking();
 
-    console.log('[SmartAnalytics] Initialized');
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -305,7 +304,6 @@ class SmartAnalytics {
         });
       }
     } catch (error) {
-      console.warn('[SmartAnalytics] Failed to flush:', error);
       // Re-queue failed events
       this.queue = [...events, ...this.queue];
     }
