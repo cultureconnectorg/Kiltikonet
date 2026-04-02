@@ -33,6 +33,20 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Ame
 ### Fintech Monnaie Forte (DONE - 01/04/2026)
 - 5 packs KT, Stripe Factory Maker Studio EURL, Dashboard Admin Financier
 
+### Auth Migration: localStorage → httpOnly Cookies (DONE - 02/04/2026)
+- Backend: JWT signed session token (SESSION_SECRET), set_cookie httpOnly/secure/samesite=lax/max_age=7j
+- Middleware: session_cookie_middleware reads cookie on every request, populates request.state.session
+- Endpoints: /api/auth/me (verify session), /api/auth/logout (clear cookie)
+- All 3 login endpoints set cookie: /api/admin/verify, /api/workspace/login, /api/pro/verify-code
+- CORS: explicit origins (kiltikonet.fr + preview), credentials=true
+- Frontend: ZERO localStorage for auth. sessionStorage for display cache only
+- axios.defaults.withCredentials = true globally
+- Files migrated: ProtectedRoute, AdminLogin, AdminDashboard, ProSpaceDashboard, AdminMobileDashboard, MobileBottomNav, NetworkPage, MessagesPage, FounderControlCenter, SmartAnalytics, permissions.js
+
+### Console Cleanup + AdminDashboard Split (DONE - 02/04/2026)
+- P2-1: 28 console.log + 21 console.warn removed. 65 console.error kept (catch blocks)
+- P2-3: AdminDashboard 1745→1046 lines (-40%). Extracted: AdminInsightsPanel, AdminRegistrationDetail, AdminModals
+
 ### Code Quality Audit Round 5 (DONE - 02/04/2026)
 - Index-as-key restants corrigés: WorkspaceTwina (partner keys), WorkspaceLaurent (session._id, log timestamps), WorkspaceFabrice (item.time, sequence time), SmartEngineDashboard (5 occurrences: label/badge_id/name/_id), SiteAnalyticsDashboard (3 occurrences: page/source/created_at)
 - Confirmed FALSE POSITIVE x5: translations.js = UI labels, not secrets
@@ -70,7 +84,6 @@ Fintech culturelle du Sud Global. Plateforme sociale connectant l'Afrique, l'Ame
 
 ## Backlog
 - (P2) Mgraph D3.js interactif
-- (P2) Migration localStorage -> httpOnly cookies
 - (P3) Vue 3D SmartEngine
 - (P3) AWS SES sortie Sandbox
 
