@@ -1,8 +1,8 @@
 /* eslint-disable no-restricted-globals */
 
 // Service Worker - Culture Connect 2026 PWA
-// Cache versioning
-const CACHE_VERSION = 'cc2026-v4.0';
+// Cache versioning — BUMP this on every deploy to force cache invalidation
+const CACHE_VERSION = 'cc2026-v5.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -51,16 +51,18 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event - clean old caches
+// Activate event - AGGRESSIVELY clean ALL old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating Service Worker...');
+  console.log('[SW] Activating Service Worker v5.0 — purging all old caches');
+  
+  const currentCaches = new Set([STATIC_CACHE, DYNAMIC_CACHE, API_CACHE, AUTH_CACHE]);
   
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
-            .filter((name) => name.startsWith('cc2026-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE && name !== API_CACHE && name !== AUTH_CACHE)
+            .filter((name) => !currentCaches.has(name))
             .map((name) => {
               console.log('[SW] Deleting old cache:', name);
               return caches.delete(name);
@@ -68,6 +70,13 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => self.clients.claim())
+      .then(() => {
+        // Force all open tabs to reload with new SW
+        return self.clients.matchAll({ type: 'window' });
+      })
+      .then((clients) => {
+        clients.forEach(client => client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION }));
+      })
   );
 });
 
