@@ -153,8 +153,8 @@ const StudiosSidebar = ({ isOpen, onClose, onSelectStudio }) => {
             {STUDIOS.map((studio, idx) => {
               const isActive = activeStudio === studio.id;
               return (
+                <React.Fragment key={studio.id}>
                 <button
-                  key={studio.id}
                   onClick={() => handleStudioClick(studio)}
                   className="w-full text-left rounded-xl p-4 transition-all group"
                   style={{
@@ -202,33 +202,32 @@ const StudiosSidebar = ({ isOpen, onClose, onSelectStudio }) => {
                       chevron_right
                     </span>
                   </div>
-
-                  {/* Expanded tools */}
-                  {isActive && (
-                    <div className="mt-3 pt-3 space-y-1" style={{ borderTop: '1px solid rgba(75,70,59,0.1)' }}>
-                      {studio.tools.map((tool, tIdx) => (
-                        <button
-                          key={tool.label}
-                          onClick={(e) => { e.stopPropagation(); handleToolClick(studio, tool); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.03] transition-all"
-                          style={{ animation: `fadeSlideIn 0.3s cubic-bezier(0.2,0,0,1) both`, animationDelay: `${tIdx * 50}ms` }}
-                          data-testid={`studio-tool-${studio.id}-${tIdx}`}
-                        >
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: 18, color: studio.color, opacity: 0.8 }}
-                          >
-                            {tool.icon}
-                          </span>
-                          <div>
-                            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 600, color: '#e5e2e3' }}>{tool.label}</p>
-                            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, color: '#555' }}>{tool.desc}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </button>
+                {isActive && (
+                  <div className="mx-4 mb-2 pt-2 space-y-1" style={{ borderTop: '1px solid rgba(75,70,59,0.1)' }}>
+                    {studio.tools.map((tool, tIdx) => (
+                      <button
+                        key={tool.label}
+                        onClick={() => handleToolClick(studio, tool)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.03] transition-all"
+                        style={{ animation: `fadeSlideIn 0.3s cubic-bezier(0.2,0,0,1) both`, animationDelay: `${tIdx * 50}ms` }}
+                        data-testid={`studio-tool-${studio.id}-${tIdx}`}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: 18, color: studio.color, opacity: 0.8 }}
+                        >
+                          {tool.icon}
+                        </span>
+                        <div>
+                          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 600, color: '#e5e2e3' }}>{tool.label}</p>
+                          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, color: '#555' }}>{tool.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                </React.Fragment>
               );
             })}
           </div>

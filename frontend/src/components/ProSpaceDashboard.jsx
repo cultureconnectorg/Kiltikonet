@@ -15,6 +15,8 @@ import WalletPage from './pro/WalletPage';
 import ShopPage from './pro/ShopPage';
 import StudiosSidebar from './pro/StudiosSidebar';
 import ImmersiveInbox from './pro/ImmersiveInbox';
+import ProfileTriptych from './pro/ProfileTriptych';
+import VitrinePage from './pro/VitrinePage';
 import { ArchivesSection, GovernanceSection, ConsoleSection, SettingsSovereign, MessagesSection } from './pro/SovereignSections';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -278,6 +280,7 @@ const ProSpaceDashboard = () => {
             onClick={e => e.stopPropagation()}>
             <h2 className="mb-6" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, color: '#E8D5A0' }}>Kiltikonet</h2>
             {[
+              { id: 'vitrine', icon: 'home', label: 'Vitrine' },
               { id: 'feed', icon: 'dynamic_feed', label: 'Feed LinkedIn' },
               { id: 'reels', icon: 'play_circle', label: 'Reels / Shorts' },
               { id: 'open-inbox', icon: 'inbox', label: 'Boîte de réception' },
@@ -391,7 +394,8 @@ const ProSpaceDashboard = () => {
         <ReelsFeed session={session} onOpenInbox={() => setInboxOpen(true)} />
       ) : (
         <div className="max-w-5xl mx-auto px-4 py-6">
-          {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadAll} />}
+          {activeSection === 'profile' && <ProfileTriptych session={session} />}
+          {activeSection === 'vitrine' && <VitrinePage session={session} />}
           {activeSection === 'wallet' && <WalletPage session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'shop' && <ShopPage session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} onNavigate={sec => setActiveSection(sec)} />}
@@ -419,8 +423,8 @@ const ProSpaceDashboard = () => {
       {/* Immersive Inbox — fullscreen */}
       <ImmersiveInbox session={session} isOpen={inboxOpen} onClose={() => setInboxOpen(false)} />
 
-      {showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
-      <CvlBrainFloat session={session} externalOpen={brainOpen} onExternalClose={() => setBrainOpen(false)} />
+      {!inboxOpen && !studiosOpen && showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
+      {!inboxOpen && <CvlBrainFloat session={session} externalOpen={brainOpen} onExternalClose={() => setBrainOpen(false)} />}
 
       {/* ─── MOBILE BOTTOM NAV ─── */}
       <MobileNavigation
