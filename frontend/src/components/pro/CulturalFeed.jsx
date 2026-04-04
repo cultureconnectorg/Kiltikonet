@@ -111,9 +111,10 @@ const CulturalFeed = ({ userId }) => {
             <button key={tab.key} onClick={() => setActiveFilter(tab.key)}
               className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap active:scale-[0.97]"
               style={{
-                background: activeFilter === tab.key ? G : 'rgba(255,255,255,0.06)',
+                background: activeFilter === tab.key ? G : 'rgba(255,255,255,0.04)',
                 color: activeFilter === tab.key ? '#0a0a0b' : '#72727a',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Manrope', sans-serif",
+                letterSpacing: '0.04em',
               }}
               data-testid={`filter-${tab.key || 'all'}`}
             >
@@ -159,7 +160,7 @@ const CulturalFeed = ({ userId }) => {
         className="fixed bottom-24 md:bottom-8 right-4 w-14 h-14 rounded-full flex items-center justify-center z-40 transition-transform hover:scale-105 active:scale-95"
         style={{ background: G, boxShadow: `0 4px 24px ${G}40` }}
         aria-label="Creer une carte culturelle">
-        <Plus size={26} style={{ color: '#0a0a0b' }} strokeWidth={2.5} />
+        <span className="material-symbols-outlined" style={{ color: '#0a0a0b', fontSize: 26 }}>add</span>
       </button>
 
       {/* Card index indicator */}

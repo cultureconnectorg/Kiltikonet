@@ -293,11 +293,58 @@ const ProSpaceDashboard = () => {
       {activeSection === 'feed' ? (
         <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />
       ) : activeSection === 'brain' ? (
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="text-center py-12">
-            <span className="material-symbols-outlined" style={{ fontSize: 64, color: C.gold, fontVariationSettings: "'FILL' 0, 'wght' 200" }}>psychology</span>
-            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: 28, fontStyle: 'italic', fontWeight: 400, color: C.text, marginTop: 12 }}>CVL BRAIN</h2>
-            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: C.muted, marginTop: 8 }}>Cliquez sur le bouton Brain en bas pour ouvrir l'assistant IA</p>
+        <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+          {/* Brain Chat — Full page Sovereign */}
+          <main className="flex-1 overflow-y-auto px-6 py-8 flex flex-col gap-10 max-w-3xl mx-auto w-full">
+            {/* Welcome */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E8D5A0, #d8c591)' }}>
+                  <span className="material-symbols-outlined text-[14px]" style={{ color: '#3a2f09', fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                </div>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#d8c591' }}>BRAIN CURATOR</span>
+              </div>
+              <div className="pl-9 space-y-4">
+                <p style={{ fontFamily: "'Newsreader', serif", fontSize: 'clamp(18px, 3vw, 24px)', lineHeight: 1.6, color: '#e5e2e3' }}>
+                  Sak pasé ? Man sé <span style={{ fontStyle: 'italic', color: '#E8D5A0' }}>CVL BRAIN</span> — l'intelligence souveraine du groupe CVLN. Posez-moi vos questions sur l'écosystème CC2026, la culture caribéenne, ou demandez-moi d'analyser vos projets.
+                </p>
+                <div className="p-6 rounded-xl italic" style={{ background: '#1c1b1c', borderLeft: '2px solid rgba(232,213,160,0.3)', fontFamily: "'Newsreader', serif", fontSize: 16, color: '#cdc6b7', lineHeight: 1.7 }}>
+                  "L'intelligence n'est pas ce qui sait tout, c'est ce qui sait poser les bonnes questions au bon moment."
+                </div>
+              </div>
+            </div>
+
+            {/* Contextual suggestions */}
+            <div className="flex flex-wrap gap-2 pl-9">
+              {['Analyse mon profil culturel', 'Stratégie CC2026', 'Rédige un pitch artistique'].map(s => (
+                <button key={s} onClick={() => setBrainOpen(true)}
+                  className="text-[11px] font-bold py-2 px-4 rounded-full uppercase tracking-wider transition-all hover:scale-[1.02]"
+                  style={{ background: '#2a2a2b', color: '#d8c591', fontFamily: "'Manrope', sans-serif" }}>{s}</button>
+              ))}
+            </div>
+          </main>
+
+          {/* Bottom Command Bar */}
+          <div className="px-4 pb-6 pt-2 max-w-3xl mx-auto w-full">
+            <div className="p-2 rounded-2xl" style={{ background: 'rgba(19,19,20,0.95)', backdropFilter: 'blur(24px)', boxShadow: '0 -10px 40px rgba(0,0,0,0.6)' }}>
+              <div className="flex items-center gap-1 px-2 py-1">
+                <button className="p-2 transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>upload_file</span></button>
+                <button className="p-2 transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>mic</span></button>
+                <button className="p-2 transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>code</span></button>
+                <div className="h-4 w-px mx-2" style={{ background: 'rgba(75,70,59,0.3)' }} />
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>BRAIN v2.4</span>
+              </div>
+              <div className="relative flex items-center rounded-xl" style={{ background: 'rgba(53,52,54,0.3)' }}>
+                <input placeholder="Command the Curator..." onClick={() => setBrainOpen(true)}
+                  className="w-full bg-transparent border-none py-4 pl-5 pr-12 text-sm" data-testid="brain-page-input"
+                  style={{ color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} readOnly />
+                <button onClick={() => setBrainOpen(true)}
+                  className="absolute right-2 w-10 h-10 rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                  style={{ background: '#E8D5A0' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#3a2f09' }}>arrow_upward</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -723,24 +770,24 @@ const RecommendationsWidget = ({ session }) => {
   };
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
-      <div className="px-4 py-3 border-b" style={{ borderColor: '#1e1e1e' }}>
-        <h3 className="text-xs font-semibold uppercase" style={{ color: '#888', letterSpacing: '0.08em', fontFamily: "'DM Sans', sans-serif" }}>Profils suggérés</h3>
+    <div className="rounded-2xl overflow-hidden" style={{ background: '#1b1b1c' }}>
+      <div className="px-4 py-3">
+        <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Profils suggérés</h3>
       </div>
       {recs.length === 0 ? (
-        <div className="p-5 text-center"><p className="text-xs" style={{ color: '#444' }}>Complétez votre profil pour recevoir des suggestions</p></div>
+        <div className="p-5 text-center"><p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, color: '#555' }}>Complétez votre profil pour recevoir des suggestions</p></div>
       ) : recs.map(r => (
-        <div key={r.id} className="px-4 py-3 border-b last:border-0 hover:bg-white/[0.02] transition-colors" style={{ borderColor: '#1e1e1e' }}>
+        <div key={r.id} className="px-4 py-3 hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid rgba(75,70,59,0.08)' }}>
           <div className="flex items-center gap-3">
             <Avatar name={r.full_name} type={r.profile_type} size={40} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>{truncName(r.full_name)}</p>
-              <p className="text-[11px] truncate" style={{ color: '#888' }}>{PROFILE_LABELS[r.profile_type] || 'Professionnel'}</p>
+              <p className="truncate" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 14, color: '#e5e2e3' }}>{truncName(r.full_name)}</p>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#72727a' }}>{PROFILE_LABELS[r.profile_type] || 'Professionnel'}</p>
             </div>
             <button onClick={() => sendConnect(r.id)} data-testid={`connect-${r.id}`}
-              className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.97]"
-              style={{ background: 'transparent', border: '1px solid rgba(232,213,160,0.4)', color: '#E8D5A0', minHeight: 32, fontFamily: "'DM Sans', sans-serif" }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#E8D5A0'; e.currentTarget.style.color = '#000'; }}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.97]"
+              style={{ background: 'transparent', border: '1px solid rgba(232,213,160,0.2)', color: '#E8D5A0', minHeight: 32, fontFamily: "'Manrope', sans-serif" }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#E8D5A0'; e.currentTarget.style.color = '#0a0a0b'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#E8D5A0'; }}>
               Rejoindre
             </button>
@@ -908,23 +955,37 @@ const NetworkPage = ({ connections, session, onConnect }) => {
   const countries = [...new Set(pros.map(p => p.country).filter(Boolean))];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
-      <div className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <h2 className="text-xl font-black mb-4" style={{ color: C.text }}>Réseau — {filtered.length} professionnel{filtered.length !== 1 ? 's' : ''}</h2>
+    <div className="max-w-6xl mx-auto space-y-8" data-testid="network-page">
+      {/* Editorial Header */}
+      <header className="space-y-4 pt-4">
+        <div className="flex items-center gap-3">
+          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.2em]" style={{ background: 'rgba(232,213,160,0.08)', color: '#d8c591', border: '1px solid rgba(232,213,160,0.1)' }}>Réseau Souverain</span>
+          <div className="h-px flex-1" style={{ background: 'rgba(75,70,59,0.15)' }} />
+        </div>
+        <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 700, lineHeight: 0.9, letterSpacing: '-0.03em', color: '#e5e2e3' }}>
+          L'Écho du <br /><span style={{ fontStyle: 'italic', color: '#E8D5A0' }}>Réseau</span>
+        </h1>
+        <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', maxWidth: 480, lineHeight: 1.7 }}>
+          {filtered.length} professionnel{filtered.length !== 1 ? 's' : ''} dans l'écosystème. Connectez-vous pour développer vos synergies culturelles.
+        </p>
+      </header>
+
+      {/* Glass Search Panel */}
+      <div className="p-6 rounded-2xl" style={{ background: 'rgba(32,31,32,0.7)', backdropFilter: 'blur(24px)' }}>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={18} style={{ color: C.dim }} />
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#555', fontSize: 20 }}>search</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom, organisation..." aria-label="Rechercher" data-testid="network-search"
-              className="w-full pl-11 pr-4 rounded-lg text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48 }} />
+              className="w-full pl-11 pr-4 rounded-xl text-sm" style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', minHeight: 48, fontFamily: "'Manrope', sans-serif" }} />
           </div>
           <select value={filterType} onChange={e => setFilterType(e.target.value)} aria-label="Filtrer par type"
-            className="px-4 rounded-lg text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, minHeight: 48 }}>
+            className="px-4 rounded-xl text-sm" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 48, fontFamily: "'Manrope', sans-serif" }}>
             <option value="">Tous les profils</option>
             <option value="artist">Artistes</option><option value="label">Labels</option>
             <option value="booking_agency">Booking</option><option value="institution">Institutions</option><option value="press">Presse</option>
           </select>
           <select value={filterCountry} onChange={e => setFilterCountry(e.target.value)} aria-label="Filtrer par territoire"
-            className="px-4 rounded-lg text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, minHeight: 48 }}>
+            className="px-4 rounded-xl text-sm" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 48, fontFamily: "'Manrope', sans-serif" }}>
             <option value="">Tous territoires</option>
             {countries.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -934,34 +995,78 @@ const NetworkPage = ({ connections, session, onConnect }) => {
       {loading ? (
         <div className="py-16 text-center"><div className="w-10 h-10 border-3 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: C.gold }} /></div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {filtered.map(pro => {
-            const borderColor = TYPE_COLORS[pro.profile_type] || C.border;
-            const isConnected = connections.some(c => c.id === pro.id);
-            return (
-              <div key={pro.id} className="rounded-xl p-5 flex gap-4 hover:bg-white/[0.02] transition-colors cursor-pointer"
-                style={{ background: C.card, border: `1px solid ${C.border}`, borderLeft: `4px solid ${borderColor}` }}
-                onClick={() => setSelectedPro(pro)} data-testid={`pro-card-${pro.id}`}>
-                <Avatar src={pro.image || pro.logo_url} name={pro.full_name} type={pro.profile_type} size={64} />
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold truncate" style={{ color: C.text }}>{pro.full_name}</h3>
-                  <p className="text-sm truncate" style={{ color: TYPE_COLORS[pro.profile_type] || C.muted }}>{pro.organization_name || PROFILE_LABELS[pro.profile_type]}</p>
-                  {pro.country && <p className="text-sm flex items-center gap-1 mt-1" style={{ color: C.dim }}><MapPin size={14} /> {pro.country}</p>}
-                  {pro.bio && <p className="text-sm mt-1 line-clamp-2 leading-relaxed" style={{ color: C.dim }}>{pro.bio}</p>}
-                  <div className="mt-3">
-                    {isConnected ? (
-                      <span className="text-sm px-3 py-1.5 rounded-full font-medium" style={{ background: `${C.gold}15`, color: C.gold }}>Connecté</span>
-                    ) : (
-                      <Button size="sm" variant="outline" onClick={e => { e.stopPropagation(); sendConnect(pro.id); }}
-                        className="rounded-full px-4 text-sm" style={{ borderColor: C.gold, color: C.gold, minHeight: 40 }} data-testid={`connect-btn-${pro.id}`}>
-                        <Plus size={14} className="mr-1" /> Rejoindre
-                      </Button>
-                    )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main editorial grid */}
+          <div className="lg:col-span-8 space-y-0">
+            {filtered.map((pro, idx) => {
+              const typeColor = TYPE_COLORS[pro.profile_type] || '#72727a';
+              const isConnected = connections.some(c => c.id === pro.id);
+              return (
+                <div key={pro.id} className="fade-slide-in py-6 cursor-pointer group" data-testid={`pro-card-${pro.id}`}
+                  style={{ animationDelay: `${idx * 60}ms`, borderBottom: '1px solid rgba(75,70,59,0.1)' }}
+                  onClick={() => setSelectedPro(pro)}>
+                  <div className="flex gap-4">
+                    <Avatar src={pro.image || pro.logo_url} name={pro.full_name} type={pro.profile_type} size={56} ring />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, fontWeight: 400, color: '#e5e2e3' }}>{pro.full_name}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider" style={{ background: `${typeColor}15`, color: typeColor }}>{PROFILE_LABELS[pro.profile_type] || ''}</span>
+                      </div>
+                      {pro.organization_name && <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, color: '#72727a', marginTop: 2 }}>{pro.organization_name}</p>}
+                      {pro.bio && <p className="line-clamp-2 mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555', lineHeight: 1.6 }}>{pro.bio}</p>}
+                      <div className="mt-3 flex items-center gap-3">
+                        {isConnected ? (
+                          <span className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: 'rgba(232,213,160,0.08)', color: '#E8D5A0' }}>Connecté</span>
+                        ) : (
+                          <button onClick={e => { e.stopPropagation(); sendConnect(pro.id); }} data-testid={`connect-btn-${pro.id}`}
+                            className="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.97]"
+                            style={{ background: '#E8D5A0', color: '#0a0a0b' }}>
+                            Rejoindre
+                          </button>
+                        )}
+                        {pro.country && <span className="flex items-center gap-1 text-[11px]" style={{ color: '#555' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>location_on</span>{pro.country}
+                        </span>}
+                      </div>
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {/* Sidebar — Bento stats */}
+          <aside className="lg:col-span-4 space-y-4">
+            <div className="p-6 rounded-2xl" style={{ background: '#1c1b1c' }}>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: '#72727a', fontFamily: "'Manrope', sans-serif" }}>Votre Réseau</span>
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span style={{ fontFamily: "'Newsreader', serif", fontSize: 14, color: '#e5e2e3' }}>Connexions actives</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: '#E8D5A0', color: '#3a2f09' }}>{connections.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span style={{ fontFamily: "'Newsreader', serif", fontSize: 14, color: '#e5e2e3' }}>Résonance Culturelle</span>
+                  <span style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', color: '#E8D5A0' }}>Active</span>
+                </div>
               </div>
-            );
-          })}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 rounded-2xl flex flex-col justify-between aspect-square" style={{ background: '#2a2a2b' }}>
+                <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 24 }}>auto_awesome</span>
+                <div>
+                  <div style={{ fontFamily: "'Newsreader', serif", fontSize: 24, color: '#e5e2e3' }}>{filtered.length}</div>
+                  <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Professionnels</div>
+                </div>
+              </div>
+              <div className="p-6 rounded-2xl flex flex-col justify-between aspect-square" style={{ background: '#2a2a2b' }}>
+                <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 24 }}>share</span>
+                <div>
+                  <div style={{ fontFamily: "'Newsreader', serif", fontSize: 24, color: '#e5e2e3' }}>{countries.length}</div>
+                  <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Territoires</div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       )}
       {selectedPro && <ProfileModal pro={selectedPro} onClose={() => setSelectedPro(null)} session={session} isConnected={connections.some(c => c.id === selectedPro.id)} onConnect={() => sendConnect(selectedPro.id)} />}
@@ -1093,10 +1198,111 @@ const MessagesPanel = ({ messages, session, onUpdate, onClose }) => {
 };
 
 // ═══════════════════════════════════════════════════════════
-// SHOP SECTION — Marketplace wrapper
+// SHOP SECTION — Sovereign Core Shop
 // ═══════════════════════════════════════════════════════════
 const ShopSection = ({ session, jetonsBalance }) => (
-  <ShopPage session={session} jetonsBalance={jetonsBalance} />
+  <div className="max-w-6xl mx-auto space-y-16 pb-16" data-testid="shop-section">
+    {/* Hero */}
+    <section className="relative py-24 text-center">
+      <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+        <div className="w-64 h-64 rounded-full animate-pulse" style={{ background: 'radial-gradient(circle, rgba(232,213,160,0.15), transparent 70%)' }} />
+      </div>
+      <div className="relative space-y-6">
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#d8c591' }}>L'Origine du Protocole</span>
+        <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontWeight: 300, fontSize: 'clamp(40px, 8vw, 96px)', letterSpacing: '-0.03em', color: '#e5e2e3', lineHeight: 0.95 }}>
+          Sovereign<br /><span style={{ fontStyle: 'normal', color: '#d8c591' }}>Core Shop</span>
+        </h1>
+        <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 16, color: '#72727a', maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
+          Accédez aux artefacts numériques de l'écosystème. Chaque actif est une clé vers votre autonomie.
+        </p>
+        <div className="pt-4">
+          <button className="px-10 py-4 text-xs font-bold uppercase tracking-widest transition-transform hover:scale-105 active:scale-95"
+            style={{ background: '#E8D5A0', color: '#3a2f09', fontFamily: "'Manrope', sans-serif" }}>
+            Entrer dans l'expérience
+          </button>
+        </div>
+      </div>
+    </section>
+
+    {/* Editorial Grid */}
+    <div className="grid grid-cols-12 gap-6">
+      {/* JCC Tokens — Large card */}
+      <div className="col-span-12 md:col-span-7 group cursor-pointer">
+        <div className="relative h-96 md:h-[500px] overflow-hidden rounded-2xl" style={{ background: '#1c1b1c' }}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="material-symbols-outlined" style={{ fontSize: 120, color: 'rgba(232,213,160,0.08)', fontVariationSettings: "'FILL' 1" }}>monetization_on</span>
+          </div>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #0e0e0f, transparent)' }} />
+          <div className="absolute bottom-8 left-8 right-8">
+            <div className="flex justify-between items-end">
+              <div>
+                <h3 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 32, color: '#e5e2e3' }}>Jetons CC</h3>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#72727a', marginTop: 4 }}>Réserve de Valeur · 1 JCC = 1.50€</p>
+              </div>
+              <button className="px-6 py-3 text-xs uppercase tracking-widest transition-all hover:scale-105"
+                style={{ border: '1px solid rgba(75,70,59,0.3)', color: '#d8c591', fontFamily: "'Manrope', sans-serif" }}>
+                Acquérir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Intelligence Privée — Glass panel */}
+      <div className="col-span-12 md:col-span-5 md:mt-16">
+        <div className="p-8 md:p-10 h-full flex flex-col justify-center rounded-2xl" style={{ background: 'rgba(32,31,32,0.7)', backdropFilter: 'blur(24px)', borderLeft: '1px solid rgba(232,213,160,0.1)' }}>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#d8c591' }}>Technologie Curator</span>
+          <h3 className="mt-4" style={{ fontFamily: "'Newsreader', serif", fontSize: 'clamp(28px, 4vw, 42px)', lineHeight: 1.1, color: '#e5e2e3' }}>Intelligence<br />Privée Onyx</h3>
+          <p className="mt-4" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', lineHeight: 1.7 }}>
+            Un modèle d'IA localisé, déconnecté des réseaux publics, agissant comme le conservateur unique de votre patrimoine intellectuel.
+          </p>
+          <div className="mt-8 flex items-center gap-4">
+            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 22, color: '#d8c591' }}>{jetonsBalance} JCC</span>
+            <div className="h-px flex-1" style={{ background: 'rgba(75,70,59,0.2)' }} />
+            <span className="material-symbols-outlined cursor-pointer hover:scale-110 transition-transform" style={{ color: '#d8c591' }}>arrow_forward</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Quote */}
+    <div className="max-w-md ml-auto py-8">
+      <span className="material-symbols-outlined mb-4" style={{ color: '#d8c591', fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+      <p style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 24, color: '#e5e2e3', lineHeight: 1.4 }}>
+        "La rareté n'est pas un manque, c'est une intention. Nous ne créons pas des produits, nous forgeons des héritages."
+      </p>
+      <div className="mt-6 flex items-center gap-3">
+        <div className="w-8 h-px" style={{ background: '#d8c591' }} />
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>The Sovereign Manifesto</span>
+      </div>
+    </div>
+
+    {/* Stats Bento */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="md:col-span-2 p-8 rounded-2xl" style={{ background: '#1c1b1c', borderLeft: '1px solid rgba(232,213,160,0.1)' }}>
+        <div className="flex justify-between items-start mb-8">
+          <span className="material-symbols-outlined" style={{ color: '#d8c591' }}>verified_user</span>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Status: Actif</span>
+        </div>
+        <h4 style={{ fontFamily: "'Newsreader', serif", fontSize: 22, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#e5e2e3' }}>Sécurité Tier-Onyx</h4>
+        <p className="mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#72727a', lineHeight: 1.6 }}>Validation multi-couches pour chaque transfert d'artefact.</p>
+      </div>
+      <div className="p-8 rounded-2xl flex flex-col justify-end" style={{ background: '#1c1b1c' }}>
+        <span style={{ fontFamily: "'Newsreader', serif", fontSize: 36, color: '#d8c591' }}>12</span>
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Artefacts</span>
+      </div>
+      <div className="p-8 rounded-2xl flex flex-col justify-end cursor-pointer group overflow-hidden relative" style={{ background: '#E8D5A0' }}>
+        <div className="absolute -top-4 -right-4 w-24 h-24 border rounded-full group-hover:scale-150 transition-transform duration-500" style={{ borderColor: 'rgba(58,47,9,0.1)' }} />
+        <span style={{ fontFamily: "'Newsreader', serif", fontSize: 28, color: '#3a2f09' }}>Join</span>
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3a2f09' }}>The Sovereign Circle</span>
+      </div>
+    </div>
+
+    {/* Ambient glow */}
+    <div className="fixed top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: -1 }}>
+      <div className="absolute" style={{ top: '-10%', right: '-10%', width: '60%', height: '60%', background: 'rgba(232,213,160,0.03)', filter: 'blur(120px)', borderRadius: '50%' }} />
+    </div>
+  </div>
 );
 
 // ═══════════════════════════════════════════════════════════
@@ -1105,20 +1311,26 @@ const ShopSection = ({ session, jetonsBalance }) => (
 const OpportunitiesPage = ({ opportunities }) => {
   const typeColors = { Booking: C.accent, Business: C.gold, Subvention: C.forest, Formation: C.blue, Emploi: '#8B1A4A' };
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
-      <div className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <h2 className="text-xl font-black" style={{ color: C.text }}>Opportunités — {opportunities.length} offres</h2>
-      </div>
-      {opportunities.length === 0 ? (
-        <div className="rounded-xl p-16 text-center" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <Briefcase size={48} className="mx-auto mb-4" style={{ color: C.dim }} />
-          <p className="text-base" style={{ color: C.muted }}>Aucune opportunité pour le moment</p>
+    <div className="max-w-3xl mx-auto space-y-8" data-testid="opportunities-page">
+      <header className="space-y-3 pt-4">
+        <div className="flex items-center gap-3">
+          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.2em]" style={{ background: 'rgba(232,213,160,0.08)', color: '#d8c591', border: '1px solid rgba(232,213,160,0.1)' }}>Opportunités</span>
+          <div className="h-px flex-1" style={{ background: 'rgba(75,70,59,0.15)' }} />
         </div>
-      ) : opportunities.map(opp => (
-        <div key={opp.id} className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}`, borderLeft: `4px solid ${typeColors[opp.type] || C.dim}` }}>
-          <span className="text-sm px-3 py-1 rounded-full font-medium" style={{ background: `${typeColors[opp.type] || C.dim}20`, color: typeColors[opp.type] || C.muted }}>{opp.type}</span>
-          <h3 className="text-lg font-bold mt-3" style={{ color: C.text }}>{opp.title}</h3>
-          <p className="text-base mt-2 leading-relaxed" style={{ color: C.muted }}>{opp.description}</p>
+        <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.03em', color: '#e5e2e3' }}>
+          {opportunities.length} <span style={{ fontStyle: 'italic', color: '#E8D5A0' }}>Offres</span>
+        </h1>
+      </header>
+      {opportunities.length === 0 ? (
+        <div className="py-20 text-center">
+          <span className="material-symbols-outlined" style={{ fontSize: 56, color: '#2a2a2b' }}>work</span>
+          <p className="mt-4" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#555' }}>Aucune opportunité pour le moment</p>
+        </div>
+      ) : opportunities.map((opp, idx) => (
+        <div key={opp.id} className="py-6 fade-slide-in" style={{ animationDelay: `${idx * 60}ms`, borderBottom: '1px solid rgba(75,70,59,0.1)' }}>
+          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: `${typeColors[opp.type] || '#555'}15`, color: typeColors[opp.type] || '#555' }}>{opp.type}</span>
+          <h3 className="mt-3" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 20, color: '#e5e2e3' }}>{opp.title}</h3>
+          <p className="mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', lineHeight: 1.7 }}>{opp.description}</p>
         </div>
       ))}
     </div>
@@ -1126,20 +1338,30 @@ const OpportunitiesPage = ({ opportunities }) => {
 };
 
 const EventsPage = ({ events }) => (
-  <div className="max-w-3xl mx-auto space-y-5">
-    <div className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-      <h2 className="text-xl font-black" style={{ color: C.text }}>Agenda — {events.length} événements</h2>
-    </div>
-    {events.length === 0 ? (
-      <div className="rounded-xl p-16 text-center" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <Calendar size={48} className="mx-auto mb-4" style={{ color: C.dim }} />
-        <p className="text-base" style={{ color: C.muted }}>Aucun événement programmé</p>
+  <div className="max-w-3xl mx-auto space-y-8" data-testid="events-page">
+    <header className="space-y-3 pt-4">
+      <div className="flex items-center gap-3">
+        <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.2em]" style={{ background: 'rgba(232,213,160,0.08)', color: '#d8c591', border: '1px solid rgba(232,213,160,0.1)' }}>Agenda Souverain</span>
+        <div className="h-px flex-1" style={{ background: 'rgba(75,70,59,0.15)' }} />
       </div>
-    ) : events.map(evt => (
-      <div key={evt.id} className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.gold}` }}>
-        <h3 className="text-lg font-bold" style={{ color: C.text }}>{evt.title}</h3>
-        <p className="text-base mt-2 leading-relaxed" style={{ color: C.muted }}>{evt.description}</p>
-        {evt.date && <p className="text-sm mt-3 flex items-center gap-2" style={{ color: C.dim }}><Clock size={14} /> {new Date(evt.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>}
+      <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.03em', color: '#e5e2e3' }}>
+        Agenda <span style={{ fontStyle: 'italic', color: '#E8D5A0' }}>Culturel</span>
+      </h1>
+      <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a' }}>{events.length} événement{events.length !== 1 ? 's' : ''} programmé{events.length !== 1 ? 's' : ''}</p>
+    </header>
+    {events.length === 0 ? (
+      <div className="py-20 text-center">
+        <span className="material-symbols-outlined" style={{ fontSize: 56, color: '#2a2a2b' }}>event</span>
+        <p className="mt-4" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#555' }}>Aucun événement programmé</p>
+      </div>
+    ) : events.map((evt, idx) => (
+      <div key={evt.id} className="py-6 fade-slide-in" style={{ animationDelay: `${idx * 60}ms`, borderBottom: '1px solid rgba(75,70,59,0.1)' }}>
+        <h3 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 20, color: '#e5e2e3' }}>{evt.title}</h3>
+        <p className="mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', lineHeight: 1.7 }}>{evt.description}</p>
+        {evt.date && <p className="flex items-center gap-2 mt-3" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, color: '#555' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>schedule</span>
+          {new Date(evt.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>}
       </div>
     ))}
   </div>

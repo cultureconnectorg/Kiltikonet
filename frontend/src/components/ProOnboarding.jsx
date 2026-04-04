@@ -199,6 +199,9 @@ const ProOnboarding = ({ session, onComplete }) => {
             <Button onClick={() => setStep(1)} className="rounded-full px-8 h-12 text-base" style={{ background: C.gold, color: '#000' }} data-testid="start-onboarding-btn">
               Commencer <ArrowRight size={18} className="ml-2" />
             </Button>
+            <button onClick={() => onComplete(null)} className="text-xs mt-2 transition-colors hover:text-white/80" style={{ color: C.dim, fontFamily: "'Manrope', sans-serif" }} data-testid="skip-onboarding-btn">
+              Passer pour l'instant
+            </button>
           </div>
         )}
 

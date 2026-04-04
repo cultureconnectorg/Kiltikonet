@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const TABS = [
   { id: 'feed', label: 'Explore', icon: 'explore' },
-  { id: 'network', label: 'Network', icon: 'hub', route: '/espace-pro/reseau' },
+  { id: 'network', label: 'Network', icon: 'hub' },
   { id: 'brain', label: 'BRAIN', icon: 'psychology' },
   { id: 'shop', label: 'Shop', icon: 'local_mall' },
   { id: 'settings', label: 'Profile', icon: 'person' },
@@ -11,16 +10,11 @@ const TABS = [
 
 const MobileNavigation = ({ activeSection, onNavigate, feedBadge = 0, networkBadge = 0 }) => {
   const [tapped, setTapped] = useState(null);
-  const navigate = useNavigate();
 
   const handleTap = (tab) => {
     setTapped(tab.id);
     setTimeout(() => setTapped(null), 200);
-    if (tab.route) {
-      navigate(tab.route);
-    } else {
-      onNavigate(tab.id);
-    }
+    onNavigate(tab.id);
   };
 
   return (
