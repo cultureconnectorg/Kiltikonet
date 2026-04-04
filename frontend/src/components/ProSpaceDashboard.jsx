@@ -1362,12 +1362,24 @@ export const ProSpaceLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [codeSent, setCodeSent] = useState(false);
-  const [accessCode, setAccessCode] = useState('');
-  const [verifying, setVerifying] = useState(false);
+  const [linkSent, setLinkSent] = useState(false);
   const [legalModal, setLegalModal] = useState(null);
 
-  const handleRequestCode = async (e) => {
+  // Check if returning from Google OAuth
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'google') {
+      // Session cookie was set by backend, check auth
+      axios.get(`${API}/auth/me`, { withCredentials: true })
+        .then(res => {
+          if (res.data.authenticated) {
+            navigate('/espace-pro', { replace: true });
+          }
+        }).catch(() => {});
+    }
+  }, [navigate]);
+
+  const handleRequestMagicLink = async (e) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
@@ -1379,40 +1391,26 @@ export const ProSpaceLogin = () => {
             const verifyRes = await axios.post(`${API}/pro/verify-code`, { email, code: '000000' }, { withCredentials: true });
             if (verifyRes.data.success) {
               const p = verifyRes.data.profile;
-              const proSession = { id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() };
-              sessionStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
+              sessionStorage.setItem('cc2026_pro_session', JSON.stringify({ id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() }));
               toast.success(`Bienvenue ${p.full_name} !`);
               navigate('/espace-pro', { replace: true });
               return;
             }
           } catch {}
         }
-        setCodeSent(true);
-        toast.success("Code d'acces envoye !", { description: 'Verifiez votre boite mail' });
+        setLinkSent(true);
+        toast.success('Lien de connexion envoye !', { description: 'Verifiez votre boite mail' });
       }
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erreur de connexion');
     } finally { setLoading(false); }
   };
 
-  const handleVerifyCode = async (e) => {
-    e.preventDefault();
-    if (!accessCode) return;
-    setVerifying(true);
-    try {
-      const res = await axios.post(`${API}/pro/verify-code`, { email, code: accessCode }, { withCredentials: true });
-      if (res.data.success) {
-        const p = res.data.profile;
-        const proSession = { id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() };
-        sessionStorage.setItem('cc2026_pro_session', JSON.stringify(proSession));
-        toast.success(p.is_new_user ? 'Compte cree avec succes !' : `Bienvenue ${p.full_name} !`);
-        navigate('/espace-pro', { replace: true });
-      }
-    } catch { toast.error('Code invalide'); }
-    finally { setVerifying(false); }
+  const handleGoogleLogin = () => {
+    window.location.href = `${API}/auth/google`;
   };
 
-  if (verifying) {
+  if (loading) {
     return <div className="min-h-screen flex items-center justify-center" style={{ background: C.bg }}><div className="w-12 h-12 border-3 border-t-transparent rounded-full animate-spin" style={{ borderColor: C.gold }} /></div>;
   }
 
@@ -1479,8 +1477,40 @@ export const ProSpaceLogin = () => {
           {/* Login Card */}
           <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
             <div className="p-6">
-              {!codeSent ? (
-                <form onSubmit={handleRequestCode} className="space-y-4">
+              {/* Google OAuth Button */}
+              <button onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all hover:bg-gray-100 active:scale-[0.97] mb-4"
+                data-testid="google-login-btn"
+                style={{ background: '#FFFFFF', color: '#1f1f1f', border: '1px solid #dadce0', minHeight: 48 }}>
+                <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 2.58 9 2.58z" fill="#EA4335"/></svg>
+                Continuer avec Google
+              </button>
+
+              {/* Separator */}
+              <div className="flex items-center gap-3 my-4">
+                <div className="flex-1 h-px" style={{ background: C.border }} />
+                <span className="text-xs" style={{ color: C.muted }}>ou</span>
+                <div className="flex-1 h-px" style={{ background: C.border }} />
+              </div>
+
+              {linkSent ? (
+                <div className="text-center py-2">
+                  <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+                    style={{ background: 'rgba(232,213,160,0.1)', border: `1px solid rgba(232,213,160,0.2)` }}>
+                    <Mail size={20} style={{ color: C.gold }} />
+                  </div>
+                  <p className="text-sm font-bold mb-1" style={{ color: C.text }}>Verifiez votre boite mail</p>
+                  <p className="text-sm" style={{ color: C.muted }}>
+                    Un lien de connexion a ete envoye a <strong style={{ color: C.gold }}>{email}</strong>
+                  </p>
+                  <p className="text-[10px] mt-2" style={{ color: C.dim }}>Le lien expire dans 15 minutes</p>
+                  <button type="button" onClick={() => setLinkSent(false)}
+                    className="mt-3 text-xs underline transition-colors hover:text-white" style={{ color: C.dim }} data-testid="change-email-btn">
+                    Changer d'adresse email
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleRequestMagicLink} className="space-y-4">
                   <div>
                     <label htmlFor="pro-email" className="block text-xs mb-2 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>
                       Email professionnel
@@ -1494,43 +1524,14 @@ export const ProSpaceLogin = () => {
                     </p>
                   </div>
                   <Button type="submit" disabled={loading || !email} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
-                    style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading || !email ? 0.5 : 1 }} data-testid="pro-request-code-btn">
+                    style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading || !email ? 0.5 : 1 }} data-testid="pro-magic-link-btn">
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
                         <span className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#0a0a0b' }} />
                         Envoi...
                       </span>
-                    ) : "Recevoir mon code d'acces"}
+                    ) : "Recevoir mon lien de connexion"}
                   </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleVerifyCode} className="space-y-4">
-                  <div className="text-center py-2">
-                    <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
-                      style={{ background: 'rgba(232,213,160,0.1)', border: `1px solid rgba(232,213,160,0.2)` }}>
-                      <Mail size={20} style={{ color: C.gold }} />
-                    </div>
-                    <p className="text-sm" style={{ color: C.muted }}>
-                      Code envoye a <strong style={{ color: C.gold }}>{email}</strong>
-                    </p>
-                  </div>
-                  <div>
-                    <label htmlFor="pro-code" className="block text-xs mb-2 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>
-                      Code d'acces
-                    </label>
-                    <input id="pro-code" type="text" placeholder="000000" value={accessCode} onChange={e => setAccessCode(e.target.value)}
-                      className="w-full px-4 rounded-xl text-center text-xl tracking-widest" data-testid="pro-code-input" maxLength={6}
-                      inputMode="numeric" autoComplete="one-time-code"
-                      style={{ background: '#0a0a0b', border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 52, letterSpacing: '0.3em', fontFamily: "'DM Sans', sans-serif" }} />
-                  </div>
-                  <Button type="submit" disabled={verifying || accessCode.length < 6} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
-                    style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: verifying || accessCode.length < 6 ? 0.5 : 1 }} data-testid="pro-verify-code-btn">
-                    {verifying ? 'Verification...' : 'Verifier et acceder'}
-                  </Button>
-                  <button type="button" onClick={() => { setCodeSent(false); setAccessCode(''); }}
-                    className="w-full text-center text-xs py-2 transition-colors hover:text-white" style={{ color: C.dim }} data-testid="change-email-btn">
-                    Changer d'adresse email
-                  </button>
                 </form>
               )}
             </div>

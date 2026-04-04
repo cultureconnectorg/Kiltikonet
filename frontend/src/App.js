@@ -59,6 +59,9 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import DashboardCC2026 from "./components/DashboardCC2026";
 // Pro Space (LinkedIn Culturel)
 import ProSpaceDashboard, { ProSpaceLogin } from "./components/ProSpaceDashboard";
+// Auth Pages
+import MagicLinkPage from "./components/MagicLinkPage";
+import InvitePage from "./components/InvitePage";
 // PWA Components
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import MobileBottomNav from "./components/MobileBottomNav";
@@ -253,6 +256,9 @@ function App() {
               <Route path="/espace-pro/connexion" element={<ProSpaceLogin />} />
               <Route path="/espace-pro/messages" element={<MessagesPage />} />
               <Route path="/espace-pro/reseau" element={<NetworkStandalonePage />} />
+              {/* Auth routes */}
+              <Route path="/auth/magic/:token" element={<MagicLinkPage />} />
+              <Route path="/invite/:token" element={<InvitePage />} />
               {/* Legal pages */}
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />

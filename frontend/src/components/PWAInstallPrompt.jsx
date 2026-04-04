@@ -1,246 +1,140 @@
-/**
- * PWA Install Prompt Component - CC2026
- * Gère l'installation de l'application sur mobile
- */
+import React, { useState, useEffect, useCallback } from 'react';
+import { X, Download } from 'lucide-react';
+import axios from 'axios';
 
-import React, { useState, useEffect } from 'react';
-import { Download, X, Smartphone, CheckCircle } from 'lucide-react';
-import { Button } from './ui/button';
+const API = process.env.REACT_APP_BACKEND_URL;
 
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      return;
-    }
+    // Already installed or dismissed
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    if (localStorage.getItem('pwa_prompt_shown') === 'true') return;
 
-    // Check if iOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     setIsIOS(isIOSDevice);
 
-    // Listen for beforeinstallprompt (Android/Desktop)
-    const handleBeforeInstall = (e) => {
+    const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      
-      // Show prompt after a delay (not immediately on page load)
-      const dismissed = localStorage.getItem('cc2026_pwa_dismissed');
-      const lastDismissed = dismissed ? parseInt(dismissed) : 0;
-      const daysSinceDismissed = (Date.now() - lastDismissed) / (1000 * 60 * 60 * 24);
-      
-      if (daysSinceDismissed > 3) { // Show again after 3 days
-        setTimeout(() => setShowPrompt(true), 5000);
-      }
     };
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => { setInstalled(true); setVisible(false); });
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-
-    // Listen for successful install
-    window.addEventListener('appinstalled', () => {
-      setIsInstalled(true);
-      setShowPrompt(false);
-      setDeferredPrompt(null);
-    });
-
-    // For iOS, show manual instructions after delay
-    if (isIOSDevice) {
-      const dismissed = localStorage.getItem('cc2026_pwa_dismissed');
-      const lastDismissed = dismissed ? parseInt(dismissed) : 0;
-      const daysSinceDismissed = (Date.now() - lastDismissed) / (1000 * 60 * 60 * 24);
-      
-      if (daysSinceDismissed > 7) {
-        setTimeout(() => setShowPrompt(true), 8000);
-      }
-    }
+    // Show after 30s
+    const timer = setTimeout(() => {
+      if (isIOSDevice || window.__pwa_deferred) setVisible(true);
+    }, 30000);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('beforeinstallprompt', handler);
+      clearTimeout(timer);
     };
   }, []);
 
-  const handleInstall = async () => {
-    if (isIOS) {
-      setShowIOSInstructions(true);
-      return;
+  // When deferredPrompt is captured, mark it
+  useEffect(() => {
+    if (deferredPrompt) {
+      window.__pwa_deferred = true;
+      const timer = setTimeout(() => {
+        if (!localStorage.getItem('pwa_prompt_shown')) setVisible(true);
+      }, 30000);
+      return () => clearTimeout(timer);
     }
+  }, [deferredPrompt]);
 
-    if (!deferredPrompt) return;
-
-    try {
+  const handleInstall = useCallback(async () => {
+    if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
       if (outcome === 'accepted') {
-        setIsInstalled(true);
+        setInstalled(true);
+        // Track
+        try { await axios.post(`${API}/api/analytics/batch`, { events: [{ event_type: 'pwa_install', page: window.location.pathname, timestamp: new Date().toISOString() }] }); } catch {}
       }
-      
       setDeferredPrompt(null);
-      setShowPrompt(false);
-    } catch (error) {
-      console.error('Install failed:', error);
     }
-  };
+    handleDismiss();
+  }, [deferredPrompt]);
 
   const handleDismiss = () => {
-    setShowPrompt(false);
-    setShowIOSInstructions(false);
-    localStorage.setItem('cc2026_pwa_dismissed', Date.now().toString());
+    setVisible(false);
+    localStorage.setItem('pwa_prompt_shown', 'true');
   };
 
-  // Don't show if already installed or no prompt available
-  if (isInstalled || (!showPrompt && !showIOSInstructions)) {
-    return null;
-  }
+  if (!visible || installed) return null;
 
   return (
-    <>
-      {/* Install Banner */}
-      {showPrompt && !showIOSInstructions && (
-        <div 
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 safe-area-bottom"
-          style={{ background: 'linear-gradient(to top, #1A1A14, #1A1A14ee)' }}
-        >
-          <div className="max-w-lg mx-auto">
-            <div 
-              className="rounded-2xl p-4 flex items-start gap-4"
-              style={{ background: '#2A2820', border: '1px solid #D4A84B30' }}
-            >
-              {/* Icon */}
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: '#D4A84B20' }}
-              >
-                <Smartphone className="w-6 h-6" style={{ color: '#D4A84B' }} />
-              </div>
+    <div className="fixed bottom-0 left-0 right-0 z-[60] animate-slide-up" data-testid="pwa-install-prompt"
+      style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="mx-auto max-w-lg px-4 pb-4">
+        <div className="rounded-2xl p-5 relative"
+          style={{ background: '#0a0a0b', borderTop: '1px solid rgba(232,213,160,0.2)', border: '1px solid rgba(232,213,160,0.12)', boxShadow: '0 -8px 40px rgba(0,0,0,0.6)' }}>
+          
+          {/* Close */}
+          <button onClick={handleDismiss} className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/5 transition-colors" data-testid="pwa-close-btn">
+            <X size={16} style={{ color: '#72727a' }} />
+          </button>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-sm mb-1" style={{ color: '#F4F1EA' }}>
-                  Installer l'application
-                </h3>
-                <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  Accédez à CC2026 directement depuis votre écran d'accueil, même hors-ligne.
-                </p>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleInstall}
-                    size="sm"
-                    className="flex-1"
-                    style={{ background: '#D4A84B', color: '#1A1A14' }}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Installer
-                  </Button>
-                  <Button 
-                    onClick={handleDismiss}
-                    size="sm"
-                    variant="ghost"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
-                  >
-                    Plus tard
-                  </Button>
-                </div>
-              </div>
+          <div className="flex items-start gap-4">
+            {/* App Icon */}
+            <div className="w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.15), rgba(232,213,160,0.05))', border: '1px solid rgba(232,213,160,0.2)' }}>
+              <span className="text-lg font-bold" style={{ color: '#E8D5A0' }}>KK</span>
+            </div>
 
-              {/* Close button */}
-              <button 
-                onClick={handleDismiss}
-                className="p-1 -mt-1 -mr-1"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-              >
-                <X className="w-5 h-5" />
-              </button>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-white leading-tight">Ajoute Kiltikonet sur ton ecran</h3>
+              <p className="text-xs mt-1 leading-relaxed" style={{ color: '#72727a' }}>
+                Acces instantane · Fonctionne hors-ligne · Notifications CC2026
+              </p>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* iOS Instructions Modal */}
-      {showIOSInstructions && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-label="Installer sur iPhone">
-          <div 
-            className="w-full max-w-sm rounded-2xl p-6"
-            style={{ background: '#1A1A14', border: '1px solid #D4A84B30' }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg" style={{ color: '#F4F1EA' }}>
-                Installer sur iPhone
-              </h3>
-              <button onClick={handleDismiss} style={{ color: 'rgba(255,255,255,0.4)' }}>
-                <X className="w-5 h-5" />
+          {isIOS ? (
+            /* iOS instructions */
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(232,213,160,0.06)' }}>
+                <span className="text-lg flex-shrink-0">1.</span>
+                <div>
+                  <p className="text-sm text-white">Appuie sur <span style={{ color: '#E8D5A0' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                  </span> (Partager)</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(232,213,160,0.06)' }}>
+                <span className="text-lg flex-shrink-0">2.</span>
+                <p className="text-sm text-white">Puis <span style={{ color: '#E8D5A0' }}>"Sur l'ecran d'accueil"</span></p>
+              </div>
+              <button onClick={handleDismiss} className="w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+                style={{ background: '#E8D5A0', color: '#0a0a0b' }} data-testid="pwa-ios-understood-btn">
+                Compris
               </button>
             </div>
-
-            <div className="space-y-4">
-              {/* Step 1 */}
-              <div className="flex gap-3">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-                  style={{ background: '#D4A84B', color: '#1A1A14' }}
-                >
-                  1
-                </div>
-                <div>
-                  <p className="text-sm" style={{ color: '#F4F1EA' }}>
-                    Appuyez sur le bouton <strong>Partager</strong>
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    (icône carrée avec flèche vers le haut)
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="flex gap-3">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-                  style={{ background: '#D4A84B', color: '#1A1A14' }}
-                >
-                  2
-                </div>
-                <div>
-                  <p className="text-sm" style={{ color: '#F4F1EA' }}>
-                    Faites défiler et appuyez sur <strong>"Sur l'écran d'accueil"</strong>
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="flex gap-3">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-                  style={{ background: '#D4A84B', color: '#1A1A14' }}
-                >
-                  3
-                </div>
-                <div>
-                  <p className="text-sm" style={{ color: '#F4F1EA' }}>
-                    Confirmez en appuyant sur <strong>"Ajouter"</strong>
-                  </p>
-                </div>
-              </div>
+          ) : (
+            /* Android / Desktop */
+            <div className="mt-4 space-y-2">
+              <button onClick={handleInstall} className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.97]"
+                style={{ background: '#E8D5A0', color: '#0a0a0b' }} data-testid="pwa-install-btn">
+                <Download size={16} />Installer l'app
+              </button>
+              <button onClick={handleDismiss} className="w-full py-2 text-center text-xs transition-colors"
+                style={{ color: '#72727a' }} data-testid="pwa-later-btn">
+                Plus tard
+              </button>
             </div>
-
-            <Button 
-              onClick={handleDismiss}
-              className="w-full mt-6"
-              style={{ background: '#D4A84B', color: '#1A1A14' }}
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              J'ai compris
-            </Button>
-          </div>
+          )}
         </div>
-      )}
-    </>
+      </div>
+
+      <style>{`
+        @keyframes slide-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-up { animation: slide-up 300ms ease-out; }
+      `}</style>
+    </div>
   );
 };
 

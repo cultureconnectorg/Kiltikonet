@@ -27,6 +27,8 @@ import GhostPopulationAdmin from './GhostPopulationAdmin';
 import AdminInsightsPanel from './admin/AdminInsightsPanel';
 import AdminRegistrationDetail from './admin/AdminRegistrationDetail';
 import { AdminAddParticipantModal, AdminExportModal, AdminEmailHistoryModal } from './admin/AdminModals';
+import AdminHealthPanel from './admin/AdminHealthPanel';
+import AdminTeamPanel from './admin/AdminTeamPanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -725,6 +727,30 @@ export const AdminDashboard = () => {
                 Ghost Pop.
               </button>
               <button
+                onClick={() => setActiveTab('team')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'team'
+                    ? 'border-[#E8D5A0] text-[#E8D5A0]'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-team"
+              >
+                <Users className="w-4 h-4 inline mr-2" />
+                Equipe
+              </button>
+              <button
+                onClick={() => setActiveTab('health')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'health'
+                    ? 'border-[#4ade80] text-[#4ade80]'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-health"
+              >
+                <BarChart3 className="w-4 h-4 inline mr-2" />
+                Sante
+              </button>
+              <button
                 onClick={() => setShowExportModal(true)}
                 className="ml-auto px-4 py-3 text-sm font-syne text-charcoal/50 hover:text-terracotta transition-colors"
                 data-testid="filtered-export-btn"
@@ -762,6 +788,14 @@ export const AdminDashboard = () => {
           ) : activeTab === 'ghost' ? (
             <div className="flex-1 overflow-auto">
               <GhostPopulationAdmin />
+            </div>
+          ) : activeTab === 'team' ? (
+            <div className="flex-1 overflow-auto p-6">
+              <AdminTeamPanel />
+            </div>
+          ) : activeTab === 'health' ? (
+            <div className="flex-1 overflow-auto p-6">
+              <AdminHealthPanel />
             </div>
           ) : (
             <div className="flex-1 overflow-auto">

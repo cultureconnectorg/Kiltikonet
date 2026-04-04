@@ -130,19 +130,21 @@ RATE_LIMIT_MAX = 120     # requests per window per IP
 async def rate_limit_middleware(request: Request, call_next):
     """Basic IP-based rate limiting for production."""
     if IS_PRODUCTION:
-        client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
-        now = datetime.now(timezone.utc).timestamp()
-        
-        # Clean old entries and add new one
-        window_start = now - RATE_LIMIT_WINDOW
-        hits = _rate_limit_store.get(client_ip, [])
-        hits = [t for t in hits if t > window_start]
-        
-        if len(hits) >= RATE_LIMIT_MAX:
-            return JSONResponse(status_code=429, content={"detail": "Trop de requêtes. Réessayez dans quelques secondes."})
-        
-        hits.append(now)
-        _rate_limit_store[client_ip] = hits
+        path = request.url.path
+        # Skip rate limiting for admin/workspace routes (already auth-protected)
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws")):
+            client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+            now = datetime.now(timezone.utc).timestamp()
+            
+            window_start = now - RATE_LIMIT_WINDOW
+            hits = _rate_limit_store.get(client_ip, [])
+            hits = [t for t in hits if t > window_start]
+            
+            if len(hits) >= RATE_LIMIT_MAX:
+                return JSONResponse(status_code=429, content={"detail": "Trop de requêtes. Réessayez dans quelques secondes."})
+            
+            hits.append(now)
+            _rate_limit_store[client_ip] = hits
     
     return await call_next(request)
 
@@ -549,43 +551,83 @@ def get_partner_welcome_email(company_name: str, tier: str, contact_name: str) -
     """
 
 async def send_email_async(to_email: str, subject: str, html_content: str):
-    """Send email asynchronously using Resend"""
+    """Send email via Brevo SMTP relay"""
     try:
-        params = {
-            "from": SENDER_EMAIL,
-            "to": [to_email],
-            "subject": subject,
-            "html": html_content
-        }
-        result = await asyncio.to_thread(resend.Emails.send, params)
-        logger.info(f"Email sent to {to_email}: {result.get('id', 'unknown')}")
-        return result
+        import aiosmtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+
+        smtp_user = os.environ.get("BREVO_SMTP_USER", "")
+        smtp_key = os.environ.get("BREVO_SMTP_KEY", "")
+        sender = os.environ.get("SENDER_EMAIL", "noreply@kiltikonet.fr")
+
+        msg = MIMEMultipart("alternative")
+        msg["From"] = f"Kiltikonet <{sender}>"
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(html_content, "html", "utf-8"))
+
+        await aiosmtplib.send(
+            msg,
+            hostname="smtp-relay.brevo.com",
+            port=587,
+            username=smtp_user,
+            password=smtp_key,
+            start_tls=True,
+        )
+        logger.info(f"Email sent via Brevo to {to_email}")
+        await db.email_logs.insert_one({
+            "to": to_email, "subject": subject, "provider": "brevo",
+            "status": "sent", "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        return {"id": "brevo-ok"}
     except Exception as e:
-        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        logger.error(f"Brevo SMTP failed for {to_email}: {e}")
+        await db.email_logs.insert_one({
+            "to": to_email, "subject": subject, "provider": "brevo",
+            "status": "failed", "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
         return None
 
 async def send_email_with_attachment(to_email: str, subject: str, html_content: str, pdf_content: bytes, filename: str):
-    """Send email with PDF attachment using Resend"""
+    """Send email with PDF attachment via Brevo SMTP"""
     try:
+        import aiosmtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.base import MIMEBase
+        from email import encoders
         import base64
-        pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
-        params = {
-            "from": SENDER_EMAIL,
-            "to": [to_email],
-            "subject": subject,
-            "html": html_content,
-            "attachments": [
-                {
-                    "filename": filename,
-                    "content": pdf_base64
-                }
-            ]
-        }
-        result = await asyncio.to_thread(resend.Emails.send, params)
-        logger.info(f"Email with attachment sent to {to_email}: {result.get('id', 'unknown')}")
-        return result
+
+        smtp_user = os.environ.get("BREVO_SMTP_USER", "")
+        smtp_key = os.environ.get("BREVO_SMTP_KEY", "")
+        sender = os.environ.get("SENDER_EMAIL", "noreply@kiltikonet.fr")
+
+        msg = MIMEMultipart("mixed")
+        msg["From"] = f"Kiltikonet <{sender}>"
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(html_content, "html", "utf-8"))
+
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(pdf_content)
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename={filename}")
+        msg.attach(part)
+
+        await aiosmtplib.send(
+            msg,
+            hostname="smtp-relay.brevo.com",
+            port=587,
+            username=smtp_user,
+            password=smtp_key,
+            start_tls=True,
+        )
+        logger.info(f"Email with attachment sent via Brevo to {to_email}")
+        return {"id": "brevo-ok"}
     except Exception as e:
-        logger.error(f"Failed to send email with attachment to {to_email}: {str(e)}")
+        logger.error(f"Failed to send email with attachment to {to_email}: {e}")
         return None
 
 async def notify_partner_of_approval(partner_id: str, registration: dict):
@@ -5089,6 +5131,8 @@ app.add_middleware(SecurityHeadersMiddleware)
 @app.on_event("startup")
 async def create_indexes():
     """Create MongoDB indexes for performance optimization"""
+    import time as time_mod
+    app._start_time = time_mod.time()
     try:
         # Registrations collection indexes
         await db.registrations.create_index("status")
@@ -5119,7 +5163,14 @@ async def create_indexes():
         await db.payment_transactions.create_index("session_id", unique=True)
         await db.payment_transactions.create_index("payment_status")
         
-        logger.info("✅ MongoDB indexes created successfully")
+        # Magic links & invitations indexes
+        await db.magic_links.create_index("token", unique=True)
+        await db.magic_links.create_index("email")
+        await db.magic_links.create_index("expires_at")
+        await db.invitations.create_index("token", unique=True, sparse=True)
+        await db.invitations.create_index("email")
+        
+        logger.info("MongoDB indexes created successfully")
     except Exception as e:
         logger.error(f"⚠️ Error creating indexes: {str(e)}")
 
@@ -6398,72 +6449,54 @@ async def pro_request_access(request: ProAccessRequest, req: Request):
         else:
             logger.info(f"[AUTO_REGISTER] New profile for {email_lower} — FREK-ID {frek_id}")
     
-    code = generate_access_code()
+    code = str(uuid.uuid4())
     _otp_cooldown_store[email_lower] = datetime.now(timezone.utc).timestamp()
+    
+    # Store Magic Link token in MongoDB
+    await db.magic_links.insert_one({
+        "token": code,
+        "email": email_lower,
+        "profile_id": registration.get("id"),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
+        "used": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    
+    # Also keep in-memory for backward compat with verify-code
     pro_access_codes[email_lower] = {
         "code": code,
-        "expires": datetime.now(timezone.utc) + timedelta(minutes=10),
+        "expires": datetime.now(timezone.utc) + timedelta(minutes=15),
         "profile_id": registration.get("id")
     }
+    
+    # Build magic link URL
+    origin = os.environ.get("FRONTEND_URL", "https://kiltikonet.fr")
+    magic_url = f"{origin}/auth/magic/{code}"
     
     email_html = f"""
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background: #0C0818; color: #e0d8f0;">
         <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #C9A84C; margin: 0;">Espace Pro CC2026</h1>
-            <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Votre réseau professionnel culturel</p>
+            <h1 style="color: #C9A84C; margin: 0;">Kiltikonet</h1>
+            <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Espace Pro CC2026</p>
         </div>
         <div style="background: #1a1040; padding: 30px; border-radius: 12px; text-align: center; border: 1px solid #3B0764;">
-            <p style="margin: 0 0 20px 0;">Votre code d'accès :</p>
-            <div style="font-size: 36px; letter-spacing: 8px; font-weight: bold; color: #C9A84C; background: rgba(201,168,76,0.1); padding: 20px; border-radius: 8px;">
-                {code}
-            </div>
+            <p style="margin: 0 0 20px 0; font-size: 16px;">Connectez-vous en un clic :</p>
+            <a href="{magic_url}" style="display: inline-block; background: #C9A84C; color: #0C0818; padding: 16px 40px; border-radius: 12px; font-weight: 700; font-size: 16px; text-decoration: none; letter-spacing: 0.02em;">
+                Acceder a mon Espace Pro
+            </a>
             <p style="margin: 20px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.4);">
-                Ce code expire dans 10 minutes
+                Ce lien expire dans 15 minutes et ne peut etre utilise qu'une seule fois.
+            </p>
+            <p style="margin: 12px 0 0 0; font-size: 11px; color: rgba(255,255,255,0.3);">
+                Si vous n'avez pas demande cet acces, ignorez cet email.
             </p>
         </div>
     </div>
     """
     
-    # Try AWS SES first, fallback to Resend
-    email_sent = False
-    ses_from = os.environ.get("SES_FROM_EMAIL", "noreply@kiltikonet.fr")
-    aws_key = os.environ.get("AWS_ACCESS_KEY_ID", "")
-    aws_secret = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-    aws_region = os.environ.get("AWS_REGION", "eu-west-1")
-    
-    if aws_key and aws_secret:
-        try:
-            import boto3
-            ses_client = boto3.client("ses", region_name=aws_region, aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
-            response = ses_client.send_email(
-                Source=ses_from,
-                Destination={"ToAddresses": [request.email]},
-                Message={
-                    "Subject": {"Data": "Votre code d'accès Espace Pro CC2026", "Charset": "UTF-8"},
-                    "Body": {"Html": {"Data": email_html, "Charset": "UTF-8"}}
-                }
-            )
-            msg_id = response.get("MessageId", "unknown")
-            logger.info(f"[AWS_SES_DEBUG] Pro access code sent via SES to {request.email} | MessageId={msg_id}")
-            email_sent = True
-        except Exception as e:
-            logger.error(f"[AWS_SES_DEBUG] SES failed for {request.email}: {type(e).__name__}: {e}")
-    
-    if not email_sent:
-        try:
-            if resend.api_key:
-                resend.Emails.send({
-                    "from": SENDER_EMAIL, "to": [request.email],
-                    "subject": "Votre code d'accès Espace Pro CC2026",
-                    "html": email_html
-                })
-                logger.info(f"[EMAIL_DEBUG] Pro access code sent via Resend to {request.email}")
-                email_sent = True
-        except Exception as e:
-            logger.warning(f"[EMAIL_DEBUG] Resend fallback failed for {request.email}: {e}")
-    
-    if not email_sent:
-        logger.error(f"[EMAIL_DEBUG] ALL email providers failed for {request.email}. Code={code}")
+    asyncio.create_task(send_email_async(
+        request.email, "Votre lien d'acces Kiltikonet", email_html
+    ))
     
     return {"success": True, "message": "Code envoyé par email"}
 
@@ -6548,6 +6581,405 @@ async def dev_get_code(email: str):
     if not stored:
         raise HTTPException(status_code=404, detail="No code found")
     return {"code": stored["code"], "expires": stored["expires"].isoformat()}
+
+
+# ═══════════════════════════════════════════════════════════════
+# MAGIC LINK VALIDATION
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/auth/magic/{token}")
+async def validate_magic_link(token: str):
+    """Validate a magic link token → create session → redirect to /espace-pro"""
+    link = await db.magic_links.find_one({"token": token}, {"_id": 0})
+    if not link:
+        raise HTTPException(status_code=404, detail="Lien invalide ou expiré")
+    if link.get("used"):
+        raise HTTPException(status_code=410, detail="Ce lien a déjà été utilisé")
+    if datetime.now(timezone.utc).isoformat() > link["expires_at"]:
+        raise HTTPException(status_code=410, detail="Ce lien a expiré")
+
+    email = link["email"]
+    await db.magic_links.update_one({"token": token}, {"$set": {"used": True}})
+
+    # Find profile
+    registration = await db.registrations.find_one({"email": email, "status": "approved"}, {"_id": 0})
+    if not registration:
+        badge = await db.cc_badges.find_one({"email": email}, {"_id": 0})
+        if badge:
+            registration = {
+                "id": badge.get("badge_id"), "email": email,
+                "full_name": f"{badge.get('prenom','')} {badge.get('nom','')}".strip(),
+                "profile_type": badge.get("type_badge"), "status": "approved",
+            }
+    if not registration:
+        BYPASS_EMAILS = [os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr"), "admin@kiltikonet.fr", "cultureconnectorg@gmail.com"]
+        if email in [e.lower() for e in BYPASS_EMAILS]:
+            registration = {"id": "admin-bypass", "email": email, "full_name": "Admin CC2026", "profile_type": "admin", "status": "approved", "is_admin": True, "frek_id": f"FREK-ADM-{email[:4].upper()}", "language": "fr"}
+    if not registration:
+        raise HTTPException(status_code=404, detail="Profil non trouvé")
+
+    # Update auth method
+    await db.registrations.update_one({"email": email}, {"$addToSet": {"auth_methods": "magic_link"}})
+
+    await db.pro_access_logs.insert_one({
+        "email": email, "profile_id": registration.get("id"),
+        "action": "magic_link_login", "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+    response = JSONResponse(content={
+        "success": True, "profile": registration, "redirect": "/espace-pro"
+    })
+    set_session_cookie(response, {
+        "role": registration.get("profile_type", "pro"),
+        "email": email,
+        "name": registration.get("full_name", ""),
+        "profile_id": registration.get("id", ""),
+        "profile_type": registration.get("profile_type", ""),
+        "is_admin": registration.get("is_admin", False),
+    })
+    return response
+
+
+# ═══════════════════════════════════════════════════════════════
+# GOOGLE OAUTH (Emergent-managed)
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/auth/google")
+async def google_auth_redirect(request: Request):
+    """Initiate Google OAuth flow — redirect user to Google consent screen"""
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+    if not client_id:
+        raise HTTPException(status_code=503, detail="Google Auth non configuré")
+    origin = request.headers.get("origin", os.environ.get("FRONTEND_URL", "https://kiltikonet.fr"))
+    callback_url = f"{origin}/api/auth/google/callback"
+    import urllib.parse
+    params = urllib.parse.urlencode({
+        "client_id": client_id,
+        "redirect_uri": callback_url,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "select_account",
+    })
+    return RedirectResponse(f"https://accounts.google.com/o/oauth2/v2/auth?{params}")
+
+
+@app.get("/api/auth/google/callback")
+async def google_auth_callback(code: str, request: Request):
+    """Handle Google OAuth callback — exchange code for profile, fusion if email exists"""
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+    origin = str(request.base_url).rstrip("/")
+    callback_url = f"{origin}api/auth/google/callback"
+
+    # Exchange code for tokens
+    import httpx
+    async with httpx.AsyncClient() as client:
+        token_resp = await client.post("https://oauth2.googleapis.com/token", data={
+            "code": code, "client_id": client_id, "client_secret": client_secret,
+            "redirect_uri": callback_url, "grant_type": "authorization_code",
+        })
+        if token_resp.status_code != 200:
+            raise HTTPException(status_code=400, detail="Échec de l'authentification Google")
+        tokens = token_resp.json()
+
+        userinfo_resp = await client.get("https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {tokens['access_token']}"})
+        if userinfo_resp.status_code != 200:
+            raise HTTPException(status_code=400, detail="Impossible de récupérer le profil Google")
+        guser = userinfo_resp.json()
+
+    google_email = guser.get("email", "").lower()
+    google_id = guser.get("id", "")
+    google_name = guser.get("name", google_email.split("@")[0])
+    google_picture = guser.get("picture", "")
+
+    # FUSION: check if email exists in registrations
+    existing = await db.registrations.find_one({"email": google_email}, {"_id": 0})
+    if existing:
+        # Account fusion — update google_id, keep all data
+        await db.registrations.update_one(
+            {"email": google_email},
+            {"$set": {"google_id": google_id, "google_picture": google_picture},
+             "$addToSet": {"auth_methods": "google"}}
+        )
+        profile = existing
+    else:
+        # New user — create profile
+        frek_id = f"FREK-{google_email[:3].upper()}-{str(uuid.uuid4())[:6].upper()}"
+        profile = {
+            "id": str(uuid.uuid4()),
+            "email": google_email,
+            "full_name": google_name,
+            "image": google_picture,
+            "google_id": google_id,
+            "auth_methods": ["google"],
+            "profile_type": "pro",
+            "status": "approved",
+            "frek_id": frek_id,
+            "language": "fr",
+            "cultural_score": 0,
+            "is_new_user": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.registrations.insert_one({**profile})
+
+    await db.pro_access_logs.insert_one({
+        "email": google_email, "profile_id": profile.get("id"),
+        "action": "google_login", "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+    # Set session cookie and redirect to frontend
+    frontend_url = os.environ.get("FRONTEND_URL", "https://kiltikonet.fr")
+    response = RedirectResponse(url=f"{frontend_url}/espace-pro?auth=google")
+    set_session_cookie(response, {
+        "role": profile.get("profile_type", "pro"),
+        "email": google_email,
+        "name": profile.get("full_name", ""),
+        "profile_id": profile.get("id", ""),
+        "profile_type": profile.get("profile_type", ""),
+        "is_admin": profile.get("is_admin", False),
+    })
+    return response
+
+
+# ═══════════════════════════════════════════════════════════════
+# EMERGENCY ADMIN ACCESS (dev only)
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/emergency-access")
+async def emergency_admin_access(secret: str):
+    """Emergency admin access — DEVELOPMENT ONLY"""
+    if IS_PRODUCTION:
+        raise HTTPException(status_code=404, detail="Not Found")
+    expected = os.environ.get("EMERGENCY_SECRET", "")
+    if not expected or secret != expected:
+        raise HTTPException(status_code=403, detail="Secret invalide")
+
+    response = JSONResponse(content={"success": True, "message": "Session admin créée"})
+    set_session_cookie(response, {
+        "role": "admin",
+        "email": "admin@kiltikonet.fr",
+        "name": "Admin Emergency",
+        "profile_id": "admin-bypass",
+        "profile_type": "admin",
+        "is_admin": True,
+    })
+    return response
+
+
+# ═══════════════════════════════════════════════════════════════
+# TEAM INVITATIONS
+# ═══════════════════════════════════════════════════════════════
+
+class InviteRequest(BaseModel):
+    email: str
+    nom: str
+    role: str  # staff, workspace, viewer, admin
+
+@app.post("/api/admin/invite")
+async def create_team_invitation(req: InviteRequest, request: Request):
+    """Generate an invitation link for team members (admin only)"""
+    require_admin(request)
+    token = str(uuid.uuid4())
+    invitation = {
+        "token": token,
+        "email": req.email.lower(),
+        "nom": req.nom,
+        "role": req.role,
+        "created_by": getattr(request.state, "session", {}).get("email", "admin"),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=48)).isoformat(),
+        "used": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.invitations.insert_one(invitation)
+
+    frontend_url = os.environ.get("FRONTEND_URL", "https://kiltikonet.fr")
+    invite_url = f"{frontend_url}/invite/{token}"
+
+    # Send invitation email via Brevo
+    email_html = f"""
+    <div style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background: #0C0818; color: #e0d8f0;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #C9A84C; margin: 0;">Kiltikonet</h1>
+            <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Invitation Equipe CC2026</p>
+        </div>
+        <div style="background: #1a1040; padding: 30px; border-radius: 12px; text-align: center; border: 1px solid #3B0764;">
+            <p style="margin: 0 0 8px 0; font-size: 18px;">Bonjour {req.nom},</p>
+            <p style="margin: 0 0 20px 0; font-size: 14px; color: rgba(255,255,255,0.7);">
+                Vous etes invite(e) a rejoindre l'equipe Kiltikonet en tant que <strong style="color: #C9A84C;">{req.role}</strong>.
+            </p>
+            <a href="{invite_url}" style="display: inline-block; background: #C9A84C; color: #0C0818; padding: 16px 40px; border-radius: 12px; font-weight: 700; font-size: 16px; text-decoration: none;">
+                Accepter l'invitation
+            </a>
+            <p style="margin: 20px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.4);">
+                Ce lien expire dans 48 heures et ne peut etre utilise qu'une seule fois.
+            </p>
+        </div>
+    </div>
+    """
+    asyncio.create_task(send_email_async(req.email, f"Invitation Kiltikonet — {req.role}", email_html))
+
+    return {"success": True, "invite_url": invite_url, "token": token, "expires_in": "48h"}
+
+
+@app.get("/api/admin/invitations")
+async def list_invitations(request: Request):
+    """List all invitations (admin only)"""
+    require_admin(request)
+    invites = []
+    async for inv in db.invitations.find({}, {"_id": 0}).sort("created_at", -1).limit(50):
+        now = datetime.now(timezone.utc).isoformat()
+        inv["status"] = "used" if inv.get("used") else ("expired" if now > inv.get("expires_at", "") else "pending")
+        invites.append(inv)
+    return {"invitations": invites}
+
+
+@app.get("/api/invite/validate/{token}")
+async def validate_invitation(token: str):
+    """Validate an invitation token → create session → redirect"""
+    inv = await db.invitations.find_one({"token": token}, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invitation invalide")
+    if inv.get("used"):
+        raise HTTPException(status_code=410, detail="Cette invitation a déjà été utilisée")
+    if datetime.now(timezone.utc).isoformat() > inv.get("expires_at", ""):
+        raise HTTPException(status_code=410, detail="Cette invitation a expiré")
+
+    await db.invitations.update_one({"token": token}, {"$set": {"used": True, "used_at": datetime.now(timezone.utc).isoformat()}})
+
+    role = inv["role"]
+    email = inv["email"]
+
+    # Create or update registration
+    existing = await db.registrations.find_one({"email": email}, {"_id": 0})
+    if not existing:
+        profile = {
+            "id": str(uuid.uuid4()), "email": email, "full_name": inv["nom"],
+            "profile_type": role, "status": "approved", "auth_methods": ["invitation"],
+            "frek_id": f"FREK-{email[:3].upper()}-{str(uuid.uuid4())[:6].upper()}",
+            "language": "fr", "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.registrations.insert_one({**profile})
+        existing = profile
+
+    # Determine redirect
+    redirects = {"admin": "/admin", "staff": "/workspace", "workspace": "/workspace", "viewer": "/espace-pro"}
+    redirect_path = redirects.get(role, "/espace-pro")
+
+    response = JSONResponse(content={"success": True, "profile": existing, "redirect": redirect_path, "role": role})
+    set_session_cookie(response, {
+        "role": role, "email": email, "name": inv["nom"],
+        "profile_id": existing.get("id", ""), "profile_type": role,
+        "is_admin": role == "admin",
+    })
+    return response
+
+
+# ═══════════════════════════════════════════════════════════════
+# KILTI-HEALTH DASHBOARD
+# ═══════════════════════════════════════════════════════════════
+
+_health_cache = {"data": None, "expires": 0}
+_request_latencies: list = []
+_error_counts: list = []
+
+@app.middleware("http")
+async def track_latency_middleware(request: Request, call_next):
+    """Track request latency and errors for health dashboard"""
+    import time
+    start = time.time()
+    response = await call_next(request)
+    latency_ms = (time.time() - start) * 1000
+    now = datetime.now(timezone.utc).timestamp()
+
+    _request_latencies.append((now, latency_ms))
+    if response.status_code >= 500:
+        _error_counts.append(now)
+
+    # Keep only last hour
+    hour_ago = now - 3600
+    while _request_latencies and _request_latencies[0][0] < hour_ago:
+        _request_latencies.pop(0)
+    while _error_counts and _error_counts[0] < hour_ago:
+        _error_counts.pop(0)
+
+    return response
+
+
+@app.get("/api/admin/health-stats")
+async def get_health_stats(request: Request):
+    """Kilti-Health dashboard — system monitoring (admin only)"""
+    require_admin(request)
+
+    now = datetime.now(timezone.utc).timestamp()
+
+    # Cached dbStats (60s)
+    if _health_cache["data"] and now < _health_cache["expires"]:
+        db_stats = _health_cache["data"]
+    else:
+        raw = await db.command("dbStats")
+        db_stats = {"size_mb": round(raw.get("dataSize", 0) / (1024 * 1024), 2)}
+        _health_cache["data"] = db_stats
+        _health_cache["expires"] = now + 60
+
+    # Latency
+    recent = [l for _, l in _request_latencies[-100:]] if _request_latencies else [0]
+    avg_latency = round(sum(recent) / len(recent), 1)
+
+    # Error rate
+    hour_ago = now - 3600
+    total_req_hour = sum(1 for t, _ in _request_latencies if t > hour_ago)
+    errors_hour = sum(1 for t in _error_counts if t > hour_ago)
+    error_rate = round((errors_hour / max(total_req_hour, 1)) * 100, 2)
+
+    # Rate limit blocked
+    blocked = sum(1 for hits in _rate_limit_store.values() if len(hits) >= RATE_LIMIT_MAX)
+
+    # Active sessions (magic links not expired and not used)
+    active_magic = await db.magic_links.count_documents({
+        "used": False, "expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}
+    })
+
+    # Last Stripe transaction
+    last_stripe = await db.payment_transactions.find_one({}, {"_id": 0, "created_at": 1}, sort=[("created_at", -1)])
+
+    # Brevo status
+    brevo_ok = bool(os.environ.get("BREVO_SMTP_KEY"))
+    last_email = await db.email_logs.find_one({"provider": "brevo"}, {"_id": 0, "status": 1, "timestamp": 1}, sort=[("timestamp", -1)])
+    brevo_status = "operational" if brevo_ok and (not last_email or last_email.get("status") == "sent") else "error"
+
+    # Emails sent last 24h
+    day_ago = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    emails_24h = await db.email_logs.count_documents({"timestamp": {"$gt": day_ago}, "status": "sent"})
+
+    # Google auth enabled
+    google_enabled = bool(os.environ.get("GOOGLE_CLIENT_ID"))
+
+    # PWA installations (from analytics)
+    pwa_24h = await db.analytics_events.count_documents({
+        "event_type": "pwa_install", "timestamp": {"$gt": day_ago}
+    })
+
+    # Uptime
+    import time as time_mod
+    uptime_s = time_mod.time() - (getattr(app, "_start_time", time_mod.time()))
+
+    return {
+        "latence_moyenne_ms": avg_latency,
+        "requetes_bloquees_rate_limit": blocked,
+        "top_ips_actives": list(sorted(_rate_limit_store.keys(), key=lambda ip: len(_rate_limit_store[ip]), reverse=True))[:5],
+        "taille_db_mb": db_stats["size_mb"],
+        "sessions_actives": active_magic,
+        "uptime_serveur_s": round(uptime_s),
+        "taux_erreur_pct": error_rate,
+        "derniere_transaction_stripe": last_stripe.get("created_at") if last_stripe else None,
+        "brevo_status": brevo_status,
+        "emails_envoyes_24h": emails_24h,
+        "magic_links_actifs": active_magic,
+        "google_auth_enabled": google_enabled,
+        "pwa_installations_24h": pwa_24h,
+    }
 
 # ─── LANGUAGE PREFERENCE ────────────────────────────────
 @app.post("/api/pro/update-language")
