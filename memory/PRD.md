@@ -1,61 +1,92 @@
 # PRD — Kiltikonet / CC2026
 
 ## Problème d'origine
-Plateforme événementielle/culturelle premium omnicanale (React 19 + FastAPI + MongoDB) pour Culture Connect 2026. Intégration IA "CVL BRAIN", design system "Sovereign Onyx" (OLED/Premium sombre), accréditations, paiements Stripe, génération de badges, PWA offline.
+Plateforme événementielle/culturelle premium omnicanale (React 19 + FastAPI + MongoDB) pour Culture Connect 2026. Intégration IA "CVL BRAIN", design system "Sovereign Onyx" (OLED/Premium), 14 écrans dans l'Espace Pro structurés comme un SaaS niveau Meta/Revolut/Claude.ai.
 
-## Architecture
-- **Frontend**: React 19, Tailwind CSS, Design System Sovereign Onyx
+## Architecture 14 Écrans
+1. CVL BRAIN rond d'or (bouton flottant)
+2. Page Vitrine (landing dynamique)
+3. Connexion (FREK + Google + GitHub)
+4. Studios sidebar (4 studios slide gauche)
+5. Feed LinkedIn culturel (ghost population 24/7)
+6. Feed Reels/TikTok culturel (ghost population)
+7. Boîte de réception immersive
+8. CVL BRAIN complet (niveau Claude.ai)
+9. Wallet KT (style Revolut)
+10. Sovereign Corp Shop
+11. Archives / Cloud
+12. 3 Profils (Fiche, Gouvernance, SaaS)
+13. Terminal code IA + API déploiement
+14. Paramètres trading
+
+## Stack
+- **Frontend**: React 19, Tailwind CSS, Sovereign Onyx Design System
 - **Backend**: FastAPI, MongoDB
-- **Intégrations**: Stripe, Brevo, Anthropic Claude (via Emergent LLM Key), Tavily (Web Search)
-- **Design System**: Sovereign Onyx — Fonds OLED `#0a0a0b`, Or `#E8D5A0`, Newsreader serif / Manrope sans-serif, Material Symbols
+- **Intégrations**: Stripe, Brevo, Anthropic Claude (Emergent LLM Key), Tavily
+- **Design**: OLED `#0a0a0b`, Or `#E8D5A0`, Newsreader/Manrope, Material Symbols
 
-## Fichiers Principaux
-- `/app/frontend/src/components/ProSpaceDashboard.jsx` — Dashboard principal
-- `/app/frontend/src/components/pro/MobileNavigation.jsx` — Nav mobile
-- `/app/frontend/src/components/pro/CulturalCards.jsx` — Cartes culturelles
-- `/app/frontend/src/components/pro/CulturalFeed.jsx` — Feed TikTok-style
-- `/app/frontend/src/components/pro/ShopPage.jsx` — Shop/catalogue
-- `/app/frontend/src/components/pro/SovereignSections.jsx` — Sections secondaires
-- `/app/frontend/src/components/CvlBrainFloat.jsx` — Chat IA flottant
-- `/app/backend/server.py` — API backend monolithique
+## Implémenté (Avril 2026)
 
-## Ce qui est implémenté
+### Navigation & Structure ✅
+- [x] Bottom nav 5 tabs : Feed, Reels, Brain (orb doré), Wallet, Profil
+- [x] Hamburger menu : 11 sections (Feed, Reels, Inbox, Brain, Wallet, Shop, Archives, Profil, Gouvernance, Console, Paramètres)
+- [x] Header : Inbox icon + KT balance badge
 
-### Design Sovereign Onyx (100% Stitch)
-- [x] Header glassmorphique (blur 24px, saturate 1.6)
-- [x] Mobile Bottom Nav — 5 tabs, gradient gold pill pour BRAIN
-- [x] Brain page — Sphère dorée avec gradient radial, anneaux d'ondulation
-- [x] Profile page — Grille compacte 12-colonnes (Stitch profil_optimisation)
-- [x] Shop page — Layout éditorial héros + Material Symbols
-- [x] Settings — Centre de Commande Sovereign avec navigation
-- [x] Chat CVL BRAIN — Font serif Newsreader pour réponses IA
-- [x] Cards culturelles — Material Symbols, typographie Manrope/Newsreader
-- [x] Effets globaux — Texture grain, halo ambiant, tokens design CSS
-- [x] Modals/Panneaux — Material Symbols partout
+### Écran 5 — Feed LinkedIn ✅
+- [x] Posts ghost auto-générés (60+ posts)
+- [x] Proof of life bar (online count temps réel)
+- [x] Create post bar
+- [x] Actions LinkedIn (J'aime, Commenter, Republier, Envoyer)
+- [x] Infinite scroll avec pagination
+- [x] Backend: `/api/pro/feed` avec auto-seed
 
-### CVL BRAIN
-- [x] Module 1 — Mémoire Persistante (Backend + Frontend connectés)
-- [x] Module 2 — Web Search via Tavily (Backend, fallback gracieux)
-- [x] Chat interface avec historique, nouvelle conversation, suppression
-- [x] Rate limiter whitelist pour routes /api/brain et /api/auth
+### Écran 6 — Reels/TikTok ✅
+- [x] 25+ reels ghost auto-générés
+- [x] Snap scroll vertical
+- [x] Actions verticales (Like, Comment, Share, JCC)
+- [x] Backend: `/api/pro/feed/reels`
 
-### Infrastructure
-- [x] Login magic link avec bypass admin (000000)
-- [x] PWA Service Worker
-- [x] Paiements Stripe
-- [x] RGPD (export données, suppression compte)
+### Écran 8 — CVL BRAIN ✅
+- [x] Sphère dorée avec gradient radial + ondulations
+- [x] Barre de commande "BRAIN v2.4"
+- [x] Suggestions contextuelles
+- [x] Module 1 : Mémoire Persistante (frontend+backend)
+- [x] Module 2 : Web Search Tavily (backend, fallback gracieux)
+
+### Écran 9 — Wallet KT ✅
+- [x] Design Revolut : balance, sparkline chart, trend indicator
+- [x] Quick actions : Recharger, Envoyer, Échanger, Trading
+- [x] 3 tabs : Aperçu, Historique, Analyse
+- [x] Analytics : répartition dépenses
+
+### Design Sovereign Onyx ✅
+- [x] Global CSS : grain texture, ambient glow, tokens CSS
+- [x] Material Symbols partout (0 Lucide React)
+- [x] Typography : Newsreader serif / Manrope sans-serif
+- [x] Cards : rounded-xl, ghost borders
+
+### Infrastructure ✅
+- [x] Ghost population : 200 profils + 60 posts + 25 reels
+- [x] Rate limiter whitelist : /api/pro, /api/brain, /api/auth, /api/growth
+- [x] Login magic link avec bypass admin
+
+## Backlog P0
+- [ ] Écran 1 : CVL BRAIN bouton rond d'or flottant avec animation
+- [ ] Écran 2 : Page Vitrine dynamique (actualités culturelles auto-générées)
+- [ ] Écran 3 : Connexion FREK + Google + GitHub
+- [ ] Écran 4 : Studios sidebar (slide gauche, 4 studios)
 
 ## Backlog P1
-- [ ] CVL BRAIN Modules 3-10 (Upload fichiers, Génération docs, Terminal, Agents, Génération multimédia)
-- [ ] DNS IONOS personnalisé (en attente d'action utilisateur)
-- [ ] Vérifier ajout TAVILY_API_KEY par l'utilisateur
+- [ ] Écran 7 : Boîte de réception immersive (style Instagram DM)
+- [ ] Écran 10 : Sovereign Corp Shop amélioré
+- [ ] Écran 11 : Archives/Cloud (stockage + entraînement CVL Brain)
+- [ ] Écran 12 : 3 Profils (Fiche, Gouvernance KT, SaaS paiement)
+- [ ] Écran 13 : Terminal code IA + API déploiement style Emergent
+- [ ] Écran 14 : Paramètres trading KT
 
 ## Backlog P2
-- [ ] Graphe D3.js interactif
-- [ ] Vue 3D SmartEngine
-- [ ] Tests e2e complets de bout en bout
-
-## Backlog P3
+- [ ] CVL BRAIN Modules 3-10
+- [ ] Ghost LLM intelligent (réduction crédits)
+- [ ] DNS IONOS personnalisé
+- [ ] Wallet vrai mécanisme trading
 - [ ] Refactoring server.py (~9500 lignes)
-- [ ] PWA App Scan Staff
-- [ ] Export PDF badges batch
