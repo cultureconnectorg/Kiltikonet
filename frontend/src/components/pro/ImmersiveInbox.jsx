@@ -19,6 +19,8 @@ const GHOST_CONVERSATIONS = [
   { id: 'ghost_amara', name: 'Amara Césaire', type: 'booking_agency', status: 'offline', lastMsg: 'Booking confirmé pour le showcase du 21 mai. Loge VIP réservée.', time: '5h', unread: 0 },
   { id: 'ghost_yael', name: 'Yaël Fanon', type: 'artist', status: 'offline', lastMsg: 'Mon nouveau single sort vendredi. Tu fais un post de soutien ?', time: '1j', unread: 0 },
   { id: 'ghost_nadia', name: 'Nadia Glissant', type: 'label', status: 'offline', lastMsg: 'Les chiffres du streaming de Q4 sont impressionnants. Bravo !', time: '2j', unread: 0 },
+  { id: 'ghost_group_cc', name: 'CC2026 — Équipe Org', type: 'group', status: 'online', lastMsg: 'Simone: Le planning du 20 mai est validé.', time: '30m', unread: 5, isGroup: true, members: ['Simone', 'Mateo', 'Diego', 'Amara'] },
+  { id: 'ghost_group_music', name: 'Gwoka Studio Collab', type: 'group', status: 'online', lastMsg: 'Yaël: Le mix final est prêt !', time: '1h', unread: 0, isGroup: true, members: ['Yaël', 'Simone', 'Nadia'] },
 ];
 
 const STATUS_COLORS = { online: '#4ADE80', offline: '#555' };
@@ -34,17 +36,35 @@ const GHOST_MESSAGES = {
     { id: 'gm1', from: 'ghost_mateo', content: 'Hey ! J\'ai des nouvelles du contrat.', time: '09:15' },
     { id: 'gm2', from: 'me', content: 'Dis-moi tout !', time: '09:20' },
     { id: 'gm3', from: 'ghost_mateo', content: 'J\'ai finalisé le contrat de distribution. Tu peux le consulter dans l\'espace dédié.', time: '09:28' },
+    { id: 'gm4', from: 'ghost_mateo', type: 'music', content: 'Écoute ce morceau', music: { title: 'Racines — Gwoka Moderne', artist: 'Simone Ogundimu', duration: '3:42' }, time: '09:35' },
   ],
   ghost_chiamaka: [
     { id: 'gc1', from: 'ghost_chiamaka', content: 'Bonjour, je vous contacte au sujet de la demande de subvention CC2026.', time: 'Hier 14:00' },
     { id: 'gc2', from: 'me', content: 'Bonjour Chiamaka, merci. Le dossier est complet ?', time: 'Hier 14:15' },
     { id: 'gc3', from: 'ghost_chiamaka', content: 'La subvention est validée. L\'équipe de la préfecture sera présente le 20 mai.', time: 'Hier 16:30' },
+    { id: 'gc4', from: 'me', type: 'voice', content: 'Message vocal', duration: '0:12', time: 'Hier 16:45' },
+  ],
+  ghost_group_cc: [
+    { id: 'ggc1', from: 'ghost_simone', fromName: 'Simone', content: 'Salut tout le monde ! Qui est dispo pour la réunion de cadrage ?', time: '11:00' },
+    { id: 'ggc2', from: 'ghost_mateo', fromName: 'Mateo', content: 'Présent ! J\'ai les chiffres du budget à partager.', time: '11:02' },
+    { id: 'ggc3', from: 'ghost_diego', fromName: 'Diego', content: 'Moi aussi. J\'apporte le plan com.', time: '11:05' },
+    { id: 'ggc4', from: 'me', content: 'Super, on se retrouve à 14h ?', time: '11:10' },
+    { id: 'ggc5', from: 'ghost_simone', fromName: 'Simone', content: 'Le planning du 20 mai est validé.', time: '11:30' },
+  ],
+  ghost_group_music: [
+    { id: 'ggm1', from: 'ghost_yael', fromName: 'Yaël', content: 'Le mix final est prêt ! Vous validez ?', time: '09:00' },
+    { id: 'ggm2', from: 'ghost_simone', fromName: 'Simone', content: 'J\'écoute ça maintenant.', time: '09:15' },
+    { id: 'ggm3', from: 'ghost_yael', fromName: 'Yaël', type: 'music', content: 'Nouveau mix', music: { title: 'Gwoka Fusion — Mix Final', artist: 'Yaël Fanon ft. Simone', duration: '4:28' }, time: '09:20' },
   ],
 };
+
+// Emoji reactions
+const EMOJI_SET = ['❤️', '🔥', '👏', '💯', '🎵', '✊'];
 
 const Avatar = ({ name, type, size = 48, status }) => {
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const typeColor = TYPE_COLORS[type] || G;
+  const isGroup = type === 'group';
   return (
     <div className="relative flex-shrink-0">
       <div
@@ -55,7 +75,11 @@ const Avatar = ({ name, type, size = 48, status }) => {
           border: `1.5px solid ${typeColor}30`,
         }}
       >
-        <span style={{ fontSize: size * 0.35, fontWeight: 700, color: typeColor, fontFamily: "'Manrope', sans-serif" }}>{initials}</span>
+        {isGroup ? (
+          <span className="material-symbols-outlined" style={{ fontSize: size * 0.45, color: typeColor, fontVariationSettings: "'FILL' 1" }}>group</span>
+        ) : (
+          <span style={{ fontSize: size * 0.35, fontWeight: 700, color: typeColor, fontFamily: "'Manrope', sans-serif" }}>{initials}</span>
+        )}
       </div>
       {status && (
         <span
@@ -75,6 +99,9 @@ const ImmersiveInbox = ({ session, isOpen, onClose }) => {
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState('');
   const [entered, setEntered] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [reactions, setReactions] = useState({});
+  const [showReactionPicker, setShowReactionPicker] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -156,8 +183,13 @@ const ImmersiveInbox = ({ session, isOpen, onClose }) => {
         'Excellente idée, on en discute au CC2026 !',
         "C'est noté. Je reviens vers toi rapidement.",
         'Parfait, ça me convient. On avance ensemble.',
+        "J'adore cette initiative. La culture nous unit.",
+        'On est sur la bonne voie. Continuons ensemble !',
       ];
+      // Show typing indicator
+      setIsTyping(true);
       setTimeout(() => {
+        setIsTyping(false);
         setChatMessages(prev => [...prev, {
           id: `ghost_reply_${Date.now()}`,
           from: activeConv,
@@ -339,10 +371,18 @@ const ImmersiveInbox = ({ session, isOpen, onClose }) => {
               <div className="flex-1 min-w-0">
                 <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 700, color: '#e5e2e3' }}>{activeConversation?.name}</p>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLORS[activeConversation?.status] }} />
-                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#72727a' }}>
-                    {activeConversation?.status === 'online' ? 'En ligne' : 'Hors ligne'}
-                  </span>
+                  {activeConversation?.isGroup ? (
+                    <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#72727a' }}>
+                      {activeConversation.members?.join(', ')}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLORS[activeConversation?.status] }} />
+                      <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#72727a' }}>
+                        {activeConversation?.status === 'online' ? 'En ligne' : 'Hors ligne'}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -369,21 +409,68 @@ const ImmersiveInbox = ({ session, isOpen, onClose }) => {
 
               {chatMessages.map((msg) => {
                 const isMine = msg.from === 'me';
+                const msgReactions = reactions[msg.id] || [];
                 return (
                   <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-                    {!isMine && <Avatar name={activeConversation?.name} type={activeConversation?.type} size={28} />}
+                    {!isMine && <Avatar name={msg.fromName || activeConversation?.name} type={activeConversation?.type} size={28} />}
                     <div className={`max-w-[70%] ${!isMine ? 'ml-2' : ''}`}>
-                      <div
-                        className="px-4 py-3 text-sm leading-relaxed"
-                        style={{
-                          background: isMine ? 'linear-gradient(135deg, #E8D5A0, #d8c591)' : '#1c1b1c',
-                          color: isMine ? '#3a2f09' : '#e5e2e3',
-                          borderRadius: isMine ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                          fontFamily: "'Manrope', sans-serif",
-                        }}
-                      >
-                        {msg.content}
-                      </div>
+                      {/* Group sender name */}
+                      {!isMine && activeConversation?.isGroup && msg.fromName && (
+                        <p className="mb-0.5 ml-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: TYPE_COLORS[activeConversation?.type] || G }}>{msg.fromName}</p>
+                      )}
+
+                      {/* Voice message */}
+                      {msg.type === 'voice' ? (
+                        <div className="px-4 py-3 flex items-center gap-3" style={{ background: isMine ? 'linear-gradient(135deg, #E8D5A0, #d8c591)' : '#1c1b1c', borderRadius: isMine ? '20px 20px 4px 20px' : '20px 20px 20px 4px' }}>
+                          <button className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: isMine ? 'rgba(58,47,9,0.15)' : 'rgba(232,213,160,0.1)' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: 16, color: isMine ? '#3a2f09' : G }}>play_arrow</span>
+                          </button>
+                          <div className="flex-1">
+                            <div className="flex gap-0.5">{[...Array(20)].map((_, i) => <div key={i} className="w-1 rounded-full" style={{ height: 4 + Math.random() * 12, background: isMine ? 'rgba(58,47,9,0.3)' : 'rgba(232,213,160,0.2)' }} />)}</div>
+                          </div>
+                          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: isMine ? '#3a2f09' : '#72727a' }}>{msg.duration}</span>
+                        </div>
+                      ) : msg.type === 'music' ? (
+                        /* Music share */
+                        <div className="overflow-hidden" style={{ borderRadius: isMine ? '20px 20px 4px 20px' : '20px 20px 20px 4px' }}>
+                          <div className="px-4 py-3" style={{ background: isMine ? 'linear-gradient(135deg, #E8D5A0, #d8c591)' : '#1c1b1c' }}>
+                            <p className="text-sm" style={{ color: isMine ? '#3a2f09' : '#e5e2e3', fontFamily: "'Manrope', sans-serif" }}>{msg.content}</p>
+                          </div>
+                          <div className="px-4 py-3 flex items-center gap-3" style={{ background: isMine ? 'rgba(216,197,145,0.9)' : '#252526', borderTop: '1px solid rgba(75,70,59,0.1)' }}>
+                            <button className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: isMine ? 'rgba(58,47,9,0.15)' : 'rgba(232,213,160,0.1)' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 18, color: isMine ? '#3a2f09' : G }}>play_arrow</span>
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <p className="truncate" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 600, color: isMine ? '#3a2f09' : '#e5e2e3' }}>{msg.music?.title}</p>
+                              <p className="truncate" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: isMine ? 'rgba(58,47,9,0.6)' : '#72727a' }}>{msg.music?.artist} · {msg.music?.duration}</p>
+                            </div>
+                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: isMine ? '#3a2f09' : '#8B5CF6' }}>music_note</span>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Standard text message */
+                        <div
+                          className="px-4 py-3 text-sm leading-relaxed"
+                          style={{
+                            background: isMine ? 'linear-gradient(135deg, #E8D5A0, #d8c591)' : '#1c1b1c',
+                            color: isMine ? '#3a2f09' : '#e5e2e3',
+                            borderRadius: isMine ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                            fontFamily: "'Manrope', sans-serif",
+                          }}
+                        >
+                          {msg.content}
+                        </div>
+                      )}
+
+                      {/* Reactions */}
+                      {msgReactions.length > 0 && (
+                        <div className={`flex items-center gap-0.5 mt-0.5 ${isMine ? 'justify-end' : ''}`}>
+                          <span className="px-1.5 py-0.5 rounded-full" style={{ background: '#1c1b1c', fontSize: 11, border: '1px solid rgba(75,70,59,0.1)' }}>
+                            {msgReactions.join('')}
+                          </span>
+                        </div>
+                      )}
+
                       <div className={`flex items-center gap-1 mt-1 ${isMine ? 'justify-end' : ''}`}>
                         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, color: '#555' }}>{msg.time}</span>
                         {isMine && (
@@ -391,11 +478,49 @@ const ImmersiveInbox = ({ session, isOpen, onClose }) => {
                             {msg.read ? 'done_all' : 'done'}
                           </span>
                         )}
+                        {/* Reaction button */}
+                        <button
+                          onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-0.5 rounded hover:bg-white/5"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#555' }}>add_reaction</span>
+                        </button>
                       </div>
+
+                      {/* Reaction picker */}
+                      {showReactionPicker === msg.id && (
+                        <div className={`flex gap-1 mt-1 p-1.5 rounded-xl ${isMine ? 'justify-end' : ''}`} style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.12)' }}>
+                          {EMOJI_SET.map(emoji => (
+                            <button
+                              key={emoji}
+                              onClick={() => {
+                                setReactions(prev => ({ ...prev, [msg.id]: [...(prev[msg.id] || []), emoji].slice(-3) }));
+                                setShowReactionPicker(null);
+                              }}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5 transition-transform hover:scale-125"
+                              style={{ fontSize: 14 }}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
+
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex justify-start items-end gap-2">
+                  <Avatar name={activeConversation?.name} type={activeConversation?.type} size={28} />
+                  <div className="px-4 py-3 rounded-2xl flex items-center gap-1" style={{ background: '#1c1b1c' }} data-testid="typing-indicator">
+                    {[0, 1, 2].map(i => (
+                      <span key={i} className="w-2 h-2 rounded-full" style={{ background: '#72727a', animation: `typingDot 1.4s infinite`, animationDelay: `${i * 0.2}s` }} />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -445,6 +570,23 @@ const ImmersiveInbox = ({ session, isOpen, onClose }) => {
   );
 };
 
+// Inject typing animation
+const TypingStyle = () => (
+  <style>{`
+    @keyframes typingDot {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-4px); opacity: 1; }
+    }
+  `}</style>
+);
+
+const ImmersiveInboxWrapper = (props) => (
+  <>
+    <TypingStyle />
+    <ImmersiveInbox {...props} />
+  </>
+);
+
 const formatTimeShort = (ts) => {
   if (!ts) return '';
   const d = new Date(ts);
@@ -455,4 +597,4 @@ const formatTimeShort = (ts) => {
   return `${Math.floor(diff / 86400000)}j`;
 };
 
-export default ImmersiveInbox;
+export default ImmersiveInboxWrapper;

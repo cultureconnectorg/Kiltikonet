@@ -12,14 +12,15 @@ import MobileNavigation from './pro/MobileNavigation';
 import LinkedInFeed from './pro/LinkedInFeed';
 import ReelsFeed from './pro/ReelsFeed';
 import WalletPage from './pro/WalletPage';
-import ShopPage from './pro/ShopPage';
+import ShopPageEnhanced from './pro/ShopPageEnhanced';
 import StudiosSidebar from './pro/StudiosSidebar';
 import ImmersiveInbox from './pro/ImmersiveInbox';
 import ProfileTriptych from './pro/ProfileTriptych';
 import VitrinePage from './pro/VitrinePage';
 import TerminalIA from './pro/TerminalIA';
 import TradingSettings from './pro/TradingSettings';
-import { ArchivesSection, GovernanceSection, ConsoleSection, SettingsSovereign, MessagesSection } from './pro/SovereignSections';
+import ArchivesCloud from './pro/ArchivesCloud';
+import { GovernanceSection, ConsoleSection, SettingsSovereign, MessagesSection } from './pro/SovereignSections';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -400,9 +401,9 @@ const ProSpaceDashboard = () => {
           {activeSection === 'profile' && <ProfileTriptych session={session} />}
           {activeSection === 'vitrine' && <VitrinePage session={session} />}
           {activeSection === 'wallet' && <WalletPage session={session} jetonsBalance={jetonsBalance} />}
-          {activeSection === 'shop' && <ShopPage session={session} jetonsBalance={jetonsBalance} />}
+          {activeSection === 'shop' && <ShopPageEnhanced session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} onNavigate={sec => setActiveSection(sec)} />}
-          {activeSection === 'archives' && <ArchivesSection />}
+          {activeSection === 'archives' && <ArchivesCloud session={session} />}
           {activeSection === 'governance' && <GovernanceSection />}
           {activeSection === 'console' && <TerminalIA session={session} />}
           {activeSection === 'trading' && <TradingSettings session={session} />}
