@@ -17,6 +17,8 @@ import StudiosSidebar from './pro/StudiosSidebar';
 import ImmersiveInbox from './pro/ImmersiveInbox';
 import ProfileTriptych from './pro/ProfileTriptych';
 import VitrinePage from './pro/VitrinePage';
+import TerminalIA from './pro/TerminalIA';
+import TradingSettings from './pro/TradingSettings';
 import { ArchivesSection, GovernanceSection, ConsoleSection, SettingsSovereign, MessagesSection } from './pro/SovereignSections';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -292,6 +294,7 @@ const ProSpaceDashboard = () => {
               { id: 'profile', icon: 'person', label: 'Mon Profil' },
               { id: 'governance', icon: 'gavel', label: 'Gouvernance' },
               { id: 'console', icon: 'terminal', label: 'Console / Terminal' },
+              { id: 'trading', icon: 'candlestick_chart', label: 'Trading KT' },
               { id: 'settings', icon: 'settings', label: 'Paramètres' },
             ].map(item => (
               <button key={item.id} onClick={() => {
@@ -401,7 +404,8 @@ const ProSpaceDashboard = () => {
           {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} onNavigate={sec => setActiveSection(sec)} />}
           {activeSection === 'archives' && <ArchivesSection />}
           {activeSection === 'governance' && <GovernanceSection />}
-          {activeSection === 'console' && <ConsoleSection session={session} />}
+          {activeSection === 'console' && <TerminalIA session={session} />}
+          {activeSection === 'trading' && <TradingSettings session={session} />}
           {activeSection === 'messages' && <MessagesSection session={session} />}
           {activeSection === 'settings-detail' && <SettingsSection session={session} jetonsBalance={jetonsBalance} onLogout={handleLogout} />}
         </div>
