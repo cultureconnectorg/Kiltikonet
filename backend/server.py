@@ -132,7 +132,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth/magic")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             

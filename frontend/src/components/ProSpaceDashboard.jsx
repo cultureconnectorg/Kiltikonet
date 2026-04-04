@@ -28,12 +28,15 @@ import { ProofOfLifeBadge, OnboardingWidget, CreationNudge } from './pro/GrowthW
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// ─── Design Tokens — Premium Dark ─────────────────────
+// ─── Design Tokens — Sovereign Onyx ─────────────────────
 const C = {
-  bg: '#0a0a0b', surface: '#111111', card: '#141414', border: '#1a1a1a',
-  text: '#FFFFFF', muted: '#72727a', dim: '#555555', gold: '#E8D5A0',
-  accent: '#C4714A', forest: '#4A5D4E', blue: '#5B9BD5', red: '#E85A4F',
-  purple: '#8B5CF6', turquoise: '#2DD4BF', input: '#181818',
+  bg: '#0a0a0b', surface: '#131314', surfaceLow: '#1b1b1c', surfaceHigh: '#2a2a2b',
+  card: '#1b1b1c', border: 'transparent', borderSubtle: 'rgba(75,70,59,0.15)',
+  text: '#e5e2e3', muted: '#72727a', dim: '#555555', gold: '#E8D5A0',
+  goldDim: '#d8c591', goldContainer: '#c8a84b', goldGlow: 'rgba(232,213,160,0.12)',
+  accent: '#C4714A', forest: '#4A5D4E', blue: '#5B9BD5', red: '#ffb4ab',
+  purple: '#8B5CF6', turquoise: '#2DD4BF', input: '#201f20',
+  onPrimary: '#3a2f09', outline: '#979083', outlineVariant: 'rgba(75,70,59,0.15)',
 };
 
 const TYPE_COLORS = {
@@ -133,6 +136,7 @@ const ProSpaceDashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [jetonsBalance, setJetonsBalance] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [brainOpen, setBrainOpen] = useState(false);
   const [culturalIdentity, setCulturalIdentity] = useState(null);
 
   useEffect(() => { if (!loading && !isAuthenticated) navigate('/espace-pro/connexion'); }, [loading, isAuthenticated, navigate]);
@@ -211,6 +215,8 @@ const ProSpaceDashboard = () => {
         const fab = document.querySelector('[data-testid="create-card-fab"]');
         if (fab) fab.click();
       }, 100);
+    } else if (id === 'brain') {
+      setBrainOpen(true);
     } else {
       setActiveSection(id);
     }
@@ -218,76 +224,67 @@ const ProSpaceDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'DM Sans', sans-serif" }} data-testid="pro-space-dashboard">
+    <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'Manrope', sans-serif", color: C.text }} data-testid="pro-space-dashboard">
       {showOnboarding && <ProOnboarding session={session} onComplete={handleOnboardingComplete} />}
 
-      {/* ─── HEADER ─── */}
-      <header className="sticky top-0 z-50" style={{ background: 'rgba(10,10,11,0.92)', backdropFilter: 'blur(24px) saturate(1.8)', WebkitBackdropFilter: 'blur(24px) saturate(1.8)', borderBottom: '1px solid #1a1a1a' }}>
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
-          {/* Logo KILTIKONET */}
-          <button onClick={() => setActiveSection('feed')} className="flex-shrink-0 flex items-center gap-2" aria-label="Accueil Espace Pro" data-testid="logo-home">
-            <span className="text-base font-black tracking-tight" style={{ background: 'linear-gradient(135deg, #FFFFFF, #E8D5A0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: "'DM Sans', sans-serif" }}>KILTIKONET</span>
+      {/* ─── HEADER SOVEREIGN ─── */}
+      <header className="sticky top-0 z-50" style={{ background: 'rgba(10,10,11,0.80)', backdropFilter: 'blur(24px) saturate(1.6)', WebkitBackdropFilter: 'blur(24px) saturate(1.6)', boxShadow: '0 32px 64px -15px rgba(0,0,0,0.5)' }}>
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center gap-4">
+          {/* Menu icon */}
+          <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden flex items-center justify-center" style={{ minHeight: 44, minWidth: 44 }} aria-label="Menu" data-testid="menu-toggle">
+            <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 24 }}>menu</span>
           </button>
 
-          {/* Search — desktop */}
-          <div className="hidden sm:flex flex-1 max-w-xs relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: '#444' }} />
-            <input placeholder="Rechercher..." aria-label="Rechercher dans le réseau"
-              className="w-full h-9 pl-10 pr-4 rounded-full text-sm focus:border-[#E8D5A0]"
-              style={{ background: '#141414', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 36, transition: 'border-color 0.15s', fontFamily: "'DM Sans', sans-serif" }} />
+          {/* Logo KILTIKONET — Sovereign Serif */}
+          <button onClick={() => setActiveSection('feed')} className="flex-shrink-0 flex items-center gap-2" aria-label="Accueil Espace Pro" data-testid="logo-home">
+            <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, fontWeight: 400, letterSpacing: '-0.02em', color: '#E8D5A0', lineHeight: 1 }}>Kiltikonet</h1>
+          </button>
+
+          <div className="flex-1" />
+
+          {/* CVL BRAIN Status — desktop */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(53,52,54,0.5)', border: '1px solid rgba(75,70,59,0.2)' }}>
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#E8D5A0' }}></span>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#E8D5A0' }}>CVL BRAIN ACTIF</span>
           </div>
 
-          <div className="flex-1 sm:hidden" />
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-0.5" role="navigation" aria-label="Navigation principale">
-            {navItems.map(item => (
-              <button key={item.id} onClick={() => handleNavClick(item.id)} data-testid={`nav-${item.id}`}
-                className="flex flex-col items-center px-4 py-1 transition-colors relative"
-                style={{ color: activeSection === item.id ? '#fff' : '#444', minHeight: 44, fontFamily: "'DM Sans', sans-serif" }}
-                aria-current={activeSection === item.id ? 'page' : undefined}>
-                <item.icon size={20} />
-                <span className="text-[11px] mt-0.5 font-medium">{item.label}</span>
-                {activeSection === item.id && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded" style={{ background: '#E8D5A0' }} />}
-              </button>
-            ))}
-            <button onClick={() => navigate('/espace-pro/messages')} data-testid="nav-messages"
-              className="flex flex-col items-center px-4 py-1 relative" style={{ color: '#444', minHeight: 44 }}>
-              <MessageSquare size={20} />
-              <span className="text-[11px] mt-0.5 font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>Messages</span>
-              {unreadCount > 0 && <span className="absolute top-0 right-2 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center" style={{ background: '#E85A4F', color: '#fff' }}>{unreadCount}</span>}
-            </button>
+          {/* Desktop Nav — Sovereign style */}
+          <nav className="hidden md:flex items-center gap-1" role="navigation" aria-label="Navigation principale">
+            {navItems.map(item => {
+              const iconMap = { feed: 'dynamic_feed', network: 'hub', shop: 'local_mall', events: 'event', settings: 'person' };
+              return (
+                <button key={item.id} onClick={() => handleNavClick(item.id)} data-testid={`nav-${item.id}`}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all"
+                  style={{
+                    color: activeSection === item.id ? '#E8D5A0' : 'rgba(229,226,227,0.4)',
+                    background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent',
+                    minHeight: 44, fontFamily: "'Manrope', sans-serif",
+                    transition: 'all 0.3s cubic-bezier(0.2,0,0,1)',
+                  }}
+                  aria-current={activeSection === item.id ? 'page' : undefined}>
+                  <span className="material-symbols-outlined" style={{
+                    fontSize: 20,
+                    fontVariationSettings: activeSection === item.id ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300",
+                  }}>{iconMap[item.id] || 'circle'}</span>
+                  <span className="text-xs font-semibold tracking-wider uppercase">{item.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
-          {/* Proof of Life badge */}
-          <ProofOfLifeBadge />
-
-          {/* Jetons Badge */}
-          <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all hover:scale-[1.02]" data-testid="jetons-badge"
-            style={{ background: '#1a1a1a', border: '1px solid rgba(232,213,160,0.3)', minHeight: 36, animation: 'jetonsPulse 3s ease-in-out infinite' }}
+          {/* Jetons Badge — Sovereign Gold */}
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-[1.02]" data-testid="jetons-badge"
+            style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.15)', minHeight: 36 }}
             title={`FREK-ID: ${session.frek_id || 'Non lie'}`} aria-label={`${jetonsBalance} Kilti-Tokens`}>
-            <Zap size={16} style={{ color: '#E8D5A0' }} />
-            <span className="text-sm font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{jetonsBalance}</span>
-            <span className="text-[10px] hidden sm:inline font-semibold" style={{ color: '#E8D5A0' }}>KT</span>
-          </button>
-          {/* Recharge button */}
-          <button onClick={() => setActiveSection('shop')} data-testid="recharge-btn"
-            className="w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-            style={{ background: 'rgba(232,213,160,0.15)', border: '1px solid rgba(232,213,160,0.3)' }}
-            aria-label="Recharger Kilti-Tokens">
-            <Plus size={14} style={{ color: '#E8D5A0' }} />
+            <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 16 }}>account_balance_wallet</span>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 700, color: '#E8D5A0' }}>{jetonsBalance}</span>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, color: '#E8D5A0', opacity: 0.6 }}>KT</span>
           </button>
 
-          {/* Profile */}
+          {/* Profile Avatar — Gold ring */}
           <button onClick={() => setActiveSection('profile')} data-testid="nav-profile"
-            className="flex items-center gap-1 ml-1 kn-avatar-ring rounded-full" style={{ minHeight: 44 }} aria-label="Mon profil">
-            <Avatar src={session.image} name={session.name} type={session.type} size={32} />
-          </button>
-
-          {/* Logout */}
-          <button onClick={handleLogout} aria-label="Se déconnecter" data-testid="logout-btn"
-            className="p-2 rounded-lg hover:bg-white/5 hidden sm:flex" style={{ color: '#444', minHeight: 44 }}>
-            <LogOut size={18} />
+            className="flex items-center rounded-full" style={{ minHeight: 44 }} aria-label="Mon profil">
+            <Avatar src={session.image} name={session.name} type={session.type} size={36} ring />
           </button>
         </div>
       </header>
@@ -295,6 +292,14 @@ const ProSpaceDashboard = () => {
       {/* ─── MAIN ─── */}
       {activeSection === 'feed' ? (
         <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />
+      ) : activeSection === 'brain' ? (
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <div className="text-center py-12">
+            <span className="material-symbols-outlined" style={{ fontSize: 64, color: C.gold, fontVariationSettings: "'FILL' 0, 'wght' 200" }}>psychology</span>
+            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: 28, fontStyle: 'italic', fontWeight: 400, color: C.text, marginTop: 12 }}>CVL BRAIN</h2>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: C.muted, marginTop: 8 }}>Cliquez sur le bouton Brain en bas pour ouvrir l'assistant IA</p>
+          </div>
+        </div>
       ) : (
         <div className="max-w-5xl mx-auto px-4 py-6">
           {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadAll} />}
@@ -306,7 +311,7 @@ const ProSpaceDashboard = () => {
       )}
 
       {showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
-      <CvlBrainFloat session={session} />
+      <CvlBrainFloat session={session} externalOpen={brainOpen} onExternalClose={() => setBrainOpen(false)} />
 
       {/* ─── MOBILE BOTTOM NAV ─── */}
       <MobileNavigation
@@ -316,88 +321,62 @@ const ProSpaceDashboard = () => {
         networkBadge={connections.length > 0 ? 0 : 1}
       />
 
-      {/* ─── Global CSS — Premium Design System ─── */}
+      {/* ─── Global CSS — Sovereign Onyx Design System ─── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
-
         :root {
-          --bg-primary: #0a0a0b;
-          --bg-secondary: #111111;
-          --bg-card: #141414;
-          --bg-hover: #1a1a1a;
-          --accent-gold: #E8D5A0;
-          --accent-gold-dim: rgba(232, 213, 160, 0.15);
-          --text-primary: #FFFFFF;
-          --text-secondary: #72727a;
-          --text-tertiary: #444444;
-          --border-subtle: #1e1e1e;
-          --border-gold: rgba(232, 213, 160, 0.3);
-          --shadow-gold: 0 0 20px rgba(232, 213, 160, 0.1);
+          --bg: #0a0a0b;
+          --surface: #131314;
+          --surface-low: #1b1b1c;
+          --surface-high: #2a2a2b;
+          --gold: #E8D5A0;
+          --gold-dim: #d8c591;
+          --gold-container: #c8a84b;
+          --gold-glow: rgba(232,213,160,0.12);
+          --text: #e5e2e3;
+          --muted: #72727a;
+          --outline-variant: rgba(75,70,59,0.15);
         }
 
-        @keyframes jetonsPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(232,213,160,0); } 50% { box-shadow: 0 0 12px 2px rgba(232,213,160,0.2); } }
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-slide-in { animation: fadeSlideIn 0.25s ease-out both; }
+        .fade-slide-in { animation: fadeSlideIn 0.4s cubic-bezier(0.2,0,0,1) both; }
 
-        /* Skeleton shimmer */
-        @keyframes skeletonShimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
+        @keyframes skeletonShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .kn-skeleton-shimmer {
-          background: linear-gradient(90deg, #1a1a1a 0%, #222 50%, #1a1a1a 100%);
+          background: linear-gradient(90deg, #1b1b1c 0%, #2a2a2b 50%, #1b1b1c 100%);
           background-size: 200% 100%;
-          animation: skeletonShimmer 1.5s linear infinite;
+          animation: skeletonShimmer 1.8s cubic-bezier(0.4,0,0.2,1) infinite;
         }
 
-        /* Card stagger fade-in */
         .kn-card {
-          animation: knCardIn 0.4s ease-out both;
-          transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-          background: #141414;
-          border: 1px solid #1e1e1e;
+          animation: knCardIn 0.4s cubic-bezier(0.2,0,0,1) both;
+          transition: transform 0.3s cubic-bezier(0.2,0,0,1), box-shadow 0.3s cubic-bezier(0.2,0,0,1), background 0.3s;
+          background: #1b1b1c;
+          border: none;
+          border-radius: 20px;
         }
         .kn-card:hover {
-          transform: scale(1.01);
-          box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(232,213,160,0.08);
+          transform: scale(1.008);
+          box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+          background: #201f20;
         }
         @keyframes knCardIn {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Countdown pulse */
-        .kn-countdown-pulse {
-          animation: countdownPulse 2s ease-in-out infinite;
-        }
-        @keyframes countdownPulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.03); }
-        }
+        .kn-countdown-pulse { animation: countdownPulse 3s cubic-bezier(0.4,0,0.2,1) infinite; }
+        @keyframes countdownPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
 
-        /* Score bar shimmer */
         .kn-shimmer {
-          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
-          animation: knShimmerMove 2.5s ease-in-out infinite;
+          background: linear-gradient(90deg, transparent 0%, rgba(232,213,160,0.08) 50%, transparent 100%);
+          animation: knShimmerMove 3s cubic-bezier(0.4,0,0.2,1) infinite;
         }
-        @keyframes knShimmerMove {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
+        @keyframes knShimmerMove { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
 
-        /* Avatar gold ring on hover */
-        .kn-avatar-ring {
-          transition: box-shadow 0.2s ease, border-color 0.2s ease;
-        }
-        .kn-avatar-ring:hover {
-          box-shadow: 0 0 0 2px rgba(232,213,160,0.4);
-        }
+        .kn-avatar-ring { transition: box-shadow 0.3s cubic-bezier(0.2,0,0,1); }
+        .kn-avatar-ring:hover { box-shadow: 0 0 0 2px rgba(232,213,160,0.3); }
 
-        /* Burst particles */
-        .kn-burst-particle {
-          animation: knBurst 0.4s ease-out forwards;
-          pointer-events: none;
-        }
+        .kn-burst-particle { animation: knBurst 0.4s ease-out forwards; pointer-events: none; }
         @keyframes knBurst {
           0% { opacity: 1; transform: translate(0, 0) scale(1); }
           100% { opacity: 0; transform: translate(
@@ -406,7 +385,6 @@ const ProSpaceDashboard = () => {
           ) scale(0.3); }
         }
 
-        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
           .kn-card, .kn-countdown-pulse, .kn-shimmer, .kn-skeleton-shimmer, .kn-burst-particle, .fade-slide-in {
             animation: none !important;
@@ -414,9 +392,13 @@ const ProSpaceDashboard = () => {
           }
         }
 
-        /* Scrollbar hide */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Material Symbols fallback sizing */
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
       `}</style>
     </div>
   );
@@ -433,14 +415,14 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
       {/* MOBILE: Full-screen immersive cultural feed */}
       <div className="md:hidden">
         {/* Mode toggle pills */}
-        <div className="sticky top-14 z-20 flex gap-2 px-4 py-2" style={{ background: 'rgba(10,10,11,0.95)', backdropFilter: 'blur(12px)' }}>
+        <div className="sticky top-16 z-20 flex gap-2 px-4 py-3" style={{ background: 'rgba(10,10,11,0.90)', backdropFilter: 'blur(16px)' }}>
           <button onClick={() => setFeedMode('cultural')}
-            className="px-4 py-1.5 rounded-full text-xs font-bold transition-all"
-            style={{ background: feedMode === 'cultural' ? '#E8D5A0' : 'rgba(255,255,255,0.06)', color: feedMode === 'cultural' ? '#0a0a0b' : '#72727a' }}
-            data-testid="feed-mode-cultural">Découvrir</button>
+            className="px-4 py-2 rounded-full text-xs font-bold transition-all"
+            style={{ background: feedMode === 'cultural' ? '#E8D5A0' : 'rgba(255,255,255,0.04)', color: feedMode === 'cultural' ? '#0a0a0b' : '#72727a', fontFamily: "'Manrope', sans-serif", letterSpacing: '0.04em' }}
+            data-testid="feed-mode-cultural">Discover</button>
           <button onClick={() => setFeedMode('social')}
-            className="px-4 py-1.5 rounded-full text-xs font-bold transition-all"
-            style={{ background: feedMode === 'social' ? '#E8D5A0' : 'rgba(255,255,255,0.06)', color: feedMode === 'social' ? '#0a0a0b' : '#72727a' }}
+            className="px-4 py-2 rounded-full text-xs font-bold transition-all"
+            style={{ background: feedMode === 'social' ? '#E8D5A0' : 'rgba(255,255,255,0.04)', color: feedMode === 'social' ? '#0a0a0b' : '#72727a', fontFamily: "'Manrope', sans-serif", letterSpacing: '0.04em' }}
             data-testid="feed-mode-social">Communauté</button>
         </div>
 
@@ -459,35 +441,35 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
       <div className="hidden md:flex gap-6 max-w-5xl mx-auto px-4 py-6">
         {/* Left sidebar — Identity */}
         <aside className="hidden lg:block w-64 flex-shrink-0 space-y-4">
-          <div className="rounded-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
-            <div className="h-16 relative" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.08), rgba(196,113,74,0.06))' }} />
+          <div className="rounded-2xl overflow-hidden" style={{ background: '#1b1b1c' }}>
+            <div className="h-20 relative" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.06), rgba(200,168,75,0.03))' }} />
             <div className="px-4 pb-4 -mt-8 text-center">
-              <Avatar src={session.image} name={session.name} type={session.type} size={64} className="mx-auto" ring style={{ border: '3px solid #141414' }} />
-              <h3 className="text-sm font-bold mt-2" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>{session.name}</h3>
-              <p className="text-[11px]" style={{ color: '#72727a' }}>{PROFILE_LABELS[session.type] || 'Professionnel'}</p>
+              <Avatar src={session.image} name={session.name} type={session.type} size={64} className="mx-auto" ring style={{ border: '3px solid #1b1b1c' }} />
+              <h3 className="mt-2" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 16, fontWeight: 400, color: '#e5e2e3' }}>{session.name}</h3>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#72727a', marginTop: 2 }}>{PROFILE_LABELS[session.type] || 'Professionnel'}</p>
             </div>
             <div className="px-4 pb-4">
               <CulturalIdentityBar score={culturalIdentity?.score || 0} levelName={culturalIdentity?.level?.name || ''} />
             </div>
-            <div className="border-t px-4 py-3" style={{ borderColor: '#1e1e1e' }}>
+            <div className="px-4 py-3" style={{ background: 'rgba(232,213,160,0.03)' }}>
               <div className="flex justify-around text-center">
                 <div>
-                  <p className="text-lg font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{connections.length}</p>
-                  <p className="text-[10px]" style={{ color: '#72727a' }}>Connexions</p>
+                  <p style={{ fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 400, fontStyle: 'italic', color: '#E8D5A0' }}>{connections.length}</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Connexions</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{profile?.views || 0}</p>
-                  <p className="text-[10px]" style={{ color: '#72727a' }}>Vues</p>
+                  <p style={{ fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 400, fontStyle: 'italic', color: '#E8D5A0' }}>{profile?.views || 0}</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Vues</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>{jetonsBalance || 0}</p>
-                  <p className="text-[10px]" style={{ color: '#72727a' }}>Jetons</p>
+                  <p style={{ fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 400, fontStyle: 'italic', color: '#E8D5A0' }}>{jetonsBalance || 0}</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Jetons</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
-            <h3 className="text-[10px] font-semibold uppercase mb-3" style={{ color: '#72727a', letterSpacing: '0.08em', fontFamily: "'DM Sans', sans-serif" }}>
+          <div className="rounded-2xl p-4" style={{ background: '#1b1b1c' }}>
+            <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a', marginBottom: 12 }}>
               Empreinte culturelle
             </h3>
             <ConstellationRadar dimensions={culturalIdentity?.dimensions || {}} compact={true} />
@@ -497,15 +479,15 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
         {/* Center — Feed */}
         <main className="flex-1 min-w-0">
           {/* CC2026 Countdown */}
-          <div className="kn-card rounded-2xl p-4 relative overflow-hidden mb-4" data-testid="countdown-banner">
-            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(232,213,160,0.06), transparent 60%)' }} />
+          <div className="kn-card rounded-2xl p-5 relative overflow-hidden mb-4" data-testid="countdown-banner">
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(232,213,160,0.04), transparent 60%)' }} />
             <div className="flex items-center justify-between flex-wrap gap-3 relative">
               <div>
-                <h2 className="text-sm sm:text-base font-bold" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.02em' }}>Culture Connect 2026</h2>
-                <p className="text-[11px] mt-0.5" style={{ color: '#72727a' }}>20–23 Mai · Parc de La Savane · Fort-de-France</p>
+                <h2 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, fontWeight: 400, color: '#e5e2e3', letterSpacing: '-0.01em' }}>Culture Connect 2026</h2>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, color: '#72727a', marginTop: 4 }}>20–23 Mai · Parc de La Savane · Fort-de-France</p>
               </div>
-              <div className="kn-countdown-pulse px-3 py-1.5 rounded-lg" style={{ background: 'rgba(232,213,160,0.12)', border: '1px solid rgba(232,213,160,0.3)' }}>
-                <span className="text-lg sm:text-xl font-black tabular-nums" style={{ color: '#E8D5A0', fontFamily: "'DM Sans', sans-serif" }}>J-{getDaysUntil()}</span>
+              <div className="kn-countdown-pulse px-4 py-2 rounded-xl" style={{ background: 'rgba(232,213,160,0.06)' }}>
+                <span style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 28, fontWeight: 400, color: '#E8D5A0' }}>J-{getDaysUntil()}</span>
               </div>
             </div>
           </div>
@@ -590,24 +572,25 @@ const FeedSection = ({ session }) => {
   return (
     <div className="space-y-4">
       {/* ─── CREATE POST ─── */}
-      <div className="kn-card rounded-2xl p-4" data-testid="create-post-box">
+      <div className="kn-card rounded-2xl p-5" data-testid="create-post-box">
         <div className="flex gap-3">
           <Avatar src={session.image} name={session.name} type={session.type} size={44} ring />
           <div className="flex-1">
             <textarea value={newPost} onChange={e => setNewPost(e.target.value)}
               placeholder="Partagez votre actualité culturelle..."
               rows={2} data-testid="new-post-input" aria-label="Nouveau post"
-              className="w-full p-3 rounded-xl text-sm resize-none focus:border-[#E8D5A0]"
-              style={{ background: '#0a0a0b', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 56, lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.15s' }} />
-            <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
+              className="w-full p-3 rounded-xl text-sm resize-none"
+              style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', minHeight: 56, lineHeight: 1.6, fontFamily: "'Manrope', sans-serif", transition: 'background 0.3s' }} />
+            <div className="flex flex-wrap justify-between items-center gap-2 mt-3">
               <button onClick={generateWithBrain} disabled={generating} data-testid="generate-brain-btn"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.97]"
-                style={{ background: 'rgba(232,213,160,0.1)', color: '#E8D5A0', border: '1px solid rgba(232,213,160,0.2)', minHeight: 36, fontFamily: "'DM Sans', sans-serif" }}>
-                <Sparkles size={16} /> {generating ? 'Génération...' : 'CVL BRAIN'}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.97]"
+                style={{ background: 'rgba(232,213,160,0.06)', color: '#E8D5A0', minHeight: 36, fontFamily: "'Manrope', sans-serif", letterSpacing: '0.04em' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>psychology</span>
+                {generating ? 'Génération...' : 'CVL BRAIN'}
               </button>
               <button disabled={!newPost.trim() || posting} onClick={createPost} data-testid="publish-post-btn"
-                className="px-5 py-2 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.97] disabled:opacity-40"
-                style={{ background: '#E8D5A0', color: '#000', minHeight: 36, fontFamily: "'DM Sans', sans-serif" }}>
+                className="px-6 py-2 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.97] disabled:opacity-30"
+                style={{ background: '#E8D5A0', color: '#0a0a0b', minHeight: 36, fontFamily: "'Manrope', sans-serif", letterSpacing: '0.02em' }}>
                 {posting ? '...' : 'Publier'}
               </button>
             </div>
@@ -637,27 +620,33 @@ const FeedSection = ({ session }) => {
             const typeColor = TYPE_COLORS[post.author_type] || '#888';
             return (
               <article key={post.id} className="fade-slide-in" data-testid={`post-${post.id}`}
-                style={{ animationDelay: `${idx * 50}ms`, borderBottom: '1px solid #1e1e1e', padding: '16px 0' }}>
+                style={{ animationDelay: `${idx * 60}ms`, borderBottom: '1px solid rgba(75,70,59,0.1)', padding: '20px 0' }}>
                 <div className="flex gap-3">
-                  <Avatar src={post.author_image} name={post.author_name} type={post.author_type} size={52} ring />
+                  <Avatar src={post.author_image} name={post.author_name} type={post.author_type} size={48} ring />
                   <div className="flex-1 min-w-0">
                     {/* Header line */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold truncate" style={{ color: '#fff', fontFamily: "'DM Sans', sans-serif", fontWeight: 700 }}>{post.author_name}</span>
-                      <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{
-                        color: typeColor, border: `1px solid ${typeColor}30`, letterSpacing: '0.06em', fontFamily: "'DM Sans', sans-serif",
+                      <span style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 15, fontWeight: 400, color: '#e5e2e3' }}>{post.author_name}</span>
+                      <span style={{
+                        fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                        color: typeColor, padding: '2px 8px', borderRadius: 20,
+                        background: `${typeColor}10`,
                       }}>{PROFILE_LABELS[post.author_type] || ''}</span>
-                      <span className="text-[11px] flex items-center gap-1" style={{ color: '#444' }}><Clock size={10} />{timeAgo(post.created_at)}</span>
+                      <span className="flex items-center gap-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, color: '#555' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>schedule</span>{timeAgo(post.created_at)}
+                      </span>
                       {post.author_id === session.id && (
-                        <button onClick={() => deletePost(post.id)} aria-label="Supprimer" className="ml-auto p-1.5 rounded-lg hover:bg-white/5" style={{ color: '#444', minHeight: 32, minWidth: 32 }}><X size={14} /></button>
+                        <button onClick={() => deletePost(post.id)} aria-label="Supprimer" className="ml-auto p-1.5 rounded-lg hover:bg-white/5" style={{ color: '#555', minHeight: 32, minWidth: 32 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                        </button>
                       )}
                     </div>
 
                     {/* Content */}
-                    <p className="text-[15px] whitespace-pre-wrap mt-2" style={{ color: '#fff', lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>{post.content}</p>
+                    <p className="whitespace-pre-wrap mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#e5e2e3', lineHeight: 1.7 }}>{post.content}</p>
                     {post.tags?.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {post.tags.map(t => <span key={t} className="text-xs font-medium" style={{ color: '#E8D5A0' }}>#{t}</span>)}
+                        {post.tags.map(t => <span key={t} style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 600, color: '#E8D5A0' }}>#{t}</span>)}
                       </div>
                     )}
 
@@ -665,21 +654,21 @@ const FeedSection = ({ session }) => {
                     <div className="flex items-center gap-3 mt-3">
                       <CulturalReactions cardId={post.id} reactions={{}} userId={session.id} onReact={() => {}} />
                       <button onClick={() => setShowComments({ ...showComments, [post.id]: !showComments[post.id] })}
-                        className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-full hover:bg-white/5 transition-colors"
-                        style={{ color: '#888', minHeight: 36 }}>
-                        <MessageCircle size={14} /> {post.comments_count || 0}
+                        className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full hover:bg-white/5 transition-colors"
+                        style={{ color: '#72727a', minHeight: 36, fontFamily: "'Manrope', sans-serif" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chat_bubble</span> {post.comments_count || 0}
                       </button>
                     </div>
 
                     {/* Comments */}
                     {showComments[post.id] && (
-                      <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid #1e1e1e' }}>
+                      <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid rgba(75,70,59,0.1)' }}>
                         {post.comments?.map(c => (
                           <div key={c.id} className="flex gap-2">
                             <Avatar name={c.author_name} type="other" size={28} />
-                            <div className="flex-1 p-2 rounded-lg" style={{ background: '#0a0a0b' }}>
-                              <span className="text-[11px] font-semibold" style={{ color: '#fff' }}>{c.author_name}</span>
-                              <p className="text-[12px] mt-0.5" style={{ color: '#888', lineHeight: 1.5 }}>{c.content}</p>
+                            <div className="flex-1 p-2 rounded-xl" style={{ background: '#131314' }}>
+                              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 600, color: '#e5e2e3' }}>{c.author_name}</span>
+                              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, marginTop: 2, color: '#72727a', lineHeight: 1.5 }}>{c.content}</p>
                             </div>
                           </div>
                         ))}
@@ -690,10 +679,10 @@ const FeedSection = ({ session }) => {
                               onKeyDown={e => e.key === 'Enter' && handleComment(post.id)}
                               placeholder="Commentaire..." aria-label="Ajouter un commentaire"
                               className="flex-1 px-3 rounded-full text-xs"
-                              style={{ background: '#0a0a0b', border: '1px solid #1e1e1e', color: '#fff', outline: 'none', minHeight: 32, fontFamily: "'DM Sans', sans-serif" }} />
+                              style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', minHeight: 32, fontFamily: "'Manrope', sans-serif" }} />
                             <button onClick={() => handleComment(post.id)} aria-label="Envoyer"
                               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/5" style={{ color: '#E8D5A0' }}>
-                              <Send size={12} />
+                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>send</span>
                             </button>
                           </div>
                         </div>
