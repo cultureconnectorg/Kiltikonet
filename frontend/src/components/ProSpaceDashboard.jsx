@@ -1,30 +1,18 @@
 // ═══════════════════════════════════════════════════════════════
-// ESPACE PRO CC2026 — Moteur d'Identité Culturelle Caribéenne
-// MOBILE-FIRST · PREMIUM UX · Fond OLED #0a0a0b · Or Blanc #E8D5A0 · DM Sans
+// ESPACE PRO CC2026 — Sovereign Onyx · Niveau Meta/Revolut/Claude.ai
+// MOBILE-FIRST · PREMIUM UX · Fond OLED #0a0a0b · Or Blanc #E8D5A0 · Manrope/Newsreader
 // ═══════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  User, Users, MessageSquare, Briefcase, Calendar, Search,
-  LogOut, ChevronRight, Plus, Send, Heart, Star, MapPin, Globe,
-  Building2, Mic2, Mail, Phone, Link2, Edit2, Save, X, Check,
-  Sparkles, Clock, Eye, MessageCircle, Handshake, Newspaper, Tag,
-  ChevronDown, ChevronUp, Shield, Award, Image, Home, Zap, Menu,
-  Settings, Trash2, Download, Languages
-} from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { toast } from 'sonner';
 import axios from 'axios';
 import ProOnboarding from './ProOnboarding';
 import CvlBrainFloat from './CvlBrainFloat';
-import CulturalIdentityBar from './pro/CulturalIdentityBar';
-import ConstellationRadar from './pro/ConstellationRadar';
-import CulturalFeed from './pro/CulturalFeed';
-import CulturalReactions from './pro/CulturalReactions';
 import MobileNavigation from './pro/MobileNavigation';
+import LinkedInFeed from './pro/LinkedInFeed';
+import ReelsFeed from './pro/ReelsFeed';
+import WalletPage from './pro/WalletPage';
 import ShopPage from './pro/ShopPage';
-import { ProofOfLifeBadge, OnboardingWidget, CreationNudge } from './pro/GrowthWidgets';
 import { ArchivesSection, GovernanceSection, ConsoleSection, SettingsSovereign, MessagesSection } from './pro/SovereignSections';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -193,34 +181,19 @@ const ProSpaceDashboard = () => {
 
   const unreadCount = messages.filter(m => !m.read && m.to === session.id).length;
   const handleNavClick = (id) => {
-    if (id === 'network') {
-      navigate('/espace-pro/reseau');
-    } else {
-      setActiveSection(id);
-    }
+    setActiveSection(id);
   };
 
   const navItems = [
-    { id: 'feed', label: 'Feed', icon: Home },
-    { id: 'network', label: 'Reseau', icon: Users },
-    { id: 'shop', label: 'Shop', icon: Briefcase },
-    { id: 'events', label: 'Agenda', icon: Calendar },
-    { id: 'settings', label: 'Profil', icon: Settings },
+    { id: 'feed', label: 'Feed', icon: 'dynamic_feed' },
+    { id: 'reels', label: 'Reels', icon: 'play_circle' },
+    { id: 'wallet', label: 'Wallet', icon: 'account_balance_wallet' },
+    { id: 'shop', label: 'Shop', icon: 'local_mall' },
+    { id: 'settings', label: 'Profil', icon: 'person' },
   ];
 
   const handleMobileNav = (id) => {
-    if (id === 'create') {
-      setActiveSection('feed');
-      // Trigger the create card FAB
-      setTimeout(() => {
-        const fab = document.querySelector('[data-testid="create-card-fab"]');
-        if (fab) fab.click();
-      }, 100);
-    } else if (id === 'brain') {
-      setActiveSection('brain');
-    } else {
-      setActiveSection(id);
-    }
+    setActiveSection(id);
     setMobileMenu(false);
   };
 
@@ -251,34 +224,31 @@ const ProSpaceDashboard = () => {
 
           {/* Desktop Nav — Sovereign style */}
           <nav className="hidden md:flex items-center gap-1" role="navigation" aria-label="Navigation principale">
-            {navItems.map(item => {
-              const iconMap = { feed: 'dynamic_feed', network: 'hub', shop: 'local_mall', events: 'event', settings: 'person' };
-              return (
-                <button key={item.id} onClick={() => handleNavClick(item.id)} data-testid={`nav-${item.id}`}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all"
-                  style={{
-                    color: activeSection === item.id ? '#E8D5A0' : 'rgba(229,226,227,0.4)',
-                    background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent',
-                    minHeight: 44, fontFamily: "'Manrope', sans-serif",
-                    transition: 'all 0.3s cubic-bezier(0.2,0,0,1)',
-                  }}
-                  aria-current={activeSection === item.id ? 'page' : undefined}>
-                  <span className="material-symbols-outlined" style={{
-                    fontSize: 20,
-                    fontVariationSettings: activeSection === item.id ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300",
-                  }}>{iconMap[item.id] || 'circle'}</span>
-                  <span className="text-xs font-semibold tracking-wider uppercase">{item.label}</span>
-                </button>
-              );
-            })}
+            {navItems.map(item => (
+              <button key={item.id} onClick={() => handleNavClick(item.id)} data-testid={`nav-${item.id}`}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all"
+                style={{
+                  color: activeSection === item.id ? '#E8D5A0' : 'rgba(229,226,227,0.4)',
+                  background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent',
+                  minHeight: 44, fontFamily: "'Manrope', sans-serif",
+                }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: activeSection === item.id ? "'FILL' 1" : "'FILL' 0" }}>{item.icon}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{item.label}</span>
+              </button>
+            ))}
           </nav>
 
+          {/* Inbox icon */}
+          <button onClick={() => setShowMessages(!showMessages)} className="relative" style={{ minHeight: 44, minWidth: 44 }} data-testid="inbox-btn">
+            <span className="material-symbols-outlined" style={{ color: '#72727a', fontSize: 22 }}>inbox</span>
+            {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#ffb4ab', color: '#690005', fontSize: 9, fontWeight: 700 }}>{unreadCount}</span>}
+          </button>
+
           {/* Jetons Badge — Sovereign Gold */}
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-[1.02]" data-testid="jetons-badge"
-            style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.15)', minHeight: 36 }}
-            title={`FREK-ID: ${session.frek_id || 'Non lie'}`} aria-label={`${jetonsBalance} Kilti-Tokens`}>
-            <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 16 }}>account_balance_wallet</span>
-            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 700, color: '#E8D5A0' }}>{jetonsBalance}</span>
+          <button onClick={() => setActiveSection('wallet')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:scale-[1.02]" data-testid="jetons-badge"
+            style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.15)', minHeight: 36 }}>
+            <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 16, fontVariationSettings: "'FILL' 1" }}>bolt</span>
+            <span className="tabular-nums" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 700, color: '#E8D5A0' }}>{jetonsBalance}</span>
             <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, color: '#E8D5A0', opacity: 0.6 }}>KT</span>
           </button>
 
@@ -297,23 +267,23 @@ const ProSpaceDashboard = () => {
           <nav className="absolute left-0 top-0 bottom-0 w-72 py-8 px-6 space-y-1 overflow-y-auto"
             style={{ background: '#131314', boxShadow: '10px 0 40px rgba(0,0,0,0.6)' }}
             onClick={e => e.stopPropagation()}>
-            <h2 className="mb-6" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, color: G }}>Kiltikonet</h2>
+            <h2 className="mb-6" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, color: '#E8D5A0' }}>Kiltikonet</h2>
             {[
-              { id: 'feed', icon: 'explore', label: 'Explore' },
-              { id: 'network', icon: 'hub', label: 'Réseau' },
+              { id: 'feed', icon: 'dynamic_feed', label: 'Feed LinkedIn' },
+              { id: 'reels', icon: 'play_circle', label: 'Reels / Shorts' },
+              { id: 'messages', icon: 'inbox', label: 'Boîte de réception' },
               { id: 'brain', icon: 'psychology', label: 'CVL BRAIN' },
-              { id: 'shop', icon: 'local_mall', label: 'Shop' },
-              { id: 'events', icon: 'event', label: 'Agenda' },
-              { id: 'messages', icon: 'chat', label: 'Messages' },
-              { id: 'archives', icon: 'auto_stories', label: 'Archives' },
-              { id: 'governance', icon: 'gavel', label: 'Gouvernance' },
-              { id: 'console', icon: 'monitoring', label: 'Console' },
-              { id: 'settings', icon: 'settings', label: 'Paramètres' },
+              { id: 'wallet', icon: 'account_balance_wallet', label: 'Wallet KT' },
+              { id: 'shop', icon: 'storefront', label: 'Sovereign Shop' },
+              { id: 'archives', icon: 'cloud', label: 'Archives / Cloud' },
               { id: 'profile', icon: 'person', label: 'Mon Profil' },
+              { id: 'governance', icon: 'gavel', label: 'Gouvernance' },
+              { id: 'console', icon: 'terminal', label: 'Console / Terminal' },
+              { id: 'settings', icon: 'settings', label: 'Paramètres' },
             ].map(item => (
-              <button key={item.id} onClick={() => { setActiveSection(item.id === 'brain' ? 'brain' : item.id); setMobileMenu(false); if (item.id === 'brain') setBrainOpen(true); }}
+              <button key={item.id} onClick={() => { setActiveSection(item.id); setMobileMenu(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
-                style={{ background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent', color: activeSection === item.id ? G : '#72727a' }}>
+                style={{ background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent', color: activeSection === item.id ? '#E8D5A0' : '#72727a' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 20, fontVariationSettings: activeSection === item.id ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300" }}>{item.icon}</span>
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 600 }}>{item.label}</span>
               </button>
@@ -328,7 +298,7 @@ const ProSpaceDashboard = () => {
         </div>
       )}
       {activeSection === 'feed' ? (
-        <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />
+        <LinkedInFeed session={session} onOpenInbox={() => setShowMessages(true)} />
       ) : activeSection === 'brain' ? (
         <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
           {/* Brain — Full page Sovereign with Golden Sphere */}
@@ -403,12 +373,13 @@ const ProSpaceDashboard = () => {
             </div>
           </div>
         </div>
+      ) : activeSection === 'reels' ? (
+        <ReelsFeed session={session} onOpenInbox={() => setShowMessages(true)} />
       ) : (
         <div className="max-w-5xl mx-auto px-4 py-6">
           {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadAll} />}
-          {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadAll} />}
-          {activeSection === 'shop' && <ShopSection session={session} jetonsBalance={jetonsBalance} />}
-          {activeSection === 'events' && <EventsPage events={events} />}
+          {activeSection === 'wallet' && <WalletPage session={session} jetonsBalance={jetonsBalance} />}
+          {activeSection === 'shop' && <ShopPage session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} onNavigate={sec => setActiveSection(sec)} />}
           {activeSection === 'archives' && <ArchivesSection />}
           {activeSection === 'governance' && <GovernanceSection />}
@@ -416,7 +387,7 @@ const ProSpaceDashboard = () => {
           {activeSection === 'messages' && <MessagesSection session={session} />}
           {activeSection === 'settings-detail' && <SettingsSection session={session} jetonsBalance={jetonsBalance} onLogout={handleLogout} />}
         </div>
-      )}
+      )}}
 
       {showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
       <CvlBrainFloat session={session} externalOpen={brainOpen} onExternalClose={() => setBrainOpen(false)} />
@@ -1818,7 +1789,7 @@ export const ProSpaceLogin = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-black" style={{ color: C.text }}>{LEGAL_CONTENT[legalModal]?.title}</h2>
               <button onClick={() => setLegalModal(null)} className="p-2 rounded-lg hover:bg-white/5" data-testid="close-legal-modal">
-                <X size={18} style={{ color: C.muted }} />
+                <span className="material-symbols-outlined" style={{ color: '#72727a', fontSize: 18 }}>close</span>
               </button>
             </div>
             <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: C.muted }}>
@@ -1835,10 +1806,10 @@ export const ProSpaceLogin = () => {
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-xl mx-auto mb-5 flex items-center justify-center relative"
               style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.15), rgba(232,213,160,0.05))', border: `1px solid rgba(232,213,160,0.2)` }}>
-              <Users size={28} style={{ color: C.gold }} />
+              <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 28 }}>group</span>
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
                 style={{ background: C.gold }}>
-                <Zap size={10} style={{ color: '#0a0a0b' }} />
+                <span className="material-symbols-outlined" style={{ color: '#0a0a0b', fontSize: 10 }}>bolt</span>
               </div>
             </div>
             <h1 className="text-2xl font-black tracking-tight" style={{ color: C.text }}>
@@ -1874,7 +1845,7 @@ export const ProSpaceLogin = () => {
                 <div className="text-center py-2">
                   <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
                     style={{ background: 'rgba(232,213,160,0.1)', border: `1px solid rgba(232,213,160,0.2)` }}>
-                    <Mail size={20} style={{ color: C.gold }} />
+                    <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 20 }}>mail</span>
                   </div>
                   <p className="text-sm font-bold mb-1" style={{ color: C.text }}>Verifiez votre boite mail</p>
                   <p className="text-sm" style={{ color: C.muted }}>
@@ -1900,7 +1871,7 @@ export const ProSpaceLogin = () => {
                       Nouveau ? Un compte sera cree automatiquement avec un FREK-ID unique.
                     </p>
                   </div>
-                  <Button type="submit" disabled={loading || !email} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  <button type="submit" disabled={loading || !email} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
                     style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading || !email ? 0.5 : 1 }} data-testid="pro-magic-link-btn">
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -1908,7 +1879,7 @@ export const ProSpaceLogin = () => {
                         Envoi...
                       </span>
                     ) : "Recevoir mon lien de connexion"}
-                  </Button>
+                  </button>
                 </form>
               )}
             </div>
@@ -1917,17 +1888,17 @@ export const ProSpaceLogin = () => {
             <div className="px-6 pb-5">
               <div className="flex items-center justify-center gap-4 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
                 <div className="flex items-center gap-1.5">
-                  <Shield size={12} style={{ color: C.gold }} />
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: C.gold }}>shield</span>
                   <span className="text-[10px] font-medium" style={{ color: C.dim }}>Chiffre E2E</span>
                 </div>
                 <div className="w-px h-3" style={{ background: C.border }} />
                 <div className="flex items-center gap-1.5">
-                  <Globe size={12} style={{ color: C.gold }} />
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: C.gold }}>public</span>
                   <span className="text-[10px] font-medium" style={{ color: C.dim }}>RGPD</span>
                 </div>
                 <div className="w-px h-3" style={{ background: C.border }} />
                 <div className="flex items-center gap-1.5">
-                  <Zap size={12} style={{ color: C.gold }} />
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: C.gold }}>bolt</span>
                   <span className="text-[10px] font-medium" style={{ color: C.dim }}>KT Ecosystem</span>
                 </div>
               </div>

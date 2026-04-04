@@ -132,7 +132,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -3769,6 +3769,8 @@ from routes.ghost_engine import router as growth_engine_router
 from routes.fintech import router as fintech_router
 from routes.cultural_identity import router as cultural_identity_router, feed_router as cultural_feed_router, reactions_router as cultural_reactions_router
 from routes.cultural_search import router as cultural_search_router, analytics_router as cultural_analytics_router
+from routes.pro_feed import router as pro_feed_router, init_db as pro_feed_init_db
+pro_feed_init_db(db)
 app.include_router(badges_router)
 app.include_router(jetons_router)
 app.include_router(ses_router)
@@ -3789,6 +3791,7 @@ app.include_router(cultural_feed_router)
 app.include_router(cultural_reactions_router)
 app.include_router(cultural_search_router)
 app.include_router(cultural_analytics_router)
+app.include_router(pro_feed_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek
