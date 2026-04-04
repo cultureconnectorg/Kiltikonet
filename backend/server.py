@@ -551,38 +551,44 @@ def get_partner_welcome_email(company_name: str, tier: str, contact_name: str) -
     """
 
 async def send_email_async(to_email: str, subject: str, html_content: str):
-    """Send email via Brevo SMTP relay"""
+    """Send email via Brevo HTTP API"""
     try:
-        import aiosmtplib
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
+        import httpx
+        brevo_key = os.environ.get("BREVO_SMTP_KEY", "")
+        sender_email = os.environ.get("SENDER_EMAIL", "noreply@kiltikonet.fr")
+        sender_name = "Kiltikonet"
 
-        smtp_user = os.environ.get("BREVO_SMTP_USER", "")
-        smtp_key = os.environ.get("BREVO_SMTP_KEY", "")
-        sender = os.environ.get("SENDER_EMAIL", "noreply@kiltikonet.fr")
-
-        msg = MIMEMultipart("alternative")
-        msg["From"] = f"Kiltikonet <{sender}>"
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(html_content, "html", "utf-8"))
-
-        await aiosmtplib.send(
-            msg,
-            hostname="smtp-relay.brevo.com",
-            port=587,
-            username=smtp_user,
-            password=smtp_key,
-            start_tls=True,
-        )
-        logger.info(f"Email sent via Brevo to {to_email}")
-        await db.email_logs.insert_one({
-            "to": to_email, "subject": subject, "provider": "brevo",
-            "status": "sent", "timestamp": datetime.now(timezone.utc).isoformat()
-        })
-        return {"id": "brevo-ok"}
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={"api-key": brevo_key, "content-type": "application/json", "accept": "application/json"},
+                json={
+                    "sender": {"name": sender_name, "email": sender_email},
+                    "to": [{"email": to_email}],
+                    "subject": subject,
+                    "htmlContent": html_content,
+                }
+            )
+            if resp.status_code in (200, 201):
+                msg_id = resp.json().get("messageId", "")
+                logger.info(f"Email sent via Brevo to {to_email} (msgId={msg_id})")
+                await db.email_logs.insert_one({
+                    "to": to_email, "subject": subject, "provider": "brevo",
+                    "status": "sent", "message_id": msg_id,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+                return {"id": msg_id}
+            else:
+                err = resp.text[:200]
+                logger.error(f"Brevo API failed for {to_email}: {resp.status_code} {err}")
+                await db.email_logs.insert_one({
+                    "to": to_email, "subject": subject, "provider": "brevo",
+                    "status": "failed", "error": err,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+                return None
     except Exception as e:
-        logger.error(f"Brevo SMTP failed for {to_email}: {e}")
+        logger.error(f"Brevo API error for {to_email}: {e}")
         await db.email_logs.insert_one({
             "to": to_email, "subject": subject, "provider": "brevo",
             "status": "failed", "error": str(e),
@@ -591,41 +597,31 @@ async def send_email_async(to_email: str, subject: str, html_content: str):
         return None
 
 async def send_email_with_attachment(to_email: str, subject: str, html_content: str, pdf_content: bytes, filename: str):
-    """Send email with PDF attachment via Brevo SMTP"""
+    """Send email with PDF attachment via Brevo HTTP API"""
     try:
-        import aiosmtplib
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
-        from email.mime.base import MIMEBase
-        from email import encoders
+        import httpx
         import base64
+        brevo_key = os.environ.get("BREVO_SMTP_KEY", "")
+        sender_email = os.environ.get("SENDER_EMAIL", "noreply@kiltikonet.fr")
 
-        smtp_user = os.environ.get("BREVO_SMTP_USER", "")
-        smtp_key = os.environ.get("BREVO_SMTP_KEY", "")
-        sender = os.environ.get("SENDER_EMAIL", "noreply@kiltikonet.fr")
-
-        msg = MIMEMultipart("mixed")
-        msg["From"] = f"Kiltikonet <{sender}>"
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(html_content, "html", "utf-8"))
-
-        part = MIMEBase("application", "octet-stream")
-        part.set_payload(pdf_content)
-        encoders.encode_base64(part)
-        part.add_header("Content-Disposition", f"attachment; filename={filename}")
-        msg.attach(part)
-
-        await aiosmtplib.send(
-            msg,
-            hostname="smtp-relay.brevo.com",
-            port=587,
-            username=smtp_user,
-            password=smtp_key,
-            start_tls=True,
-        )
-        logger.info(f"Email with attachment sent via Brevo to {to_email}")
-        return {"id": "brevo-ok"}
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={"api-key": brevo_key, "content-type": "application/json", "accept": "application/json"},
+                json={
+                    "sender": {"name": "Kiltikonet", "email": sender_email},
+                    "to": [{"email": to_email}],
+                    "subject": subject,
+                    "htmlContent": html_content,
+                    "attachment": [{"content": base64.b64encode(pdf_content).decode(), "name": filename}],
+                }
+            )
+            if resp.status_code in (200, 201):
+                logger.info(f"Email with attachment sent via Brevo to {to_email}")
+                return {"id": resp.json().get("messageId", "")}
+            else:
+                logger.error(f"Brevo attachment email failed: {resp.status_code} {resp.text[:200]}")
+                return None
     except Exception as e:
         logger.error(f"Failed to send email with attachment to {to_email}: {e}")
         return None
@@ -6644,60 +6640,34 @@ async def validate_magic_link(token: str):
 # GOOGLE OAUTH (Emergent-managed)
 # ═══════════════════════════════════════════════════════════════
 
-@app.get("/api/auth/google")
-async def google_auth_redirect(request: Request):
-    """Initiate Google OAuth flow — redirect user to Google consent screen"""
-    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-    if not client_id:
-        raise HTTPException(status_code=503, detail="Google Auth non configuré")
-    origin = request.headers.get("origin", os.environ.get("FRONTEND_URL", "https://kiltikonet.fr"))
-    callback_url = f"{origin}/api/auth/google/callback"
-    import urllib.parse
-    params = urllib.parse.urlencode({
-        "client_id": client_id,
-        "redirect_uri": callback_url,
-        "response_type": "code",
-        "scope": "openid email profile",
-        "access_type": "offline",
-        "prompt": "select_account",
-    })
-    return RedirectResponse(f"https://accounts.google.com/o/oauth2/v2/auth?{params}")
+@app.post("/api/auth/google/session")
+async def google_auth_session(request: Request):
+    """Process Emergent Google OAuth session_id → validate → create local session"""
+    body = await request.json()
+    session_id = body.get("session_id", "")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id requis")
 
-
-@app.get("/api/auth/google/callback")
-async def google_auth_callback(code: str, request: Request):
-    """Handle Google OAuth callback — exchange code for profile, fusion if email exists"""
-    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
-    origin = str(request.base_url).rstrip("/")
-    callback_url = f"{origin}api/auth/google/callback"
-
-    # Exchange code for tokens
+    # Exchange session_id for user data via Emergent Auth
     import httpx
     async with httpx.AsyncClient() as client:
-        token_resp = await client.post("https://oauth2.googleapis.com/token", data={
-            "code": code, "client_id": client_id, "client_secret": client_secret,
-            "redirect_uri": callback_url, "grant_type": "authorization_code",
-        })
-        if token_resp.status_code != 200:
-            raise HTTPException(status_code=400, detail="Échec de l'authentification Google")
-        tokens = token_resp.json()
-
-        userinfo_resp = await client.get("https://www.googleapis.com/oauth2/v2/userinfo",
-            headers={"Authorization": f"Bearer {tokens['access_token']}"})
-        if userinfo_resp.status_code != 200:
-            raise HTTPException(status_code=400, detail="Impossible de récupérer le profil Google")
-        guser = userinfo_resp.json()
+        resp = await client.get(
+            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+            headers={"X-Session-ID": session_id}
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Session Google invalide")
+        guser = resp.json()
 
     google_email = guser.get("email", "").lower()
-    google_id = guser.get("id", "")
     google_name = guser.get("name", google_email.split("@")[0])
     google_picture = guser.get("picture", "")
+    google_id = guser.get("id", "")
 
     # FUSION: check if email exists in registrations
     existing = await db.registrations.find_one({"email": google_email}, {"_id": 0})
     if existing:
-        # Account fusion — update google_id, keep all data
+        # Account fusion — update google_id, keep ALL existing data
         await db.registrations.update_one(
             {"email": google_email},
             {"$set": {"google_id": google_id, "google_picture": google_picture},
@@ -6705,7 +6675,7 @@ async def google_auth_callback(code: str, request: Request):
         )
         profile = existing
     else:
-        # New user — create profile
+        # New user — create profile with FREK-ID
         frek_id = f"FREK-{google_email[:3].upper()}-{str(uuid.uuid4())[:6].upper()}"
         profile = {
             "id": str(uuid.uuid4()),
@@ -6719,23 +6689,31 @@ async def google_auth_callback(code: str, request: Request):
             "frek_id": frek_id,
             "language": "fr",
             "cultural_score": 0,
-            "is_new_user": True,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.registrations.insert_one({**profile})
+        profile.pop("_id", None)
 
     await db.pro_access_logs.insert_one({
         "email": google_email, "profile_id": profile.get("id"),
         "action": "google_login", "timestamp": datetime.now(timezone.utc).isoformat()
     })
 
-    # Set session cookie and redirect to frontend
-    frontend_url = os.environ.get("FRONTEND_URL", "https://kiltikonet.fr")
-    response = RedirectResponse(url=f"{frontend_url}/espace-pro?auth=google")
+    # Build response with session cookie
+    response = JSONResponse(content={
+        "success": True,
+        "profile": {
+            "id": profile.get("id"), "email": google_email,
+            "full_name": profile.get("full_name", google_name),
+            "image": profile.get("image", google_picture),
+            "frek_id": profile.get("frek_id", ""),
+            "profile_type": profile.get("profile_type", "pro"),
+        }
+    })
     set_session_cookie(response, {
         "role": profile.get("profile_type", "pro"),
         "email": google_email,
-        "name": profile.get("full_name", ""),
+        "name": profile.get("full_name", google_name),
         "profile_id": profile.get("id", ""),
         "profile_type": profile.get("profile_type", ""),
         "is_admin": profile.get("is_admin", False),

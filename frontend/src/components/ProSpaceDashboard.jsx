@@ -1365,17 +1365,28 @@ export const ProSpaceLogin = () => {
   const [linkSent, setLinkSent] = useState(false);
   const [legalModal, setLegalModal] = useState(null);
 
-  // Check if returning from Google OAuth
+  // Check if returning from Google OAuth (Emergent Auth callback)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('auth') === 'google') {
-      // Session cookie was set by backend, check auth
-      axios.get(`${API}/auth/me`, { withCredentials: true })
-        .then(res => {
-          if (res.data.authenticated) {
-            navigate('/espace-pro', { replace: true });
-          }
-        }).catch(() => {});
+    const hash = window.location.hash;
+    if (hash?.includes('session_id=')) {
+      const sessionId = new URLSearchParams(hash.substring(1)).get('session_id');
+      if (sessionId) {
+        setLoading(true);
+        axios.post(`${API}/auth/google/session`, { session_id: sessionId }, { withCredentials: true })
+          .then(res => {
+            if (res.data.success) {
+              const p = res.data.profile;
+              sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
+                id: p.id, email: p.email, name: p.full_name, image: p.image,
+                type: p.profile_type, frek_id: p.frek_id, verified: true, createdAt: Date.now()
+              }));
+              toast.success(`Bienvenue ${p.full_name} !`);
+              window.location.hash = '';
+              navigate('/espace-pro', { replace: true });
+            }
+          })
+          .catch(() => { toast.error('Erreur de connexion Google'); setLoading(false); });
+      }
     }
   }, [navigate]);
 
@@ -1407,7 +1418,9 @@ export const ProSpaceLogin = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API}/auth/google`;
+    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    const redirectUrl = window.location.origin + '/espace-pro/connexion';
+    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   if (loading) {
