@@ -29,8 +29,24 @@ Plateforme événementielle/culturelle premium omnicanale (React 19 + FastAPI + 
 
 ### Navigation & Structure ✅
 - [x] Bottom nav 5 tabs : Feed, Reels, Brain (orb doré), Wallet, Profil
-- [x] Hamburger menu : 11 sections (Feed, Reels, Inbox, Brain, Wallet, Shop, Archives, Profil, Gouvernance, Console, Paramètres)
-- [x] Header : Inbox icon + KT balance badge
+- [x] Hamburger menu : 13 sections (Vitrine, Feed, Reels, Inbox, Brain, Wallet, Studios, Shop, Archives, Profil, Gouvernance, Console, Paramètres)
+- [x] Header : Studios icon + Inbox icon + KT balance badge
+
+### Écran 2 — Page Vitrine ✅
+- [x] Carrousel auto-rotatif de 5 actualités culturelles
+- [x] Indicateurs dot interactifs
+- [x] Barre de stats CC2026 (12 pays, 69 artistes, 4 jours, 10K+ visiteurs)
+- [x] Grille de 5 articles (Musique, Événement, Technologie, Gastronomie, Patrimoine)
+- [x] Tendances du réseau (posts ghost les plus populaires)
+- [x] CTA "Rejoignez CC2026"
+
+### Écran 4 — Studios Sidebar ✅
+- [x] Animation slide depuis la gauche (CSS transition)
+- [x] 4 Studios : LinkedIn, Feed/Reel, Shop, Preview+Terminal
+- [x] Chaque studio : icône colorée, description, liste d'outils extensible
+- [x] Panel étendu avec stats et activité récente
+- [x] Navigation vers la section correspondante au clic
+- [x] Accessible depuis header desktop + hamburger mobile
 
 ### Écran 5 — Feed LinkedIn ✅
 - [x] Posts ghost auto-générés (60+ posts)
@@ -38,13 +54,21 @@ Plateforme événementielle/culturelle premium omnicanale (React 19 + FastAPI + 
 - [x] Create post bar
 - [x] Actions LinkedIn (J'aime, Commenter, Republier, Envoyer)
 - [x] Infinite scroll avec pagination
-- [x] Backend: `/api/pro/feed` avec auto-seed
 
 ### Écran 6 — Reels/TikTok ✅
 - [x] 25+ reels ghost auto-générés
 - [x] Snap scroll vertical
 - [x] Actions verticales (Like, Comment, Share, JCC)
-- [x] Backend: `/api/pro/feed/reels`
+
+### Écran 7 — Boîte de Réception Immersive ✅
+- [x] Interface fullscreen style Instagram DMs
+- [x] 7 conversations ghost (Simone, Mateo, Chiamaka, Diego, Amara, Yaël, Nadia)
+- [x] Barre "En ligne" avec avatars et status dots
+- [x] Chat view avec bulles dorées (messages envoyés) et sombres (reçus)
+- [x] Auto-reply ghost après délai aléatoire
+- [x] Recherche de conversations
+- [x] Boutons d'action (appel, vidéo, info)
+- [x] CvlBrainFloat masqué automatiquement quand inbox ouverte
 
 ### Écran 8 — CVL BRAIN ✅
 - [x] Sphère dorée avec gradient radial + ondulations
@@ -57,7 +81,12 @@ Plateforme événementielle/culturelle premium omnicanale (React 19 + FastAPI + 
 - [x] Design Revolut : balance, sparkline chart, trend indicator
 - [x] Quick actions : Recharger, Envoyer, Échanger, Trading
 - [x] 3 tabs : Aperçu, Historique, Analyse
-- [x] Analytics : répartition dépenses
+
+### Écran 12 — Profil Triptyque ✅
+- [x] 3 onglets : Fiche, Gouvernance, SaaS
+- [x] Fiche : Hero card, stats (vues, connexions, KT, score), badges, activité récente
+- [x] Gouvernance : Pouvoir de vote (4,200 KT), propositions actives avec barres de progression, délégations
+- [x] SaaS : Plan Pro Souverain (29€/mois), compteurs d'utilisation, historique de facturation, moyen de paiement
 
 ### Design Sovereign Onyx ✅
 - [x] Global CSS : grain texture, ambient glow, tokens CSS
@@ -66,22 +95,14 @@ Plateforme événementielle/culturelle premium omnicanale (React 19 + FastAPI + 
 - [x] Cards : rounded-xl, ghost borders
 
 ### Infrastructure ✅
-- [x] Ghost population : 200 profils + 60 posts + 25 reels
+- [x] Ghost population : 200 profils + 60 posts + 25 reels + 7 conversations
 - [x] Rate limiter whitelist : /api/pro, /api/brain, /api/auth, /api/growth
 - [x] Login magic link avec bypass admin
 
-## Backlog P0
-- [ ] Écran 1 : CVL BRAIN bouton rond d'or flottant avec animation
-- [ ] Écran 2 : Page Vitrine dynamique (actualités culturelles auto-générées)
-- [ ] Écran 3 : Connexion FREK + Google + GitHub
-- [ ] Écran 4 : Studios sidebar (slide gauche, 4 studios)
-
 ## Backlog P1
-- [ ] Écran 7 : Boîte de réception immersive (style Instagram DM)
+- [ ] Écran 13 : Terminal code IA + API déploiement style Emergent
 - [ ] Écran 10 : Sovereign Corp Shop amélioré
 - [ ] Écran 11 : Archives/Cloud (stockage + entraînement CVL Brain)
-- [ ] Écran 12 : 3 Profils (Fiche, Gouvernance KT, SaaS paiement)
-- [ ] Écran 13 : Terminal code IA + API déploiement style Emergent
 - [ ] Écran 14 : Paramètres trading KT
 
 ## Backlog P2
