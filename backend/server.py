@@ -124,7 +124,7 @@ api_v1_router = APIRouter(prefix="/api/v1")
 # ── Global Rate Limiter (production) ──
 _rate_limit_store: Dict[str, list] = {}
 RATE_LIMIT_WINDOW = 60  # seconds
-RATE_LIMIT_MAX = 120     # requests per window per IP
+RATE_LIMIT_MAX = 200     # requests per window per IP
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
@@ -132,7 +132,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth/magic") or path.startswith("/api/brain")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             

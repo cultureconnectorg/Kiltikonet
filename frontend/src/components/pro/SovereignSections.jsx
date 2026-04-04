@@ -233,15 +233,15 @@ export const ConsoleSection = ({ session }) => {
 };
 
 // ─── PARAMÈTRES ─────────────────────────────────────────
-export const SettingsSovereign = ({ session, onLogout }) => {
+export const SettingsSovereign = ({ session, onLogout, onNavigate }) => {
   const sections = [
     { title: 'Compte', items: [
-      { icon: 'person', label: 'Profil Public', desc: 'Modifier votre nom, bio et photo' },
+      { icon: 'person', label: 'Profil Public', desc: 'Modifier votre nom, bio et photo', action: () => onNavigate?.('profile') },
       { icon: 'security', label: 'Sécurité', desc: 'Mot de passe, sessions actives' },
       { icon: 'notifications', label: 'Notifications', desc: 'Gérer les alertes et emails' },
     ]},
     { title: 'Préférences', items: [
-      { icon: 'language', label: 'Langue', desc: 'Français · Créole' },
+      { icon: 'language', label: 'Langue', desc: 'Français · Créole', action: () => onNavigate?.('settings-detail') },
       { icon: 'dark_mode', label: 'Apparence', desc: 'Thème Sovereign Onyx' },
       { icon: 'tune', label: 'Confidentialité', desc: 'Visibilité du profil et données' },
     ]},
@@ -269,7 +269,8 @@ export const SettingsSovereign = ({ session, onLogout }) => {
           <h3 className="mb-3" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>{sec.title}</h3>
           <div className="rounded-xl overflow-hidden" style={{ background: '#1c1b1c' }}>
             {sec.items.map((item, idx) => (
-              <button key={item.label} className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+              <button key={item.label} onClick={item.action || undefined}
+                className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
                 style={{ borderBottom: idx < sec.items.length - 1 ? '1px solid rgba(75,70,59,0.1)' : 'none' }}>
                 <span className="material-symbols-outlined" style={{ color: '#d8c591', fontSize: 22 }}>{item.icon}</span>
                 <div className="flex-1">

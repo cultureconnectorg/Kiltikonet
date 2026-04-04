@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus } from 'lucide-react';
 import axios from 'axios';
 import CulturalCard, { CardSkeleton } from './CulturalCards';
 import CreateCulturalCard from './CreateCulturalCard';
@@ -130,8 +129,10 @@ const CulturalFeed = ({ userId }) => {
           {Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={`skeleton-${i}`} />)}
         </div>
       ) : cards.length === 0 ? (
-        <div className="rounded-2xl p-12 text-center" style={{ background: '#141414', border: '1px solid #1a1a1a' }}>
-          <p className="text-base" style={{ color: '#555' }}>Aucun contenu pour ce filtre</p>
+        <div className="rounded-xl p-12 text-center" style={{ background: '#141414' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#2a2a2b' }}>explore</span>
+          <p className="mt-3" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#555' }}>Aucun contenu pour ce filtre</p>
+          <p className="mt-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, color: '#333' }}>Soyez le premier à publier</p>
         </div>
       ) : (
         <div ref={feedRef} className="kn-snap-feed" data-testid="snap-feed-container">

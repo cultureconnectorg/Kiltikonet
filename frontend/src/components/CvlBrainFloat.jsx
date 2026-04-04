@@ -136,8 +136,8 @@ Réponds en 2-3 phrases maximum. Sois direct et humain.`,
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 md:bottom-6 right-4 z-[95] w-[340px] sm:w-96 rounded-3xl overflow-hidden flex flex-col"
-          style={{ background: '#131314', boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(232,213,160,0.05)', maxHeight: '520px' }}
+        <div className="fixed bottom-24 md:bottom-6 right-4 z-[95] w-[340px] sm:w-96 rounded-xl overflow-hidden flex flex-col"
+          style={{ background: '#131314', boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(232,213,160,0.05)', maxHeight: '520px', border: '1px solid rgba(75,70,59,0.1)' }}
           data-testid="cvl-brain-chat">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3" style={{ background: 'rgba(232,213,160,0.03)' }}>
@@ -189,13 +189,20 @@ Réponds en 2-3 phrases maximum. Sois direct et humain.`,
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 200, maxHeight: 360 }}>
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className="max-w-[85%] px-4 py-3 rounded-2xl leading-relaxed"
+                  {msg.role === 'assistant' && (
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mr-2 mt-1" style={{ background: 'linear-gradient(135deg, #E8D5A0, #d8c591)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#3a2f09', fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                    </div>
+                  )}
+                  <div className="max-w-[80%] px-4 py-3 rounded-xl leading-relaxed"
                     style={{
-                      fontFamily: "'Manrope', sans-serif", fontSize: 13,
-                      background: msg.role === 'user' ? '#E8D5A0' : '#1b1b1c',
-                      color: msg.role === 'user' ? '#0a0a0b' : '#e5e2e3',
-                      borderBottomRightRadius: msg.role === 'user' ? 4 : 20,
-                      borderBottomLeftRadius: msg.role === 'user' ? 20 : 4,
+                      fontFamily: msg.role === 'assistant' ? "'Newsreader', serif" : "'Manrope', sans-serif",
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                      background: msg.role === 'user' ? '#201f20' : 'transparent',
+                      color: msg.role === 'user' ? '#e5e2e3' : '#cdc6b7',
+                      borderBottomRightRadius: msg.role === 'user' ? 4 : 12,
+                      borderBottomLeftRadius: msg.role === 'user' ? 12 : 4,
                     }}>{msg.content}</div>
                 </div>
               ))}

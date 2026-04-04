@@ -217,7 +217,7 @@ const ProSpaceDashboard = () => {
         if (fab) fab.click();
       }, 100);
     } else if (id === 'brain') {
-      setBrainOpen(true);
+      setActiveSection('brain');
     } else {
       setActiveSection(id);
     }
@@ -228,8 +228,8 @@ const ProSpaceDashboard = () => {
     <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'Manrope', sans-serif", color: C.text }} data-testid="pro-space-dashboard">
       {showOnboarding && <ProOnboarding session={session} onComplete={handleOnboardingComplete} />}
 
-      {/* ─── HEADER SOVEREIGN ─── */}
-      <header className="sticky top-0 z-50" style={{ background: 'rgba(10,10,11,0.80)', backdropFilter: 'blur(24px) saturate(1.6)', WebkitBackdropFilter: 'blur(24px) saturate(1.6)', boxShadow: '0 32px 64px -15px rgba(0,0,0,0.5)' }}>
+      {/* ─── HEADER SOVEREIGN — Stitch "TopAppBar" ─── */}
+      <header className="sticky top-0 z-50" style={{ background: 'rgba(10,10,11,0.60)', backdropFilter: 'blur(24px) saturate(1.6)', WebkitBackdropFilter: 'blur(24px) saturate(1.6)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center gap-4">
           {/* Menu icon */}
           <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden flex items-center justify-center" style={{ minHeight: 44, minWidth: 44 }} aria-label="Menu" data-testid="menu-toggle">
@@ -331,52 +331,71 @@ const ProSpaceDashboard = () => {
         <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />
       ) : activeSection === 'brain' ? (
         <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
-          {/* Brain Chat — Full page Sovereign */}
-          <main className="flex-1 overflow-y-auto px-6 py-8 flex flex-col gap-10 max-w-3xl mx-auto w-full">
-            {/* Welcome */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E8D5A0, #d8c591)' }}>
-                  <span className="material-symbols-outlined text-[14px]" style={{ color: '#3a2f09', fontVariationSettings: "'FILL' 1" }}>psychology</span>
-                </div>
-                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#d8c591' }}>BRAIN CURATOR</span>
-              </div>
-              <div className="pl-9 space-y-4">
-                <p style={{ fontFamily: "'Newsreader', serif", fontSize: 'clamp(18px, 3vw, 24px)', lineHeight: 1.6, color: '#e5e2e3' }}>
-                  Sak pasé ? Man sé <span style={{ fontStyle: 'italic', color: '#E8D5A0' }}>CVL BRAIN</span> — l'intelligence souveraine du groupe CVLN. Posez-moi vos questions sur l'écosystème CC2026, la culture caribéenne, ou demandez-moi d'analyser vos projets.
-                </p>
-                <div className="p-6 rounded-xl italic" style={{ background: '#1c1b1c', borderLeft: '2px solid rgba(232,213,160,0.3)', fontFamily: "'Newsreader', serif", fontSize: 16, color: '#cdc6b7', lineHeight: 1.7 }}>
-                  "L'intelligence n'est pas ce qui sait tout, c'est ce qui sait poser les bonnes questions au bon moment."
+          {/* Brain — Full page Sovereign with Golden Sphere */}
+          <main className="flex-1 overflow-y-auto flex flex-col items-center justify-center relative">
+            {/* Radial ambient glow */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div style={{ width: '70%', height: '70%', background: 'radial-gradient(circle, rgba(232,213,160,0.06) 0%, transparent 60%)', filter: 'blur(60px)' }} />
+            </div>
+
+            {/* Golden Sphere — Stitch "cvl_brain_c_ur_d_or_pur" */}
+            <div className="relative flex items-center justify-center mb-12" data-testid="brain-golden-sphere">
+              {/* Ripple rings */}
+              <div className="absolute w-56 h-56 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.08)', animationDuration: '4s' }} />
+              <div className="absolute w-72 h-72 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.04)', animationDuration: '5s', animationDelay: '0.5s' }} />
+              <div className="absolute w-96 h-96 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.02)', animationDuration: '6s', animationDelay: '1s' }} />
+              {/* Sphere */}
+              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                onClick={() => setBrainOpen(true)}
+                style={{
+                  background: 'radial-gradient(circle at 35% 35%, #F5E6BE 0%, #C8A84B 50%, #745B00 100%)',
+                  boxShadow: '0 0 60px 10px rgba(232,213,160,0.4), 0 0 120px 30px rgba(200,168,75,0.15), inset 0 -8px 16px rgba(0,0,0,0.3)',
+                }}>
+                <div className="w-full h-full rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'rgba(58,47,9,0.6)', fontVariationSettings: "'FILL' 1, 'wght' 300" }}>psychology</span>
                 </div>
               </div>
             </div>
 
-            {/* Contextual suggestions */}
-            <div className="flex flex-wrap gap-2 pl-9">
-              {['Analyse mon profil culturel', 'Stratégie CC2026', 'Rédige un pitch artistique'].map(s => (
+            {/* Brain title */}
+            <div className="text-center space-y-3 px-6">
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#d8c591' }}>Intelligence Souveraine</span>
+              <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 300, letterSpacing: '-0.03em', color: '#e5e2e3', lineHeight: 0.95 }}>
+                CVL <span style={{ color: '#E8D5A0' }}>BRAIN</span>
+              </h1>
+              <p className="max-w-md mx-auto" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', lineHeight: 1.7 }}>
+                Posez vos questions sur l'écosystème CC2026, la culture caribéenne, ou demandez une analyse de vos projets.
+              </p>
+            </div>
+
+            {/* Contextual suggestions — Stitch "AI Tool suggestions" */}
+            <div className="flex flex-wrap justify-center gap-2 mt-8 px-6">
+              {['Analyse mon profil', 'Stratégie CC2026', 'Pitch artistique', 'Recherche web'].map(s => (
                 <button key={s} onClick={() => setBrainOpen(true)}
-                  className="text-[11px] font-bold py-2 px-4 rounded-full uppercase tracking-wider transition-all hover:scale-[1.02]"
-                  style={{ background: '#2a2a2b', color: '#d8c591', fontFamily: "'Manrope', sans-serif" }}>{s}</button>
+                  className="py-2 px-4 rounded-full transition-all hover:scale-[1.02] active:scale-95"
+                  style={{ background: '#2a2a2b', color: '#d8c591', fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{s}</button>
               ))}
             </div>
           </main>
 
-          {/* Bottom Command Bar */}
-          <div className="px-4 pb-6 pt-2 max-w-3xl mx-auto w-full">
-            <div className="p-2 rounded-2xl" style={{ background: 'rgba(19,19,20,0.95)', backdropFilter: 'blur(24px)', boxShadow: '0 -10px 40px rgba(0,0,0,0.6)' }}>
+          {/* Bottom Command Bar — Stitch "Floating Command Bar" */}
+          <div className="px-4 pb-6 pt-2 max-w-2xl mx-auto w-full">
+            <div className="p-2 rounded-xl" style={{ background: 'rgba(19,19,20,0.95)', backdropFilter: 'blur(32px)', boxShadow: '0 -10px 40px rgba(0,0,0,0.6)' }}>
+              {/* AI Tools Compact Bar */}
               <div className="flex items-center gap-1 px-2 py-1">
-                <button className="p-2 transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>upload_file</span></button>
-                <button className="p-2 transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>mic</span></button>
-                <button className="p-2 transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>code</span></button>
+                <button className="p-2 hover:text-[#E8D5A0] transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>upload_file</span></button>
+                <button className="p-2 hover:text-[#E8D5A0] transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>mic</span></button>
+                <button className="p-2 hover:text-[#E8D5A0] transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>code</span></button>
                 <div className="h-4 w-px mx-2" style={{ background: 'rgba(75,70,59,0.3)' }} />
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>BRAIN v2.4</span>
               </div>
-              <div className="relative flex items-center rounded-xl" style={{ background: 'rgba(53,52,54,0.3)' }}>
+              {/* Input Area */}
+              <div className="relative flex items-center rounded-lg" style={{ background: 'rgba(53,52,54,0.3)' }}>
                 <input placeholder="Command the Curator..." onClick={() => setBrainOpen(true)}
-                  className="w-full bg-transparent border-none py-4 pl-5 pr-12 text-sm" data-testid="brain-page-input"
+                  className="w-full bg-transparent border-none py-4 pl-5 pr-12 text-sm font-medium" data-testid="brain-page-input"
                   style={{ color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} readOnly />
                 <button onClick={() => setBrainOpen(true)}
-                  className="absolute right-2 w-10 h-10 rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                  className="absolute right-2 w-10 h-10 rounded-lg flex items-center justify-center active:scale-90 transition-transform"
                   style={{ background: '#E8D5A0' }}>
                   <span className="material-symbols-outlined" style={{ color: '#3a2f09' }}>arrow_upward</span>
                 </button>
@@ -390,11 +409,12 @@ const ProSpaceDashboard = () => {
           {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadAll} />}
           {activeSection === 'shop' && <ShopSection session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'events' && <EventsPage events={events} />}
-          {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} />}
+          {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} onNavigate={sec => setActiveSection(sec)} />}
           {activeSection === 'archives' && <ArchivesSection />}
           {activeSection === 'governance' && <GovernanceSection />}
           {activeSection === 'console' && <ConsoleSection session={session} />}
           {activeSection === 'messages' && <MessagesSection session={session} />}
+          {activeSection === 'settings-detail' && <SettingsSection session={session} jetonsBalance={jetonsBalance} onLogout={handleLogout} />}
         </div>
       )}
 
@@ -409,28 +429,46 @@ const ProSpaceDashboard = () => {
         networkBadge={connections.length > 0 ? 0 : 1}
       />
 
+      {/* ─── AMBIENT GLOW — Stitch Sovereign background ─── */}
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+        <div className="absolute" style={{ top: '-10%', right: '-10%', width: '60%', height: '60%', background: 'rgba(232,213,160,0.03)', filter: 'blur(120px)', borderRadius: '50%' }} />
+        <div className="absolute" style={{ bottom: '-10%', left: '-10%', width: '40%', height: '40%', background: 'rgba(53,52,54,0.15)', filter: 'blur(100px)', borderRadius: '50%' }} />
+      </div>
+
+      {/* ─── GRAIN TEXTURE — Stitch "Sovereign Editorial" ─── */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 100, opacity: 0.03, backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
+
       {/* ─── Global CSS — Sovereign Onyx Design System ─── */}
       <style>{`
         :root {
           --bg: #0a0a0b;
           --surface: #131314;
-          --surface-low: #1b1b1c;
+          --surface-low: #1c1b1c;
+          --surface-container: #201f20;
           --surface-high: #2a2a2b;
+          --surface-highest: #353436;
           --gold: #E8D5A0;
           --gold-dim: #d8c591;
           --gold-container: #c8a84b;
           --gold-glow: rgba(232,213,160,0.12);
+          --primary-container: #e8d5a0;
+          --primary-fixed-dim: #d8c591;
           --text: #e5e2e3;
           --muted: #72727a;
+          --outline: #979083;
           --outline-variant: rgba(75,70,59,0.15);
+          --on-primary: #3a2f09;
         }
 
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        /* Selection — Sovereign Gold */
+        ::selection { background: var(--primary-container); color: var(--on-primary); }
+
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-slide-in { animation: fadeSlideIn 0.4s cubic-bezier(0.2,0,0,1) both; }
 
         @keyframes skeletonShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .kn-skeleton-shimmer {
-          background: linear-gradient(90deg, #1b1b1c 0%, #2a2a2b 50%, #1b1b1c 100%);
+          background: linear-gradient(90deg, #1c1b1c 0%, rgba(232,213,160,0.06) 50%, #1c1b1c 100%);
           background-size: 200% 100%;
           animation: skeletonShimmer 1.8s cubic-bezier(0.4,0,0.2,1) infinite;
         }
@@ -438,12 +476,12 @@ const ProSpaceDashboard = () => {
         .kn-card {
           animation: knCardIn 0.4s cubic-bezier(0.2,0,0,1) both;
           transition: transform 0.3s cubic-bezier(0.2,0,0,1), box-shadow 0.3s cubic-bezier(0.2,0,0,1), background 0.3s;
-          background: #1b1b1c;
+          background: #1c1b1c;
           border: none;
-          border-radius: 20px;
+          border-radius: 2px;
         }
         .kn-card:hover {
-          transform: scale(1.008);
+          transform: scale(1.005);
           box-shadow: 0 12px 48px rgba(0,0,0,0.5);
           background: #201f20;
         }
@@ -464,17 +502,15 @@ const ProSpaceDashboard = () => {
         .kn-avatar-ring { transition: box-shadow 0.3s cubic-bezier(0.2,0,0,1); }
         .kn-avatar-ring:hover { box-shadow: 0 0 0 2px rgba(232,213,160,0.3); }
 
-        .kn-burst-particle { animation: knBurst 0.4s ease-out forwards; pointer-events: none; }
-        @keyframes knBurst {
-          0% { opacity: 1; transform: translate(0, 0) scale(1); }
-          100% { opacity: 0; transform: translate(
-            calc(cos(var(--burst-angle)) * var(--burst-dist)),
-            calc(sin(var(--burst-angle)) * var(--burst-dist))
-          ) scale(0.3); }
+        /* Glass Panel — Stitch Sovereign */
+        .glass-panel {
+          background: rgba(32,31,32,0.6);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .kn-card, .kn-countdown-pulse, .kn-shimmer, .kn-skeleton-shimmer, .kn-burst-particle, .fade-slide-in {
+          .kn-card, .kn-countdown-pulse, .kn-shimmer, .kn-skeleton-shimmer, .fade-slide-in {
             animation: none !important;
             transition: none !important;
           }
@@ -483,9 +519,14 @@ const ProSpaceDashboard = () => {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Material Symbols fallback sizing */
+        /* Material Symbols — Stitch default */
         .material-symbols-outlined {
           font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Ghost Border Fallback — Stitch rule */
+        .ghost-border {
+          border: 1px solid rgba(75,70,59,0.15);
         }
       `}</style>
     </div>
@@ -529,7 +570,7 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
       <div className="hidden md:flex gap-6 max-w-5xl mx-auto px-4 py-6">
         {/* Left sidebar — Identity */}
         <aside className="hidden lg:block w-64 flex-shrink-0 space-y-4">
-          <div className="rounded-2xl overflow-hidden" style={{ background: '#1b1b1c' }}>
+          <div className="rounded-xl overflow-hidden" style={{ background: '#1b1b1c' }}>
             <div className="h-20 relative" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.06), rgba(200,168,75,0.03))' }} />
             <div className="px-4 pb-4 -mt-8 text-center">
               <Avatar src={session.image} name={session.name} type={session.type} size={64} className="mx-auto" ring style={{ border: '3px solid #1b1b1c' }} />
@@ -556,7 +597,7 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
               </div>
             </div>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: '#1b1b1c' }}>
+          <div className="rounded-xl p-4" style={{ background: '#1b1b1c' }}>
             <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a', marginBottom: 12 }}>
               Empreinte culturelle
             </h3>
@@ -567,7 +608,7 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
         {/* Center — Feed */}
         <main className="flex-1 min-w-0">
           {/* CC2026 Countdown */}
-          <div className="kn-card rounded-2xl p-5 relative overflow-hidden mb-4" data-testid="countdown-banner">
+          <div className="kn-card rounded-xl p-5 relative overflow-hidden mb-4" data-testid="countdown-banner">
             <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(232,213,160,0.04), transparent 60%)' }} />
             <div className="flex items-center justify-between flex-wrap gap-3 relative">
               <div>
@@ -660,7 +701,7 @@ const FeedSection = ({ session }) => {
   return (
     <div className="space-y-4">
       {/* ─── CREATE POST ─── */}
-      <div className="kn-card rounded-2xl p-5" data-testid="create-post-box">
+      <div className="kn-card rounded-xl p-5" data-testid="create-post-box">
         <div className="flex gap-3">
           <Avatar src={session.image} name={session.name} type={session.type} size={44} ring />
           <div className="flex-1">
@@ -690,7 +731,7 @@ const FeedSection = ({ session }) => {
       {loading ? (
         <div className="space-y-3 mt-4">
           {[1,2,3].map(i => (
-            <div key={i} className="rounded-2xl p-4" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
+            <div key={i} className="rounded-xl p-4" style={{ background: '#141414', border: '1px solid #1e1e1e' }}>
               <div className="flex gap-3">
                 <div className="w-[52px] h-[52px] rounded-full kn-skeleton-shimmer flex-shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -811,7 +852,7 @@ const RecommendationsWidget = ({ session }) => {
   };
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: '#1b1b1c' }}>
+    <div className="rounded-xl overflow-hidden" style={{ background: '#1b1b1c' }}>
       <div className="px-4 py-3">
         <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Profils suggérés</h3>
       </div>
@@ -844,7 +885,6 @@ const RecommendationsWidget = ({ session }) => {
 // ═══════════════════════════════════════════════════════════
 const ProfilePage = ({ profile, session, connections, onUpdate }) => {
   const [editing, setEditing] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(true);
   const [formData, setFormData] = useState({ bio: '', website: '', linkedin: '', instagram: '', seeking: '', offering: '' });
   const [saving, setSaving] = useState(false);
 
@@ -861,121 +901,165 @@ const ProfilePage = ({ profile, session, connections, onUpdate }) => {
   const tags = profile?.expertise_tags || [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-16">
-      {/* Banner — Sovereign */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#1c1b1c' }}>
-        <div className="h-40 sm:h-52 relative" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.06), rgba(200,168,75,0.03), rgba(74,93,78,0.04))' }}>
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.05) 20px, rgba(255,255,255,0.05) 40px)' }} />
-        </div>
-        <div className="px-5 sm:px-8 pb-6 relative">
-          <div className="absolute -top-14 sm:-top-16">
-            <Avatar src={profile?.image || session.image} name={session.name} type={session.type} size={112}
-              style={{ border: '4px solid #1c1b1c' }} />
-          </div>
-          <div className="flex justify-end pt-4 gap-2">
+    <div className="max-w-3xl mx-auto space-y-3 pb-16" data-testid="profile-page">
+      {/* ─── COMPACT PROFILE HERO — Stitch 12-col grid ─── */}
+      <div className="grid grid-cols-12 gap-3">
+        {/* Profile Card (col-8) */}
+        <div className="col-span-8 rounded-xl p-4 flex items-center gap-4" style={{ background: '#0e0e0f', border: '1px solid rgba(75,70,59,0.1)' }}>
+          <div className="relative flex-shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden" style={{ border: '2px solid rgba(232,213,160,0.2)', padding: 2 }}>
+              <Avatar src={profile?.image || session.image} name={session.name} type={session.type} size={56} />
+            </div>
             <button onClick={() => editing ? handleSave() : setEditing(true)} data-testid="edit-profile-btn"
-              className="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.97]"
-              style={editing ? { background: C.gold, color: '#0a0a0b', minHeight: 44 } : { background: 'transparent', border: '1px solid rgba(232,213,160,0.3)', color: C.gold, minHeight: 44, fontFamily: "'Manrope', sans-serif" }}>
-              {editing ? (saving ? 'Sauvegarde...' : 'Enregistrer') : 'Modifier'}
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
+              style={{ background: '#E8D5A0', color: '#3a2f09', border: '2px solid #0e0e0f' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 10 }}>{editing ? 'check' : 'edit'}</span>
             </button>
-            {editing && <button onClick={() => setEditing(false)} className="px-3 py-2 rounded-full hover:bg-white/5" style={{ color: '#72727a', minHeight: 44 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
-            </button>}
           </div>
-          <div className="mt-10 sm:mt-12">
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 400, color: '#e5e2e3' }}>{session.name}</h1>
-            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', marginTop: 4 }}>{profile?.organization_name || PROFILE_LABELS[session.type]}</p>
-            <div className="flex flex-wrap items-center gap-4 mt-3">
-              {profile?.country && <span className="flex items-center gap-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>location_on</span> {profile.country}
-              </span>}
-              <span className="flex items-center gap-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: C.gold }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>group</span> {connections.length} connexion{connections.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: 'rgba(232,213,160,0.08)', color: C.gold }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>verified</span> Accrédité CC2026
-              </span>
-              {profile?.frek_id && <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: 'rgba(91,155,213,0.08)', color: C.blue }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>shield</span> {profile.frek_id}
-              </span>}
+          <div className="min-w-0">
+            <h1 className="truncate" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 16, fontWeight: 800, color: '#e5e2e3' }}>{session.name}</h1>
+            <p className="truncate" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 500, color: '#72727a', marginBottom: 4 }}>
+              {profile?.organization_name || PROFILE_LABELS[session.type]}
+            </p>
+            <div className="flex gap-1 flex-wrap">
+              <span className="px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(232,213,160,0.1)', color: '#E8D5A0', fontSize: 8, fontWeight: 700, border: '1px solid rgba(232,213,160,0.2)' }}>Accrédité</span>
+              {profile?.country && <span className="px-1.5 py-0.5 rounded-full" style={{ background: '#2a2a2b', color: '#72727a', fontSize: 8, fontWeight: 700 }}>{profile.country}</span>}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* About — Sovereign */}
-      <div className="rounded-2xl p-5 sm:p-6" style={{ background: '#1c1b1c' }}>
-        <button className="flex items-center justify-between w-full" onClick={() => setAboutOpen(!aboutOpen)} style={{ minHeight: 44 }}>
-          <h2 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>À propos</h2>
-          <span className="material-symbols-outlined" style={{ color: '#555', fontSize: 20 }}>{aboutOpen ? 'expand_less' : 'expand_more'}</span>
-        </button>
-        {aboutOpen && (
-          <div className="mt-4">
-            {editing ? (
-              <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} rows={4} aria-label="Votre biographie"
-                placeholder="Décrivez votre parcours, vos projets..."
-                className="w-full p-4 rounded-xl text-sm"
-                style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', lineHeight: 1.7, fontFamily: "'Manrope', sans-serif" }} />
-            ) : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, lineHeight: 1.7, color: profile?.bio ? '#72727a' : '#555' }}>{profile?.bio || 'Aucune description. Cliquez sur Modifier pour ajouter.'}</p>}
+        {/* Metric Card (col-4) — Stitch gold gradient */}
+        <div className="col-span-4 rounded-xl p-3 flex flex-col justify-between"
+          style={{ background: 'linear-gradient(135deg, #e5c363, #c8a84b)' }}>
+          <div className="flex justify-between items-start">
+            <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#3a2f09', opacity: 0.9, fontVariationSettings: "'FILL' 1" }}>insights</span>
           </div>
-        )}
-      </div>
-
-      {/* Skills — Sovereign */}
-      <div className="rounded-2xl p-5 sm:p-6" style={{ background: '#1c1b1c' }}>
-        <h2 className="mb-4" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>Compétences</h2>
-        {tags.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {tags.map(tag => <span key={tag} className="px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'rgba(232,213,160,0.08)', color: C.gold }}>{tag}</span>)}
+          <div className="text-center">
+            <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: 22, fontWeight: 800, color: '#3a2f09', lineHeight: 1 }}>{connections.length}</div>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#3a2f09', opacity: 0.8, marginTop: 2 }}>Connexions</p>
           </div>
-        ) : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>Aucune compétence renseignée</p>}
-      </div>
-
-      {/* Seeking / Offering — Sovereign */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-2xl p-5" style={{ background: '#1c1b1c' }}>
-          <h2 className="flex items-center gap-2 mb-3" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 16, color: '#e5e2e3' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#4A5D4E' }}>search</span> Je recherche
-          </h2>
-          {editing ? <textarea value={formData.seeking} onChange={e => setFormData({ ...formData, seeking: e.target.value })} rows={2}
-            placeholder="Ex: Distribution, Booking..." className="w-full p-3 rounded-xl text-sm"
-            style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} />
-          : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: profile?.seeking ? '#72727a' : '#555' }}>{profile?.seeking || 'Non renseigné'}</p>}
-        </div>
-        <div className="rounded-2xl p-5" style={{ background: '#1c1b1c' }}>
-          <h2 className="flex items-center gap-2 mb-3" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 16, color: '#e5e2e3' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: C.accent }}>handshake</span> Je propose
-          </h2>
-          {editing ? <textarea value={formData.offering} onChange={e => setFormData({ ...formData, offering: e.target.value })} rows={2}
-            placeholder="Ex: Production, Conseil..." className="w-full p-3 rounded-xl text-sm"
-            style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} />
-          : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: profile?.offering ? '#72727a' : '#555' }}>{profile?.offering || 'Non renseigné'}</p>}
+          <div className="w-full rounded-full h-1" style={{ background: 'rgba(255,255,255,0.2)' }}>
+            <div className="h-full rounded-full" style={{ width: `${Math.min(100, connections.length * 10)}%`, background: 'white' }} />
+          </div>
         </div>
       </div>
 
-      {/* Links — Sovereign */}
-      <div className="rounded-2xl p-5 sm:p-6" style={{ background: '#1c1b1c' }}>
-        <h2 className="mb-4" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>Liens</h2>
+      {/* ─── CONTACT & SOCIAL — Stitch 2-col grid ─── */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl p-3 space-y-2" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }}>
+          <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#72727a' }}>Contact</h2>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 14 }}>mail</span>
+              <span className="truncate" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 500, color: '#e5e2e3' }}>{session.email}</span>
+            </div>
+            {profile?.country && <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 14 }}>location_on</span>
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 500, color: '#e5e2e3' }}>{profile.country}</span>
+            </div>}
+          </div>
+        </div>
+        <div className="rounded-xl p-3 space-y-2" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }}>
+          <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#72727a' }}>Liens</h2>
+          {editing ? (
+            <div className="space-y-1">
+              <input value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })}
+                placeholder="Site web" className="w-full px-2 py-1 rounded text-[10px]" style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none' }} />
+              <input value={formData.linkedin} onChange={e => setFormData({ ...formData, linkedin: e.target.value })}
+                placeholder="LinkedIn" className="w-full px-2 py-1 rounded text-[10px]" style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none' }} />
+            </div>
+          ) : (
+            <div className="flex gap-1.5">
+              {profile?.website && (
+                <a href={profile.website} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-lg flex items-center justify-center hover:scale-105 transition-transform" style={{ background: '#2a2a2b' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 14 }}>language</span>
+                </a>
+              )}
+              {profile?.linkedin && (
+                <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-lg flex items-center justify-center hover:scale-105 transition-transform" style={{ background: '#2a2a2b' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 14 }}>link</span>
+                </a>
+              )}
+              {!profile?.website && !profile?.linkedin && (
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#555' }}>Non renseigné</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ─── ABOUT — Stitch single card ─── */}
+      <div className="rounded-xl p-4" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }}>
+        <h2 className="mb-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#72727a' }}>À propos</h2>
         {editing ? (
-          <div className="space-y-3">
-            <Input placeholder="Site web" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} className="text-sm rounded-xl" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 44 }} />
-            <Input placeholder="LinkedIn" value={formData.linkedin} onChange={e => setFormData({ ...formData, linkedin: e.target.value })} className="text-sm rounded-xl" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 44 }} />
-            <Input placeholder="Instagram" value={formData.instagram} onChange={e => setFormData({ ...formData, instagram: e.target.value })} className="text-sm rounded-xl" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 44 }} />
-          </div>
+          <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} rows={3}
+            placeholder="Décrivez votre parcours..."
+            className="w-full p-3 rounded-lg text-sm"
+            style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', lineHeight: 1.6, fontFamily: "'Manrope', sans-serif" }} />
         ) : (
-          <div className="space-y-3">
-            {profile?.website && <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: C.gold }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>language</span> {profile.website}
-            </a>}
-            {profile?.linkedin && <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: C.gold }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>link</span> LinkedIn
-            </a>}
-            {!profile?.website && !profile?.linkedin && <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>Aucun lien</p>}
-          </div>
+          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, lineHeight: 1.6, color: profile?.bio ? '#72727a' : '#555' }}>{profile?.bio || 'Aucune description.'}</p>
         )}
       </div>
+
+      {/* ─── SKILLS — Stitch tags ─── */}
+      {tags.length > 0 && (
+        <div className="rounded-xl p-4" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }}>
+          <h2 className="mb-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#72727a' }}>Compétences</h2>
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map(tag => <span key={tag} className="px-3 py-1 rounded-full" style={{ background: 'rgba(232,213,160,0.08)', color: '#E8D5A0', fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700 }}>{tag}</span>)}
+          </div>
+        </div>
+      )}
+
+      {/* ─── NOTIFICATIONS & SECURITY — Stitch 2-col ─── */}
+      <div className="rounded-xl overflow-hidden" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }}>
+        <div className="grid grid-cols-2" style={{ borderBottom: 'none' }}>
+          {/* Seeking */}
+          <div className="p-3 space-y-1.5" style={{ borderRight: '1px solid rgba(75,70,59,0.1)' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 14 }}>search</span>
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: '#e5e2e3' }}>Je recherche</span>
+            </div>
+            {editing ? (
+              <textarea value={formData.seeking} onChange={e => setFormData({ ...formData, seeking: e.target.value })} rows={1}
+                placeholder="Ex: Distribution..." className="w-full p-2 rounded text-[10px]"
+                style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none' }} />
+            ) : (
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: profile?.seeking ? '#72727a' : '#555' }}>{profile?.seeking || 'Non renseigné'}</p>
+            )}
+          </div>
+          {/* Offering */}
+          <div className="p-3 space-y-1.5">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 14 }}>handshake</span>
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: '#e5e2e3' }}>Je propose</span>
+            </div>
+            {editing ? (
+              <textarea value={formData.offering} onChange={e => setFormData({ ...formData, offering: e.target.value })} rows={1}
+                placeholder="Ex: Conseil..." className="w-full p-2 rounded text-[10px]"
+                style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none' }} />
+            ) : (
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: profile?.offering ? '#72727a' : '#555' }}>{profile?.offering || 'Non renseigné'}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Save / Cancel buttons when editing */}
+      {editing && (
+        <div className="flex gap-2">
+          <button onClick={handleSave} disabled={saving} data-testid="save-profile-btn"
+            className="flex-1 py-3 rounded-xl font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
+            style={{ background: '#E8D5A0', color: '#0a0a0b', fontFamily: "'Manrope', sans-serif", fontSize: 12 }}>
+            {saving ? 'Sauvegarde...' : 'Enregistrer'}
+          </button>
+          <button onClick={() => setEditing(false)}
+            className="px-4 py-3 rounded-xl transition-all hover:bg-white/5"
+            style={{ color: '#72727a', fontFamily: "'Manrope', sans-serif", fontSize: 12, border: '1px solid rgba(75,70,59,0.15)' }}>
+            Annuler
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -1031,7 +1115,7 @@ const NetworkPage = ({ connections, session, onConnect }) => {
       </header>
 
       {/* Glass Search Panel */}
-      <div className="p-6 rounded-2xl" style={{ background: 'rgba(32,31,32,0.7)', backdropFilter: 'blur(24px)' }}>
+      <div className="p-6 rounded-xl" style={{ background: 'rgba(32,31,32,0.7)', backdropFilter: 'blur(24px)' }}>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#555', fontSize: 20 }}>search</span>
@@ -1097,7 +1181,7 @@ const NetworkPage = ({ connections, session, onConnect }) => {
 
           {/* Sidebar — Bento stats */}
           <aside className="lg:col-span-4 space-y-4">
-            <div className="p-6 rounded-2xl" style={{ background: '#1c1b1c' }}>
+            <div className="p-6 rounded-xl" style={{ background: '#1c1b1c' }}>
               <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: '#72727a', fontFamily: "'Manrope', sans-serif" }}>Votre Réseau</span>
               <div className="mt-4 space-y-4">
                 <div className="flex items-center justify-between">
@@ -1111,14 +1195,14 @@ const NetworkPage = ({ connections, session, onConnect }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-2xl flex flex-col justify-between aspect-square" style={{ background: '#2a2a2b' }}>
+              <div className="p-6 rounded-xl flex flex-col justify-between aspect-square" style={{ background: '#2a2a2b' }}>
                 <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 24 }}>auto_awesome</span>
                 <div>
                   <div style={{ fontFamily: "'Newsreader', serif", fontSize: 24, color: '#e5e2e3' }}>{filtered.length}</div>
                   <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Professionnels</div>
                 </div>
               </div>
-              <div className="p-6 rounded-2xl flex flex-col justify-between aspect-square" style={{ background: '#2a2a2b' }}>
+              <div className="p-6 rounded-xl flex flex-col justify-between aspect-square" style={{ background: '#2a2a2b' }}>
                 <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 24 }}>share</span>
                 <div>
                   <div style={{ fontFamily: "'Newsreader', serif", fontSize: 24, color: '#e5e2e3' }}>{countries.length}</div>
@@ -1139,48 +1223,55 @@ const NetworkPage = ({ connections, session, onConnect }) => {
 // ═══════════════════════════════════════════════════════════
 const ProfileModal = ({ pro, onClose, session, isConnected, onConnect }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-label={`Profil de ${pro.full_name}`} onClick={onClose}>
-    <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-xl" style={{ background: C.surface, border: `1px solid ${C.border}` }} onClick={e => e.stopPropagation()} data-testid="profile-modal">
+    <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-xl" style={{ background: '#131314', border: '1px solid rgba(75,70,59,0.1)' }} onClick={e => e.stopPropagation()} data-testid="profile-modal">
       <div className="h-32 relative rounded-t-xl" style={{ background: `linear-gradient(135deg, ${TYPE_COLORS[pro.profile_type] || C.accent}50, ${C.gold}25, ${C.forest}15)` }}>
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,0.08) 15px, rgba(255,255,255,0.08) 30px)' }} />
         <button onClick={onClose} aria-label="Fermer le profil" data-testid="close-profile-modal"
           className="absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center bg-black/40" style={{ minHeight: 44 }}>
-          <X size={18} style={{ color: '#fff' }} />
+          <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 18 }}>close</span>
         </button>
       </div>
       <div className="px-6 pb-6 -mt-12">
-        <Avatar src={pro.logo_url || pro.image} name={pro.full_name} type={pro.profile_type} size={96} style={{ border: `4px solid ${C.surface}` }} />
+        <Avatar src={pro.logo_url || pro.image} name={pro.full_name} type={pro.profile_type} size={96} style={{ border: '4px solid #131314' }} />
         <div className="flex items-center gap-2 mt-3">
-          <span className="text-sm font-medium" style={{ color: TYPE_COLORS[pro.profile_type] || C.accent }}>{PROFILE_LABELS[pro.profile_type]}</span>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 500, color: TYPE_COLORS[pro.profile_type] || C.accent }}>{PROFILE_LABELS[pro.profile_type]}</span>
         </div>
-        <h2 className="text-xl font-black mt-1" style={{ color: C.text }}>{pro.full_name}</h2>
-        <p className="text-base" style={{ color: C.muted }}>{pro.organization_name}</p>
-        {pro.country && <p className="text-sm flex items-center gap-1 mt-1" style={{ color: C.dim }}><MapPin size={14} /> {pro.country}</p>}
+        <h2 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, color: '#e5e2e3', marginTop: 4 }}>{pro.full_name}</h2>
+        <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a' }}>{pro.organization_name}</p>
+        {pro.country && <p className="flex items-center gap-1 mt-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>location_on</span> {pro.country}
+        </p>}
 
-        <div className="mt-4 p-4 rounded-xl" style={{ background: C.card }}>
+        <div className="mt-4 p-4 rounded-xl" style={{ background: '#1c1b1c' }}>
           {isConnected ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-base" style={{ color: C.muted }}><Mail size={16} style={{ color: C.gold }} /> {pro.email}</div>
-              {pro.phone && <div className="flex items-center gap-2 text-base" style={{ color: C.muted }}><Phone size={16} style={{ color: C.gold }} /> {pro.phone}</div>}
+              <div className="flex items-center gap-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 16, color: '#E8D5A0' }}>mail</span> {pro.email}</div>
+              {pro.phone && <div className="flex items-center gap-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 16, color: '#E8D5A0' }}>phone</span> {pro.phone}</div>}
             </div>
           ) : (
             <div className="text-center py-3" data-testid="contact-locked">
-              <Users size={24} className="mx-auto mb-2" style={{ color: C.dim }} />
-              <p className="text-sm" style={{ color: C.dim }}>Connectez-vous pour voir les coordonnées</p>
+              <span className="material-symbols-outlined" style={{ fontSize: 24, color: '#555' }}>group</span>
+              <p className="mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>Connectez-vous pour voir les coordonnées</p>
             </div>
           )}
         </div>
 
-        {pro.bio && <div className="mt-4"><h3 className="text-base font-bold mb-2" style={{ color: C.text }}>À propos</h3><p className="text-base leading-relaxed" style={{ color: C.muted }}>{pro.bio}</p></div>}
+        {pro.bio && <div className="mt-4"><h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 700, color: '#e5e2e3', marginBottom: 8 }}>À propos</h3><p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, lineHeight: 1.6, color: '#72727a' }}>{pro.bio}</p></div>}
         {pro.expertise_tags?.length > 0 && (
-          <div className="mt-4"><h3 className="text-base font-bold mb-2" style={{ color: C.text }}>Compétences</h3>
-            <div className="flex flex-wrap gap-2">{pro.expertise_tags.map(t => <span key={t} className="px-3 py-1.5 text-sm rounded-full" style={{ background: `${C.gold}15`, color: C.gold }}>{t}</span>)}</div>
+          <div className="mt-4"><h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 700, color: '#e5e2e3', marginBottom: 8 }}>Compétences</h3>
+            <div className="flex flex-wrap gap-2">{pro.expertise_tags.map(t => <span key={t} className="px-3 py-1 rounded-full" style={{ background: 'rgba(232,213,160,0.08)', color: '#E8D5A0', fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700 }}>{t}</span>)}</div>
           </div>
         )}
         <div className="mt-6 flex gap-3">
           {isConnected ? (
-            <Button className="flex-1 rounded-full text-base" style={{ background: `${C.gold}20`, color: C.gold, minHeight: 48 }}><MessageSquare size={18} className="mr-2" /> Message</Button>
+            <button className="flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+              style={{ background: 'rgba(232,213,160,0.1)', color: '#E8D5A0', fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 700 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chat</span> Message
+            </button>
           ) : (
-            <Button onClick={onConnect} className="flex-1 rounded-full text-base" style={{ background: C.gold, color: '#000', minHeight: 48 }}><Plus size={18} className="mr-2" /> Rejoindre</Button>
+            <button onClick={onConnect} className="flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+              style={{ background: '#E8D5A0', color: '#0a0a0b', fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 700 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span> Rejoindre
+            </button>
           )}
         </div>
       </div>
@@ -1207,31 +1298,31 @@ const MessagesPanel = ({ messages, session, onUpdate, onClose }) => {
   };
 
   return (
-    <div className="fixed bottom-0 right-4 z-50 w-80 sm:w-96 shadow-2xl rounded-t-xl" style={{ background: C.surface, border: `1px solid ${C.border}` }} data-testid="messages-panel">
-      <div className="flex items-center justify-between px-4 py-3 border-b cursor-pointer" style={{ borderColor: C.border, minHeight: 48 }} onClick={() => !selectedConv && onClose()}>
+    <div className="fixed bottom-0 right-4 z-50 w-80 sm:w-96 shadow-2xl rounded-t-xl" style={{ background: '#131314', border: '1px solid rgba(75,70,59,0.1)' }} data-testid="messages-panel">
+      <div className="flex items-center justify-between px-4 py-3 cursor-pointer" style={{ borderBottom: '1px solid rgba(75,70,59,0.1)', minHeight: 48 }} onClick={() => !selectedConv && onClose()}>
         <div className="flex items-center gap-2">
-          <MessageSquare size={18} style={{ color: C.gold }} />
-          <span className="text-base font-bold" style={{ color: C.text }}>{selectedConv ? (convos[selectedConv]?.name || 'Conversation') : 'Messages'}</span>
+          <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 18 }}>chat</span>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 700, color: '#e5e2e3' }}>{selectedConv ? (convos[selectedConv]?.name || 'Conversation') : 'Messages'}</span>
         </div>
         <div className="flex gap-1">
-          {selectedConv && <button onClick={() => setSelectedConv(null)} className="p-2 rounded-lg hover:bg-white/10" style={{ minHeight: 44 }}><ChevronDown size={16} style={{ color: C.dim }} /></button>}
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10" style={{ minHeight: 44 }} aria-label="Fermer les messages"><X size={16} style={{ color: C.dim }} /></button>
+          {selectedConv && <button onClick={() => setSelectedConv(null)} className="p-2 rounded-lg hover:bg-white/5" style={{ minHeight: 44 }}><span className="material-symbols-outlined" style={{ fontSize: 16, color: '#555' }}>expand_more</span></button>}
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5" style={{ minHeight: 44 }} aria-label="Fermer les messages"><span className="material-symbols-outlined" style={{ fontSize: 16, color: '#555' }}>close</span></button>
         </div>
       </div>
 
       {!selectedConv ? (
         <div className="max-h-80 overflow-y-auto">
           {Object.values(convos).length === 0 ? (
-            <div className="p-8 text-center"><p className="text-base" style={{ color: C.dim }}>Aucune conversation</p></div>
+            <div className="p-8 text-center"><p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>Aucune conversation</p></div>
           ) : Object.values(convos).map(conv => (
             <button key={conv.id} onClick={() => setSelectedConv(conv.id)}
-              className="w-full p-4 flex items-center gap-3 hover:bg-white/5 border-b" style={{ borderColor: C.border, minHeight: 56 }}>
+              className="w-full p-4 flex items-center gap-3 hover:bg-white/[0.03]" style={{ borderBottom: '1px solid rgba(75,70,59,0.1)', minHeight: 56 }}>
               <Avatar name={conv.name} type="other" size={40} />
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-base font-semibold truncate" style={{ color: C.text }}>{conv.name}</p>
-                <p className="text-sm truncate" style={{ color: C.dim }}>{conv.messages[conv.messages.length - 1]?.content}</p>
+                <p className="truncate" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 600, color: '#e5e2e3' }}>{conv.name}</p>
+                <p className="truncate" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, color: '#555' }}>{conv.messages[conv.messages.length - 1]?.content}</p>
               </div>
-              {conv.unread > 0 && <span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0" style={{ background: C.red, color: '#fff' }}>{conv.unread}</span>}
+              {conv.unread > 0 && <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#ffb4ab', color: '#690005', fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700 }}>{conv.unread}</span>}
             </button>
           ))}
         </div>
@@ -1240,16 +1331,22 @@ const MessagesPanel = ({ messages, session, onUpdate, onClose }) => {
           <div className="h-64 overflow-y-auto p-4 space-y-3">
             {convos[selectedConv]?.messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.from === session.id ? 'justify-end' : 'justify-start'}`}>
-                <div className="max-w-[80%] px-4 py-3 rounded-2xl text-base" style={{ background: msg.from === session.id ? C.gold : C.card, color: msg.from === session.id ? '#000' : C.text }}>
+                <div className="max-w-[80%] px-4 py-3 rounded-xl" style={{
+                  fontFamily: "'Manrope', sans-serif", fontSize: 13,
+                  background: msg.from === session.id ? '#201f20' : '#1c1b1c',
+                  color: '#e5e2e3',
+                }}>
                   {msg.content}
                 </div>
               </div>
             ))}
           </div>
-          <div className="p-3 border-t flex gap-2" style={{ borderColor: C.border }}>
+          <div className="p-3 flex gap-2" style={{ borderTop: '1px solid rgba(75,70,59,0.1)' }}>
             <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMsg()} aria-label="Écrire un message"
-              placeholder="Écrire..." className="flex-1 px-4 rounded-lg text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 44 }} />
-            <button onClick={sendMsg} className="w-11 h-11 rounded-lg flex items-center justify-center" style={{ background: C.gold, minHeight: 44 }} aria-label="Envoyer"><Send size={16} style={{ color: '#000' }} /></button>
+              placeholder="Écrire..." className="flex-1 px-4 rounded-lg" style={{ background: '#201f20', border: 'none', color: '#e5e2e3', outline: 'none', minHeight: 44, fontFamily: "'Manrope', sans-serif", fontSize: 13 }} />
+            <button onClick={sendMsg} className="w-10 h-10 rounded-lg flex items-center justify-center active:scale-90 transition-transform" style={{ background: '#E8D5A0', minHeight: 44 }} aria-label="Envoyer">
+              <span className="material-symbols-outlined" style={{ color: '#3a2f09', fontSize: 16 }}>send</span>
+            </button>
           </div>
         </>
       )}
@@ -1288,7 +1385,7 @@ const ShopSection = ({ session, jetonsBalance }) => (
     <div className="grid grid-cols-12 gap-6">
       {/* JCC Tokens — Large card */}
       <div className="col-span-12 md:col-span-7 group cursor-pointer">
-        <div className="relative h-96 md:h-[500px] overflow-hidden rounded-2xl" style={{ background: '#1c1b1c' }}>
+        <div className="relative h-96 md:h-[500px] overflow-hidden" style={{ background: '#1c1b1c' }}>
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="material-symbols-outlined" style={{ fontSize: 120, color: 'rgba(232,213,160,0.08)', fontVariationSettings: "'FILL' 1" }}>monetization_on</span>
           </div>
@@ -1310,7 +1407,7 @@ const ShopSection = ({ session, jetonsBalance }) => (
 
       {/* Intelligence Privée — Glass panel */}
       <div className="col-span-12 md:col-span-5 md:mt-16">
-        <div className="p-8 md:p-10 h-full flex flex-col justify-center rounded-2xl" style={{ background: 'rgba(32,31,32,0.7)', backdropFilter: 'blur(24px)', borderLeft: '1px solid rgba(232,213,160,0.1)' }}>
+        <div className="p-8 md:p-10 h-full flex flex-col justify-center" style={{ background: 'rgba(32,31,32,0.7)', backdropFilter: 'blur(24px)', borderLeft: '1px solid rgba(232,213,160,0.1)' }}>
           <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#d8c591' }}>Technologie Curator</span>
           <h3 className="mt-4" style={{ fontFamily: "'Newsreader', serif", fontSize: 'clamp(28px, 4vw, 42px)', lineHeight: 1.1, color: '#e5e2e3' }}>Intelligence<br />Privée Onyx</h3>
           <p className="mt-4" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', lineHeight: 1.7 }}>
@@ -1339,7 +1436,7 @@ const ShopSection = ({ session, jetonsBalance }) => (
 
     {/* Stats Bento */}
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="md:col-span-2 p-8 rounded-2xl" style={{ background: '#1c1b1c', borderLeft: '1px solid rgba(232,213,160,0.1)' }}>
+      <div className="md:col-span-2 p-8" style={{ background: '#1c1b1c', borderLeft: '1px solid rgba(232,213,160,0.1)' }}>
         <div className="flex justify-between items-start mb-8">
           <span className="material-symbols-outlined" style={{ color: '#d8c591' }}>verified_user</span>
           <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Status: Actif</span>
@@ -1347,11 +1444,11 @@ const ShopSection = ({ session, jetonsBalance }) => (
         <h4 style={{ fontFamily: "'Newsreader', serif", fontSize: 22, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#e5e2e3' }}>Sécurité Tier-Onyx</h4>
         <p className="mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#72727a', lineHeight: 1.6 }}>Validation multi-couches pour chaque transfert d'artefact.</p>
       </div>
-      <div className="p-8 rounded-2xl flex flex-col justify-end" style={{ background: '#1c1b1c' }}>
+      <div className="p-8 rounded-xl flex flex-col justify-end" style={{ background: '#1c1b1c' }}>
         <span style={{ fontFamily: "'Newsreader', serif", fontSize: 36, color: '#d8c591' }}>12</span>
         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>Artefacts</span>
       </div>
-      <div className="p-8 rounded-2xl flex flex-col justify-end cursor-pointer group overflow-hidden relative" style={{ background: '#E8D5A0' }}>
+      <div className="p-8 rounded-xl flex flex-col justify-end cursor-pointer group overflow-hidden relative" style={{ background: '#E8D5A0' }}>
         <div className="absolute -top-4 -right-4 w-24 h-24 border rounded-full group-hover:scale-150 transition-transform duration-500" style={{ borderColor: 'rgba(58,47,9,0.1)' }} />
         <span style={{ fontFamily: "'Newsreader', serif", fontSize: 28, color: '#3a2f09' }}>Join</span>
         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3a2f09' }}>The Sovereign Circle</span>
@@ -1484,131 +1581,135 @@ const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
   };
 
   return (
-    <div className="max-w-lg mx-auto space-y-4" data-testid="settings-section">
-      {/* Profile Card */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <div className="h-20 relative" style={{ background: `linear-gradient(135deg, rgba(232,213,160,0.12), rgba(232,213,160,0.04))` }}>
-          <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)' }} />
-        </div>
-        <div className="px-5 pb-5 -mt-8">
-          <Avatar name={session?.name} size={64} ring style={{ border: `3px solid ${C.card}` }} />
-          <h2 className="text-lg font-black mt-3" style={{ color: C.text, fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="max-w-lg mx-auto space-y-3 pb-16" data-testid="settings-section">
+      {/* Profile Card — Stitch compact */}
+      <div className="rounded-xl overflow-hidden" style={{ background: '#0e0e0f', border: '1px solid rgba(75,70,59,0.1)' }}>
+        <div className="h-16 relative" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.08), rgba(232,213,160,0.02))' }} />
+        <div className="px-4 pb-4 -mt-8">
+          <Avatar name={session?.name} size={56} ring style={{ border: `3px solid #0e0e0f` }} />
+          <h2 className="mt-2" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 16, fontWeight: 800, color: '#e5e2e3' }}>
             {session?.name || 'Utilisateur'}
           </h2>
-          <p className="text-xs" style={{ color: C.muted }}>{session?.email}</p>
-          <div className="flex items-center gap-3 mt-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-              style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.2)' }}>
-              <Zap size={14} style={{ color: C.gold }} />
-              <span className="text-sm font-bold" style={{ color: C.gold }}>{jetonsBalance} KT</span>
+          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, color: '#72727a' }}>{session?.email}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.2)' }}>
+              <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 12 }}>bolt</span>
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, color: '#E8D5A0' }}>{jetonsBalance} KT</span>
             </div>
             {session?.frek_id && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-                style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}
-                data-testid="frek-id-display">
-                <Shield size={14} style={{ color: '#8b5cf6' }} />
-                <span className="text-[11px] font-mono font-bold" style={{ color: '#8b5cf6' }}>{session.frek_id}</span>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }} data-testid="frek-id-display">
+                <span className="material-symbols-outlined" style={{ color: '#8b5cf6', fontSize: 12 }}>shield</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: '#8b5cf6' }}>{session.frek_id}</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Language Selector */}
-      <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }} data-testid="language-selector">
+      {/* Language Selector — Stitch compact */}
+      <div className="rounded-xl p-4" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }} data-testid="language-selector">
         <div className="flex items-center gap-2 mb-3">
-          <Languages size={16} style={{ color: C.gold }} />
-          <h3 className="text-sm font-bold" style={{ color: C.text }}>Langue</h3>
+          <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 16 }}>language</span>
+          <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#e5e2e3' }}>Langue</h3>
         </div>
         <div className="grid grid-cols-4 gap-2">
           {LANGS.map(l => (
             <button key={l.code} onClick={() => handleLanguageChange(l.code)}
-              className="py-2.5 rounded-xl text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="py-2 rounded-lg transition-all active:scale-95"
               style={{
-                background: language === l.code ? C.gold : '#0a0a0b',
-                color: language === l.code ? '#0a0a0b' : C.muted,
-                border: `1px solid ${language === l.code ? C.gold : C.border}`,
+                background: language === l.code ? '#E8D5A0' : '#0e0e0f',
+                color: language === l.code ? '#0a0a0b' : '#72727a',
+                border: `1px solid ${language === l.code ? '#E8D5A0' : 'rgba(75,70,59,0.15)'}`,
+                fontFamily: "'Manrope', sans-serif",
               }}
               data-testid={`lang-${l.code}`}>
-              <span className="text-xs font-bold">{l.flag}</span>
+              <span style={{ fontSize: 11, fontWeight: 700 }}>{l.flag}</span>
               <br />
-              <span className="text-[10px]">{l.label}</span>
+              <span style={{ fontSize: 9 }}>{l.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* KT Info */}
-      <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+      {/* Ecosystem Info */}
+      <div className="rounded-xl p-4" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }}>
         <div className="flex items-center gap-2 mb-2">
-          <Shield size={16} style={{ color: C.gold }} />
-          <h3 className="text-sm font-bold" style={{ color: C.text }}>Ecosysteme KT</h3>
+          <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 16 }}>verified_user</span>
+          <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#e5e2e3' }}>Ecosystème KT</h3>
         </div>
-        <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
-          Vos Kilti-Tokens sont valables pour l'ensemble des evenements et services Culture Connect 
-          (CC2026, CC2027 et editions suivantes). Emis par Factory Maker Studio EURL.
+        <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, lineHeight: 1.6, color: '#72727a' }}>
+          Vos Kilti-Tokens sont valables pour l'ensemble des événements et services Culture Connect (CC2026, CC2027 et éditions suivantes).
         </p>
       </div>
 
-      {/* RGPD Section */}
-      <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }} data-testid="rgpd-section">
-        <div className="flex items-center gap-2 mb-4">
-          <Shield size={16} style={{ color: '#22c55e' }} />
-          <h3 className="text-sm font-bold" style={{ color: C.text }}>Donnees personnelles (RGPD)</h3>
+      {/* RGPD Section — Stitch compact */}
+      <div className="rounded-xl p-4" style={{ background: '#1c1b1c', border: '1px solid rgba(75,70,59,0.1)' }} data-testid="rgpd-section">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="material-symbols-outlined" style={{ color: '#4A5D4E', fontSize: 16 }}>security</span>
+          <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#e5e2e3' }}>Données personnelles</h3>
         </div>
         <div className="space-y-2">
           <button onClick={handleExportData} disabled={exporting}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:bg-white/5"
-            style={{ background: '#0a0a0b', border: `1px solid ${C.border}` }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all hover:bg-white/[0.02]"
+            style={{ background: '#0e0e0f', border: '1px solid rgba(75,70,59,0.1)' }}
             data-testid="export-data-btn">
-            <Download size={16} style={{ color: C.gold }} />
+            <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 16 }}>download</span>
             <div className="flex-1">
-              <p className="text-xs font-semibold" style={{ color: C.text }}>Gerer mes donnees</p>
-              <p className="text-[10px]" style={{ color: C.muted }}>Telecharger toutes vos donnees au format JSON</p>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 600, color: '#e5e2e3' }}>Exporter mes données</p>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, color: '#72727a' }}>Format JSON</p>
             </div>
           </button>
           <button onClick={() => setShowDeleteConfirm(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:bg-red-500/5"
-            style={{ background: '#0a0a0b', border: '1px solid #1e1e1e' }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all hover:bg-red-500/5"
+            style={{ background: '#0e0e0f', border: '1px solid rgba(75,70,59,0.1)' }}
             data-testid="delete-account-btn">
-            <Trash2 size={16} style={{ color: '#ef4444' }} />
+            <span className="material-symbols-outlined" style={{ color: '#ffb4ab', fontSize: 16 }}>delete</span>
             <div className="flex-1">
-              <p className="text-xs font-semibold" style={{ color: '#ef4444' }}>Supprimer mon compte</p>
-              <p className="text-[10px]" style={{ color: C.muted }}>Action irreversible. Les KT acquis ne sont pas rembourses.</p>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 600, color: '#ffb4ab' }}>Supprimer mon compte</p>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, color: '#72727a' }}>Irréversible</p>
             </div>
           </button>
         </div>
       </div>
+
+      {/* Logout — Stitch */}
+      <button onClick={onLogout}
+        className="w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:bg-[#ffb4ab]/5"
+        style={{ border: '1px solid rgba(255,180,171,0.2)', fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, color: '#ffb4ab' }}
+        data-testid="logout-btn">
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
+        Se déconnecter
+      </button>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-          <div className="relative w-full max-w-sm rounded-2xl p-6"
-            style={{ background: C.card, border: '1px solid #ef444440' }} onClick={e => e.stopPropagation()}
+          <div className="relative w-full max-w-sm rounded-xl p-5"
+            style={{ background: '#1c1b1c', border: '1px solid rgba(255,180,171,0.2)' }} onClick={e => e.stopPropagation()}
             data-testid="delete-confirm-modal">
             <div className="text-center">
-              <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                <Trash2 size={24} style={{ color: '#ef4444' }} />
+              <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+                style={{ background: 'rgba(255,180,171,0.1)' }}>
+                <span className="material-symbols-outlined" style={{ color: '#ffb4ab', fontSize: 24 }}>warning</span>
               </div>
-              <h3 className="text-base font-black mb-2" style={{ color: C.text }}>Supprimer votre compte ?</h3>
-              <p className="text-xs mb-1" style={{ color: C.muted }}>
-                Cette action est irreversible. Toutes vos donnees seront supprimees.
+              <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 16, fontWeight: 800, color: '#e5e2e3', marginBottom: 8 }}>Supprimer votre compte ?</h3>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, color: '#72727a', marginBottom: 4 }}>
+                Cette action est irréversible.
               </p>
-              <p className="text-xs font-semibold mb-5" style={{ color: '#ef4444' }}>
-                Les {jetonsBalance} KT acquis ne seront pas rembourses.
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 600, color: '#ffb4ab', marginBottom: 20 }}>
+                Les {jetonsBalance} KT acquis ne seront pas remboursés.
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 py-3 rounded-xl text-xs font-bold transition-all hover:bg-white/5"
-                  style={{ background: '#0a0a0b', color: C.text, border: `1px solid ${C.border}` }}
+                  className="flex-1 py-2.5 rounded-lg transition-all active:scale-95"
+                  style={{ background: '#0e0e0f', color: '#e5e2e3', border: '1px solid rgba(75,70,59,0.15)', fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700 }}
                   data-testid="cancel-delete-btn">
                   Annuler
                 </button>
                 <button onClick={handleDeleteAccount} disabled={deleting}
-                  className="flex-1 py-3 rounded-xl text-xs font-bold transition-all hover:bg-red-600"
-                  style={{ background: '#ef4444', color: '#fff' }}
+                  className="flex-1 py-2.5 rounded-lg transition-all active:scale-95"
+                  style={{ background: '#ffb4ab', color: '#690005', fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700 }}
                   data-testid="confirm-delete-btn">
                   {deleting ? 'Suppression...' : 'Confirmer'}
                 </button>
@@ -1617,14 +1718,6 @@ const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
           </div>
         </div>
       )}
-
-      {/* Logout */}
-      <button onClick={onLogout}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:bg-white/5"
-        style={{ background: C.card, color: C.muted, border: `1px solid ${C.border}` }}
-        data-testid="settings-logout-btn">
-        <LogOut size={16} /> Deconnexion
-      </button>
     </div>
   );
 };
@@ -1719,7 +1812,7 @@ export const ProSpaceLogin = () => {
       {legalModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setLegalModal(null)}>
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-          <div className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl p-6"
+          <div className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl p-6"
             style={{ background: C.card, border: `1px solid ${C.border}` }} onClick={e => e.stopPropagation()}
             data-testid="legal-modal">
             <div className="flex items-center justify-between mb-4">
@@ -1740,7 +1833,7 @@ export const ProSpaceLogin = () => {
         <div className="w-full max-w-md">
           {/* Logo & Branding */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center relative"
+            <div className="w-16 h-16 rounded-xl mx-auto mb-5 flex items-center justify-center relative"
               style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.15), rgba(232,213,160,0.05))', border: `1px solid rgba(232,213,160,0.2)` }}>
               <Users size={28} style={{ color: C.gold }} />
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
@@ -1759,7 +1852,7 @@ export const ProSpaceLogin = () => {
           </div>
 
           {/* Login Card */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+          <div className="rounded-xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
             <div className="p-6">
               {/* Google OAuth Button */}
               <button onClick={handleGoogleLogin}
