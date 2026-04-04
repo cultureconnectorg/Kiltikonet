@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,700&amp;family=Manrope:wght@400;500;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#353436",
+                    "secondary-container": "#4d4633",
+                    "primary-fixed": "#f5e1ab",
+                    "error-container": "#93000a",
+                    "on-secondary": "#36301e",
+                    "on-primary-fixed": "#231b00",
+                    "surface-container-low": "#1c1b1c",
+                    "tertiary": "#f4f0ff",
+                    "outline": "#979083",
+                    "inverse-surface": "#e5e2e3",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "surface-tint": "#d8c591",
+                    "on-tertiary-container": "#5b5978",
+                    "tertiary-container": "#d6d2f7",
+                    "on-primary-fixed-variant": "#52461d",
+                    "on-secondary-container": "#beb49c",
+                    "inverse-primary": "#6b5d33",
+                    "secondary": "#d0c6ad",
+                    "surface": "#131314",
+                    "on-surface": "#e5e2e3",
+                    "error": "#ffb4ab",
+                    "on-tertiary-fixed": "#1a1834",
+                    "surface-container-lowest": "#0e0e0f",
+                    "on-tertiary": "#2f2d4a",
+                    "surface-container-high": "#2a2a2b",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "on-background": "#e5e2e3",
+                    "background": "#131314",
+                    "primary-container": "#e8d5a0",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "surface-variant": "#353436",
+                    "on-error": "#690005",
+                    "outline-variant": "#4b463b",
+                    "surface-container": "#201f20",
+                    "inverse-on-surface": "#313031",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "primary": "#fff2d2",
+                    "on-error-container": "#ffdad6",
+                    "on-surface-variant": "#cdc6b7",
+                    "on-primary-container": "#695c31",
+                    "secondary-fixed": "#ede2c8",
+                    "surface-dim": "#131314",
+                    "on-secondary-fixed": "#201b0b",
+                    "surface-bright": "#3a393a",
+                    "primary-fixed-dim": "#d8c591",
+                    "on-primary": "#3a2f09"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-panel {
+            background: rgba(53, 52, 54, 0.7);
+            backdrop-filter: blur(24px);
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(232, 213, 160, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface font-body select-none overflow-hidden h-screen w-full flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-[#131314] dark:bg-[#0e0e0f] flex justify-between items-center px-6 py-4 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#E8D5A0]" data-icon="terminal">terminal</span>
+<h1 class="font-['Newsreader'] uppercase tracking-widest text-lg text-[#E8D5A0] font-bold">COMMAND CENTER</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#E8D5A0] animate-pulse"></div>
+<span class="text-[10px] font-label text-[#4b463b] tracking-tighter uppercase">System: Nominal</span>
+</div>
+<span class="material-symbols-outlined text-[#E8D5A0] hover:opacity-80 transition-opacity cursor-pointer" data-icon="settings_input_component">settings_input_component</span>
+</div>
+</header>
+<main class="flex-1 flex flex-col p-4 gap-4 overflow-hidden max-w-md mx-auto w-full">
+<!-- Profile Section (Compact) -->
+<section class="surface-container rounded-lg p-3 flex items-center gap-4 outline outline-1 outline-outline-variant/10">
+<div class="relative">
+<img class="w-12 h-12 rounded-sm object-cover filter grayscale" data-alt="Close-up portrait of a professional man in high-tech setting, sharp lighting, moody dark background, obsidian tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXV-rkxTtSC-PSvcu-YSgdFijtvnJH_MFQS676hgZJHEs3m1O6qok-jkTVx7kvUI3PUl6L3SZdE1rL5w_lEAD53VkeNdccoB00mN6MjMKAqkEPEy74fWm-xPPuBcTxt1133B8tWosfJcMpb__fFfwI7-o_kAbPuMTX7YZwYeUx7s6CqZVLWm2TBFaDvONmyBB8rZVATF5K5vUOKR5Su2EwW66XoeyzBAXB8K3SPz2YoJ-TkgwpOcqb0AdzdqOLP2aLL_HKJNmghnM"/>
+<div class="absolute -bottom-1 -right-1 bg-primary-container p-0.5 rounded-sm">
+<span class="material-symbols-outlined text-[12px] text-on-primary-container" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<h2 class="text-xs font-bold tracking-widest uppercase text-on-surface">Administrator</h2>
+<span class="text-[10px] text-primary font-bold">L-04</span>
+</div>
+<div class="flex items-center justify-between mt-1">
+<p class="text-[10px] text-on-surface-variant font-mono">FREK-ID: //8824-QX</p>
+<span class="text-[8px] bg-secondary-container px-1.5 py-0.5 rounded text-secondary uppercase font-bold tracking-tighter">Full access</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Settings -->
+<div class="grid grid-cols-2 gap-3 flex-1 overflow-hidden">
+<!-- Security Section -->
+<section class="glass-panel rounded-lg p-3 flex flex-col gap-3 outline outline-1 outline-outline-variant/5">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="shield">shield</span>
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Sécurité</h3>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-[10px] uppercase font-medium">Double Auth</span>
+<div class="w-8 h-4 bg-surface-container-highest rounded-full relative cursor-pointer active:scale-95 transition-transform">
+<div class="absolute right-0.5 top-0.5 w-3 h-3 bg-primary-container rounded-full"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[10px] uppercase font-medium text-on-surface-variant">Biométrie</span>
+<div class="w-8 h-4 bg-surface-container-highest rounded-full relative cursor-pointer active:scale-95 transition-transform">
+<div class="absolute left-0.5 top-0.5 w-3 h-3 bg-outline-variant rounded-full"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[10px] uppercase font-medium">Chiffrement</span>
+<div class="w-8 h-4 bg-surface-container-highest rounded-full relative cursor-pointer active:scale-95 transition-transform">
+<div class="absolute right-0.5 top-0.5 w-3 h-3 bg-primary-container rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Notifications Section -->
+<section class="surface-container rounded-lg p-3 flex flex-col gap-3 outline outline-1 outline-outline-variant/10">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="notifications">notifications</span>
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Alertes</h3>
+</div>
+<div class="flex flex-col gap-2">
+<label class="flex items-center justify-between group cursor-pointer">
+<span class="text-[10px] uppercase font-medium group-hover:text-primary transition-colors">Push</span>
+<div class="w-3 h-3 rounded-full border border-primary flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+</div>
+</label>
+<label class="flex items-center justify-between group cursor-pointer opacity-50">
+<span class="text-[10px] uppercase font-medium">Email</span>
+<div class="w-3 h-3 rounded-full border border-outline-variant"></div>
+</label>
+<label class="flex items-center justify-between group cursor-pointer">
+<span class="text-[10px] uppercase font-medium">Critique</span>
+<div class="w-3 h-3 rounded-full border border-primary flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+</div>
+</label>
+</div>
+</section>
+<!-- Preferences Section -->
+<section class="col-span-2 glass-panel rounded-lg p-3 flex flex-col gap-4 outline outline-1 outline-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="tune">tune</span>
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Préférences Système</h3>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="flex flex-col gap-1.5">
+<span class="text-[8px] uppercase tracking-tighter text-outline">Langue</span>
+<div class="bg-surface-container-high p-1.5 rounded-sm flex items-center justify-between">
+<span class="text-[10px] font-bold">FR</span>
+<span class="material-symbols-outlined text-[10px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="text-[8px] uppercase tracking-tighter text-outline">Thème</span>
+<div class="bg-primary-container text-on-primary-container p-1.5 rounded-sm flex items-center justify-between active-glow">
+<span class="text-[10px] font-bold">OLED</span>
+<span class="material-symbols-outlined text-[10px]" data-icon="dark_mode">dark_mode</span>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="text-[8px] uppercase tracking-tighter text-outline">Mode</span>
+<div class="bg-surface-container-high p-1.5 rounded-sm flex items-center justify-between">
+<span class="text-[10px] font-bold">DEV</span>
+<span class="material-symbols-outlined text-[10px]" data-icon="code">code</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Maintenance Section -->
+<section class="col-span-2 grid grid-cols-3 gap-2">
+<button class="bg-surface-container-high p-3 rounded-sm flex flex-col items-center gap-2 hover:bg-surface-variant transition-colors border-b-2 border-transparent active:border-primary-container">
+<span class="material-symbols-outlined text-lg text-primary" data-icon="mop">mop</span>
+<span class="text-[8px] uppercase font-bold tracking-widest">Cache</span>
+</button>
+<button class="bg-surface-container-high p-3 rounded-sm flex flex-col items-center gap-2 hover:bg-surface-variant transition-colors border-b-2 border-transparent active:border-primary-container">
+<span class="material-symbols-outlined text-lg text-primary" data-icon="backup">backup</span>
+<span class="text-[8px] uppercase font-bold tracking-widest">Backup</span>
+</button>
+<button class="bg-error-container/20 p-3 rounded-sm flex flex-col items-center gap-2 hover:bg-error-container/30 transition-colors border-b-2 border-error">
+<span class="material-symbols-outlined text-lg text-error" data-icon="logout">logout</span>
+<span class="text-[8px] uppercase font-bold tracking-widest text-error">Exit</span>
+</button>
+</section>
+</div>
+</main>
+<!-- Footer Meta -->
+<footer class="px-6 py-4 flex flex-col gap-1 items-center bg-surface-container-lowest border-t border-outline-variant/10">
+<div class="flex gap-4 items-center mb-1">
+<span class="text-[8px] font-mono text-outline uppercase tracking-widest">v4.0.82-Stable</span>
+<div class="w-1 h-1 rounded-full bg-outline-variant"></div>
+<a class="text-[8px] font-bold text-primary uppercase tracking-widest flex items-center gap-1" href="#">
+                Support <span class="material-symbols-outlined text-[10px]" data-icon="open_in_new">open_in_new</span>
+</a>
+</div>
+</footer>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-[#131314]/70 backdrop-blur-xl shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 p-2 hover:text-[#E8D5A0] transition-colors cursor-pointer active:scale-90 duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="account_circle">account_circle</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 p-2 hover:text-[#E8D5A0] transition-colors cursor-pointer active:scale-90 duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="shield">shield</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 p-2 hover:text-[#E8D5A0] transition-colors cursor-pointer active:scale-90 duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="notifications">notifications</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#E8D5A0] text-[#131314] rounded-sm p-2 scale-110 active:scale-90 duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="tune">tune</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 p-2 hover:text-[#E8D5A0] transition-colors cursor-pointer active:scale-90 duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="support_agent">support_agent</span>
+</div>
+</nav>
+<!-- Visual Polish: Corner Accents -->
+<div class="fixed top-0 left-0 p-2 pointer-events-none opacity-20">
+<div class="w-4 h-4 border-t border-l border-primary"></div>
+</div>
+<div class="fixed top-0 right-0 p-2 pointer-events-none opacity-20">
+<div class="w-4 h-4 border-t border-r border-primary"></div>
+</div>
+<div class="fixed bottom-16 left-0 p-2 pointer-events-none opacity-20">
+<div class="w-4 h-4 border-b border-l border-primary"></div>
+</div>
+<div class="fixed bottom-16 right-0 p-2 pointer-events-none opacity-20">
+<div class="w-4 h-4 border-b border-r border-primary"></div>
+</div>
+</body></html>

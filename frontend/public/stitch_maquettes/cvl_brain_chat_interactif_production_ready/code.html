@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#131314",
+                    "secondary": "#d0c6ad",
+                    "on-tertiary-fixed": "#1a1834",
+                    "inverse-surface": "#e5e2e3",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "surface-dim": "#131314",
+                    "on-primary-container": "#695c31",
+                    "primary-fixed": "#f5e1ab",
+                    "on-secondary-fixed": "#201b0b",
+                    "surface-container": "#201f20",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-primary-fixed-variant": "#52461d",
+                    "inverse-primary": "#6b5d33",
+                    "error-container": "#93000a",
+                    "on-tertiary": "#2f2d4a",
+                    "inverse-on-surface": "#313031",
+                    "background": "#131314",
+                    "surface-container-low": "#1c1b1c",
+                    "surface-container-lowest": "#0e0e0f",
+                    "secondary-container": "#4d4633",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "error": "#ffb4ab",
+                    "surface-variant": "#353436",
+                    "outline": "#979083",
+                    "tertiary-container": "#d6d2f7",
+                    "outline-variant": "#4b463b",
+                    "on-primary-fixed": "#231b00",
+                    "on-surface-variant": "#cdc6b7",
+                    "surface-container-high": "#2a2a2b",
+                    "on-background": "#e5e2e3",
+                    "surface-bright": "#3a393a",
+                    "surface-tint": "#d8c591",
+                    "on-secondary": "#36301e",
+                    "secondary-fixed": "#ede2c8",
+                    "on-primary": "#3a2f09",
+                    "on-secondary-container": "#beb49c",
+                    "on-tertiary-container": "#5b5978",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e5e2e3",
+                    "primary-fixed-dim": "#d8c591",
+                    "surface-container-highest": "#353436",
+                    "primary-container": "#e8d5a0",
+                    "primary": "#fff2d2",
+                    "on-error": "#690005",
+                    "tertiary": "#f4f0ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0e0e0f; /* OLED black fallback */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface font-body h-screen flex flex-col overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#0a0a0b]/80 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#E8D5A0]" data-icon="menu">menu</span>
+<h1 class="text-[#E8D5A0] font-['Newsreader'] italic tracking-tighter text-2xl">Kiltikonet</h1>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-[#e5e2e3]/60 hover:text-[#fff2d2] transition-colors duration-300" data-icon="chat_bubble">chat_bubble</span>
+</div>
+</header>
+<!-- Content Canvas: Dialogue Flux -->
+<main class="flex-1 mt-16 mb-24 overflow-y-auto px-6 py-8 flex flex-col gap-10">
+<!-- User Query -->
+<div class="flex flex-col gap-2 max-w-[85%] self-end">
+<div class="bg-surface-container px-5 py-3 rounded-xl rounded-tr-none text-on-surface text-sm leading-relaxed border-l border-primary-container/20">
+                Analyse mon dernier manuscrit sur l'esthétique du vide.
+            </div>
+<span class="text-[10px] uppercase tracking-widest text-outline self-end opacity-60">Just now</span>
+</div>
+<!-- AI Response (The Curator) -->
+<div class="flex flex-col gap-4 max-w-full">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 rounded-full bg-gradient-to-br from-primary-container to-primary-fixed-dim flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-[14px]" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="text-[11px] uppercase tracking-[0.2em] font-bold text-primary-fixed-dim">BRAIN CURATOR</span>
+</div>
+<div class="font-headline text-lg md:text-xl text-on-surface leading-relaxed pl-9 space-y-4">
+<p>
+                    Votre exploration de <span class="italic text-primary">l'esthétique du vide</span> résonne avec une précision chirurgicale. Ce n'est pas seulement l'absence de matière, mais la présence d'une intention silencieuse.
+                </p>
+<div class="bg-surface-container-low p-6 rounded-sm border-l-2 border-primary-container/30 italic text-on-surface-variant font-light text-base">
+                    "Le vide n'est pas ce qui manque, c'est ce qui permet au reste d'exister avec autorité."
+                </div>
+<p>
+                    J'ai identifié trois axes de raffinement pour votre prologue. Souhaitez-vous explorer la dimension architecturale ou la dimension métaphysique en premier ?
+                </p>
+</div>
+</div>
+<!-- AI Tool suggestions (Contextual) -->
+<div class="flex flex-wrap gap-2 pl-9">
+<button class="bg-surface-container-high hover:bg-surface-bright text-primary-fixed-dim text-[11px] font-bold py-2 px-4 rounded-full uppercase tracking-wider transition-all duration-300">Dimension Métaphysique</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-primary-fixed-dim text-[11px] font-bold py-2 px-4 rounded-full uppercase tracking-wider transition-all duration-300">Dimension Architecturale</button>
+</div>
+</main>
+<!-- Bottom Interface (Compact Input & Control) -->
+<div class="fixed bottom-0 left-0 w-full z-50">
+<!-- Floating Command Bar -->
+<div class="max-w-2xl mx-auto px-4 pb-8">
+<div class="bg-[#131314]/95 backdrop-blur-2xl p-2 rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.6)] flex flex-col gap-2">
+<!-- AI Tools Compact Bar -->
+<div class="flex items-center gap-1 px-2 py-1">
+<button class="p-2 hover:text-primary transition-colors duration-300">
+<span class="material-symbols-outlined text-[20px]" data-icon="upload_file">upload_file</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors duration-300">
+<span class="material-symbols-outlined text-[20px]" data-icon="mic">mic</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors duration-300">
+<span class="material-symbols-outlined text-[20px]" data-icon="code">code</span>
+</button>
+<div class="h-4 w-[1px] bg-outline-variant mx-2 opacity-30"></div>
+<span class="text-[10px] uppercase tracking-widest text-outline-variant font-semibold">BRAIN v2.4</span>
+</div>
+<!-- Input Area -->
+<div class="relative flex items-center bg-surface-container-highest/30 rounded-lg group transition-all duration-300">
+<input class="w-full bg-transparent border-none focus:ring-0 text-on-surface py-4 pl-5 pr-12 text-sm placeholder:text-outline-variant font-medium" placeholder="Command the Curator..." type="text"/>
+<button class="absolute right-2 w-10 h-10 bg-primary-container text-on-primary rounded-lg flex items-center justify-center active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_upward">arrow_upward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Shared BottomNavBar Component -->
+<nav class="bg-[#131314]/90 backdrop-blur-2xl fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 rounded-t-[4px] shadow-[0_-10px_40px_rgba(0,0,0,0.6)]">
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Network</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#E8D5A0] scale-110 drop-shadow-[0_0_8px_rgba(232,213,160,0.4)] cursor-pointer">
+<span class="material-symbols-outlined" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">BRAIN</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="local_mall">local_mall</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Shop</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Profile</span>
+</div>
+</nav>
+</div>
+</body></html>

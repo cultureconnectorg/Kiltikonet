@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;700&amp;family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container": "#1f1f1f",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-tertiary-fixed-variant": "#56450e",
+                        "on-primary-fixed-variant": "#584400",
+                        "inverse-primary": "#745b00",
+                        "tertiary-fixed": "#fbe09b",
+                        "surface": "#131313",
+                        "secondary": "#c8c6c5",
+                        "on-tertiary-fixed": "#241a00",
+                        "inverse-surface": "#e2e2e2",
+                        "tertiary-fixed-dim": "#dec482",
+                        "primary-fixed": "#ffe08c",
+                        "surface-dim": "#131313",
+                        "on-primary-container": "#4f3d00",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "surface-container-lowest": "#0e0e0e",
+                        "secondary-container": "#474746",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#3d2f00",
+                        "inverse-on-surface": "#303030",
+                        "surface-container-low": "#1b1b1b",
+                        "background": "#131313",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-bright": "#393939",
+                        "on-background": "#e2e2e2",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-primary": "#3d2f00",
+                        "surface-tint": "#e5c363",
+                        "on-secondary": "#313030",
+                        "on-secondary-container": "#b7b5b4",
+                        "error": "#ffb4ab",
+                        "outline": "#98907e",
+                        "surface-variant": "#353535",
+                        "on-surface-variant": "#d0c5b2",
+                        "tertiary-container": "#c1a969",
+                        "outline-variant": "#4d4637",
+                        "on-primary-fixed": "#241a00",
+                        "surface-container-highest": "#353535",
+                        "primary-container": "#c8a84b",
+                        "primary": "#e5c363",
+                        "on-error": "#690005",
+                        "tertiary": "#dec482",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#4e3d06",
+                        "primary-fixed-dim": "#e5c363",
+                        "on-surface": "#e2e2e2"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"],
+                        "serif": ["Newsreader"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131313;
+            color: #e2e2e2;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-primary selection:text-on-primary">
+<header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl shadow-[0_32px_64px_-15px_rgba(0,0,0,0.5)] flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#E8D5A0] text-2xl" data-icon="menu">menu</span>
+<h1 class="text-xl font-black tracking-tighter text-[#E8D5A0] uppercase font-headline">KILTIKONET</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full border border-outline-variant/20">
+<span class="w-2 h-2 rounded-full bg-[#E8D5A0] animate-pulse"></span>
+<span class="text-[10px] font-bold tracking-widest text-[#E8D5A0] uppercase font-label">CVL BRAIN ACTIF</span>
+</div>
+<img alt="User profile photo" class="w-10 h-10 rounded-full border-2 border-primary/20 hover:opacity-80 transition-opacity" data-alt="close-up portrait of a professional man with minimalist lighting and dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfWRj1p6Osl8JSRM_MVHOfZgSgV0HN05OLZ-Gnonyhv9zMigvkbh0L_wi_VY57Q7yqB5vJ1o6rON9sicXzqAJAZPTHS3GK1vuYlahPNjipAgXFFijKplz4tOMZ-uNmxIlQzg2y13e-YzdVz6GLUj2Q9zOzshrwg-j-43XCdSG51Z5hPjnbHDhtbifYeXXm_R6QVnwftHgSGGX-darzRHEobn3CyB3O5EVdzAUUyrG3hvJrAddmDt8gUugYAgdnHq6BoqxKsjd9zJs"/>
+</div>
+</header>
+<main class="h-screen pt-20 pb-24 px-6 flex flex-col gap-6 overflow-hidden">
+<section class="flex flex-col gap-1 relative group">
+<div class="flex justify-between items-end">
+<div>
+<p class="text-primary/60 text-[10px] uppercase tracking-[0.2em] font-label font-bold">Score Culturel</p>
+<div class="flex items-baseline gap-3">
+<span class="text-6xl font-serif italic text-on-surface leading-none">942</span>
+<div class="flex items-center text-[#E8D5A0] gap-0.5 mb-1">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span class="text-xs font-bold font-label">+4.2%</span>
+</div>
+</div>
+</div>
+<div class="h-12 w-24 bg-gradient-to-t from-primary/10 to-transparent rounded-lg flex items-end justify-around px-2 pb-1 gap-1">
+<div class="w-1.5 bg-primary/20 h-[30%] rounded-t-sm"></div>
+<div class="w-1.5 bg-primary/40 h-[50%] rounded-t-sm"></div>
+<div class="w-1.5 bg-primary/60 h-[80%] rounded-t-sm"></div>
+<div class="w-1.5 bg-primary h-[60%] rounded-t-sm"></div>
+<div class="w-1.5 bg-primary/30 h-[40%] rounded-t-sm"></div>
+</div>
+</div>
+</section>
+<section class="grid grid-cols-2 gap-4 h-32">
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-20 h-20 bg-primary/5 rounded-full blur-2xl"></div>
+<span class="material-symbols-outlined text-primary text-xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label">Vault</p>
+<p class="text-lg font-bold text-on-surface font-headline">12,480 <span class="text-[10px] text-primary">JCC</span></p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between border border-outline-variant/10 group">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="explore">explore</span>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label">Explore</p>
+<p class="text-lg font-bold text-on-surface font-headline">Réseau</p>
+</div>
+</div>
+</section>
+<section class="flex-1 min-h-0 flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h2 class="text-xs font-bold text-primary uppercase tracking-[0.2em] font-label italic">À la une</h2>
+<span class="w-8 h-[1px] bg-outline-variant/30"></span>
+</div>
+<div class="relative flex-1 rounded-xl overflow-hidden bg-surface-container-highest group">
+<img class="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" data-alt="abstract architectural shot of a museum interior with dramatic shadows and golden sunlight beams hitting marble floors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-maf1usBjYWiS192CLgPYX0mpWMNv5sf7G8bl_UxsItU2xYRrMEDj8sw52XpaATxT7I5-8UQ9w1zeE1oet6B-KFYvn706kXd-5TpbiP0B3Sy1xnCKZ3iExVhUq-FCxtr6Lup8Su-tKHVEwGLcBnu6LalovtklbDGhOVcvuFZ8dBMtPUT-eoACw8nGXf3zHHU4coiaGJdOwyT-uJuVCbUWsadvphFl3-RerPEcmn9EOAcIDdbMAmNP_29fmmcpO7qxF2AHnV5-wUc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-6 w-full">
+<p class="text-[10px] text-[#E8D5A0] uppercase tracking-widest font-label mb-1">Architecture</p>
+<h3 class="text-2xl font-serif text-on-surface leading-tight italic">Le renouveau des structures organiques</h3>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 pb-4">
+<p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest font-label">Audit Trail</p>
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest/50 rounded-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="token">token</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface font-headline">Minting NFT Patrimonial</p>
+<p class="text-[10px] text-on-surface-variant">Il y a 2h</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-[#E8D5A0]">+250 JCC</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest/50 rounded-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="verified">verified</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface font-headline">Validation Culturelle</p>
+<p class="text-[10px] text-on-surface-variant">Hier</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant">Check</span>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#1b1b1b]/60 backdrop-blur-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.3)] flex justify-around items-center px-4 pb-8 pt-3 rounded-t-xl">
+<div class="flex items-center justify-center bg-gradient-to-b from-[#e5c363] to-[#c8a84b] text-[#131313] rounded-lg p-3 shadow-[0_0_15px_rgba(200,168,75,0.4)] active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="dynamic_feed">dynamic_feed</span>
+</div>
+<div class="flex items-center justify-center text-gray-500 p-3 hover:text-[#E8D5A0] transition-colors active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div class="flex items-center justify-center text-gray-500 p-3 hover:text-[#E8D5A0] transition-colors active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+</div>
+<div class="flex items-center justify-center text-gray-500 p-3 hover:text-[#E8D5A0] transition-colors active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div class="flex items-center justify-center text-gray-500 p-3 hover:text-[#E8D5A0] transition-colors active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+</nav>
+</body></html>

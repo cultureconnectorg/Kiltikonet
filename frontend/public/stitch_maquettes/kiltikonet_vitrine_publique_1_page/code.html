@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#dec482",
+                    "primary-fixed": "#ffe08c",
+                    "on-tertiary-fixed": "#241a00",
+                    "tertiary-fixed-dim": "#dec482",
+                    "primary": "#e5c363",
+                    "surface-container-high": "#1a1a1a",
+                    "on-tertiary-fixed-variant": "#56450e",
+                    "surface-tint": "#e5c363",
+                    "on-primary": "#3d2f00",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "secondary-fixed": "#e5e2e1",
+                    "primary-fixed-dim": "#e5c363",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-primary-container": "#4f3d00",
+                    "on-surface": "#e2e2e2",
+                    "primary-container": "#c8a84b",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#222222",
+                    "on-primary-fixed": "#241a00",
+                    "on-tertiary": "#3d2f00",
+                    "inverse-on-surface": "#303030",
+                    "tertiary-fixed": "#fbe09b",
+                    "surface-container": "#0a0a0a",
+                    "surface-container-highest": "#222222",
+                    "on-secondary-fixed-variant": "#474746",
+                    "surface-container-lowest": "#000000",
+                    "on-secondary": "#313030",
+                    "inverse-surface": "#e2e2e2",
+                    "outline-variant": "#3d362a",
+                    "on-surface-variant": "#a69e8f",
+                    "tertiary-container": "#c1a969",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "surface-variant": "#1a1a1a",
+                    "surface": "#050505",
+                    "secondary-container": "#2a2a2a",
+                    "on-secondary-container": "#b7b5b4",
+                    "secondary": "#c8c6c5",
+                    "outline": "#6d665a",
+                    "surface-container-low": "#080808"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .premium-glass {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(229, 195, 99, 0.1);
+        }
+        .oled-card {
+            background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%);
+            border: 1px solid rgba(229, 195, 99, 0.05);
+        }
+        .shimmer-text {
+            background: linear-gradient(90deg, #e5c363 0%, #ffffff 50%, #e5c363 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer {
+            to { background-position: 200% center; }
+        }
+        body { 
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        main::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30">
+<!-- TopAppBar - Slimmer -->
+<header class="sticky top-0 w-full z-50 bg-black/80 backdrop-blur-3xl border-b border-primary/10">
+<div class="flex justify-between items-center px-4 py-3 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/30 p-[1px]">
+<img alt="Sovereign Icon" class="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida/ADBb0ujAXFxry1XsVK6ser-h7M6QOVsDZicRfYWELk4AdfqH6ddPXBiY71TV1f9rKZ1t0TLLBCIxSIIZw7MXESfWW4S_Uo6Ol01GStgiX2P6pmDheMxub7o3l_sYVwhhviE0M89tgYsT4h0QMlN3UI5_QsZe6Wj6sk7y8xcmpad_6SA9_mKWMpJav1sQP--orNZDHjD9U5X6KMezxaJBbpEKAxx55WCg_DFlVdut9SRW9fa69einShP3sS2E2G7wdyBuVnFXmebE4yXynQ"/>
+</div>
+<h1 class="text-lg font-black tracking-tighter text-primary uppercase font-headline">KILTIKONET</h1>
+</div>
+<button class="p-1.5 text-primary/60 hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined text-xl" data-icon="security">security</span>
+</button>
+</div>
+</header>
+<main class="px-4 py-4 space-y-4">
+<!-- Sovereign Connectivity Score - Condensed -->
+<section class="relative overflow-hidden rounded-2xl p-5 oled-card group">
+<div class="absolute inset-0 opacity-5 pointer-events-none">
+<img alt="Network" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0ujAXFxry1XsVK6ser-h7M6QOVsDZicRfYWELk4AdfqH6ddPXBiY71TV1f9rKZ1t0TLLBCIxSIIZw7MXESfWW4S_Uo6Ol01GStgiX2P6pmDheMxub7o3l_sYVwhhviE0M89tgYsT4h0QMlN3UI5_QsZe6Wj6sk7y8xcmpad_6SA9_mKWMpJav1sQP--orNZDHjD9U5X6KMezxaJBbpEKAxx55WCg_DFlVdut9SRW9fa69einShP3sS2E2G7wdyBuVnFXmebE4yXynQ"/>
+</div>
+<div class="relative z-10 flex items-center justify-between gap-4">
+<div class="space-y-2 flex-1">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+<span class="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
+<span class="text-[8px] font-bold uppercase tracking-widest text-primary">Portal Active</span>
+</div>
+<h2 class="text-2xl font-extrabold font-headline tracking-tighter leading-tight">
+                        Cultural Score: <span class="shimmer-text">942</span>
+</h2>
+<button class="px-4 py-1.5 bg-primary text-on-primary text-[10px] font-bold rounded-lg shadow-lg shadow-primary/10 hover:scale-[1.02] transition-all">
+                        Upgrade Status
+                    </button>
+</div>
+<div class="w-20 h-20 relative flex items-center justify-center shrink-0">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-white/5" cx="40" cy="40" fill="transparent" r="36" stroke="currentColor" stroke-width="3"></circle>
+<circle class="text-primary" cx="40" cy="40" fill="transparent" r="36" stroke="currentColor" stroke-dasharray="226.19" stroke-dashoffset="45" stroke-linecap="round" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-lg font-black text-on-surface font-headline leading-none">92%</span>
+<span class="text-[6px] uppercase tracking-tighter text-primary/60 font-bold">Optim</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Network Coverage - Horizontal -->
+<section class="oled-card rounded-2xl p-4 border-l-2 border-l-primary/40 relative overflow-hidden">
+<div class="flex items-center justify-between gap-4">
+<div class="space-y-1">
+<h3 class="text-[8px] font-bold text-primary uppercase tracking-widest">Network</h3>
+<p class="text-lg font-bold font-headline leading-none">49 Sovereign Nations</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-[7px] text-on-surface-variant uppercase font-bold tracking-tighter">Nodes</p>
+<p class="text-base font-black text-primary leading-none">--</p>
+</div>
+<div class="w-[1px] h-6 bg-white/10"></div>
+<div class="text-right">
+<p class="text-[7px] text-on-surface-variant uppercase font-bold tracking-tighter">Rank</p>
+<p class="text-base font-black text-primary leading-none">08</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid - Super Dense -->
+<section class="grid grid-cols-2 gap-3">
+<!-- CVL BRAIN -->
+<div class="oled-card rounded-2xl p-3 flex flex-col justify-between h-28 border border-white/5">
+<div class="flex justify-between items-start">
+<div class="p-1.5 bg-primary/5 rounded-lg text-primary border border-primary/10">
+<span class="material-symbols-outlined text-xl" data-icon="psychology">psychology</span>
+</div>
+<span class="text-[7px] font-bold text-green-400">ACTIVE</span>
+</div>
+<div>
+<p class="text-[8px] font-bold text-on-surface-variant uppercase tracking-tighter">CVL BRAIN</p>
+<p class="text-xs text-on-surface-variant">Eff: 98.4%</p>
+</div>
+</div>
+<!-- Fintech Vault -->
+<div class="oled-card rounded-2xl p-3 flex flex-col justify-between h-28 border-b border-primary/20">
+<div class="flex justify-between items-start">
+<div class="p-1.5 bg-primary text-on-primary rounded-lg">
+<span class="material-symbols-outlined text-xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<p class="text-[7px] text-green-400 font-bold">+4.2%</p>
+</div>
+<div>
+<p class="text-[8px] font-bold text-on-surface-variant uppercase tracking-tighter">Vault Assets</p>
+<p class="text-lg font-black font-headline text-primary leading-none">12.4k <span class="text-[10px] font-bold">JCC</span></p>
+</div>
+</div>
+</section>
+<!-- Featured Transmission - Slimmer -->
+<section class="space-y-2">
+<div class="flex items-center justify-between">
+<h2 class="text-sm font-bold font-headline tracking-tight uppercase">Transmission</h2>
+<span class="text-red-500 text-[8px] font-bold uppercase tracking-widest flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-red-500 animate-pulse"></span> 2.4k LIVE
+                </span>
+</div>
+<div class="relative rounded-2xl overflow-hidden aspect-[21/9] border border-white/5">
+<img alt="Live" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0ujAXFxry1XsVK6ser-h7M6QOVsDZicRfYWELk4AdfqH6ddPXBiY71TV1f9rKZ1t0TLLBCIxSIIZw7MXESfWW4S_Uo6Ol01GStgiX2P6pmDheMxub7o3l_sYVwhhviE0M89tgYsT4h0QMlN3UI5_QsZe6Wj6sk7y8xcmpad_6SA9_mKWMpJav1sQP--orNZDHjD9U5X6KMezxaJBbpEKAxx55WCg_DFlVdut9SRW9fa69einShP3sS2E2G7wdyBuVnFXmebE4yXynQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex items-center gap-3 p-4">
+<button class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-xl">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div>
+<h4 class="text-xs font-bold font-headline leading-tight">Ancient Rhythms</h4>
+<p class="text-white/60 text-[8px]">Sovereign Hub Broadcast</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Audit Trail - More Compact -->
+<section class="space-y-2 pb-20">
+<div class="flex items-center justify-between">
+<h2 class="text-sm font-bold font-headline tracking-tight uppercase">Audit Trail</h2>
+<span class="text-on-surface-variant text-[8px] font-bold uppercase tracking-widest">REAL-TIME</span>
+</div>
+<div class="oled-card rounded-2xl p-4 space-y-3">
+<div class="flex gap-2.5 items-start">
+<div class="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0 shadow-[0_0_4px_rgba(229,195,99,0.5)]"></div>
+<div class="space-y-0.5">
+<p class="text-[10px] leading-tight">
+<span class="text-primary font-bold">Vault Confirmed:</span> 450 JCC verified.
+                        </p>
+<p class="text-[7px] text-on-surface-variant font-bold">2 MINS AGO</p>
+</div>
+</div>
+<div class="flex gap-2.5 items-start">
+<div class="w-1 h-1 rounded-full bg-neutral-700 mt-1.5 shrink-0"></div>
+<div class="space-y-0.5">
+<p class="text-[10px] leading-tight text-on-surface/80">
+<span class="text-on-surface font-bold">Node Sync:</span> CVL BRAIN updated.
+                        </p>
+<p class="text-[7px] text-on-surface-variant font-bold">14 MINS AGO</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Navigation - Slimmer -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-4 px-4 bg-black/90 backdrop-blur-3xl border-t border-white/5">
+<a class="flex flex-col items-center justify-center text-neutral-600 hover:text-primary transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="grid_view">grid_view</span>
+<span class="text-[7px] uppercase tracking-widest font-bold mt-1">Portal</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-600 hover:text-primary transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="explore">explore</span>
+<span class="text-[7px] uppercase tracking-widest font-bold mt-1">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary bg-primary/10 rounded-xl p-2.5 border border-primary/20 -mt-6 shadow-2xl active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-600 hover:text-primary transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="text-[7px] uppercase tracking-widest font-bold mt-1">Vault</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-600 hover:text-primary transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="person">person</span>
+<span class="text-[7px] uppercase tracking-widest font-bold mt-1">Identity</span>
+</a>
+</nav>
+</body></html>

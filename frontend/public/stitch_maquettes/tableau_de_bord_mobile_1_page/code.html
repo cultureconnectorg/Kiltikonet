@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#1b1b1b",
+                        "primary-fixed-dim": "#e5c363",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-secondary": "#313030",
+                        "surface-bright": "#393939",
+                        "secondary-fixed": "#e5e2e1",
+                        "tertiary-container": "#c1a969",
+                        "primary-fixed": "#ffe08c",
+                        "tertiary-fixed-dim": "#dec482",
+                        "outline": "#98907e",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "secondary-container": "#474746",
+                        "on-secondary-container": "#b7b5b4",
+                        "on-tertiary-fixed-variant": "#56450e",
+                        "tertiary": "#dec482",
+                        "outline-variant": "#4d4637",
+                        "inverse-surface": "#e2e2e2",
+                        "on-primary-fixed-variant": "#584400",
+                        "on-background": "#e2e2e2",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-tint": "#e5c363",
+                        "on-tertiary-container": "#4e3d06",
+                        "on-surface-variant": "#d0c5b2",
+                        "on-surface": "#e2e2e2",
+                        "on-error": "#690005",
+                        "surface-container": "#1f1f1f",
+                        "error": "#ffb4ab",
+                        "on-primary-container": "#4f3d00",
+                        "surface": "#131313",
+                        "tertiary-fixed": "#fbe09b",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#353535",
+                        "on-primary-fixed": "#241a00",
+                        "background": "#131313",
+                        "error-container": "#93000a",
+                        "primary": "#e5c363",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container-highest": "#353535",
+                        "on-primary": "#3d2f00",
+                        "primary-container": "#c8a84b",
+                        "secondary": "#c8c6c5",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "inverse-primary": "#745b00",
+                        "surface-dim": "#131313",
+                        "on-tertiary": "#3d2f00",
+                        "inverse-on-surface": "#303030"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #131313;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .glass-panel {
+            background: rgba(31, 31, 31, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface select-none">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-neutral-950/60 backdrop-blur-xl shadow-2xl shadow-black/20 flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#C8A84B]">menu</span>
+<span class="font-['Manrope'] font-bold tracking-tight text-on-surface text-xl font-black tracking-tighter text-[#C8A84B]">SOVEREIGN</span>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/20">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Close-up professional portrait of a man with clean aesthetic and soft cinematic studio lighting on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBc8cpk2JpPx1MNFZR3rxOp4EoqTot8r1Z4qcoQVkFpu1MI74PtqP6KvvDMPi4Zhlgsk3KSu5ci3jp4p1VyrpgJMGwjD1dVz8645BhfDikOde0cshvNhE2my1scQRe3vUg7GcRDHNkR-67XkpYX3Ve573ZZ2RuGgNKaeKHNR3W91cHYyarKXYHbGEBPsEzqAk2hsbnWx-JsJnzbQxOhkOs1orLUOcQl0cdnYmpNORQoB9Jmb7Iop54WVnFvN3Ssk5_cmKM3EIfyD8M"/>
+</div>
+</header>
+<!-- Main Content Canvas (Single Page, No Scroll) -->
+<main class="flex-1 pt-20 pb-24 px-5 flex flex-col gap-4 overflow-hidden">
+<!-- Header Section -->
+<section class="flex flex-col gap-0.5">
+<span class="text-[#C8A84B] font-label text-[10px] uppercase tracking-[0.2em] font-bold">Système Actif</span>
+<h1 class="font-headline text-2xl font-extrabold tracking-tight text-on-surface">Bienvenue, Alex</h1>
+</section>
+<!-- Performance Card -->
+<div class="glass-panel p-4 rounded-xl border border-outline-variant/10 shadow-lg relative overflow-hidden flex flex-col justify-between h-32 shrink-0">
+<div class="flex justify-between items-start z-10">
+<div>
+<p class="text-on-surface-variant text-[11px] font-medium uppercase tracking-wider">Score Global Performance</p>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-headline font-black text-[#C8A84B]">94.2</span>
+<span class="text-[#C8A84B] text-lg font-bold">%</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'wght' 700;">trending_up</span>
+<span class="text-[10px] font-bold">+2.4%</span>
+</div>
+</div>
+<!-- Simple Decorative Trend Line SVG -->
+<div class="absolute bottom-0 left-0 w-full h-12 opacity-30 pointer-events-none">
+<svg class="w-full h-full preserve-3d" viewbox="0 0 100 20">
+<path d="M0 15 Q 25 5, 50 12 T 100 2" fill="none" stroke="#C8A84B" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Quick Metrics Grid -->
+<div class="grid grid-cols-2 gap-3 shrink-0">
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-1 border border-outline-variant/5">
+<span class="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Tâches actives</span>
+<div class="flex items-center justify-between">
+<span class="text-xl font-headline font-bold">12 <span class="text-on-surface-variant text-sm font-normal">/ 15</span></span>
+<span class="material-symbols-outlined text-[#C8A84B] text-lg">assignment</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-1 border border-outline-variant/5">
+<span class="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Vitesse moy</span>
+<div class="flex items-center justify-between">
+<span class="text-xl font-headline font-bold">0.42<span class="text-on-surface-variant text-sm font-normal">s</span></span>
+<span class="material-symbols-outlined text-[#C8A84B] text-lg">speed</span>
+</div>
+</div>
+</div>
+<!-- Recommended Actions (Horizontal Scroll/Compact Tiles) -->
+<section class="flex flex-col gap-2 shrink-0">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant px-1">Actions recommandées</h3>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+<button class="flex items-center gap-2 bg-gradient-to-br from-[#e5c363] to-[#C8A84B] text-black px-3 py-2 rounded-lg shrink-0 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm">database</span>
+<span class="text-[11px] font-bold">Sync Project DB</span>
+</button>
+<button class="flex items-center gap-2 bg-surface-container-highest text-on-surface px-3 py-2 rounded-lg shrink-0 border border-outline-variant/20 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm text-[#C8A84B]">check_circle</span>
+<span class="text-[11px] font-bold">Approve Requests</span>
+</button>
+<button class="flex items-center gap-2 bg-surface-container-highest text-on-surface px-3 py-2 rounded-lg shrink-0 border border-outline-variant/20 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm text-[#C8A84B]">summarize</span>
+<span class="text-[11px] font-bold">Review Summary</span>
+</button>
+</div>
+</section>
+<!-- Recent Activity (Strictly limited) -->
+<section class="flex flex-col gap-2 flex-1 overflow-hidden min-h-0">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant px-1">Activité critique</h3>
+<div class="flex flex-col gap-2 overflow-hidden">
+<div class="bg-surface-container-low/50 p-3 rounded-lg flex items-center gap-3 border-l-2 border-[#C8A84B]">
+<div class="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#C8A84B] text-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-xs font-bold truncate">Alerte Latence Serveur</span>
+<span class="text-[10px] text-on-surface-variant">Il y a 2 min • Cluster-A</span>
+</div>
+</div>
+<div class="bg-surface-container-low/50 p-3 rounded-lg flex items-center gap-3 border-l-2 border-outline-variant/30">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">cloud_done</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-xs font-bold truncate">Déploiement réussi</span>
+<span class="text-[10px] text-on-surface-variant">Il y a 14 min • v2.4.1</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-neutral-900/80 backdrop-blur-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.5)] flex justify-around items-center px-4 pb-6 pt-3 w-full">
+<!-- Active Dashboard -->
+<div class="flex items-center justify-center bg-gradient-to-br from-[#e5c363] to-[#C8A84B] text-black rounded-full w-12 h-12 shadow-[0_0_15px_rgba(200,168,75,0.4)] transition-transform active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+</div>
+<!-- Inactive Assignment -->
+<div class="flex items-center justify-center text-neutral-500 w-12 h-12 hover:text-[#C8A84B] transition-all active:scale-90">
+<span class="material-symbols-outlined">assignment</span>
+</div>
+<!-- Inactive Speed -->
+<div class="flex items-center justify-center text-neutral-500 w-12 h-12 hover:text-[#C8A84B] transition-all active:scale-90">
+<span class="material-symbols-outlined">speed</span>
+</div>
+<!-- Inactive Settings -->
+<div class="flex items-center justify-center text-neutral-500 w-12 h-12 hover:text-[#C8A84B] transition-all active:scale-90">
+<span class="material-symbols-outlined">settings</span>
+</div>
+</nav>
+</body></html>

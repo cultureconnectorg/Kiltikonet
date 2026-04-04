@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;family=DM+Sans:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body {
+      background-color: #131313;
+      color: #e2e2e2;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: rgba(31, 31, 31, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .onyx-glow {
+      box-shadow: 0 0 20px rgba(200, 168, 75, 0.15);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 2px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c8a84b33;
+      border-radius: 10px;
+    }
+    .message-bubble {
+      max-width: 88%;
+      animation: slideUp 0.3s ease-out forwards;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "outline": "#98907e",
+                  "on-secondary-fixed": "#1c1b1b",
+                  "on-primary-fixed": "#241a00",
+                  "on-background": "#e2e2e2",
+                  "on-tertiary-fixed": "#241a00",
+                  "on-tertiary": "#3d2f00",
+                  "inverse-primary": "#745b00",
+                  "secondary-fixed": "#e5e2e1",
+                  "surface-tint": "#e5c363",
+                  "tertiary-container": "#c1a969",
+                  "on-tertiary-container": "#4e3d06",
+                  "on-surface-variant": "#d0c5b2",
+                  "primary-fixed-dim": "#e5c363",
+                  "on-primary-container": "#4f3d00",
+                  "surface-container-highest": "#353535",
+                  "on-error-container": "#ffdad6",
+                  "secondary-fixed-dim": "#c8c6c5",
+                  "surface-variant": "#353535",
+                  "on-tertiary-fixed-variant": "#56450e",
+                  "on-primary-fixed-variant": "#584400",
+                  "surface-container": "#1f1f1f",
+                  "primary-fixed": "#ffe08c",
+                  "primary": "#e5c363",
+                  "inverse-surface": "#e2e2e2",
+                  "tertiary-fixed-dim": "#dec482",
+                  "secondary": "#c8c6c5",
+                  "on-error": "#690005",
+                  "surface-container-lowest": "#0e0e0e",
+                  "surface-bright": "#393939",
+                  "on-surface": "#e2e2e2",
+                  "surface-dim": "#131313",
+                  "secondary-container": "#474746",
+                  "error": "#ffb4ab",
+                  "surface-container-high": "#2a2a2a",
+                  "background": "#131313",
+                  "surface-container-low": "#1b1b1b",
+                  "error-container": "#93000a",
+                  "tertiary-fixed": "#fbe09b",
+                  "surface": "#131313",
+                  "primary-container": "#c8a84b",
+                  "on-secondary": "#313030",
+                  "inverse-on-surface": "#303030",
+                  "on-secondary-fixed-variant": "#474746",
+                  "on-secondary-container": "#b7b5b4",
+                  "on-primary": "#3d2f00",
+                  "outline-variant": "#4d4637",
+                  "tertiary": "#dec482"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.125rem",
+                  "lg": "0.25rem",
+                  "xl": "0.5rem",
+                  "full": "0.75rem"
+          },
+          "fontFamily": {
+                  "headline": ["Manrope"],
+                  "body": ["Plus Jakarta Sans"],
+                  "label": ["Plus Jakarta Sans"],
+                  "serif": ["Newsreader"]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+<!-- Top Navigation (Authority Source: TopAppBar JSON) -->
+<header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] flex justify-between items-center px-6 py-4 w-full border-b border-white/5">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#C8A84B] text-xl">memory</span>
+<h1 class="text-xl font-headline font-bold -tracking-[0.02em] text-[#C8A84B]">CVL BRAIN</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white/60 hover:text-[#E8D5A0] transition-colors duration-300 cursor-pointer">sensors</span>
+<div class="w-8 h-8 rounded-full border border-[#C8A84B]/30 overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAU6dVAnBWe3kjdPVrhXSbEnwCBw1zhr0rRAYE44j86tcE1TZiT5-2cq4264VvWz3Q0HGeELXz9Elfe_8UocrSdo8fmsDtvmVXg8ykRSYhN6UFrVk59zD8miuUBzbbc_0El1M6qbhjBXqAkTJ8fRXrN2LUT6InjqYe89NKOT5MJsM6XmhHbZrVXPFi4zHP8JQ-7w5oYUTnmBkf_NNULdbf94BMdI4edG1HZ_iOeqbd0_95lwhRQ7VJhfPQcj08gvNstXnChHCQ4ye4"/>
+</div>
+</div>
+</header>
+<!-- Main Chat Feed -->
+<main class="flex-1 pt-20 pb-44 px-4 overflow-y-auto custom-scrollbar space-y-8">
+<!-- AI Message -->
+<div class="message-bubble space-y-3">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-5 h-5 bg-primary-container/20 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="text-[9px] uppercase tracking-[0.15em] font-bold text-primary/80">Onyx Core</span>
+</div>
+<div class="font-serif text-lg leading-snug text-on-surface/90">
+            Greetings, Sovereign. Architectural metrics for the District are processed.
+        </div>
+<!-- Compact Code Terminal -->
+<div class="rounded-xl overflow-hidden bg-surface-container-lowest border border-white/5 onyx-glow">
+<div class="px-3 py-1.5 bg-surface-container-low flex justify-between items-center border-b border-white/5">
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-error/40"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-primary/40"></div>
+</div>
+<span class="text-[8px] font-mono text-on-surface-variant/40">onyx_v4.py</span>
+</div>
+<div class="p-3 font-mono text-[11px] leading-4">
+<div><span class="text-primary">import</span> cvl_onyx <span class="text-primary">as</span> ox</div>
+<div>analysis = ox.analyze_density()</div>
+<div class="mt-2 text-primary/40 font-italic opacity-60">// Symmetry: 0.984 - Pure</div>
+</div>
+</div>
+<!-- Integrated Content Grid -->
+<div class="grid grid-cols-2 gap-2">
+<div class="glass-panel p-3 rounded-xl border border-white/5 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">description</span>
+<div class="truncate">
+<div class="text-[10px] font-bold truncate">Manifesto.pdf</div>
+<div class="text-[8px] text-white/40">4.8 MB</div>
+</div>
+</div>
+<div class="relative aspect-square rounded-xl overflow-hidden border border-white/5">
+<img alt="render" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUB-zazhkSPRsr-B7vH75Duuua2uh5x0-2jXBpyCAHti9HQB3lO315VtOc6-eE52ioSiFbExOppN7xvZjGqDDx7JS9qD1TB-3i2UH_6yp1ABFisMaFgEUQFedVgR_bIquB_ZG6iTDVlMTRdWUcRfCMqDTSGUe9L3Dmx2AhvJMzXEUhpr-QWJN3C5rX9XcOIjLZBoqQNtlFK-w33MRPZeakOj3gbJzoo3FGCBLV04NgM4a918YpJvIq0moSzNgqLQxBY0jl8xLbr9s"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
+<span class="text-[8px] uppercase tracking-tighter font-bold">Preview</span>
+</div>
+</div>
+</div>
+</div>
+<!-- User Message -->
+<div class="message-bubble self-end ml-auto space-y-2">
+<div class="flex items-center justify-end gap-2 mb-1">
+<span class="text-[9px] uppercase tracking-[0.15em] font-bold text-white/30">Sovereign</span>
+<div class="w-5 h-5 rounded-full overflow-hidden grayscale opacity-50 border border-white/10">
+<img class="object-cover w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYajqS2Lihyf_ZYLz1VgFPj_TPOVYYV79DxSa_Es6LLhfXo8L2q1uy-ABOyhBPusavtDWWQOxYnLu4fcHCbWPUMqzFnt6juMho25fkX1rxXsv2RoL3ufZ-uA6oQErNAXBATzMwUDBweN-zm_5J6BdfqtoTo4C2CQytNXT6XUNru1LC-GbR8MWVjzt3gfEhdxIYw8Uof3enZ82sdAMRV9JATY4iT3jFu2oqHDgqbdz1uiyzyDdakpGrq3T_lsZCnbahDmHtW_PBAzk"/>
+</div>
+</div>
+<div class="bg-surface-container-low/60 p-4 rounded-2xl rounded-tr-sm border border-white/5 text-on-surface/90 text-sm leading-relaxed text-right">
+            The geometry is exquisite. Generate an audio signature. Focus on deep resonant frequencies. Save to Vault.
+        </div>
+</div>
+<!-- AI Response with Audio -->
+<div class="message-bubble space-y-4">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-5 h-5 bg-primary-container/20 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="text-[9px] uppercase tracking-[0.15em] font-bold text-primary/80">Onyx Core</span>
+</div>
+<!-- Compact Audio Player -->
+<div class="glass-panel p-4 rounded-2xl border border-[#C8A84B]/10 onyx-glow">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">equalizer</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Audio Signature</span>
+</div>
+<span class="text-[8px] font-mono text-white/30">02:44</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-8 h-8 rounded-full bg-[#C8A84B] flex items-center justify-center text-background shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="flex-1 flex items-end gap-0.5 h-6">
+<div class="w-1 bg-primary/20 h-2 rounded-full"></div>
+<div class="w-1 bg-primary/40 h-4 rounded-full"></div>
+<div class="w-1 bg-primary h-6 rounded-full"></div>
+<div class="w-1 bg-primary/60 h-3 rounded-full"></div>
+<div class="w-1 bg-primary/30 h-1 rounded-full"></div>
+<div class="w-1 bg-primary/80 h-5 rounded-full"></div>
+<div class="w-1 bg-primary/20 h-2 rounded-full"></div>
+<div class="w-1 bg-primary/40 h-4 rounded-full"></div>
+<div class="w-1 bg-primary h-6 rounded-full"></div>
+<div class="w-1 bg-primary/60 h-3 rounded-full"></div>
+</div>
+<span class="material-symbols-outlined text-white/40 text-lg">save</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Rich Input Bar -->
+<div class="fixed bottom-24 w-full px-4 z-40">
+<div class="max-w-xl mx-auto glass-panel border border-white/10 rounded-2xl p-2 onyx-glow flex flex-col gap-2">
+<div class="flex items-center px-2 gap-3 border-b border-white/5 pb-2">
+<button class="p-1 text-white/40 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">attach_file</span></button>
+<button class="p-1 text-white/40 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">brush</span></button>
+<button class="p-1 text-white/40 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">code</span></button>
+<div class="flex-1"></div>
+<span class="text-[9px] uppercase tracking-widest text-white/20 font-bold">12% Neural</span>
+</div>
+<div class="flex items-center gap-3">
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 resize-none font-body text-sm py-1 max-h-32" placeholder="Instruct the Brain..." rows="1"></textarea>
+<div class="flex gap-1">
+<button class="w-10 h-10 rounded-xl bg-primary-container/10 text-primary flex items-center justify-center hover:bg-primary-container/20 transition-colors">
+<span class="material-symbols-outlined text-xl">mic</span>
+</button>
+<button class="w-10 h-10 rounded-xl bg-[#C8A84B] text-background flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation (Authority Source: BottomNavBar JSON) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-end px-6 pb-8 h-24 bg-[#1b1b1b]/80 backdrop-blur-2xl rounded-t-3xl z-50 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+<div class="flex flex-col items-center justify-center text-white/40 p-3 hover:text-[#E8D5A0] transition-all">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label text-[10px] uppercase tracking-widest mt-1">Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/40 p-3 hover:text-[#E8D5A0] transition-all">
+<span class="material-symbols-outlined">terminal</span>
+<span class="font-label text-[10px] uppercase tracking-widest mt-1">Shell</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-gradient-to-b from-[#e5c363] to-[#c8a84b] text-[#131313] rounded-full p-3 scale-110 -translate-y-2 shadow-[0_0_20px_rgba(200,168,75,0.4)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">deployed_code</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/40 p-3 hover:text-[#E8D5A0] transition-all">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label text-[10px] uppercase tracking-widest mt-1">Config</span>
+</div>
+</nav>
+</body></html>

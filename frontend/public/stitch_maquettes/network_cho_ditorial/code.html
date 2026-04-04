@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#d6d2f7",
+                        "inverse-primary": "#6b5d33",
+                        "on-primary-fixed-variant": "#52461d",
+                        "surface-container-low": "#1c1b1c",
+                        "on-primary-container": "#695c31",
+                        "secondary-container": "#4d4633",
+                        "primary-fixed-dim": "#d8c591",
+                        "primary-container": "#e8d5a0",
+                        "on-tertiary": "#2f2d4a",
+                        "on-primary-fixed": "#231b00",
+                        "on-tertiary-fixed-variant": "#454462",
+                        "on-tertiary-fixed": "#1a1834",
+                        "surface-container": "#201f20",
+                        "surface-container-lowest": "#0e0e0f",
+                        "surface-tint": "#d8c591",
+                        "on-secondary": "#36301e",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed": "#201b0b",
+                        "on-secondary-container": "#beb49c",
+                        "secondary-fixed-dim": "#d0c6ad",
+                        "on-tertiary-container": "#5b5978",
+                        "inverse-surface": "#e5e2e3",
+                        "outline": "#979083",
+                        "surface-dim": "#131314",
+                        "surface-container-highest": "#353436",
+                        "on-primary": "#3a2f09",
+                        "on-surface": "#e5e2e3",
+                        "background": "#131314",
+                        "surface-container-high": "#2a2a2b",
+                        "secondary-fixed": "#ede2c8",
+                        "on-surface-variant": "#cdc6b7",
+                        "surface-bright": "#3a393a",
+                        "tertiary": "#f4f0ff",
+                        "primary": "#fff2d2",
+                        "secondary": "#d0c6ad",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#e5e2e3",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab",
+                        "surface": "#131314",
+                        "inverse-on-surface": "#313031",
+                        "surface-variant": "#353436",
+                        "primary-fixed": "#f5e1ab",
+                        "tertiary-fixed-dim": "#c6c3e7",
+                        "on-secondary-fixed-variant": "#4d4633",
+                        "tertiary-fixed": "#e3dfff",
+                        "outline-variant": "#4b463b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(32, 31, 32, 0.7);
+            backdrop-filter: blur(24px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 w-full bg-[#131314]/70 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#E8D5A0] hover:scale-105 transition-transform cursor-pointer" data-icon="menu">menu</span>
+<span class="text-xl font-bold italic text-[#E8D5A0] font-headline tracking-tighter">Digital Sovereign</span>
+</div>
+<div class="hidden md:flex gap-8">
+<a class="text-[#E8D5A0] font-semibold font-headline hover:scale-105 hover:text-[#fff2d2] transition-transform duration-300" href="#">The Vault</a>
+<a class="text-[#e5e2e3]/60 font-headline hover:scale-105 hover:text-[#fff2d2] transition-transform duration-300" href="#">Editorial</a>
+<a class="text-[#e5e2e3]/60 font-headline hover:scale-105 hover:text-[#fff2d2] transition-transform duration-300" href="#">Studio</a>
+<a class="text-[#e5e2e3]/60 font-headline hover:scale-105 hover:text-[#fff2d2] transition-transform duration-300" href="#">Archives</a>
+</div>
+<div class="flex items-center">
+<img alt="Curator Profile" class="w-10 h-10 rounded-full border border-outline-variant/30 object-cover" data-alt="Close-up portrait of a sophisticated man with salt and pepper beard in a dark studio setting, soft dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_vhoxMeMqTjmdMQGzOPP5wwB0fg22DGPWmk0fv1J6V27D-4TIqbGwQIwtTBSxU7TSqcgtNtNpnRHn7pBagfmRQEI0B2Rd3J1j6-fZnGFCDjVTbRATbGM2noLPbk5UdBcQkDK4xbyaJUZo9V0alz4C6CK14Gi55FoMqWFJ5hAypV6bZ7bQ4hHxaPdFjwOFXaqMnnN45bE1P3n5oUZmAj8YRXoDIUHsfjdu-F7DXFupkoJwbyrMlTKdP7YR3h3_YFWFpNzzx3SQMNU"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative min-h-screen pt-20 pb-24 md:pb-0 md:pl-20">
+<!-- Hero Background -->
+<div class="fixed inset-0 z-0">
+<img alt="Caribbean Festival" class="w-full h-full object-cover opacity-60 scale-105 grayscale-[0.2]" data-alt="Vibrant Caribbean festival parade with dancers in elaborate feathered costumes under golden tropical sunlight, shallow depth of field, cinematic motion blur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCisSR3fJ7H50VQAFXsdkLMv-kBtok8VAYlUkEEL382uo0cP6JNdYUcM9TKbWNMgqg36imv9sJU8j8_hic1KDCa1hBYzyo-bpuidjTelpZccDDE186InvLKxpKLc351SuZyXtM8xiRYpdRTpQRFviq3Q_N8WOehs0UJZoBwFCQ70pqtKz6DEGrzfhVtTKJAzjEYOjPDUUCgCUibxTbSmV5Ebw-4Eme0Z-XE62ePNrvcL72WC2G8oWHOAllPArXvuHASPOerIFRe-xU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+</div>
+<!-- Editorial Content -->
+<div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-12 md:pt-24 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Side: Editorial Post -->
+<article class="lg:col-span-8 flex flex-col gap-8">
+<header class="space-y-4">
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 bg-primary-fixed-dim/20 text-primary-fixed-dim text-[10px] uppercase tracking-[0.2em] rounded-full border border-primary-fixed-dim/20 font-label">Volume IV — Issue 12</span>
+<div class="h-px flex-1 bg-outline-variant/15"></div>
+</div>
+<h1 class="text-6xl md:text-8xl font-headline font-bold text-on-surface leading-[0.9] tracking-tighter">
+                        L’Écho du <br/><span class="italic text-primary-container">Réseau</span>
+</h1>
+</header>
+<div class="glass-panel p-8 md:p-12 border-l border-primary-container/30 shadow-2xl space-y-8">
+<div class="flex items-start justify-between">
+<div class="flex gap-4 items-center">
+<div class="relative">
+<img alt="The Curator" class="w-14 h-14 rounded-full border-2 border-primary-container/50 object-cover" data-alt="Professional profile photo of an elegant curator in a black turtleneck against a charcoal background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTIywrG8DjIIngFE6vFLXPXmFqRSw15O4FDSXYh1rmnpGHjxLXdNckp8Athfl2gGwNh377hm7Si7aMkV0XKJgYGkCeGG3r_Ap2GJZa4XD_wZYWq7ATbqqlZdMvD2nfHg2t8jebKOieN18FzOaSoum9GtlvfkEjg6NKnK7gAENvsbQyyX2IrPqnxXBVglcCAlIL5FrpM_JnOTbzSopcGRRqjvYaHhspHh8pi0jZex-HEsWRalzGFW0boT8QPwQ3GDD3kPhKzb8ZvrM"/>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-primary-container rounded-full flex items-center justify-center border-2 border-surface-container">
+<span class="material-symbols-outlined text-[12px] text-on-primary font-bold" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline text-xl text-on-surface">The Curator</h3>
+<p class="text-on-surface-variant text-xs font-label tracking-widest uppercase opacity-70">Tier I Access • Sovereign Curator</p>
+</div>
+</div>
+<span class="font-headline text-primary-container italic text-lg">Dec 2023</span>
+</div>
+<p class="font-headline text-2xl md:text-3xl leading-relaxed text-on-surface italic font-light">
+                        "La vibration d'un peuple ne se mesure pas à son volume, mais à la profondeur de ses silences entre chaque battement de tambour."
+                    </p>
+<div class="flex flex-wrap gap-8 items-center pt-8 border-t border-outline-variant/10">
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-full flex items-center justify-center border border-outline-variant/20 group-hover:border-primary-container/60 transition-all group-hover:bg-primary-container/10">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-colors" data-icon="bolt">bolt</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant group-hover:text-primary-container font-label transition-colors">Éclair</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-full flex items-center justify-center border border-outline-variant/20 group-hover:border-primary-container/60 transition-all group-hover:bg-primary-container/10">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-colors" data-icon="rebase">rebase</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant group-hover:text-primary-container font-label transition-colors">Tambour</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-full flex items-center justify-center border border-outline-variant/20 group-hover:border-primary-container/60 transition-all group-hover:bg-primary-container/10">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-colors" data-icon="edit_note">edit_note</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant group-hover:text-primary-container font-label transition-colors">Plume</span>
+</button>
+<div class="ml-auto flex -space-x-3 items-center">
+<img alt="user" class="w-8 h-8 rounded-full border-2 border-surface-container" data-alt="close up headshot of a young stylish woman with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtGhjqS8ekCpPRsoRHEhW7q1b0cLRlUsm09FWJ1SRYtxstoWwmlGItw2AejNCCrewPGr6tlYZme84Bz_sb34ZKDRz1LcAux2htGjrdgI_MYV13Oop5t_BtWBCn1BI2mO5naVaEheDm0h7ENlOVkYUTwxVYAvMPp-VBDXIXqcbl_LeTBaz3EF54TsfPwTYz9Df2gbKLl8Jl0RHhTRrAXFN7ZydWTwx6LAttx-qGhq4Q7JjbCpkZFtaH5TIVB69gvag1CAYsgpWsdjQ"/>
+<img alt="user" class="w-8 h-8 rounded-full border-2 border-surface-container" data-alt="close up headshot of a young man with a neutral expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHijvfP5qcVT50TfszMZW5p9fmnHBRjiuEb_IiuEJsRy24DMvr9CYz2richxEqwKY8F4DN50NXOtvjsEqIdz2TaGf2jQsbBs402NuMCeIrZgGlht5w5DquT9BGd8OoaexhqxazpCtww3P7fw4wLaKkhkWq_dFIoAVmUH2tLXr_X9-80zf1Xohqb_dgYN6P666oKtFMx4XaEKjE3ZCKwYdy4Ah9k09CgoOBRvzu8LeiCRZCPccWNA5uTSRb_RnQwd_e3bG2BQAG3SQ"/>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border-2 border-surface-container flex items-center justify-center text-[10px] font-bold text-primary-container">
+                                +42
+                            </div>
+</div>
+</div>
+</div>
+</article>
+<!-- Right Side: Metadata / Sidebar -->
+<aside class="lg:col-span-4 flex flex-col gap-6">
+<!-- Curator Badge Section -->
+<div class="bg-surface-container-low p-8 rounded-sm space-y-6 shadow-xl border-t-2 border-primary-container/10">
+<h4 class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/60">Curator Profile</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between group">
+<span class="text-sm font-headline text-on-surface">Network Presence</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary text-[10px] font-bold">LEGACY</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-headline text-on-surface">Cultural Resonance</span>
+<span class="text-primary-container font-headline italic">High Resonance</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-headline text-on-surface">Digital Lineage</span>
+<span class="text-on-surface-variant text-xs">Era III • Block 9</span>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/10">
+<button class="w-full py-4 bg-primary-container text-on-primary text-xs uppercase tracking-[0.2em] font-bold rounded-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+                            View Dossier
+                            <span class="material-symbols-outlined text-sm" data-icon="north_east">north_east</span>
+</button>
+</div>
+</div>
+<!-- Bento Card: Statistics -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-high p-6 rounded-sm flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary-container" data-icon="auto_awesome">auto_awesome</span>
+<div>
+<div class="text-2xl font-headline text-on-surface">8.4k</div>
+<div class="text-[9px] uppercase tracking-widest text-on-surface-variant">Impressions</div>
+</div>
+</div>
+<div class="bg-surface-container-high p-6 rounded-sm flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary-container" data-icon="share">share</span>
+<div>
+<div class="text-2xl font-headline text-on-surface">112</div>
+<div class="text-[9px] uppercase tracking-widest text-on-surface-variant">Relayed</div>
+</div>
+</div>
+</div>
+<!-- Secondary Image Frame -->
+<div class="relative overflow-hidden group">
+<img alt="Festival detail" class="w-full h-48 object-cover grayscale transition-all group-hover:grayscale-0 group-hover:scale-110 duration-700" data-alt="Abstract detail of colorful textile patterns and sequins from a festive costume, shallow depth of field, rhythmic composition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9XVqGvNuSgvr_7PzqKoh8gi8-Jip_LksrQu_MRKUUSu_4aQsuX2K8JSVi2vOUzOVLXxFBFrTX5syYpwS6PGjFOyu6ugBeB8jsLCxrCjZm7XYrH1uI0QT9IecRg-IJ3C4j02ax0myQI_gErf_JOCvaACqbc0CFdQ6GnuXAoBPDcgYonynpsADIHrO-Fvqc2rleKd5i6yC1OPcY9ElRunE4m-M1ylw07y_ihWXucoEhFZ3QlihdcAaOEaR6YpGfHXKhamBhnnaHSUE"/>
+<div class="absolute inset-0 bg-primary-container/10 mix-blend-multiply"></div>
+<div class="absolute bottom-4 left-4">
+<span class="text-[10px] font-label text-white uppercase tracking-widest px-2 py-1 bg-black/50 backdrop-blur-sm">Detail #0012</span>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- NavigationDrawer (Mobile suppressed, visible on desktop sidebar) -->
+<nav class="hidden md:flex fixed left-0 top-0 h-full w-20 z-[60] flex flex-col items-center py-10 bg-[#0e0e0f] border-r border-[#4b463b]/15 shadow-2xl shadow-black">
+<div class="mb-12">
+<span class="text-[#E8D5A0] font-black text-2xl font-headline italic">DS</span>
+</div>
+<div class="flex flex-col gap-10 flex-1">
+<a class="group relative flex items-center justify-center w-12 h-12 rounded-sm text-[#E8D5A0] bg-[#2a2a2b] border-l-2 border-[#E8D5A0]" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="absolute left-16 px-4 py-2 bg-surface-container-high text-on-surface text-xs rounded-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">The Vault</span>
+</a>
+<a class="group relative flex items-center justify-center w-12 h-12 text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="auto_graph">auto_graph</span>
+<span class="absolute left-16 px-4 py-2 bg-surface-container-high text-on-surface text-xs rounded-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">Analytics</span>
+</a>
+<a class="group relative flex items-center justify-center w-12 h-12 text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="workspace_premium">workspace_premium</span>
+<span class="absolute left-16 px-4 py-2 bg-surface-container-high text-on-surface text-xs rounded-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">Premium</span>
+</a>
+<a class="group relative flex items-center justify-center w-12 h-12 text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="absolute left-16 px-4 py-2 bg-surface-container-high text-on-surface text-xs rounded-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">Settings</span>
+</a>
+</div>
+</nav>
+<!-- BottomNavBar (Mobile Only) -->
+<footer class="md:hidden fixed bottom-0 left-0 w-full z-50 h-16 bg-[#131314]/80 backdrop-blur-2xl flex justify-around items-center px-12 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+<a class="text-[#E8D5A0] bg-[#e8d5a0]/10 rounded-full p-3 transition-all scale-110" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</a>
+<a class="text-[#e5e2e3]/30 p-3 hover:text-[#E8D5A0] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="auto_graph">auto_graph</span>
+</a>
+<a class="text-[#e5e2e3]/30 p-3 hover:text-[#E8D5A0] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="workspace_premium">workspace_premium</span>
+</a>
+<a class="text-[#e5e2e3]/30 p-3 hover:text-[#E8D5A0] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</a>
+</footer>
+</body></html>

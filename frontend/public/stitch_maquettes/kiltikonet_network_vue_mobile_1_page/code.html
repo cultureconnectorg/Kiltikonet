@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Kiltikonet Network</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,700&amp;family=Manrope:wght@300;400;600;800&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #131314;
+            color: #e5e2e3;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .font-serif {
+            font-family: 'Newsreader', serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#fff2d2",
+                    "surface-bright": "#3a393a",
+                    "background": "#131314",
+                    "surface-container": "#201f20",
+                    "primary-container": "#e8d5a0",
+                    "on-primary": "#3a2f09",
+                    "on-surface": "#e5e2e3",
+                    "on-surface-variant": "#cdc6b7",
+                    "outline-variant": "#4b463b"
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-surface text-on-surface flex flex-col">
+<!-- Condensed TopAppBar -->
+<header class="flex justify-between items-center px-4 py-3 w-full sticky top-0 z-50 bg-[#131314]">
+<div class="flex items-center gap-3">
+<img alt="Icon" class="w-6 h-6 rounded-sm opacity-80" src="https://lh3.googleusercontent.com/aida/ADBb0ujAXFxry1XsVK6ser-h7M6QOVsDZicRfYWELk4AdfqH6ddPXBiY71TV1f9rKZ1t0TLLBCIxSIIZw7MXESfWW4S_Uo6Ol01GStgiX2P6pmDheMxub7o3l_sYVwhhviE0M89tgYsT4h0QMlN3UI5_QsZe6Wj6sk7y8xcmpad_6SA9_mKWMpJav1sQP--orNZDHjD9U5X6KMezxaJBbpEKAxx55WCg_DFlVdut9SRW9fa69einShP3sS2E2G7wdyBuVnFXmebE4yXynQ"/>
+<h1 class="text-[#e8d5a0] font-serif text-lg tracking-tight uppercase font-extrabold">KILTIKONET</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface text-xl">notifications</span>
+<div class="w-8 h-8 rounded-full border border-outline-variant/30 overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZ73KUGa-KieiUsUX1CAihhTjVn_xvg0jK1kZT079TdgiMxFAXKeY2ti9KLJty2Dm53pU3oGlcEmFGWF0s8cFYqrKOBc-ILnW4VIvAEibgkkRjrlZF2Ocrl7jmqMUKyST-dTmi8Wi7ig__yCi65YKCAUzF-qOeclsggwrwzPcsoD6OtIAgmW0KyhiJwGv4RAK8r_f84bRR7hwJo4fprGB6vA5-ONskx2iCKHieB1r9_QE1sEHZ-VZmW463VdGa2ARBHcASpM07xfs"/>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col gap-3 px-4 pb-24 overflow-y-auto no-scrollbar">
+<!-- Condensed Profile Card -->
+<section class="bg-surface-container rounded-xl p-3 flex items-center gap-4 shrink-0">
+<div class="relative">
+<div class="w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-primary-container to-primary-fixed-dim">
+<img class="w-full h-full rounded-full border border-surface object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWtL55eeWBXz1qy2fpiazxoJsuocwQXvjlkPsSCHNCjpx4ivh9A7RwyfxL2w-mFaIUGdYyLmJ8aYvUYM9WgEEUhlLlLp0oRoUHzNv3eUnZXzMj5fqHxNbUR9D7DEijxrcNFx9PTcUtQRTcxkAwC0wzZQJEOloe5fM1SvocrM3oqYH9OAHEDWDQ70w7g6VYQT3-UIe5N1ASVwuMPwYHNUFeNE0RQCpXmTZ91qnJxa-8vTe8KgxrQQmAXGtdDbfUKjQ0kyO3Pw-D52g"/>
+</div>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary px-1.5 py-0.5 rounded text-[8px] font-bold uppercase whitespace-nowrap">SOVEREIGN</div>
+</div>
+<div class="flex-grow">
+<h2 class="font-serif text-base text-on-surface">The Curator</h2>
+<div class="flex justify-between items-center mt-1">
+<span class="text-[9px] uppercase tracking-wider text-on-surface-variant">Connectivité</span>
+<span class="text-[9px] font-bold text-primary-container">98%</span>
+</div>
+<div class="w-full bg-surface-container-low h-1 rounded-full mt-1">
+<div class="bg-primary-container h-full w-[98%]"></div>
+</div>
+</div>
+<button class="bg-primary-container/10 border border-primary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary-container text-lg">folder_open</span>
+</button>
+</section>
+<!-- Tighter Cultural Grid -->
+<section class="grid grid-cols-3 gap-2 shrink-0">
+<div class="bg-surface-container rounded-lg p-2 flex flex-col justify-center text-center">
+<p class="text-[7px] uppercase tracking-widest text-on-surface-variant">Architecture</p>
+<p class="text-[10px] font-bold truncate">Obsidian</p>
+</div>
+<div class="bg-surface-container rounded-lg p-2 flex flex-col justify-center text-center">
+<p class="text-[7px] uppercase tracking-widest text-on-surface-variant">Art Digital</p>
+<p class="text-[10px] font-bold truncate">Sovereignty</p>
+</div>
+<div class="bg-surface-container rounded-lg p-2 flex flex-col justify-center text-center border border-primary-container/20">
+<p class="text-[7px] uppercase tracking-widest text-on-surface-variant">Philosophie</p>
+<p class="text-[10px] font-bold truncate">The Vault</p>
+</div>
+</section>
+<!-- Compact Post Creation -->
+<section class="bg-surface-container/50 border border-outline-variant/10 p-3 rounded-xl flex gap-3 items-center shrink-0">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUilQNhppid2aHLCQ_wtSEq3VVpP2anpyq1XqCxxJv3Va0QYlyHqpZyRUHiZbGvneWg5XkuYi3A6sBTQ3v3Cc7yZ9XTdqdfY1lLUx7NkoBd0qy_O5vOSNla2Bz-y0DgNb-Fm7FQuc7-QnfZ-yKz6tBNMjG35uyw433lJgnssd6HGTkz4XIymkPBdL-VrT10SDnbw8maF21nEq-pAzTIi-xpu33ms-FxC636m2F3pPxxDQdn3Lb6oYNpHwBAVxJNBgaqDqRPhEAnSg"/>
+</div>
+<div class="flex-grow bg-surface-container p-2 rounded text-[11px] text-on-surface-variant">
+                Partager une curation...
+            </div>
+<span class="material-symbols-outlined text-primary-container">send</span>
+</section>
+<!-- Compact Featured Post -->
+<article class="bg-surface-container rounded-xl overflow-hidden flex flex-col shrink-0 min-h-0">
+<div class="p-3">
+<div class="flex justify-between items-center mb-2">
+<div class="flex gap-2 items-center">
+<div class="w-7 h-7 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA81DUQ2MigdooC-njNbuH_zJsFQ4GvWcbiE_CtgZvJLAzGsP9NCJzM_ONmAbvtLPANlefUVAZhtE1KY2F7vysz45xdZCRiT9jedh0Impt8vJfCe1wctEbCa74M2Yd71gOqTOQS8blxBIqB9F5s9h14V_0Sr0Rl9cwOLeGjrXUeWZisgOmkAiMyv7jaLQPBDiTOlEICFmEpdFRUFz9kJGZkP_oBndurAEDhypd-5SE5LUQmfGb4Qt2FovWXMWHqhrlA6lMRIMcwYDg"/>
+</div>
+<div>
+<h4 class="text-[11px] font-bold">Alexandre Vesper</h4>
+<p class="text-[8px] text-on-surface-variant uppercase">Lead Strategist</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-base">more_horiz</span>
+</div>
+<p class="text-[11px] leading-snug text-on-surface mb-2 line-clamp-2">
+                    L'avenir du luxe ne réside plus dans l'ostentatoire, mais dans le retrait. La véritable exclusivité est numérique.
+                </p>
+</div>
+<div class="grid grid-cols-2 gap-px h-32">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmA1cPvS3RZ6IwK46FY39C3oHuCwmpSuVC98tupdVPZg2Q1Fw9ZDA-NPpbdTMvh4YyKGdoxtOMjAtgli8MIxakUomwB8exzhOwL5PYK9sMqd6OF22AtIeL43QoRlVLulQEbPsNanUjA8L3C-lWhOi28iHNmTZV6uXrHA4Ewet4ZvB5vNeeGnqDZwv-hf2MFi0hJ1dVl7NziFJmoZt7E1MMkXTkVVcysZ3pLlbsa3cBycNidRqvqpIxjEcVKkRas7gOlUzc_rQhc0E"/>
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmlSO5MpeOWv1_yQHkf96GdF_7qVa5KUYYEPIhj860wDqKws2U63lTnISWpFelMPvyDyNVoOaxpMWP4P_z1AKXrbGoeuhNo_NK1ccd2Lx26IzCoDNV40thwc-tvMh06NgMyHvITZJvnHqmO2lB_7vO3aLeCmRVPIctbquZ87dIcZ26LIH35gxLe2j4NLxhHeBEXQj97e4BCGelOZPkKqSrmGvrB4ZigSCRL9994VdzATKp_fomYVaBoUN5I9iUbF-sdwbvKIRqOYk"/>
+</div>
+<div class="p-2 border-t border-outline-variant/10 flex justify-between items-center bg-surface-container">
+<div class="flex gap-4">
+<span class="flex items-center gap-1 text-[9px] uppercase tracking-wider text-primary-container font-bold"><span class="material-symbols-outlined text-sm">stars</span> 248</span>
+<span class="flex items-center gap-1 text-[9px] uppercase tracking-wider text-on-surface-variant"><span class="material-symbols-outlined text-sm">chat_bubble</span> 14</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-base">share</span>
+</div>
+</article>
+<!-- Dynamic Event Strip -->
+<div class="bg-surface-container rounded-xl p-3 flex justify-between items-center shrink-0 border-l-4 border-primary-container">
+<div>
+<h5 class="text-[10px] uppercase tracking-widest text-primary-container font-bold">PROCHAIN GALA</h5>
+<p class="font-serif text-sm">Symphonie du Vide</p>
+</div>
+<button class="bg-on-surface text-background px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest">RSVP</button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#201f20]/90 backdrop-blur-xl border-t border-outline-variant/10">
+<a class="flex flex-col items-center text-[#e8d5a0]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">newspaper</span>
+<span class="text-[9px] uppercase tracking-widest mt-1">Feed</span>
+</a>
+<a class="flex flex-col items-center text-on-surface/50" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[9px] uppercase tracking-widest mt-1">Explore</span>
+</a>
+<div class="relative -top-6">
+<div class="w-14 h-14 bg-gradient-to-tr from-[#e8d5a0] to-[#d8c591] rounded-full flex items-center justify-center shadow-lg shadow-primary-container/30">
+<span class="material-symbols-outlined text-[#3a2f09] text-2xl" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+</div>
+<a class="flex flex-col items-center text-on-surface/50" href="#">
+<span class="material-symbols-outlined">lock_open</span>
+<span class="text-[9px] uppercase tracking-widest mt-1">Vault</span>
+</a>
+<a class="flex flex-col items-center text-on-surface/50" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[9px] uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

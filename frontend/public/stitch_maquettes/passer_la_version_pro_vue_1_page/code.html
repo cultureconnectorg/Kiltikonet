@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Upgrade - Forge Metric</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D4AF37", // Sovereign Gold
+                        surface: "#0A0A0A", // Onyx Black
+                        "surface-container": "#141414",
+                        "on-surface": "#F5F5F5",
+                        "on-surface-variant": "#A3A3A3",
+                        outline: "#262626"
+                    },
+                    fontFamily: {
+                        headline: ["Cormorant Garamond", "serif"],
+                        body: ["DM Sans", "sans-serif"]
+                    }
+                }
+            }
+        };
+    </script>
+<style>
+        body { 
+            font-family: 'DM Sans', sans-serif; 
+            overflow: hidden; /* Single page mobile focus */
+            height: 100vh;
+            height: 100dvh;
+        }
+        .font-headline { font-family: 'Cormorant Garamond', serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #AF8E2F 100%);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex flex-col">
+<!-- Compact Header -->
+<header class="flex items-center justify-between px-5 py-3 w-full border-b border-outline bg-surface/80 backdrop-blur-md shrink-0">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface cursor-pointer" data-icon="close">close</span>
+<span class="text-lg font-headline font-semibold tracking-tight uppercase">Premium</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="help_outline">help_outline</span>
+</header>
+<main class="flex-1 flex flex-col px-5 py-4 overflow-hidden justify-between">
+<!-- Hero Section - Extremely Condensed -->
+<section class="text-center mb-4">
+<h1 class="text-3xl font-headline font-bold mb-1 leading-tight tracking-tight">Unlock Mastery</h1>
+<p class="text-sm text-on-surface-variant max-w-[280px] mx-auto leading-snug">
+                Institutional data &amp; AI-driven insights for professional analysts.
+            </p>
+</section>
+<!-- Toggle Switch - Ultra Compact -->
+<div class="flex justify-center mb-5">
+<div class="bg-surface-container border border-outline rounded-full p-1 flex items-center gap-1">
+<button class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-black">Monthly</button>
+<button class="px-4 py-1.5 rounded-full text-xs font-medium text-on-surface-variant">Yearly <span class="text-primary ml-0.5">-20%</span></button>
+</div>
+</div>
+<!-- Pricing Cards - Integrated Vertical Stack -->
+<div class="space-y-3 mb-6">
+<!-- Standard Compact -->
+<div class="bg-surface-container border border-outline rounded-2xl p-4 flex items-center justify-between">
+<div>
+<h3 class="font-headline text-lg font-bold">Standard</h3>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="check">check</span>
+<span class="text-[11px] text-on-surface-variant leading-none uppercase tracking-widest">Daily Snapshots</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xl font-bold">0€</span>
+<span class="text-[10px] text-on-surface-variant block uppercase">Current</span>
+</div>
+</div>
+<!-- Pro Ultra-Condensed (The Focus) -->
+<div class="bg-surface-container border-2 border-primary/40 rounded-2xl p-5 relative shadow-[0_0_20px_rgba(212,175,55,0.1)]">
+<div class="absolute -top-3 right-5 bg-primary text-black px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                    Most Popular
+                </div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline text-2xl font-bold text-primary">Pro Access</h3>
+<p class="text-[11px] text-on-surface-variant mt-1">Full suite of advanced tools.</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold">19€</span>
+<span class="text-[10px] text-on-surface-variant block uppercase">per month</span>
+</div>
+</div>
+<ul class="grid grid-cols-2 gap-x-2 gap-y-3 mb-5">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-base" data-icon="psychology">psychology</span>
+<span class="text-[10px] font-medium leading-none">AI Analytics</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-base" data-icon="bolt">bolt</span>
+<span class="text-[10px] font-medium leading-none">Real-time Feed</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-base" data-icon="history">history</span>
+<span class="text-[10px] font-medium leading-none">Full History</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-base" data-icon="support_agent">support_agent</span>
+<span class="text-[10px] font-medium leading-none">24/7 Priority</span>
+</li>
+</ul>
+<button class="w-full py-3.5 gold-gradient rounded-xl font-bold text-sm text-black shadow-lg active:scale-[0.98] transition-transform">
+                    Start 14-Day Free Trial
+                </button>
+<div class="mt-3 flex justify-center gap-4 text-[9px] text-on-surface-variant uppercase tracking-widest font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[10px]" data-icon="lock">lock</span> Secure</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[10px]" data-icon="event">event</span> Cancel Anytime</span>
+</div>
+</div>
+</div>
+<!-- Minimal Trust Badge - Replaces Bottom Section -->
+<div class="text-center pt-2 pb-16">
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant opacity-60">Trusted by 12,000+ Analysts</p>
+</div>
+</main>
+<!-- Bottom Nav Fixed -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-5 pt-2 bg-surface border-t border-outline/50 z-50">
+<a class="flex flex-col items-center text-on-surface-variant/50 px-4 py-1" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant/50 px-4 py-1" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="query_stats">query_stats</span>
+<span class="text-[10px] font-medium">Market</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant/50 px-4 py-1" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="terminal">terminal</span>
+<span class="text-[10px] font-medium">Logs</span>
+</a>
+<a class="flex flex-col items-center text-primary px-4 py-1" href="#">
+<span class="material-symbols-outlined mb-1 text-primary" data-icon="person" style="font-variation-settings: 'FILL' 1">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

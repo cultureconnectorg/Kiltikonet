@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#e8d5a0",
+                    "primary": "#fff2d2",
+                    "surface-container-highest": "#353436",
+                    "tertiary": "#f4f0ff",
+                    "on-error": "#690005",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-container": "#5b5978",
+                    "primary-fixed-dim": "#d8c591",
+                    "on-surface": "#e5e2e3",
+                    "surface-bright": "#3a393a",
+                    "on-background": "#e5e2e3",
+                    "surface-container-high": "#2a2a2b",
+                    "on-secondary-container": "#beb49c",
+                    "secondary-fixed": "#ede2c8",
+                    "on-primary": "#3a2f09",
+                    "surface-tint": "#d8c591",
+                    "on-secondary": "#36301e",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#cdc6b7",
+                    "tertiary-container": "#d6d2f7",
+                    "outline-variant": "#4b463b",
+                    "on-primary-fixed": "#231b00",
+                    "outline": "#979083",
+                    "surface-variant": "#353436",
+                    "secondary-container": "#4d4633",
+                    "surface-container-lowest": "#0e0e0f",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "on-tertiary": "#2f2d4a",
+                    "inverse-on-surface": "#313031",
+                    "error-container": "#93000a",
+                    "surface-container-low": "#1c1b1c",
+                    "background": "#131314",
+                    "surface-container": "#201f20",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "on-primary-fixed-variant": "#52461d",
+                    "inverse-primary": "#6b5d33",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "surface": "#131314",
+                    "secondary": "#d0c6ad",
+                    "on-tertiary-fixed": "#1a1834",
+                    "inverse-surface": "#e5e2e3",
+                    "on-secondary-fixed": "#201b0b",
+                    "primary-fixed": "#f5e1ab",
+                    "surface-dim": "#131314",
+                    "on-primary-container": "#695c31"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .noir-gradient {
+            background: linear-gradient(180deg, rgba(19,19,20,0) 0%, rgba(19,19,20,0.8) 70%, rgba(19,19,20,1) 100%);
+        }
+        .gold-shimmer {
+            background: linear-gradient(135deg, #e8d5a0 0%, #d8c591 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="bg-[#131314] dark:bg-[#131314] w-full top-0 z-50 fixed shadow-none">
+<div class="flex justify-between items-center px-6 h-16 w-full">
+<button class="text-[#E8D5A0] hover:scale-105 transition-transform duration-300">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-serif tracking-tight text-[#e5e2e3] text-xl font-bold tracking-tighter text-[#E8D5A0]">BRAIN</h1>
+<div class="w-8 h-8 rounded-full overflow-hidden hover:scale-105 transition-transform duration-300">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Portrait of a sophisticated male curator in a dark tailored suit with subtle dramatic lighting on face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZPI_nTiNgEr1n-7beBXzkPLsu3-jGsq5pvnZhrQwTOSWWgDIvDhpbGWr0VO39sKyEXracqu9hjFgPCVeOsR-BL76uRIbDWUakXrDdUXE1kNwkQx61jNZ2RpktWhqCEuWQjPaHI7mqr7tkmXa-A4Ane6ky9mJu_AB_PAqkBbz5lC4rIjFIuwlcN0m6_1Cq-ftECz2EpAw_daiakBVNkXMHb1W9v-4T5ehplwyK5mXR-J9wvrBwMiUn3zDpi-HFpJnDg7cFXNAD_rM"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 pb-32 min-h-screen">
+<!-- Hero: Network Context -->
+<section class="px-6 mb-12">
+<p class="text-primary-fixed-dim font-label text-[10px] uppercase tracking-[0.2em] mb-2">Global Feed</p>
+<h2 class="font-headline text-4xl font-light tracking-tight text-on-surface leading-none">The World <br/><span class="italic text-outline">is Curating.</span></h2>
+</section>
+<!-- Discovery Feed: Asymmetric Layout -->
+<div class="flex flex-col gap-12">
+<!-- Edge-to-Edge Visual Card 1 -->
+<article class="group relative w-full h-[618px] overflow-hidden bg-surface-container-low">
+<img alt="Minimalist Architecture" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[800ms] group-hover:scale-110" data-alt="Monochromatic minimalist architecture with sharp shadows and deep black voids, elegant concrete textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-arvKx7ll9BdKZ_HkXGkQdc79Lzex1dD1ruAEEub08DtGp6LEc8l3AI9QKbd1aPxdoPrNrYf9dBPiITrKNFlECTujCqlpvn9rmlSDc4Mo3QE-eKCX6bU6TMmrY9OY34Tv1WKTXKcdpkNzN_D-oJYZ1gTtRjAuy8H5ePORdIXvL1_3XQEkbL2L2vRoagaavhp7pkdbO_t24IfeNxQUXnN0ney7GabGLctHa6n5S4YsJMzwyC0QZMPegPdos4vvpyYH2UxMFFZjGzQ"/>
+<div class="absolute inset-0 noir-gradient flex flex-col justify-end p-8">
+<div class="flex items-center gap-2 mb-4">
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<span class="font-label text-xs tracking-widest text-primary-fixed-dim uppercase">Neo-Minimalism</span>
+</div>
+<h3 class="font-headline text-3xl mb-4 leading-tight">The Silence of <br/>Modern Brutalism</h3>
+<div class="flex justify-between items-end">
+<div class="flex -space-x-3">
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container overflow-hidden">
+<img alt="Curator 1" data-alt="Close up portrait of a stylish woman with neutral expression in soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQKoe-G3VYUlu3HcLex_ibdne3lhMeguOnYOCDYx8MpiuNNCbh3LCNbL5-3qPfSqYqGa393lVCd2xMvl16z2IhpdnCM1KQNs8WHolfftN2kLiMOm5yZxpHip0PRAqWwO-xNV89UpHDXMv7uzV9Imz-W4S-lQ-CjYcCVvqrcQlgDPUfjD5d5f9vO9G9hBmvHLxeDIH1VNPJI7_wikeczKgycazxvjWZW0N9jM_H2s_imwEOgEMyMocWx7avYSrOkgpw6CVkQb1rXs4"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[8px] font-bold text-primary">
+                                +12
+                            </div>
+</div>
+<button class="gold-shimmer text-on-primary font-label text-xs font-bold px-6 py-3 rounded-sm tracking-widest uppercase hover:scale-105 active:scale-95 transition-all duration-300">
+                            Explore
+                        </button>
+</div>
+</div>
+</article>
+<!-- Spaced Content: Asymmetric Grid -->
+<section class="px-6 grid grid-cols-12 gap-6">
+<div class="col-span-12 md:col-span-7">
+<article class="bg-surface-container p-6 rounded-sm relative overflow-hidden group">
+<p class="text-primary-fixed-dim text-[10px] tracking-widest uppercase mb-8">Rising Circle</p>
+<h4 class="font-headline text-2xl mb-4">Digital Sovereignty <br/>and Private Data</h4>
+<p class="text-on-surface-variant font-body text-sm leading-relaxed mb-8 max-w-[80%]">
+                            Exploring the intersection of encryption and artistic expression in the modern age.
+                        </p>
+<div class="h-[1px] w-full bg-outline-variant/20 mb-6"></div>
+<div class="flex justify-between items-center">
+<span class="text-primary text-[10px] font-bold tracking-[0.2em] uppercase italic">Curated by Sovereign Alpha</span>
+<span class="material-symbols-outlined text-primary scale-90" data-icon="arrow_forward">arrow_forward</span>
+</div>
+<div class="absolute -right-12 -top-12 w-32 h-32 bg-primary-container/5 rounded-full blur-3xl group-hover:bg-primary-container/10 transition-colors duration-500"></div>
+</article>
+</div>
+<div class="col-span-12 md:col-span-5 flex flex-col justify-center">
+<div class="aspect-[4/5] bg-surface-container-high rounded-sm overflow-hidden relative">
+<img alt="Abstract Gold" class="w-full h-full object-cover opacity-60" data-alt="Abstract 3D liquid metal flowing in dark space with golden light reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlCy8phvGS_GHQAudOGoeux0g6kyQKgzkMAuTmPdK3sCJBD7WhDnCUXMnhs-6HS3sf8ZPQhKG_tQiG3qUtPdzMPqkCk0CjI-Ex2S65_y4qG0Sm6cDj76e9KH35AaNYPY-hUC75_S5SxIvZhegkf0muTxNpQOzi-VGnRQeFHxPGtFsqnTyrw9x8x7rANtHfFV8curVJNcjJjNdNgP5H1GFUImxXw3vNjX9eucHEuHtyB_UIf67cIRkcZpWfkT6C6nz1TNSP8rvDxFk"/>
+<div class="absolute inset-0 p-6 flex flex-col justify-between">
+<span class="material-symbols-outlined text-primary-container" data-icon="auto_stories">auto_stories</span>
+<button class="text-on-surface border-b border-primary/20 pb-1 self-start font-label text-[10px] uppercase tracking-widest hover:text-primary-container transition-colors">View Archives</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Card 3: Horizontal Scroll Concept -->
+<section class="overflow-hidden">
+<div class="px-6 flex justify-between items-end mb-6">
+<h3 class="font-headline text-xl italic text-on-surface">Private Galleries</h3>
+<span class="font-label text-[10px] tracking-widest uppercase text-outline">Swipe to Discover</span>
+</div>
+<div class="flex gap-4 overflow-x-auto hide-scrollbar px-6 snap-x">
+<div class="min-w-[280px] snap-center aspect-square bg-surface-container rounded-sm overflow-hidden relative">
+<img alt="Collection 1" class="w-full h-full object-cover grayscale brightness-50" data-alt="Detailed texture of dark obsidian rock with sharp edges and subtle crystalline glints" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFTtj0boDQ2axKNUFPF_wSLEzuUyQqtj6qT5ARDB9dYeCON04mxZoZU5xTLIfseDI7EZaiJWXkJmRghh5UFPBJ8h9aTaLzGI1CHkIx1hmhuXxnAKk0e3mXYQ5RAo4-Xq-qCDuyzWmA_6DuFYG-JwZ7-bqcV0jl6L_KBIVRUoON5q2s3lV70WcyHFu_KnIC_xCUDz8JOHoZjdVgSBNdfivHAr59_0aY2hjkgKdW99kez06chMTqKQFMA63sRrdexi09DV2tGi0oqbA"/>
+<div class="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
+<p class="text-primary-container text-xs mb-1 font-bold">Obsidian Studies</p>
+<p class="text-on-surface-variant text-[10px] tracking-widest uppercase">42 Objects</p>
+</div>
+</div>
+<div class="min-w-[280px] snap-center aspect-square bg-surface-container rounded-sm overflow-hidden relative border border-outline-variant/10">
+<img alt="Collection 2" class="w-full h-full object-cover grayscale brightness-50" data-alt="Deep blue cinematic lighting in an empty futuristic hallway with metallic surfaces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCAaZy6QnIoXRJQHppUJxMRG-SfnmYJ7LYa67HdjlSwhn24UnFBAAIHlVsIrOTahuHobsLK2LrzJueWB9MhrKVVDnd30uxee6-PDTpsCDN52AF_t-u-o0tTtvndRodspM8SWnmK9hvin9zxNkobkbrTjZHEomShjvcMg2R76brkCVr5uUsnpFoGAH7uHVEVA4DA2DR0XIRXo53l7UonsqLPw_yErzfonFWi8pnarZ9hT9kfhFrlr4kaIxbTJrW9aYUM-cGEdo3tDk"/>
+<div class="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
+<p class="text-primary-container text-xs mb-1 font-bold">Digital Noir</p>
+<p class="text-on-surface-variant text-[10px] tracking-widest uppercase">18 Objects</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Navigation Drawer (Hidden by default, shown for reference) -->
+<aside class="fixed inset-y-0 left-0 z-[60] flex flex-col p-8 bg-[#0e0e0f] shadow-2xl shadow-black h-full w-80 rounded-r-none translate-x-[-100%] transition-transform duration-500">
+<div class="flex flex-col items-start mb-12">
+<div class="w-16 h-16 rounded-full overflow-hidden mb-4 bg-surface-container">
+<img alt="Curator Profile" data-alt="Portrait of a sophisticated male curator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_Tn3-AXNPYUCRltJgqrOId-InaZMS2_nxZeObqloEcNmFXUmijjFTMe_Wl8oyw0aAcy2Yit4aviz31VRz6WRNrUEp4XJgIL_KwcMyIpbWlepFcagrwqKEmP2qP5wpHzm9PmtJNrWLkUAmm2-S_s1vD8m9kK5trvAz6m1HbDPFDfNSZR_dO2KzyOYu01Sv1i_3WpgZhwFjugjmkPcPa39wWnniezuBY1o5lN9mFJ20fwwnCbVCK4AJxpWZTdL6KaltR95Vxbvzsco"/>
+</div>
+<h3 class="text-[#E8D5A0] font-serif text-lg">The Curator</h3>
+<p class="text-[#e5e2e3]/50 text-xs">Impact Level: Sovereign</p>
+<p class="text-[#e5e2e3]/30 text-[10px] mt-1">Est. 2024</p>
+</div>
+<nav class="flex flex-col gap-6">
+<a class="flex items-center gap-4 text-[#e5e2e3]/50 hover:bg-[#201f20] p-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[#E8D5A0]" data-icon="analytics">analytics</span>
+<span class="font-serif text-lg">Personal Impact</span>
+</a>
+<a class="flex items-center gap-4 text-[#e5e2e3]/50 hover:bg-[#201f20] p-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[#E8D5A0]" data-icon="auto_stories">auto_stories</span>
+<span class="font-serif text-lg">Archives</span>
+</a>
+<a class="flex items-center gap-4 text-[#e5e2e3]/50 hover:bg-[#201f20] p-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[#E8D5A0]" data-icon="group_work">group_work</span>
+<span class="font-serif text-lg">Private Circles</span>
+</a>
+<a class="flex items-center gap-4 text-[#e5e2e3]/50 hover:bg-[#201f20] p-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[#E8D5A0]" data-icon="settings">settings</span>
+<span class="font-serif text-lg">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-8 pb-4 bg-[#131314]/70 backdrop-blur-xl z-50 shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+<!-- Item 1: Network (Active) -->
+<a class="flex flex-col items-center justify-center text-[#E8D5A0] scale-110 group" href="#">
+<span class="material-symbols-outlined transition-transform duration-300 group-hover:scale-110" data-icon="public" style="font-variation-settings: 'FILL' 1;">public</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Network</span>
+</a>
+<!-- Item 2: BRAIN -->
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 group hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<div class="p-3 bg-surface-container-high rounded-full -mt-10 border border-primary/20 shadow-lg">
+<span class="material-symbols-outlined text-[#E8D5A0] scale-125" data-icon="psychology">psychology</span>
+</div>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1 text-[#E8D5A0]">BRAIN</span>
+</a>
+<!-- Item 3: Curation -->
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 group hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined transition-transform duration-300 group-hover:scale-110" data-icon="menu_book">menu_book</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Curation</span>
+</a>
+</nav>
+<!-- Floating Action Button (Suppressed on this Level 1 screen per instruction context if needed, but adding subtle status for the "World" context) -->
+<div class="fixed bottom-24 right-6 pointer-events-none opacity-20">
+<span class="text-[10px] font-label uppercase tracking-[0.5em] vertical-text transform rotate-180" style="writing-mode: vertical-rl;">Level 1 Access</span>
+</div>
+</body></html>

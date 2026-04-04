@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,700&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "gold": "#E8D5A0",
+                    "sovereign-black": "#0a0a0b",
+                    "on-secondary-fixed": "#201b0b",
+                    "outline": "#979083",
+                    "on-secondary-container": "#beb49c",
+                    "inverse-surface": "#e5e2e3",
+                    "on-primary-fixed-variant": "#52461d",
+                    "surface-container-high": "#2a2a2b",
+                    "primary-fixed-dim": "#d8c591",
+                    "surface-container-highest": "#353436",
+                    "outline-variant": "#4b463b",
+                    "inverse-primary": "#6b5d33",
+                    "error": "#ffb4ab",
+                    "surface-container-low": "#1c1b1c",
+                    "on-surface": "#e5e2e3",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "on-primary": "#3a2f09",
+                    "on-tertiary-container": "#5b5978",
+                    "on-error": "#690005",
+                    "surface-bright": "#3a393a",
+                    "inverse-on-surface": "#313031",
+                    "on-secondary": "#36301e",
+                    "background": "#0a0a0b",
+                    "on-background": "#e5e2e3",
+                    "on-surface-variant": "#cdc6b7",
+                    "surface-tint": "#d8c591",
+                    "on-tertiary": "#2f2d4a",
+                    "surface": "#0a0a0b",
+                    "surface-container": "#141415",
+                    "tertiary-container": "#d6d2f7",
+                    "surface-variant": "#1c1c1e",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-tertiary-fixed": "#1a1834",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "secondary-container": "#4d4633",
+                    "surface-dim": "#0a0a0b",
+                    "primary-container": "#E8D5A0",
+                    "primary": "#E8D5A0",
+                    "error-container": "#93000a",
+                    "surface-container-lowest": "#050505",
+                    "tertiary": "#f4f0ff",
+                    "secondary": "#d0c6ad",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "secondary-fixed": "#ede2c8",
+                    "on-primary-fixed": "#231b00",
+                    "on-primary-container": "#695c31",
+                    "primary-fixed": "#f5e1ab"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "100%"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader", "serif"],
+                    "body": ["Manrope", "sans-serif"],
+                    "label": ["Manrope", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+        }
+        .unread-glow {
+            box-shadow: 0 0 15px 1px rgba(232, 213, 160, 0.15);
+            background: rgba(232, 213, 160, 0.03);
+            border-left: 2px solid #E8D5A0;
+        }
+        .glass-card {
+            background: rgba(20, 20, 21, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .prestige-avatar {
+            box-shadow: 0 0 0 1px rgba(232, 213, 160, 0.1);
+        }
+        .fab-glow {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 12px rgba(232, 213, 160, 0.2);
+        }
+        .radial-bg {
+            background: radial-gradient(circle at 50% 0%, rgba(30, 30, 32, 1) 0%, rgba(10, 10, 11, 1) 70%);
+        }
+        .tight-tracking {
+            letter-spacing: -0.02em;
+        }
+        body {
+            min-height: 100dvh;
+            background-color: #0a0a0b;
+            overscroll-behavior: none;
+        }
+        .touch-active:active {
+            transform: scale(0.98);
+            background-color: rgba(232, 213, 160, 0.1);
+            transition: 0.1s;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="text-on-surface font-body selection:bg-gold/30 selection:text-white overflow-hidden h-screen flex flex-col radial-bg">
+<!-- TopAppBar: Minimal and Focused -->
+<header class="flex justify-between items-center px-6 pt-8 pb-4 w-full z-50 shrink-0">
+<div class="flex flex-col">
+<h1 class="text-2xl font-headline italic text-gold tracking-tighter tight-tracking">Kiltikonet</h1>
+<p class="text-[9px] text-on-surface-variant opacity-50 font-label tracking-[0.3em] uppercase mt-0.5">Sovereign Archive</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-gold/80 text-2xl">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-gold/80 text-2xl">menu</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col px-4 pb-24 relative overflow-hidden">
+<!-- Ergonomic Search: Lower placement for thumb reach -->
+<div class="mb-4 px-2">
+<div class="relative flex items-center bg-white/5 border border-white/10 rounded-xl px-4 h-12 group focus-within:border-gold/40 transition-all touch-active">
+<span class="material-symbols-outlined text-on-surface-variant text-xl mr-3 group-focus-within:text-gold transition-colors">search</span>
+<input class="bg-transparent border-none p-0 text-xs tracking-widest font-label text-on-surface focus:ring-0 w-full placeholder:text-white/20 uppercase" placeholder="Search archive" type="text"/>
+</div>
+</div>
+<!-- Inbox Header -->
+<div class="px-2 mb-2 flex justify-between items-end">
+<h2 class="font-headline italic text-3xl text-on-surface leading-none">Inbox</h2>
+<span class="text-[9px] font-label text-gold/60 uppercase tracking-widest mb-1">1 Unread</span>
+</div>
+<!-- Inbox List (Optimized for Readability & Reach) -->
+<div class="flex-1 overflow-y-auto space-y-2 pb-12 scrollbar-hide">
+<!-- Conversation Item: Unread (Enhanced Target) -->
+<div class="group relative flex items-center p-4 glass-card rounded-xl transition-all duration-300 unread-glow touch-active">
+<div class="relative mr-4 shrink-0">
+<img alt="Julian" class="w-14 h-14 object-cover rounded-full prestige-avatar grayscale-[0.2]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCN9gorInXoErgvucXFwfnq8bl3CEpgb4CmKxRo3WszXkir6SoX2gs0QbyReuDFJYiMmy_QP0anSQbS2Pj2XN6rGUOs2O3ATlo97fVd_OTGk4lKBANbz5H8lohhMrNuOzoxpONcLsBA9VPccDwHfEEkBZ0VqmU6zdiw4mK_F1mhUTBgDITBPmhkVm6x-5ur8Z2hFX3zDzUznWJwIyBPyrwW77hvTi47VdD45TeKlex2dI73BPqYa5X8W8duvVc-2JzISDceKGg_Ec"/>
+<div class="absolute top-0 right-0 w-3.5 h-3.5 bg-gold rounded-full border-2 border-[#1a1a1c] shadow-lg"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-headline italic text-xl text-gold tight-tracking truncate pr-2">Julian Vane</h3>
+<span class="text-[10px] font-bold text-gold tracking-tighter shrink-0">2M</span>
+</div>
+<p class="text-on-surface font-semibold text-[13px] truncate leading-tight">The archive catalog is ready for review.</p>
+<p class="text-on-surface-variant/60 text-[11px] truncate mt-0.5">Please check the ledger at your convenience...</p>
+</div>
+</div>
+<!-- Conversation Item -->
+<div class="group relative flex items-center p-4 glass-card/40 border-transparent rounded-xl transition-all duration-300 touch-active">
+<div class="relative mr-4 shrink-0">
+<img alt="Elena" class="w-14 h-14 object-cover rounded-full prestige-avatar opacity-70 grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqjQNJVWvvefyCXZLxjCZcxSW3nUxVJw1c43ngHwlqH7I0mVwPzspHE1dY8stVPVlpMvqG6wKvlNVmnkM6ggfOoTdGNcIzCXJSope80F1oPr8e4HJHDDq1PicOj7PxCRE1STzoca54rHyEqCzPPBgm-UTjfMENwyyie--RPE7y5UdxcVkrx1ErJXL66CCOQVuELkQZRg_a0JK2j0b9nLqc3hIu8jA_U5GR7QdZzb6r-dmk-OARIqQ9Ciw5Ibpp4FHyhuhujw69j38"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-headline italic text-xl text-on-surface/90 tight-tracking truncate pr-2">Elena Moretti</h3>
+<span class="text-[10px] font-label text-on-surface-variant tracking-tighter shrink-0">1H</span>
+</div>
+<p class="text-on-surface-variant text-[13px] truncate leading-tight">Did you see the invitation for the gala?</p>
+</div>
+</div>
+<!-- Conversation Item -->
+<div class="group relative flex items-center p-4 glass-card/40 border-transparent rounded-xl transition-all duration-300 touch-active">
+<div class="relative mr-4 shrink-0">
+<img alt="Marcus" class="w-14 h-14 object-cover rounded-full prestige-avatar opacity-70 grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeAQq92krvkYQHPD3EjbIXO97sLRqJj_2x82Cald_i7WcOdElzD4tq27G0IGeuhnL9NP8MPSdVg38ON-AvAKwTfnazQUaEiXDo7bNRfMCPCph7m7dH-v_Kbu9p1LUiVXLAYVvajg6iS6g8_A6OpMFKQfigv9Lt-I_XxJ48BfE8Z82oHkoC0nlZv5yUcxIT_foN1kEHE7XeP7ns5P3d2GbkpjcqpzoUyUKdhRT-aBlzYtcsOBN1DSdkyuwolHomnzUzPlFZFQ8Z6u8"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-headline italic text-xl text-on-surface/90 tight-tracking truncate pr-2">Marcus Thorne</h3>
+<span class="text-[10px] font-label text-on-surface-variant tracking-tighter shrink-0 uppercase">Yesterday</span>
+</div>
+<p class="text-on-surface-variant text-[13px] truncate leading-tight">The 1924 manuscript acquisition is complete.</p>
+</div>
+</div>
+<!-- Conversation Item -->
+<div class="group relative flex items-center p-4 glass-card/40 border-transparent rounded-xl transition-all duration-300 touch-active">
+<div class="relative mr-4 shrink-0">
+<img alt="Seraphina" class="w-14 h-14 object-cover rounded-full prestige-avatar opacity-70 grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtD6HWo_NwjRgwQlFTXLAjRXoJThXUSLs9Yg_j3JDVuTAsqmq1q9YyzmyT4zPrBN0cf0rTY6X-KA1Sdo8AbEZKa384B5sCE1WDwV3ugTiAqj8DuomMqs8aEsy9MrbuhA-YbeQ3e_CvPLsJnVva6DT4j_DrG_Wc-w4dqyqwqKVT4m4-dr9lL-jbZ6EOHIlijLeT205IIHu19pnSqWSIjnmD2Z4PE8Kc0bxwdwwD8zXZQWeVYh2mEPTPfm1GJcDB1P0hJWfvY5RUnxA"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-headline italic text-xl text-on-surface/90 tight-tracking truncate pr-2">Seraphina Rose</h3>
+<span class="text-[10px] font-label text-on-surface-variant tracking-tighter shrink-0 uppercase">Dec 12</span>
+</div>
+<p class="text-on-surface-variant text-[13px] truncate leading-tight">Shared the coordinates with the inner circle.</p>
+</div>
+</div>
+<!-- Conversation Item -->
+<div class="group relative flex items-center p-4 glass-card/40 border-transparent rounded-xl transition-all duration-300 touch-active">
+<div class="relative mr-4 shrink-0">
+<img alt="Clara" class="w-14 h-14 object-cover rounded-full prestige-avatar opacity-70 grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO-Lg-qc41FcLalZTMTgCTv3SO55xHxJBTdohfzvclpO9GaW4SWapIMusX1kDghHk4AnI4CIR_ZSdW97Q9D9HJp8msr3mVBZqipn0g9k4RJvcDNy65qgbQPVWvzWZxny92rLqV9vfsC_PpGEBYIkPLm2sY4wtq8_BC9u8ab4uns71xPUCsqWTHE4j38x1UKgwE--TSSLQRsTIC2kyCbwAOoaHFbGT8jHnC9p2fWsE0bXUJwDx3iMmf4Ne785WfBqRi3zXivDR5pYg"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-headline italic text-xl text-on-surface/90 tight-tracking truncate pr-2">Clara Dubois</h3>
+<span class="text-[10px] font-label text-on-surface-variant tracking-tighter shrink-0 uppercase">Dec 08</span>
+</div>
+<p class="text-on-surface-variant text-[13px] truncate leading-tight">Vault access codes have been rotated.</p>
+</div>
+</div>
+</div>
+<!-- Ergonomic FAB: Better thumb placement & clear action -->
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-gold text-on-primary rounded-full fab-glow flex items-center justify-center transition-all active:scale-95 z-[60] border-2 border-black/20">
+<span class="material-symbols-outlined text-3xl font-bold" style="font-variation-settings: 'wght' 600;">edit_square</span>
+</button>
+</main>
+<!-- BottomNavBar: Solid background for contrast, reachable icons -->
+<nav class="fixed bottom-0 left-0 w-full z-[70] flex justify-around items-center px-2 pb-8 pt-3 bg-black border-t border-white/[0.08]">
+<div class="flex flex-col items-center justify-center min-w-[64px] text-white/30 active:text-gold transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl" data-icon="explore">explore</span>
+<span class="font-sans text-[8px] uppercase tracking-[0.2em] mt-1.5">World</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[64px] text-white/30 active:text-gold transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-sans text-[8px] uppercase tracking-[0.2em] mt-1.5">Trade</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[64px] text-white/30 active:text-gold transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl" data-icon="psychology">psychology</span>
+<span class="font-sans text-[8px] uppercase tracking-[0.2em] mt-1.5">Mind</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[64px] text-gold drop-shadow-[0_0_10px_rgba(232,213,160,0.4)]">
+<span class="material-symbols-outlined text-2xl" data-icon="mail" style="font-variation-settings: 'FILL' 1;">mail</span>
+<span class="font-sans text-[8px] uppercase tracking-[0.2em] mt-1.5 font-bold">Inbox</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[64px] text-white/30 active:text-gold transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl" data-icon="person">person</span>
+<span class="font-sans text-[8px] uppercase tracking-[0.2em] mt-1.5">Ego</span>
+</div>
+</nav>
+</body></html>

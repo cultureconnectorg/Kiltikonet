@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#e5e2e3",
+                    "inverse-surface": "#e5e2e3",
+                    "surface-container-high": "#2a2a2b",
+                    "primary-fixed-dim": "#d8c591",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "surface-container-low": "#1c1b1c",
+                    "on-tertiary-fixed": "#1a1834",
+                    "surface-tint": "#d8c591",
+                    "surface-container-highest": "#353436",
+                    "primary": "#fff2d2",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "primary-fixed": "#f5e1ab",
+                    "error": "#ffb4ab",
+                    "tertiary-container": "#d6d2f7",
+                    "on-surface-variant": "#cdc6b7",
+                    "primary-container": "#e8d5a0",
+                    "surface-container": "#201f20",
+                    "background": "#131314",
+                    "on-primary-container": "#695c31",
+                    "on-secondary-container": "#beb49c",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "inverse-on-surface": "#313031",
+                    "surface-container-lowest": "#0e0e0f",
+                    "surface": "#131314",
+                    "surface-variant": "#353436",
+                    "tertiary": "#f4f0ff",
+                    "surface-dim": "#131314",
+                    "on-primary": "#3a2f09",
+                    "surface-bright": "#3a393a",
+                    "secondary-fixed": "#ede2c8",
+                    "on-tertiary": "#2f2d4a",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "on-surface": "#e5e2e3",
+                    "error-container": "#93000a",
+                    "outline": "#979083",
+                    "on-tertiary-container": "#5b5978",
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-secondary-fixed": "#201b0b",
+                    "secondary-container": "#4d4633",
+                    "on-primary-fixed": "#231b00",
+                    "inverse-primary": "#6b5d33",
+                    "secondary": "#d0c6ad",
+                    "on-primary-fixed-variant": "#52461d",
+                    "on-error": "#690005",
+                    "outline-variant": "#4b463b",
+                    "on-secondary": "#36301e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader", "serif"],
+                    "body": ["Manrope", "sans-serif"],
+                    "label": ["Manrope", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #131314;
+        color: #e5e2e3;
+        font-family: 'Manrope', sans-serif;
+        height: 100vh;
+        height: 100dvh;
+      }
+      .serif-headline {
+        font-family: 'Newsreader', serif;
+      }
+      .glass-card {
+        background: rgba(32, 31, 32, 0.7);
+        backdrop-filter: blur(24px);
+      }
+      /* Hide scrollbars for a clean locked appearance */
+      ::-webkit-scrollbar { display: none; }
+      * { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="overflow-hidden flex flex-col">
+<!-- TopAppBar -->
+<nav class="bg-[#131314] dark:bg-[#0e0e0f] w-full px-6 py-4 flex justify-between items-center z-40 shrink-0">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#e8d5a0] cursor-pointer" data-icon="menu">menu</span>
+<span class="text-sm font-serif tracking-[0.2em] text-[#e8d5a0] uppercase">KILTIKONET ARCHIVES</span>
+</div>
+<div class="h-8 w-8 rounded-full border border-outline-variant p-0.5 overflow-hidden">
+<img alt="Le Conservateur" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_0zIwviiPKJ-9SgHn3BK4ZC3i8LDwycegQpmmPLktgRNBdFAjQBipzbuAgH_nae6h5vavDbnD6AJ1h4GnZpVvB5P1hCHvrHXfcf3S4DbwG0VBOBDSvevtrKC9eV1HZi03FXndeqERcuw03HLqSvgiBteoxuwRITvxAplTzdeMc-UWLErExuldoPYm_gsIHAPwE-080B7761hQEGGbb-KfmVMtLqJIWsan-GRg4Td6QrNtqzkAtYC5zB0f9H9ip11T6JMZTfnj6Bc"/>
+</div>
+</nav>
+<!-- Main Canvas (Locked height, no scroll) -->
+<main class="flex-1 px-6 pb-20 flex flex-col justify-between overflow-hidden">
+<!-- Condensed Header Section -->
+<header class="pt-2 mb-4 shrink-0">
+<div class="flex justify-between items-end">
+<div>
+<span class="text-[#e8d5a0] text-[8px] font-label uppercase tracking-[0.3em] mb-0.5 block">Sanctuaire de la Mémoire</span>
+<h1 class="serif-headline text-3xl font-light italic tracking-tight text-on-surface">Bibliothèque Souveraine</h1>
+</div>
+<div class="text-right pb-1">
+<p class="text-[8px] text-on-surface-variant uppercase font-label">Actifs Archivés</p>
+<p class="text-sm font-serif text-[#e8d5a0]">14,208 ITEMS</p>
+</div>
+</div>
+</header>
+<!-- Content Sections -->
+<div class="flex-1 flex flex-col gap-4 overflow-hidden">
+<!-- Curations Section (Tighter Grid) -->
+<section class="shrink-0">
+<div class="flex items-center justify-between mb-2">
+<h3 class="serif-headline text-lg italic">Curations Passées</h3>
+<span class="text-[8px] tracking-widest uppercase text-on-surface-variant">Voir Tout</span>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<!-- Curation Card 1 -->
+<div class="group relative aspect-[1/1.1] bg-surface-container overflow-hidden rounded-sm">
+<img alt="Archive 01" class="w-full h-full object-cover opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCefMMJDMV6dFxevlqSE0-8cRA7SeBiJbHYL9C54uxJnAKplpVVOdyMs2mZxOQ_6XkZZJ68s_f68eQgP5_OTG6T3t83Ek2A2FlayfYMGHY0nnnrWKt91eXDvFiXytv9hpG7yuk1MovCOOlEuaiZwTsa3_JPFf89wtBXfFVEJ0JHJ_V6v8p9fONnjqZwfDtIe2C3mRDCP7Wk17nyl2MITkjQt8lzRK56JUmKHkroY2YMMvI18oAROoVmlb0fFusx145gSzUSvjK1eBQ"/>
+<div class="absolute inset-0 p-3 flex flex-col justify-between">
+<span class="self-start px-2 py-0.5 bg-primary-container text-on-primary text-[6px] font-bold tracking-widest uppercase rounded-full">FREK-ID: 8820-X</span>
+<div>
+<p class="text-[7px] uppercase tracking-widest text-[#e8d5a0] mb-0.5">Série Originelle</p>
+<h4 class="serif-headline text-base text-on-surface leading-tight">Les Gardiens du Nok</h4>
+</div>
+</div>
+</div>
+<!-- Curation Card 2 -->
+<div class="group relative aspect-[1/1.1] bg-surface-container overflow-hidden rounded-sm">
+<img alt="Archive 02" class="w-full h-full object-cover opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrtBv77oUoUAUWYuokLj1r5ydfVSYKihBktjLejn-5SgONIfGdp1EoHaCj1NuV5XKd1FkklXUMNGUyz-yDkGiimy72mW81PMPonF-wrC3ZJvqxGhq-SFoqzNgBybvojtpz9Q7-dXYSrbNhwzoTczRnH5mjW-OpBvyJiO2E7YISik111ErOkrOq6vAbGpcuuc0s0T7V5ZgFeesGMLYjdOs_VetOneeC0vHF7fCZRcEDTmUX_Lw0ovNbW0Q7RZbbZhHqxMjWb6Co-iE"/>
+<div class="absolute inset-0 p-3 flex flex-col justify-between">
+<span class="self-start px-2 py-0.5 bg-surface-container-highest/80 text-on-surface text-[6px] font-bold tracking-widest uppercase rounded-full">FREK-ID: 4109-M</span>
+<div>
+<p class="text-[7px] uppercase tracking-widest text-[#e8d5a0] mb-0.5">Patrimoine Textile</p>
+<h4 class="serif-headline text-base text-on-surface leading-tight">Sagesse des Trames</h4>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Documents Section (Ultra compact) -->
+<section class="shrink-0">
+<div class="flex items-center justify-between mb-2">
+<h3 class="serif-headline text-lg italic">Documents Scellés</h3>
+<span class="material-symbols-outlined text-primary-fixed-dim text-sm" data-icon="lock">lock</span>
+</div>
+<div class="grid grid-cols-1 gap-2">
+<div class="py-2.5 px-4 bg-surface-container-low flex items-center justify-between rounded-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-base" data-icon="encrypted">encrypted</span>
+<div>
+<p class="text-xs font-serif">Pacte de l'Union Noire (1920)</p>
+<p class="text-[7px] text-on-surface-variant uppercase tracking-widest">Niveau: Maxima</p>
+</div>
+</div>
+</div>
+<div class="py-2.5 px-4 bg-surface-container-low flex items-center justify-between rounded-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-base" data-icon="folder_zip">folder_zip</span>
+<div>
+<p class="text-xs font-serif">Correspondances de l'Exil</p>
+<p class="text-[7px] text-on-surface-variant uppercase tracking-widest">340 Documents Déencryptés</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Diaspora Section (Compact Highlight) -->
+<section class="shrink-0 pb-2">
+<div class="flex items-center justify-between mb-2">
+<h3 class="serif-headline text-lg italic">Héritage Diaspora</h3>
+<div class="flex -space-x-1.5">
+<div class="w-4 h-4 rounded-full bg-surface-container-highest border border-surface text-[6px] flex items-center justify-center text-[#e8d5a0]">UK</div>
+<div class="w-4 h-4 rounded-full bg-surface-container-highest border border-surface text-[6px] flex items-center justify-center text-[#e8d5a0]">FR</div>
+</div>
+</div>
+<div class="glass-card p-4 border border-outline-variant/10 relative overflow-hidden rounded-sm">
+<p class="text-[#e8d5a0] text-[8px] uppercase tracking-[0.2em] mb-1">Focus: Caraïbes</p>
+<p class="font-serif italic text-xs leading-snug text-on-surface/90">"Les archives du silence ne sont plus muettes. La transmission est souveraine."</p>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-6 pt-3 bg-[#131314] border-t-[0.5px] border-[#4b463b]/15 shrink-0">
+<div class="flex flex-col items-center justify-center text-[#e8d5a0]">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="explore">explore</span>
+<span class="font-sans text-[8px] tracking-widest uppercase">Exploration</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="lock">lock</span>
+<span class="font-sans text-[8px] tracking-widest uppercase">Coffre-fort</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="vibration">vibration</span>
+<span class="font-sans text-[8px] tracking-widest uppercase">Catégories</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="account_balance">account_balance</span>
+<span class="font-sans text-[8px] tracking-widest uppercase">Profil</span>
+</div>
+</nav>
+</body></html>

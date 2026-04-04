@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#131314",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-tertiary-fixed": "#1a1834",
+                    "surface-container": "#201f20",
+                    "tertiary-container": "#d6d2f7",
+                    "surface-variant": "#353436",
+                    "surface-dim": "#131314",
+                    "primary-container": "#e8d5a0",
+                    "secondary-container": "#4d4633",
+                    "surface-container-lowest": "#0e0e0f",
+                    "primary": "#fff2d2",
+                    "error-container": "#93000a",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "on-primary-fixed": "#231b00",
+                    "on-primary-container": "#695c31",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "secondary-fixed": "#ede2c8",
+                    "primary-fixed": "#f5e1ab",
+                    "tertiary": "#f4f0ff",
+                    "secondary": "#d0c6ad",
+                    "on-primary-fixed-variant": "#52461d",
+                    "outline": "#979083",
+                    "on-secondary-container": "#beb49c",
+                    "inverse-surface": "#e5e2e3",
+                    "on-secondary-fixed": "#201b0b",
+                    "surface-container-low": "#1c1b1c",
+                    "surface-container-highest": "#353436",
+                    "outline-variant": "#4b463b",
+                    "inverse-primary": "#6b5d33",
+                    "error": "#ffb4ab",
+                    "on-surface": "#e5e2e3",
+                    "surface-container-high": "#2a2a2b",
+                    "primary-fixed-dim": "#d8c591",
+                    "surface-bright": "#3a393a",
+                    "inverse-on-surface": "#313031",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "on-primary": "#3a2f09",
+                    "on-error": "#690005",
+                    "on-tertiary-container": "#5b5978",
+                    "surface-tint": "#d8c591",
+                    "on-tertiary": "#2f2d4a",
+                    "on-surface-variant": "#cdc6b7",
+                    "on-secondary": "#36301e",
+                    "on-background": "#e5e2e3",
+                    "background": "#131314"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .font-serif { font-family: 'Newsreader', serif; }
+        .drop-cap::first-letter {
+            float: left;
+            font-family: 'Newsreader', serif;
+            font-size: 4.5rem;
+            line-height: 1;
+            padding-right: 0.75rem;
+            color: #e8d5a0;
+            font-weight: 700;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131314]/70 backdrop-blur-3xl flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#E8D5A0] hover:scale-105 transition-transform duration-300 active:duration-200">arrow_back</button>
+<span class="font-serif text-[#E8D5A0] tracking-tighter text-2xl font-bold">Kiltikonet</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="material-symbols-outlined text-[#e5e2e3] hover:scale-105 transition-transform duration-300">bookmark</button>
+<button class="material-symbols-outlined text-[#e5e2e3] hover:scale-105 transition-transform duration-300">share</button>
+</div>
+</header>
+<main class="pt-16 pb-24 max-w-screen-xl mx-auto px-4 md:px-8">
+<!-- Hero Section -->
+<section class="relative h-[530px] md:h-[618px] w-full overflow-hidden mb-12 flex items-end p-8 md:p-16">
+<div class="absolute inset-0 z-0">
+<img alt="Close-up of vibrant Madras textile weave" class="w-full h-full object-cover" data-alt="high-resolution macro photography of traditional Madras textile weave with vibrant checks of ochre, indigo, and crimson against deep shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1aE1vy25ri_huDP0Hvqr2NimEPwz3t37jMjk9AOvkVGSjeXeisAAJXz4KAYhBwTMBPLfo3hpY_nWOUocJ_BzofmotMVSCNBrV5ZdIG6pX1QlaQ7tRMIfiT44O0cTFJOt5HhBR7Ls2kl9KAuWP69XAl1c8322ngSW6onXej53FVq2-e1zHBo0Mk5Hk9V42HpfEBejr0fRb1Hl_IKMTFWiWR7f2mmZWMBYB2H4VQDXSSXvtQYi53JzIF7A1g8B-20-qG_6CFNCR4zE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+</div>
+<div class="relative z-10 max-w-4xl">
+<div class="mb-4 inline-flex items-center px-3 py-1 rounded-full bg-primary-fixed-dim/10 border border-primary-fixed-dim/20 backdrop-blur-md">
+<span class="text-primary-fixed-dim text-[10px] uppercase tracking-[0.2em] font-bold">Patrimoine Textile</span>
+</div>
+<h1 class="text-4xl md:text-7xl font-serif italic font-bold text-on-surface leading-tight tracking-tight">
+                    L'Héritage du Madras : <br/>Entre Résilience et Modernité
+                </h1>
+</div>
+</section>
+<!-- Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left: Article Content -->
+<article class="lg:col-span-7 space-y-8">
+<p class="drop-cap text-lg md:text-xl text-on-surface-variant leading-relaxed font-light">
+                    Le tissu Madras, avec ses trames colorées et son quadrillage emblématique, ne se contente pas d'habiller les corps. Il porte en lui les échos d'une histoire complexe, née d'un métissage forcé et sublimée par la résilience des peuples créoles. Autrefois symbole de servitude, il est devenu le porte-étendard d'une élégance souveraine, une armure de soie et de coton contre l'oubli.
+                </p>
+<blockquote class="relative py-10 px-8 border-l border-primary-container/30 bg-surface-container-low italic text-2xl font-serif text-primary">
+<span class="material-symbols-outlined absolute -top-4 -left-4 text-4xl opacity-20">format_quote</span>
+                    "Porter le Madras, c'est draper son âme dans les fils de la mémoire, transformant chaque carreau en une page d'histoire vivante."
+                </blockquote>
+<p class="text-on-surface-variant leading-relaxed">
+                    Aujourd'hui, une nouvelle génération de créateurs réinterprète ces codes. Loin du folklore, le Madras s'invite dans la haute couture et le design minimaliste, prouvant que la tradition n'est pas un vestige figé, mais un souffle continu. La modernité du Madras réside dans sa capacité à se fragmenter, à se déconstruire pour mieux se recomposer dans le paysage numérique contemporain.
+                </p>
+<!-- Cultural Interaction Buttons -->
+<div class="flex flex-wrap gap-4 pt-8">
+<button class="group flex items-center gap-3 px-6 py-3 bg-surface-container-high border border-outline-variant/15 hover:border-primary-container/40 transition-all duration-300">
+<span class="material-symbols-outlined text-primary-container group-hover:scale-110 transition-transform">bolt</span>
+<span class="text-xs uppercase tracking-widest font-bold">Éclair</span>
+</button>
+<button class="group flex items-center gap-3 px-6 py-3 bg-surface-container-high border border-outline-variant/15 hover:border-primary-container/40 transition-all duration-300">
+<span class="material-symbols-outlined text-primary-container group-hover:scale-110 transition-transform">rebase_edit</span>
+<span class="text-xs uppercase tracking-widest font-bold">Rythme</span>
+</button>
+<button class="group flex items-center gap-3 px-6 py-3 bg-surface-container-high border border-outline-variant/15 hover:border-primary-container/40 transition-all duration-300">
+<span class="material-symbols-outlined text-primary-container group-hover:scale-110 transition-transform">auto_awesome</span>
+<span class="text-xs uppercase tracking-widest font-bold">Poésie</span>
+</button>
+</div>
+</article>
+<!-- Right: Curator & Meta -->
+<aside class="lg:col-span-5 space-y-8">
+<!-- Curator Card -->
+<div class="bg-surface-container p-8 border-l-4 border-primary-container">
+<h3 class="text-xs uppercase tracking-[0.3em] text-on-surface-variant mb-6 font-bold">Le Curateur</h3>
+<div class="flex items-center gap-5 mb-6">
+<div class="relative">
+<img alt="Portrait of the curator" class="w-16 h-16 rounded-full grayscale hover:grayscale-0 transition-all duration-500 border border-primary-container/20" data-alt="close-up portrait of a dignified man with salt and pepper beard in a dark turtleneck against a charcoal background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoT1UFNQkS8R1Q707UQfvkQoVHRYOzKqgbDGT2YwX2ESYDIyL7BShPKEIYI9y4M-ZVtDm78M8sQFoldGfgg-Qv1Y59ZM41w9Blz2Ft7VOxhspIeVZiTaOBmtpcjrtuEsprnPD9H6z-12OrfskGlhO7Ap7ziLEPn8341jYg2NUW3GzmMnaeUVAlyypQPbLjEscFaay4UgCu1S9nx50siffV2RxxurnFFS33awhXSoLkl-Gj9zrnJnFQTZdmEetqSAniPVHESPcbon8"/>
+<div class="absolute -bottom-1 -right-1 bg-primary-container text-on-primary p-1 rounded-full scale-75">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div>
+<p class="text-lg font-serif font-bold text-on-surface">Elias Valery</p>
+<p class="text-[10px] font-mono text-primary uppercase tracking-tighter">FREK-ID: KV-992-004X</p>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant italic mb-6">"Archiviste du sensible, Elias explore les intersections entre textile traditionnel et futurs spéculatifs."</p>
+<button class="w-full py-4 text-xs font-bold uppercase tracking-widest bg-primary-container text-on-primary hover:bg-primary transition-colors duration-300">
+                        Explorer ses Archives
+                    </button>
+</div>
+<!-- Bento Info -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-6 flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary-container/40 text-3xl">history_edu</span>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant">Période</p>
+<p class="text-lg font-serif">XVIIIe — XXIe</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary-container/40 text-3xl">location_on</span>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant">Origine</p>
+<p class="text-lg font-serif">Antilles / Inde</p>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar (Mobile only / TopAppBar takes role on desktop usually but following JSON mandate) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-8 pb-4 bg-[#0e0e0f]/90 backdrop-blur-2xl z-50 rounded-t-sm shadow-2xl shadow-black">
+<a class="flex items-center justify-center text-[#e5e2e3]/50 w-12 h-12 hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined">grain</span>
+</a>
+<a class="flex items-center justify-center text-[#e5e2e3]/50 w-12 h-12 hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined">explore</span>
+</a>
+<a class="flex items-center justify-center bg-[#E8D5A0] text-[#3a2f09] rounded-full w-12 h-12 cubic-bezier(0.2, 0, 0, 1) duration-400" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</a>
+<a class="flex items-center justify-center text-[#e5e2e3]/50 w-12 h-12 hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined">person</span>
+</a>
+</nav>
+</body></html>

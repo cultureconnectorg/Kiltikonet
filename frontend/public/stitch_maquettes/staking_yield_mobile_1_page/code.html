@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,700;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#3d2f00",
+                        "on-primary-fixed": "#241a00",
+                        "inverse-on-surface": "#303030",
+                        "outline": "#98907e",
+                        "on-tertiary-container": "#4e3d06",
+                        "on-primary-fixed-variant": "#584400",
+                        "primary": "#e5c363",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "surface-variant": "#353535",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#56450e",
+                        "on-surface": "#e2e2e2",
+                        "primary-fixed": "#ffe08c",
+                        "secondary-container": "#474746",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "surface-container": "#1f1f1f",
+                        "primary-container": "#c8a84b",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#c1a969",
+                        "on-primary": "#3d2f00",
+                        "outline-variant": "#4d4637",
+                        "on-secondary": "#313030",
+                        "primary-fixed-dim": "#e5c363",
+                        "on-primary-container": "#4f3d00",
+                        "tertiary": "#dec482",
+                        "surface-container-low": "#1b1b1b",
+                        "surface-container-high": "#2a2a2a",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e2e2e2",
+                        "on-surface-variant": "#d0c5b2",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-secondary-container": "#b7b5b4",
+                        "surface-container-highest": "#353535",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-tint": "#e5c363",
+                        "secondary-fixed": "#e5e2e1",
+                        "secondary": "#c8c6c5",
+                        "on-background": "#e2e2e2",
+                        "inverse-primary": "#745b00",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#393939",
+                        "background": "#131313",
+                        "surface-dim": "#131313",
+                        "tertiary-fixed-dim": "#dec482",
+                        "surface": "#131313",
+                        "tertiary-fixed": "#fbe09b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"],
+                        "editorial": ["Newsreader"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(31, 31, 31, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        .text-glow-gold {
+            text-shadow: 0 0 15px rgba(229, 195, 99, 0.4);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            height: 100vh;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full bg-[#131313]/60 backdrop-blur-3xl flex justify-between items-center px-6 py-3 max-w-none shrink-0">
+<div class="flex items-center gap-3 text-[#C8A84B]">
+<span class="material-symbols-outlined text-xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<h1 class="text-xl font-black tracking-widest text-[#C8A84B] font-['Manrope'] uppercase">SOVEREIGN</h1>
+<div class="w-7 h-7 rounded-full overflow-hidden border border-[#C8A84B]/20">
+<img alt="Sovereign Profile Avatar" class="w-full h-full object-cover" data-alt="Minimalist abstract portrait of a sophisticated user in a luxury setting, dark moody aesthetic with gold accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg5LFj2SsFQnCLNjTAsvzDevJgee0OpA490efbRn_DZSEb6AQ6r96pNAYKWuqzMrg_9EPy6zT0W8GW1GJahGB0lV_4tolidHPRNNUNu4BgTq-9WmW_OqqcjsrpajoeJTL-6GeelnlBsQmuLGSMXlPFfuCz1b4KexupX0u07o47PkHecPQ4PWm-_Pvy8efgVNMe-2UitSLHp0eHDswdFWT1tOrieC4HNFpUXB2C2RCafnq4Fg8jpTJ-Ks1W_PQXeSigwrCKqamx7Uc"/>
+</div>
+</header>
+<main class="flex-1 px-5 py-2 space-y-3 max-w-lg mx-auto w-full overflow-hidden flex flex-col justify-between">
+<!-- Hero Section -->
+<section class="space-y-1">
+<p class="text-primary font-editorial italic text-base tracking-wide leading-tight">Yield Souverain</p>
+<h2 class="font-editorial text-3xl font-light tracking-tight leading-none">Protocole <span class="font-bold">Onyx KT</span></h2>
+<div class="mt-2 p-3 glass-card rounded-xl border-l-2 border-primary/40 relative overflow-hidden flex justify-between items-center">
+<div class="relative z-10">
+<p class="text-on-surface-variant text-[9px] uppercase tracking-widest font-bold">Récompenses</p>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="text-2xl font-headline font-extrabold text-glow-gold text-primary">1,402.85</span>
+<span class="text-[10px] font-headline text-primary/60">KT</span>
+</div>
+</div>
+<div class="text-right z-10">
+<p class="text-[9px] text-primary/40">+0.00042 KT/sec</p>
+</div>
+<div class="absolute -right-4 -top-2 opacity-5">
+<span class="material-symbols-outlined text-7xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+</div>
+</section>
+<!-- Staking Cards -->
+<div class="grid grid-cols-2 gap-3">
+<div class="col-span-2 glass-card p-3 px-4 rounded-xl flex items-center justify-between">
+<div>
+<p class="text-[8px] font-bold text-on-surface-variant uppercase tracking-[0.2em]">APY Actuel</p>
+<p class="text-3xl font-headline font-black text-primary">12.4%</p>
+</div>
+<div class="text-right">
+<div class="bg-primary/10 px-2 py-0.5 rounded-full inline-block mb-1">
+<span class="text-primary text-[8px] font-bold uppercase">Premium</span>
+</div>
+<p class="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">4.2M KT Staked</p>
+</div>
+</div>
+<!-- Staking Options side-by-side -->
+<div class="glass-card p-3 rounded-xl flex flex-col gap-1 border border-transparent">
+<span class="material-symbols-outlined text-primary text-base" data-icon="lock_open">lock_open</span>
+<h3 class="font-headline font-bold text-[10px] uppercase tracking-tight leading-none">Flexible</h3>
+<p class="text-[8px] text-on-surface-variant leading-tight">4.2% APY • Retrait immédiat</p>
+</div>
+<div class="bg-primary-container/10 p-3 rounded-xl flex flex-col gap-1 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-base" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+<h3 class="font-headline font-bold text-[10px] uppercase tracking-tight leading-none">Verrouillé</h3>
+<p class="text-[8px] text-on-surface-variant leading-tight">12.4% APY • Multiplicateurs x3</p>
+</div>
+</div>
+<!-- Duration Selector -->
+<section class="space-y-2">
+<h3 class="font-editorial text-lg font-light italic leading-none">Période d'engagement</h3>
+<div class="flex gap-2">
+<button class="flex-1 py-2 rounded-lg border border-outline-variant text-[9px] font-bold uppercase tracking-widest hover:bg-surface-container-highest">3 Mois</button>
+<button class="flex-1 py-2 rounded-lg border border-outline-variant text-[9px] font-bold uppercase tracking-widest hover:bg-surface-container-highest">6 Mois</button>
+<button class="flex-1 py-2 rounded-lg bg-primary text-on-primary text-[9px] font-bold uppercase tracking-widest shadow-md">12 Mois</button>
+</div>
+</section>
+<!-- Cultural Multipliers - Denser -->
+<section class="glass-card rounded-xl p-3 space-y-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="auto_awesome">auto_awesome</span>
+<h3 class="font-headline font-bold text-[10px] uppercase tracking-widest">Multiplicateurs</h3>
+</div>
+<div class="grid grid-cols-1 gap-2">
+<div class="flex justify-between items-center bg-surface-container/30 p-2 rounded-lg">
+<div class="flex gap-3 items-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="palette">palette</span>
+<div>
+<p class="text-[10px] font-bold leading-none">Artefact</p>
+<p class="text-[8px] text-primary/60 mt-0.5">+1.5% APY</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex justify-between items-center bg-surface-container/30 p-2 rounded-lg opacity-50">
+<div class="flex gap-3 items-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="gavel">gavel</span>
+<div>
+<p class="text-[10px] font-bold leading-none">Governance</p>
+<p class="text-[8px] text-primary/60 mt-0.5">+0.8% APY</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+</div>
+</section>
+<!-- Stake Action -->
+<div class="space-y-2 pb-2">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container py-4 rounded-lg text-on-primary font-headline font-extrabold uppercase tracking-[0.2em] shadow-lg text-xs active:scale-95 transition-transform">
+                Confirmer Staking
+            </button>
+<p class="text-center text-[8px] text-on-surface-variant uppercase tracking-widest opacity-60">Verrouillé jusqu'en Octobre 2024</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="shrink-0 w-full bg-[#1b1b1b]/60 backdrop-blur-3xl border-t border-[#353535]/15 flex justify-around items-center pt-2 pb-4 px-4 z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40" href="#">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="lock_open">lock_open</span>
+<span class="font-['Manrope'] text-[8px] uppercase tracking-[0.1em] font-bold">Vault</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40" href="#">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="swap_horiz">swap_horiz</span>
+<span class="font-['Manrope'] text-[8px] uppercase tracking-[0.1em] font-bold">Swap</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40" href="#">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-['Manrope'] text-[8px] uppercase tracking-[0.1em] font-bold">Culture</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40" href="#">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="gavel">gavel</span>
+<span class="font-['Manrope'] text-[8px] uppercase tracking-[0.1em] font-bold">Gov</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#C8A84B]" href="#">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="account_balance">account_balance</span>
+<span class="font-['Manrope'] text-[8px] uppercase tracking-[0.1em] font-bold">Stake</span>
+</a>
+</nav>
+</body></html>

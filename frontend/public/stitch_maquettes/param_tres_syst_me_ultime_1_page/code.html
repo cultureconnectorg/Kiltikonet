@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,700;1,6..72,400;1,6..72,700&amp;family=Manrope:wght@200;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#131314",
+                    "surface-container-lowest": "#0e0e0f",
+                    "primary": "#fff2d2",
+                    "error-container": "#93000a",
+                    "surface-bright": "#3a393a",
+                    "surface": "#131314",
+                    "on-error": "#690005",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "on-secondary-container": "#beb49c",
+                    "primary-container": "#e8d5a0",
+                    "outline": "#979083",
+                    "surface-variant": "#353436",
+                    "on-tertiary": "#2f2d4a",
+                    "tertiary-container": "#d6d2f7",
+                    "secondary-fixed": "#ede2c8",
+                    "primary-fixed-dim": "#d8c591",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-secondary-fixed": "#201b0b",
+                    "on-primary-fixed": "#231b00",
+                    "on-tertiary-container": "#5b5978",
+                    "secondary-container": "#4d4633",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "on-tertiary-fixed": "#1a1834",
+                    "on-surface": "#e5e2e3",
+                    "inverse-primary": "#6b5d33",
+                    "on-primary-fixed-variant": "#52461d",
+                    "on-background": "#e5e2e3",
+                    "surface-container-highest": "#353436",
+                    "secondary": "#d0c6ad",
+                    "on-secondary": "#36301e",
+                    "outline-variant": "#4b463b",
+                    "tertiary": "#f4f0ff",
+                    "primary-fixed": "#f5e1ab",
+                    "on-surface-variant": "#cdc6b7",
+                    "on-primary": "#3a2f09",
+                    "surface-container-high": "#2a2a2b",
+                    "surface-tint": "#d8c591",
+                    "surface-container": "#201f20",
+                    "inverse-on-surface": "#313031",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "on-primary-container": "#695c31",
+                    "inverse-surface": "#e5e2e3",
+                    "surface-dim": "#131314",
+                    "error": "#ffb4ab",
+                    "surface-container-low": "#1c1b1c",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "on-error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader", "serif"],
+                    "body": ["Manrope", "sans-serif"],
+                    "label": ["Manrope", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .font-serif { font-family: 'Newsreader', serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(232, 213, 160, 0.2);
+        }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#131314] text-on-surface select-none overflow-hidden h-screen w-full flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#131314] flex justify-between items-center px-6 py-4 w-full bg-gradient-to-b from-[#201f20] to-transparent">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#E8D5A0] text-xl">fingerprint</span>
+</div>
+<h1 class="SOVEREIGN font-serif font-bold tracking-widest text-[#E8D5A0] text-xl italic uppercase">SOVEREIGN</h1>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#E8D5A0] text-xl">more_vert</span>
+</div>
+</header>
+<!-- Main Content Canvas (Fixed/No Scroll) -->
+<main class="flex-1 px-4 pt-2 pb-24 grid grid-cols-1 gap-3 content-start">
+<!-- Header Editorial -->
+<div class="mb-2">
+<h2 class="font-serif italic text-2xl text-on-surface tracking-tight">Configuration</h2>
+<p class="text-[10px] uppercase tracking-[0.2em] text-outline opacity-70">Core System Parameters v.2.0.4</p>
+</div>
+<!-- Section 1: Sécurité (Compact Grid) -->
+<section class="bg-surface-container rounded-lg p-4 relative overflow-hidden border-l border-[#E8D5A0]/20">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-[#E8D5A0] text-sm">security</span>
+<h3 class="font-serif text-sm font-bold tracking-wide">Sécurité</h3>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-xs font-medium">Biométrie</span>
+<span class="text-[10px] text-outline">Accès par empreinte</span>
+</div>
+<div class="w-8 h-4 bg-primary-container/20 rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-[#E8D5A0] rounded-full shadow-sm translate-x-4 transition-transform"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-xs font-medium">Authentification 2FA</span>
+<span class="text-[10px] text-outline">Jetons dynamiques</span>
+</div>
+<div class="w-8 h-4 bg-surface-container-highest rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-on-surface-variant rounded-full shadow-sm transition-transform"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-xs font-medium">Chiffrement AES-256</span>
+<span class="text-[10px] text-outline">Protection de niveau militaire</span>
+</div>
+<span class="material-symbols-outlined text-[#E8D5A0] text-base" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+</div>
+</section>
+<!-- Section 2: Système (Bento Style) -->
+<div class="grid grid-cols-2 gap-3">
+<section class="bg-surface-container rounded-lg p-4 border-l border-[#E8D5A0]/10 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-[#E8D5A0] text-sm">settings_suggest</span>
+<h3 class="font-serif text-sm font-bold tracking-wide">Système</h3>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-outline uppercase tracking-tighter">Thème OLED</span>
+<div class="flex gap-1">
+<div class="h-1 flex-1 bg-[#E8D5A0] rounded-full"></div>
+<div class="h-1 flex-1 bg-surface-container-highest rounded-full"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-outline uppercase tracking-tighter">Langue</span>
+<span class="text-xs">FR / EN-US</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-2 border-t border-outline-variant/10 flex justify-between items-center">
+<span class="text-[10px] font-bold text-[#E8D5A0]">MODE DEV</span>
+<span class="material-symbols-outlined text-[#E8D5A0] text-sm">terminal</span>
+</div>
+</section>
+<!-- Section 3: Maintenance -->
+<section class="bg-surface-container rounded-lg p-4 border-l border-[#E8D5A0]/10 flex flex-col">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-[#E8D5A0] text-sm">build</span>
+<h3 class="font-serif text-sm font-bold tracking-wide">Maintenance</h3>
+</div>
+<div class="flex-1 flex flex-col justify-around">
+<button class="flex items-center justify-between group hover:bg-[#201f20] p-1 rounded transition-all">
+<span class="text-[11px]">Vider cache</span>
+<span class="material-symbols-outlined text-outline text-sm group-hover:text-[#E8D5A0]">delete_sweep</span>
+</button>
+<button class="flex items-center justify-between group hover:bg-[#201f20] p-1 rounded transition-all">
+<span class="text-[11px]">Sauvegarde</span>
+<span class="material-symbols-outlined text-outline text-sm group-hover:text-[#E8D5A0]">cloud_upload</span>
+</button>
+<div class="pt-2">
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full w-2/3 bg-gradient-to-r from-[#E8D5A0] to-[#d8c591]"></div>
+</div>
+<p class="text-[8px] text-outline mt-1 text-right">Storage: 64% used</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Diagnostic Card / Signature -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between border border-outline-variant/10">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#131314] to-[#201f20] flex items-center justify-center border border-[#E8D5A0]/20">
+<span class="material-symbols-outlined text-[#E8D5A0]" style="font-variation-settings: 'FILL' 1;">memory</span>
+</div>
+<div>
+<p class="text-xs font-bold text-[#E8D5A0] tracking-wide">ETAT DU NOYAU</p>
+<p class="text-[10px] text-outline">Synchronisation optimale</p>
+</div>
+</div>
+<div class="h-2 w-2 rounded-full bg-[#E8D5A0] animate-pulse"></div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 h-24 bg-[#131314]/70 backdrop-blur-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors">
+<span class="material-symbols-outlined text-xl">shield_person</span>
+<span class="font-sans text-[10px] font-medium tracking-tight mt-1">Security</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#E8D5A0] scale-110">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">settings_suggest</span>
+<span class="font-sans text-[10px] font-medium tracking-tight mt-1">Prefs</span>
+</div>
+<!-- BRAIN Center Nav -->
+<div class="relative -top-4">
+<div class="w-14 h-14 bg-gradient-to-tr from-[#E8D5A0] to-[#f5e1ab] rounded-full flex items-center justify-center shadow-lg shadow-[#E8D5A0]/20 active:scale-90 transition-all duration-300">
+<span class="material-symbols-outlined text-[#131314] text-3xl" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors">
+<span class="material-symbols-outlined text-xl">terminal</span>
+<span class="font-sans text-[10px] font-medium tracking-tight mt-1">Dev</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors">
+<span class="material-symbols-outlined text-xl">settings_backup_restore</span>
+<span class="font-sans text-[10px] font-medium tracking-tight mt-1">System</span>
+</div>
+</nav>
+<!-- Glossy Accent Overlay -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(232,213,160,0.03)_0%,transparent_50%)]"></div>
+</body></html>

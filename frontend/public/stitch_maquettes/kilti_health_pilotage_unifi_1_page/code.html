@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KILTI_HEALTH Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,700&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#d8c591",
+                    "on-primary": "#3a2f09",
+                    "on-error": "#690005",
+                    "secondary-fixed": "#ede2c8",
+                    "primary-fixed-dim": "#d8c591",
+                    "error-container": "#93000a",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "primary": "#fff2d2",
+                    "tertiary": "#f4f0ff",
+                    "primary-fixed": "#f5e1ab",
+                    "on-tertiary-fixed": "#1a1834",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "surface-container-high": "#2a2a2b",
+                    "primary-container": "#e8d5a0",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#3a393a",
+                    "on-primary-container": "#695c31",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "on-surface": "#e5e2e3",
+                    "surface-container-highest": "#353436",
+                    "on-tertiary": "#2f2d4a",
+                    "inverse-on-surface": "#313031",
+                    "on-primary-fixed": "#231b00",
+                    "surface-container": "#201f20",
+                    "tertiary-fixed": "#e3dfff",
+                    "outline-variant": "#4b463b",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "on-secondary": "#36301e",
+                    "inverse-surface": "#e5e2e3",
+                    "surface-container-lowest": "#0e0e0f",
+                    "tertiary-container": "#d6d2f7",
+                    "on-surface-variant": "#cdc6b7",
+                    "surface": "#131314",
+                    "secondary-container": "#4d4633",
+                    "on-tertiary-container": "#5b5978",
+                    "surface-variant": "#353436",
+                    "on-secondary-fixed": "#201b0b",
+                    "on-background": "#e5e2e3",
+                    "background": "#131314",
+                    "inverse-primary": "#6b5d33",
+                    "surface-dim": "#131314",
+                    "outline": "#979083",
+                    "surface-container-low": "#1c1b1c",
+                    "on-primary-fixed-variant": "#52461d",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#d0c6ad",
+                    "on-secondary-container": "#beb49c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #0a0a0b;
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-[#131314] flex justify-between items-center px-6 py-4 w-full docked full-width top-0 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#e8d5a0]" style="font-variation-settings: 'FILL' 0;">analytics</span>
+<h1 class="font-['Newsreader'] text-xl tracking-tighter uppercase text-[#e8d5a0] font-bold tracking-[-0.02em]">KILTI_HEALTH</h1>
+</div>
+<button class="text-[#e5e2e3] hover:scale-[1.02] transition-transform duration-300 active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas: Fixed Height to prevent scrolling -->
+<main class="flex-1 p-4 grid grid-cols-6 grid-rows-12 gap-3 max-h-[calc(100vh-140px)]">
+<!-- Health Metrics Bento Grid -->
+<div class="col-span-3 row-span-3 bg-surface-container-high p-4 rounded-sm hover:scale-[1.02] transition-transform duration-300 cursor-pointer flex flex-col justify-between">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-medium">Latency</span>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-['Newsreader'] text-primary-container">24.5</span>
+<span class="text-xs text-on-surface-variant">ms</span>
+</div>
+<div class="w-full bg-surface-container h-[2px]">
+<div class="bg-primary-container h-full w-3/4"></div>
+</div>
+</div>
+<div class="col-span-3 row-span-3 bg-surface-container-high p-4 rounded-sm hover:scale-[1.02] transition-transform duration-300 cursor-pointer flex flex-col justify-between">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-medium">Uptime</span>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-['Newsreader'] text-primary-container">99.9</span>
+<span class="text-xs text-on-surface-variant">%</span>
+</div>
+<div class="flex items-center gap-1 text-[10px] text-tertiary">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+<span>Operational</span>
+</div>
+</div>
+<div class="col-span-6 row-span-2 bg-surface-container-high px-4 py-3 rounded-sm hover:scale-[1.02] transition-transform duration-300 cursor-pointer flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-medium">Error Rate</span>
+<div class="text-xl font-['Newsreader'] text-error">0.02%</div>
+</div>
+<div class="h-8 w-24 bg-surface-container relative overflow-hidden">
+<div class="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-error to-transparent"></div>
+<svg class="h-full w-full stroke-error/40 fill-none" viewbox="0 0 100 20">
+<polyline points="0,15 10,12 20,18 30,5 40,15 50,12 60,18 70,8 80,14 90,10 100,16" stroke-width="1"></polyline>
+</svg>
+</div>
+</div>
+<!-- Status Badges Strip -->
+<div class="col-span-6 row-span-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/15 whitespace-nowrap">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(244,240,255,0.6)]"></div>
+<span class="text-[10px] uppercase tracking-tighter font-bold text-on-surface">BREVO</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/15 whitespace-nowrap">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(244,240,255,0.6)]"></div>
+<span class="text-[10px] uppercase tracking-tighter font-bold text-on-surface">DB</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/15 whitespace-nowrap">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(244,240,255,0.6)]"></div>
+<span class="text-[10px] uppercase tracking-tighter font-bold text-on-surface">STRIPE</span>
+</div>
+</div>
+<!-- Activity Feed -->
+<div class="col-span-6 row-span-4 bg-surface-container p-4 rounded-sm flex flex-col gap-3">
+<div class="flex justify-between items-center border-b border-outline-variant/10 pb-2">
+<h3 class="text-[10px] uppercase tracking-widest text-primary-container font-bold">Recent Activity</h3>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">history</span>
+</div>
+<div class="space-y-3 overflow-hidden">
+<div class="flex items-start gap-3 group cursor-pointer">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-primary-fixed-dim"></div>
+<div class="flex-1">
+<p class="text-xs text-on-surface leading-tight">SSL Certificate renewed automatically</p>
+<p class="text-[9px] text-on-surface-variant uppercase mt-0.5">2m ago • sys_admin</p>
+</div>
+</div>
+<div class="flex items-start gap-3 group cursor-pointer">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-error"></div>
+<div class="flex-1">
+<p class="text-xs text-on-surface leading-tight">Brute force attempt mitigated</p>
+<p class="text-[9px] text-on-surface-variant uppercase mt-0.5">14m ago • firewall</p>
+</div>
+</div>
+<div class="flex items-start gap-3 group cursor-pointer">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+<div class="flex-1">
+<p class="text-xs text-on-surface leading-tight">Database backup completed</p>
+<p class="text-[9px] text-on-surface-variant uppercase mt-0.5">1h ago • worker_04</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Blocked IPs Grid -->
+<div class="col-span-6 row-span-2 bg-surface-container-highest/30 backdrop-blur-xl p-4 rounded-sm flex items-center justify-between border border-primary-container/5">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-medium">IPs Blocked</span>
+<div class="text-2xl font-['Newsreader'] text-primary-container">1,402</div>
+</div>
+<div class="text-right">
+<div class="text-[10px] text-on-surface-variant uppercase mb-1">Latest</div>
+<code class="text-[10px] bg-black/40 px-2 py-0.5 rounded text-primary-fixed-dim">192.168.1.254</code>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-[#131314]/70 backdrop-blur-3xl fixed bottom-0 w-full z-50 border-t-[0.5px] border-[#4b463b]/15 shadow-[0_-20px_40px_rgba(0,0,0,0.4)] flex justify-around items-center px-4 pb-6 pt-2 h-[80px]">
+<!-- Status (Active) -->
+<a class="flex flex-col items-center justify-center text-[#e8d5a0] font-bold bg-[#2a2a2b] rounded-sm px-4 py-1 hover:text-[#e8d5a0] transition-colors duration-450 active:scale-97 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pulse_alert</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Status</span>
+</a>
+<!-- Metrics -->
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/50 hover:text-[#e8d5a0] transition-colors duration-450 active:scale-97 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">bar_chart_4_bars</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Metrics</span>
+</a>
+<!-- Logs -->
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/50 hover:text-[#e8d5a0] transition-colors duration-450 active:scale-97 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Logs</span>
+</a>
+<!-- Config -->
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/50 hover:text-[#e8d5a0] transition-colors duration-450 active:scale-97 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Config</span>
+</a>
+</nav>
+</body></html>

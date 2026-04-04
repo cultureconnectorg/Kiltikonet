@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kiltikonet Network Feed</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,600;1,400;1,600&amp;family=Manrope:wght@400;500;700&amp;family=Cormorant+Garamond:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#313031",
+                        "on-secondary-fixed-variant": "#4d4633",
+                        "tertiary-container": "#d6d2f7",
+                        "surface-tint": "#d8c591",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-container": "#beb49c",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#3a393a",
+                        "primary-fixed": "#f5e1ab",
+                        "secondary": "#d0c6ad",
+                        "surface-container-highest": "#353436",
+                        "outline-variant": "#4b463b",
+                        "on-surface": "#e5e2e3",
+                        "on-background": "#e5e2e3",
+                        "surface-container-high": "#2a2a2b",
+                        "inverse-primary": "#6b5d33",
+                        "on-tertiary-fixed": "#1a1834",
+                        "surface-dim": "#131314",
+                        "primary-fixed-dim": "#d8c591",
+                        "on-primary-fixed-variant": "#52461d",
+                        "on-tertiary-fixed-variant": "#454462",
+                        "inverse-surface": "#e5e2e3",
+                        "secondary-fixed-dim": "#d0c6ad",
+                        "on-surface-variant": "#cdc6b7",
+                        "on-primary-fixed": "#231b00",
+                        "surface": "#131314",
+                        "error-container": "#93000a",
+                        "primary": "#fff2d2",
+                        "on-primary-container": "#695c31",
+                        "secondary-fixed": "#ede2c8",
+                        "on-secondary": "#36301e",
+                        "tertiary-fixed": "#e3dfff",
+                        "surface-container-low": "#1c1b1c",
+                        "surface-variant": "#353436",
+                        "tertiary": "#f4f0ff",
+                        "primary-container": "#e8d5a0",
+                        "on-primary": "#3a2f09",
+                        "on-secondary-fixed": "#201b0b",
+                        "on-error": "#690005",
+                        "background": "#131314",
+                        "surface-container-lowest": "#0e0e0f",
+                        "on-tertiary-container": "#5b5978",
+                        "secondary-container": "#4d4633",
+                        "on-tertiary": "#2f2d4a",
+                        "surface-container": "#201f20",
+                        "outline": "#979083",
+                        "tertiary-fixed-dim": "#c6c3e7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0a0a0b;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131314] dark:bg-[#131314]">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#E8D5A0] hover:scale-105 transition-transform duration-300 cursor-pointer">menu</span>
+</div>
+<h1 class="text-2xl font-['Newsreader'] italic text-[#E8D5A0] tracking-tighter font-semibold">Kiltikonet</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden hover:scale-105 transition-transform duration-300 border border-[#4b463b]/15">
+<img alt="Profile" data-alt="Close up portrait of a sophisticated man with salt and pepper beard wearing a dark turtleneck in moody lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwpbnbcWGKKebSRxTC5v8PGFDsV0zt-Vhhk0TEs3Q-C9hqyFn_ANnR8aHfjZIRuHSK9fmHcZiYhoUVZ8LvsbvsCJzbsHz-hnwyrOp7Z03zGfKDzeNSPQQkoNDZatYR5vQRe_ZQd9nL3DWgUmElA0TSSsvt0smK_5X47C2AOTcf2HOu_DiDnBIzii_gBycdzA_ku4n5hgODyMifEqxQVUU0tXmSDTJCdRlqSeWeGPTjEKOrgWkA3Kvibsjr3lKPvvoE5kfwjUtO-MI"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 pb-28 px-4 md:px-8 max-w-2xl mx-auto space-y-12">
+<!-- Section: Editorial Insight (CVL BRAIN) -->
+<section class="relative">
+<div class="bg-surface-container-low p-6 rounded-sm border-l-2 border-primary-container relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="text-[10px] uppercase tracking-[0.2em] font-bold text-primary-container">Professional Insight</span>
+<span class="w-8 h-[1px] bg-outline-variant/30"></span>
+<span class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant">CVL BRAIN System</span>
+</div>
+<h3 class="font-headline text-xl text-on-surface mb-2 leading-tight">Cultural Hegemony in the Decentralized Era</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">
+                    Current patterns suggest a migration toward 'Sovereign Circles'. Data indicates a 14% increase in high-value curatorial exchanges within private network nodes.
+                </p>
+<div class="flex items-center gap-4">
+<span class="text-[10px] py-1 px-3 rounded-full bg-primary-fixed-dim/10 text-primary-fixed-dim border border-primary-fixed-dim/20">Rare Signal</span>
+<span class="text-[10px] text-on-surface-variant/60">Estimated reading: 2 min</span>
+</div>
+</div>
+</section>
+<!-- Post 1: The Digital Sovereign (Featured) -->
+<article class="group">
+<div class="relative w-full aspect-[4/5] overflow-hidden rounded-sm mb-6 bg-surface-container">
+<img alt="Featured Article" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Abstract architectural shot of obsidian-like glass structures reflecting golden light in a dark, atmospheric void" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5SiYexwqHC4ZcyAREoRqNA292HTPepuyYeOLxaUh1neVlHpj0afAJZpE713S8M5VlWUeSJ4P1jnkrqR4nOS3D84q7L1nuUsMB1sT_KcBXd9WatlqF8HP0YmK_THdWPNM9--sRQyOP7If9LKvDHEKb6cn74G3xjIEa_fl7qX8RVSCd4onTi1GGFAI7HjgZcrEHRkcBrIzKUcHX3ailPP84H0kVQ6Yw2psVcVz0CD0JMsb_xJzuCoSNXOQbedhJWJz6Pp4VbiwXIAc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full">
+<span class="text-xs uppercase tracking-widest text-primary-container mb-2 block">Cover Story</span>
+<h2 class="font-headline text-4xl md:text-5xl text-on-surface leading-[0.95] tracking-tighter max-w-md">
+                        The Digital Sovereign
+                    </h2>
+</div>
+</div>
+<div class="px-2">
+<p class="font-body text-base text-on-surface-variant leading-relaxed mb-6 opacity-90">
+                    In an age of algorithmic noise, true power lies in intentional curation. How the elite are reclaiming their data identity through private protocol layers and bespoke cultural filters.
+                </p>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/10">
+<div class="flex gap-6">
+<button class="flex items-center gap-2 group/btn">
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover/btn:text-primary-container transition-colors">favorite</span>
+<span class="text-[11px] uppercase tracking-widest text-on-surface-variant">Soutenir</span>
+</button>
+<button class="flex items-center gap-2 group/btn">
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover/btn:text-primary-container transition-colors">mode_comment</span>
+<span class="text-[11px] uppercase tracking-widest text-on-surface-variant">Commenter</span>
+</button>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary-container transition-colors">share</button>
+</div>
+</div>
+</article>
+<!-- Post 2: Cultural Tokens (Economy) -->
+<article class="grid grid-cols-1 md:grid-cols-5 gap-8 items-start py-12 border-t border-outline-variant/10">
+<div class="md:col-span-2 order-2 md:order-1">
+<div class="aspect-square bg-surface-container rounded-sm overflow-hidden">
+<img alt="KT Economy" class="w-full h-full object-cover" data-alt="Stylized macro photography of a precious metallic coin with intricate geometric engravings reflecting warm amber light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATOqbXpGWa0Yn7TOmoZRsHCU1hFZXatK-WlbT1HpFQDqcpEEBLSyJB4eatfeHQJTnoyWip489I-2oVtctnnuAxLvH8l3LsCf0dLjB4LtcMcwJZ69Ak7fGyT1j9-L8Ady3I90JM12QOvZK1CUFeVKKEYWIc1iuYuT-vX6luTkusrKDnrzn1wFGmukrODVPOnXYVpxLO06k0ThikjwDYL4gpoRbvEcziTGcM1mr0oeYDHtRNATF6JqwbQa2JTKRMZEQunJTdZV_HVQo"/>
+</div>
+</div>
+<div class="md:col-span-3 order-1 md:order-2 space-y-4">
+<span class="text-[10px] uppercase tracking-widest text-on-tertiary-container bg-tertiary-container/10 px-2 py-0.5">Economy</span>
+<h2 class="font-headline text-3xl text-on-surface leading-tight">Cultural Tokens (KT) Economy</h2>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                    Analyzing the value-accrual mechanisms of Kiltikonet Tokens. Moving beyond speculation toward a proof-of-taste consensus.
+                </p>
+<div class="flex items-center gap-6 pt-2">
+<button class="flex items-center gap-2 group/btn">
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover/btn:text-primary-container" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="text-[11px] uppercase tracking-widest text-on-surface-variant">Soutenir</span>
+</button>
+<button class="flex items-center gap-2 group/btn">
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover/btn:text-primary-container">chat_bubble_outline</span>
+<span class="text-[11px] uppercase tracking-widest text-on-surface-variant">Commenter</span>
+</button>
+</div>
+</div>
+</article>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-safe bg-[#131314]/70 backdrop-blur-3xl z-50 border-t border-[#4b463b]/15 shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">explore</span>
+</a>
+<!-- Active Brain Center -->
+<a class="flex flex-col items-center justify-center text-[#E8D5A0] scale-110 relative" href="#">
+<div class="absolute -top-1 w-1 h-1 bg-[#E8D5A0] rounded-full"></div>
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">person</span>
+</a>
+</nav>
+<!-- Subtle Background Grain Overly -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDdwRHEM5X7-sCp3YTiHbQSd_WzfB_3CF-OXu9x87aT1rLyCJ4bVqiD5vxUO17vJYO7su4fJy6sU8m5f1-1ylTsXi4UNrQCc32AtjOJwGjGJ9UdyJfb8LuhaOiirNYKgNNXIQIXbSwd3E8ng_6om-s1jQGXUiQmNGGaPiU3VqPqMfWBnNNVIpaLO0YJynTxOnnAT5ciBybrO4UPClfmdoN-LntQDK3m_5mZmr7Y4sfqBrf9NHy4vQeCpN0uaxrJTaefsDN197uzErs');"></div>
+</body></html>

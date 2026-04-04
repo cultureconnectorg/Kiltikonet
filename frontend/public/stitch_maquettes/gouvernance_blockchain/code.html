@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kiltikonet - Portail de Gouvernance Sovereign</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#3d2f00",
+                        "on-primary-fixed": "#241a00",
+                        "inverse-on-surface": "#303030",
+                        "outline": "#98907e",
+                        "on-tertiary-container": "#4e3d06",
+                        "on-primary-fixed-variant": "#584400",
+                        "primary": "#e5c363",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "surface-variant": "#353535",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#56450e",
+                        "on-surface": "#e2e2e2",
+                        "primary-fixed": "#ffe08c",
+                        "secondary-container": "#474746",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "surface-container": "#1f1f1f",
+                        "primary-container": "#c8a84b",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#c1a969",
+                        "on-primary": "#3d2f00",
+                        "outline-variant": "#4d4637",
+                        "on-secondary": "#313030",
+                        "primary-fixed-dim": "#e5c363",
+                        "on-primary-container": "#4f3d00",
+                        "tertiary": "#dec482",
+                        "surface-container-low": "#1b1b1b",
+                        "surface-container-high": "#2a2a2a",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e2e2e2",
+                        "on-surface-variant": "#d0c5b2",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-secondary-container": "#b7b5b4",
+                        "surface-container-highest": "#353535",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-tint": "#e5c363",
+                        "secondary-fixed": "#e5e2e1",
+                        "secondary": "#c8c6c5",
+                        "on-background": "#e2e2e2",
+                        "inverse-primary": "#745b00",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#393939",
+                        "background": "#131313",
+                        "surface-dim": "#131313",
+                        "tertiary-fixed-dim": "#dec482",
+                        "surface": "#131313",
+                        "tertiary-fixed": "#fbe09b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-effect {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .metallic-gradient {
+            background: linear-gradient(135deg, #e5c363 0%, #c8a84b 100%);
+        }
+        body {
+            background-color: #131313;
+            color: #e2e2e2;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased selection:bg-primary selection:text-on-primary pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-3xl shadow-[0_32px_64px_-15px_rgba(200,168,75,0.08)] bg-gradient-to-b from-[#353535]/20 to-transparent">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-none">
+<div class="active:scale-95 transition-transform text-[#C8A84B]">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+</div>
+<h1 class="font-['Manrope'] tracking-widest uppercase font-black text-2xl text-[#C8A84B]">SOVEREIGN</h1>
+<div class="active:scale-95 transition-transform">
+<img alt="Profile" class="w-8 h-8 rounded-full border border-[#C8A84B]/20" data-alt="High-end minimalist 3D avatar icon of a digital noble in black and gold tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR9mSqU-y7J3guKEVVeTRQdIkotSRKvWngq83Ph-4A-WY9iTzEh5n1Zn5bLM7XOpAUBQt5HLBwbg2zJO2yenpLlSmIkG2ZdCdC-uUjqq7l7O-oxNXWWIKYmoHue_87YlRkLh-mUg0xzGrw4Poea5VvRtLwVMw-93lSIFkxmdttPEAM2glib5fsgozvYqGqk9fb54eYRSBdhk0tsezG3ppP_dfpUSMEKhxY6LXmKvdMJGZ2f5CHXOKXSBvfWa0mTUUag2IXcZh-iGI"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 space-y-8">
+<!-- Sovereign Header Section -->
+<section class="space-y-2">
+<p class="font-headline text-primary text-xs font-bold tracking-[0.2em] uppercase">Conseil des Gouverneurs</p>
+<h2 class="font-headline text-4xl font-extrabold tracking-tighter leading-none text-on-surface">KILTIKONET GOUVERNANCE</h2>
+<div class="h-[1px] w-12 bg-primary mt-4"></div>
+</section>
+<!-- Voting Power Bento Card -->
+<section class="relative overflow-hidden rounded-xl bg-surface-container-low p-6 shadow-2xl">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div class="relative z-10 flex flex-col space-y-4">
+<span class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Votre Puissance de Vote</span>
+<div class="flex items-baseline space-x-2">
+<span class="text-5xl font-headline font-black text-primary tracking-tighter">84,250</span>
+<span class="text-xl font-bold text-primary-container">KT</span>
+</div>
+<div class="pt-4 flex gap-4">
+<button class="flex-1 metallic-gradient text-on-primary font-headline font-bold py-3 rounded-md shadow-lg active:scale-95 transition-all text-sm uppercase tracking-wider">Proposer</button>
+<button class="flex-1 bg-surface-container-highest border border-outline-variant/15 text-primary font-headline font-bold py-3 rounded-md active:scale-95 transition-all text-sm uppercase tracking-wider glass-effect">Déléguer</button>
+</div>
+</div>
+</section>
+<!-- Active Proposals -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline text-lg font-bold text-on-surface tracking-tight italic">Propositions Actives</h3>
+<span class="text-[10px] font-bold text-primary tracking-widest uppercase">2 en cours</span>
+</div>
+<!-- Proposal Card 1 -->
+<div class="bg-surface-container-high rounded-xl p-5 space-y-4 border-l-2 border-primary shadow-lg">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<span class="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-full uppercase">Actif • 3j restants</span>
+<h4 class="font-headline text-xl font-bold text-on-surface leading-tight">Extension du Vault de Trésorerie</h4>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
+</div>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed">Augmentation de la limite de stockage du Vault souverain pour accueillir les nouveaux actifs culturels RWA.</p>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+<span class="text-on-surface">Quorum 72%</span>
+<span class="text-primary-container">Objectif 80%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full metallic-gradient w-[72%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex -space-x-2">
+<img class="w-6 h-6 rounded-full border border-background" data-alt="Avatar of a digital contributor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE2-goZFNeYW713LUGdRp_tQpirXNmH7PBl5_1nQpD1AI2n4kCQ5KVBEow1CQM0OyFedMdSMZ19iPNjPOZQlECNS_aD2JJSldesMy1DiIlU9wQ0cCVK6RWnxGIfWKbmjOsL5somu_fP4uc-bfNhl-xluZ1E77znKvIEzlHVU1rwFh_ifaWFnXlrEO7Vr9mafcTmKVgZNbfqAljEoZGKXrLAuaYVflOYGTlqu1hPSsf4saOVXXJ8dwoxFhk3SQG2EFuZxn-cMMMGJI"/>
+<img class="w-6 h-6 rounded-full border border-background" data-alt="Avatar of a digital contributor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrHn76jQKiKz_1EiSzB1ZKf8kQ3uszmsauxrdQCDT0qEfXN88Nqc3Snqhb9mw048fvwZ2DH8pQFvwFO_71dgTCJroD7c0D0rz-mQdD7065866xfHpzxpyaepazj4_3VsVzLugsn4agaLv9mQ1mvWsfLeyscAHrrydaKkIosTv0JcZz4gm8Wm0ZC-Jpf3QTNC4_yKTfyQL8ntU7SGOux59fNs7RbGUbEn_F-GdZBK7LmEn4YXp9A3-WjclZOXCbJR2sy0oXOLwg0GQ"/>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-background flex items-center justify-center text-[8px] font-bold">+12</div>
+</div>
+<button class="bg-primary/10 text-primary border border-primary/20 font-headline font-bold px-6 py-2 rounded-md active:scale-95 transition-all text-xs uppercase">Voter</button>
+</div>
+</div>
+<!-- Proposal Card 2 -->
+<div class="bg-surface-container-high rounded-xl p-5 space-y-4 border-l-2 border-primary shadow-lg">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<span class="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-full uppercase">Actif • 12h restants</span>
+<h4 class="font-headline text-xl font-bold text-on-surface leading-tight">Nouvelle taxe culturelle 1.5%</h4>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
+</div>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed">Redistribution des frais de transaction vers le fonds de soutien aux artistes numériques de Kiltikonet.</p>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+<span class="text-on-surface">Quorum 45%</span>
+<span class="text-primary-container">Objectif 60%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full metallic-gradient w-[45%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex -space-x-2">
+<img class="w-6 h-6 rounded-full border border-background" data-alt="Avatar of a digital contributor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-y1b3ZM4p8dCbK3PTtcag_IBp1usawuPKqM1oiqplOJZ9jSz5I5lRAOnJagygbgfrbtWEo_n687Jk2BvMQmMNyaItCZlSoIA6Q6a86LrMa3tbvS709aAjhzTJMNjPt7nuY449TvcUB-dGJ92CcBWKeVSrfeF80ESp81QE3b8p2FzdmoxxQ1TvmSlddBGNGcSwT2du_IvrlXJ-osq3CB1xE7CS4nOVoHXlBJbEVKx0bkm7qqbpINhJfP7E8ibgjwVYs9C2499x3sQ"/>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-background flex items-center justify-center text-[8px] font-bold">+45</div>
+</div>
+<button class="bg-primary/10 text-primary border border-primary/20 font-headline font-bold px-6 py-2 rounded-md active:scale-95 transition-all text-xs uppercase">Voter</button>
+</div>
+</div>
+</section>
+<!-- Completed Proposals -->
+<section class="space-y-6 pb-12">
+<div class="flex items-center justify-between">
+<h3 class="font-headline text-lg font-bold text-on-surface/60 tracking-tight italic">Terminées</h3>
+<span class="text-[10px] font-bold text-on-surface/40 tracking-widest uppercase">Voir tout</span>
+</div>
+<div class="bg-surface-container-low/50 rounded-xl p-5 flex items-center justify-between">
+<div class="space-y-1">
+<h4 class="font-headline text-md font-bold text-on-surface/70">Audit de Sécurité Q3</h4>
+<span class="text-[10px] font-bold text-green-500/70 uppercase tracking-widest">Approuvé • 92%</span>
+</div>
+<span class="material-symbols-outlined text-on-surface/30">verified</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#1b1b1b]/60 backdrop-blur-3xl border-t border-[#353535]/15 shadow-[0_-12px_40px_rgba(0,0,0,0.5)] rounded-t-xl">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center pt-3 pb-6 px-4">
+<!-- Vault -->
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40 hover:text-[#C8A84B]/80 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-2xl">lock_open</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.1em] font-bold mt-1">Vault</span>
+</a>
+<!-- Exchange -->
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40 hover:text-[#C8A84B]/80 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-2xl">swap_horiz</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.1em] font-bold mt-1">Exchange</span>
+</a>
+<!-- Culture -->
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40 hover:text-[#C8A84B]/80 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-2xl">auto_awesome</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.1em] font-bold mt-1">Culture</span>
+</a>
+<!-- Governance (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-[#C8A84B] scale-110 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">gavel</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.1em] font-bold mt-1">Governance</span>
+</a>
+<!-- Staking -->
+<a class="flex flex-col items-center justify-center text-[#e2e2e2]/40 hover:text-[#C8A84B]/80 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-2xl">account_balance</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.1em] font-bold mt-1">Staking</span>
+</a>
+</div>
+</nav>
+</body></html>

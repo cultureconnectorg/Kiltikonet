@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300..800;1,300..800&amp;family=Manrope:wght@200..800&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 20;
+        }
+        body {
+            background-color: #050505;
+            color: #e5e2e3;
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+        }
+        .glass-panel {
+            background: rgba(20, 20, 21, 0.6);
+            backdrop-filter: blur(12px);
+            border: 0.5px solid rgba(232, 213, 160, 0.15);
+        }
+        .gold-border {
+            border: 0.5px solid rgba(232, 213, 160, 0.3);
+        }
+        .text-gold {
+            color: #E8D5A0;
+        }
+        .bg-gold {
+            background-color: #E8D5A0;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#E8D5A0",
+                        "surface": "#050505",
+                        "on-surface": "#e5e2e3",
+                        "on-surface-variant": "#979083"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "serif-display": ["Cormorant Garamond", "serif"]
+                    }
+                },
+            }
+        }
+    </script>
+</head>
+<body class="font-body selection:bg-primary/30 flex flex-col">
+<!-- Header: Compact -->
+<header class="pt-4 px-5 pb-2 flex justify-between items-end">
+<div class="flex flex-col">
+<h1 class="font-serif-display text-2xl italic text-primary leading-tight">Santé système</h1>
+<p class="text-[8px] uppercase tracking-[0.3em] text-on-surface-variant/60">Onyx Curator Terminal</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 gold-border text-[8px] tracking-widest text-primary/80 uppercase">
+<span class="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
+                Live
+            </div>
+</div>
+</header>
+<!-- Main View: Grid Optimized for No-Scroll Mobile -->
+<main class="flex-1 px-5 py-3 grid grid-rows-[auto_1fr_auto_1.2fr] gap-3 h-full overflow-hidden">
+<!-- Row 1: Global Node Health (Hero) -->
+<button class="glass-panel p-4 text-left relative overflow-hidden active:scale-[0.98] transition-transform">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[9px] tracking-[0.2em] uppercase text-primary/60">Global Node Health</span>
+<span class="material-symbols-outlined text-primary text-sm">shield</span>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="space-y-1">
+<p class="text-[8px] uppercase tracking-tighter text-on-surface-variant">Latency</p>
+<p class="text-xl font-light text-primary tracking-tighter">24.5<span class="text-[10px] ml-0.5">ms</span></p>
+</div>
+<div class="space-y-1 border-x border-white/5 px-4">
+<p class="text-[8px] uppercase tracking-tighter text-on-surface-variant">Uptime</p>
+<p class="text-xl font-light text-on-surface tracking-tighter">99.9<span class="text-[10px] ml-0.5">%</span></p>
+</div>
+<div class="space-y-1 pl-4">
+<p class="text-[8px] uppercase tracking-tighter text-on-surface-variant">Error</p>
+<p class="text-xl font-light text-red-400/80 tracking-tighter">0.02<span class="text-[10px] ml-0.5">%</span></p>
+</div>
+</div>
+</button>
+<!-- Row 2: System Stats (Dense Bento) -->
+<div class="grid grid-cols-2 gap-3">
+<button class="glass-panel p-3 text-left flex flex-col justify-between active:scale-[0.96] transition-transform">
+<div class="flex justify-between items-center opacity-60">
+<span class="material-symbols-outlined text-xs">storage</span>
+<span class="text-[7px] uppercase tracking-widest">DB Size</span>
+</div>
+<div>
+<p class="text-lg font-light tracking-tight">4,822 <span class="text-[9px] text-on-surface-variant">MB</span></p>
+<div class="w-full h-[1px] bg-white/5 mt-1 relative overflow-hidden">
+<div class="absolute h-full bg-primary/40 w-3/4"></div>
+</div>
+</div>
+</button>
+<button class="glass-panel p-3 text-left flex flex-col justify-between active:scale-[0.96] transition-transform">
+<div class="flex justify-between items-center opacity-60">
+<span class="material-symbols-outlined text-xs">group</span>
+<span class="text-[7px] uppercase tracking-widest">Sessions</span>
+</div>
+<div class="flex items-end justify-between">
+<p class="text-lg font-light tracking-tight">420</p>
+<span class="text-[7px] text-primary bg-primary/10 px-1 border border-primary/20 mb-1">+12%</span>
+</div>
+</button>
+<button class="glass-panel p-3 text-left flex flex-col justify-between col-span-2 active:scale-[0.98] transition-transform">
+<div class="flex justify-between items-center opacity-60">
+<span class="material-symbols-outlined text-xs text-red-400/60">block</span>
+<span class="text-[7px] uppercase tracking-widest">Firewall blocks (24h)</span>
+</div>
+<div class="flex items-center gap-4">
+<p class="text-lg font-light">142 <span class="text-[9px] text-red-400/60 uppercase ml-1 italic font-medium">Threat Level: High</span></p>
+</div>
+</button>
+</div>
+<!-- Row 3: Operational Status (Pulse) -->
+<button class="glass-panel p-3 text-left flex items-center justify-between active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 flex items-center justify-center gold-border bg-white/5">
+<span class="material-symbols-outlined text-primary text-lg">alternate_email</span>
+</div>
+<div>
+<h4 class="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant">Brevo Engine</h4>
+<p class="text-xs font-medium text-primary uppercase">Operational</p>
+</div>
+</div>
+<div class="flex gap-0.5 h-3 items-end">
+<div class="w-[2px] h-[80%] bg-primary/60"></div>
+<div class="w-[2px] h-[100%] bg-primary/60"></div>
+<div class="w-[2px] h-[70%] bg-primary/60"></div>
+<div class="w-[2px] h-[90%] bg-primary/60"></div>
+<div class="w-[2px] h-[40%] bg-white/10"></div>
+<div class="w-[2px] h-[85%] bg-primary/60"></div>
+</div>
+</button>
+<!-- Row 4: Recent Activity Log (Condensed) -->
+<div class="flex flex-col gap-2 overflow-hidden">
+<div class="flex justify-between items-center">
+<h3 class="text-[9px] uppercase tracking-[0.2em] text-primary/80 italic font-medium">Recent Activity</h3>
+<span class="text-[7px] uppercase text-on-surface-variant/50">View all</span>
+</div>
+<div class="flex flex-col gap-1.5 flex-1 overflow-hidden">
+<button class="glass-panel p-2 flex items-center justify-between text-[10px] active:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<span class="font-mono text-[8px] text-on-surface-variant">2m</span>
+<span class="tracking-tight font-light">TXN_9824_KLT</span>
+</div>
+<span class="text-primary font-medium">€240.00</span>
+</button>
+<button class="glass-panel p-2 flex items-center justify-between text-[10px] active:bg-white/5 transition-colors opacity-80">
+<div class="flex items-center gap-3">
+<span class="font-mono text-[8px] text-on-surface-variant">1h</span>
+<span class="tracking-tight font-light">TXN_9821_KLT</span>
+</div>
+<span class="text-on-surface/80">€12.50</span>
+</button>
+<button class="glass-panel p-2 flex items-center justify-between text-[10px] active:bg-white/5 transition-colors opacity-60">
+<div class="flex items-center gap-3">
+<span class="font-mono text-[8px] text-on-surface-variant">3h</span>
+<span class="tracking-tight font-light">OAUTH_GATEWAY_UP</span>
+</div>
+<span class="material-symbols-outlined text-[10px] text-green-400">check_circle</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<footer class="glass-panel border-t-0 bg-surface/90 border-t gold-border flex justify-around items-center pt-2 pb-6 px-4">
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-40" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[7px] tracking-[0.2em] uppercase mt-1">Feed</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-40" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[7px] tracking-[0.2em] uppercase mt-1">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="text-[7px] tracking-[0.2em] uppercase mt-1 font-bold">Brain</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-40" href="#">
+<span class="material-symbols-outlined">lock</span>
+<span class="text-[7px] tracking-[0.2em] uppercase mt-1">Vault</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-40" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[7px] tracking-[0.2em] uppercase mt-1">Profile</span>
+</a>
+</footer>
+</body></html>

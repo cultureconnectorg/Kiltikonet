@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,700;1,400;1,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#131314",
+                    "secondary": "#d0c6ad",
+                    "on-tertiary-fixed": "#1a1834",
+                    "inverse-surface": "#e5e2e3",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "surface-dim": "#131314",
+                    "on-primary-container": "#695c31",
+                    "primary-fixed": "#f5e1ab",
+                    "on-secondary-fixed": "#201b0b",
+                    "surface-container": "#201f20",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-primary-fixed-variant": "#52461d",
+                    "inverse-primary": "#6b5d33",
+                    "error-container": "#93000a",
+                    "on-tertiary": "#2f2d4a",
+                    "inverse-on-surface": "#313031",
+                    "background": "#131314",
+                    "surface-container-low": "#1c1b1c",
+                    "surface-container-lowest": "#0e0e0f",
+                    "secondary-container": "#4d4633",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "error": "#ffb4ab",
+                    "surface-variant": "#353436",
+                    "outline": "#979083",
+                    "tertiary-container": "#d6d2f7",
+                    "outline-variant": "#4b463b",
+                    "on-primary-fixed": "#231b00",
+                    "on-surface-variant": "#cdc6b7",
+                    "surface-container-high": "#2a2a2b",
+                    "on-background": "#e5e2e3",
+                    "surface-bright": "#3a393a",
+                    "surface-tint": "#d8c591",
+                    "on-secondary": "#36301e",
+                    "secondary-fixed": "#ede2c8",
+                    "on-primary": "#3a2f09",
+                    "on-secondary-container": "#beb49c",
+                    "on-tertiary-container": "#5b5978",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e5e2e3",
+                    "primary-fixed-dim": "#d8c591",
+                    "surface-container-highest": "#353436",
+                    "primary-container": "#e8d5a0",
+                    "primary": "#fff2d2",
+                    "on-error": "#690005",
+                    "tertiary": "#f4f0ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131314;
+            color: #e5e2e3;
+            font-family: 'Manrope', sans-serif;
+            overflow: hidden; /* No scroll mandate */
+        }
+        .core-sphere-glow {
+            background: radial-gradient(circle, rgba(232, 213, 160, 0.15) 0%, rgba(19, 19, 20, 0) 70%);
+        }
+        .glass-card {
+            background: rgba(53, 52, 54, 0.4);
+            backdrop-filter: blur(12px);
+        }
+        .editorial-shadow {
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen w-full">
+<!-- TopAppBar Fragment -->
+<header class="fixed top-0 w-full z-50 bg-[#0a0a0b]/80 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#E8D5A0]">menu</span>
+<h1 class="text-[#E8D5A0] font-['Newsreader'] italic tracking-tighter text-2xl">Kiltikonet</h1>
+</div>
+<!-- KT Balance Pill -->
+<div class="glass-card px-3 py-1 rounded-full border border-outline-variant/20 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-[#E8D5A0]" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span class="text-[10px] font-bold tracking-widest text-[#e5e2e3]">1,240 KT</span>
+</div>
+<span class="material-symbols-outlined text-[#E8D5A0]">chat_bubble</span>
+</header>
+<!-- Main Content: Sovereign Core Shop -->
+<main class="flex-1 flex flex-col pt-20 pb-24 px-6 overflow-hidden">
+<!-- Core Sphere Section -->
+<section class="relative flex flex-col items-center justify-center py-4">
+<div class="core-sphere-glow absolute inset-0 w-full h-full pointer-events-none"></div>
+<div class="relative w-32 h-32 rounded-full flex items-center justify-center overflow-hidden">
+<!-- Sphere Image -->
+<div class="absolute inset-0 bg-gradient-to-tr from-[#131314] via-primary-container/20 to-primary/10 rounded-full animate-pulse"></div>
+<img class="w-24 h-24 object-cover rounded-full mix-blend-screen opacity-90" data-alt="a majestic obsidian sphere with golden liquid light pulsing inside, floating in a dark ethereal void with cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiOZNH-svxcwaJwkKKLRmoRRCWzEoOBotFH2NCv6_GdFB81NQGOJ8mPq2N1WlW3LnDSnZAHU60Zk-_C82gFEWEAP48V_Cyvc3t3eNUBmPFQii2XHFVpMm3X1WXvKw13uZpgzmqewg65LKcq7zn5N1cg0oJ3vHYOwEMOpV7ADqq7VH9iR0WkYwXnCBaVZSbraheB94lX4jjiSQ_ErNGZcIG-mQ2EUmF3gj403V-loZB9vhcpcfX8JmBXRTwK7STrwtJKlbZ-mN28DE"/>
+</div>
+<div class="mt-4 text-center">
+<h2 class="font-headline italic text-2xl tracking-tighter on-surface editorial-shadow">Sovereign Boutique</h2>
+<p class="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60">Curated Cultural Artefacts</p>
+</div>
+</section>
+<!-- Compact Bento Grid (Optimized for Mobile, No Scroll) -->
+<section class="flex-1 grid grid-cols-2 grid-rows-3 gap-3 mt-4">
+<!-- Private AI (Identity Mask) -->
+<div class="col-span-2 row-span-1 glass-card rounded-lg relative overflow-hidden flex items-center p-4">
+<div class="flex-1 z-10">
+<span class="text-[10px] font-bold text-primary-fixed-dim tracking-[0.15em] uppercase">Identity Mask</span>
+<h3 class="font-headline text-xl leading-tight text-on-surface">IA Privée Sovereign</h3>
+<p class="text-[11px] text-on-surface-variant/80 mt-1 max-w-[180px]">Algorithme de protection de conscience autonome.</p>
+</div>
+<div class="w-20 h-20 relative z-10 flex items-center justify-center">
+<img class="w-full h-full object-contain drop-shadow-2xl" data-alt="minimalist chrome mask with intricate golden circuitry patterns, professional product photography on black background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD50rO93r0k8ZCM2KTeEQVZizFh5RVyf9BGH3oSu12VpyjWnr_GW1FC33_KyBB6tC1kKehvQyCo_tTqpMVik-nxy6J-h-aMpb4rMhzu_svEkxOHa31nO3-cNJPgKK0OPbKdcRXLp3iQCfWRe1tNCNxamIWqyaulvHF8BQjVtaah-PLLXPZCydnqZ55p4EMyL-jHIx995IUlXoQFwUIX7KG0PhqtbFf66pCTh7GVnz8MTW55tHOEjVm_IUnxumMnhopk5nD7PlYKtkY"/>
+</div>
+<div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"></div>
+</div>
+<!-- KT Pack A -->
+<div class="col-span-1 row-span-1 glass-card rounded-lg p-4 flex flex-col justify-between border-l border-primary-container/10">
+<div>
+<span class="text-[9px] font-bold text-primary tracking-widest uppercase">Essence Pack</span>
+<h4 class="font-headline text-lg mt-1">500 KT</h4>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-[10px] text-on-surface-variant">€25.00</span>
+<button class="bg-primary-container text-on-primary p-1.5 rounded-sm flex items-center justify-center scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- KT Pack B -->
+<div class="col-span-1 row-span-1 glass-card rounded-lg p-4 flex flex-col justify-between border-r border-primary-container/10">
+<div>
+<span class="text-[9px] font-bold text-primary tracking-widest uppercase">Nexus Pack</span>
+<h4 class="font-headline text-lg mt-1">2,500 KT</h4>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-[10px] text-on-surface-variant">€99.00</span>
+<button class="bg-primary-container text-on-primary p-1.5 rounded-sm flex items-center justify-center scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Feature Artifact -->
+<div class="col-span-2 row-span-1 bg-surface-container rounded-lg p-4 flex gap-4 items-center relative group">
+<img class="w-16 h-16 object-cover rounded shadow-2xl" data-alt="ancient obsidian tablet with glowing gold engravings, cinematic lighting, ultra-detailed textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOz_5j_HR_ziRmNjKLZb8n_dONdH1oEOcsLLDPFma9gU8WM5DZ6URDqAPFB6UNlG3PF9O112C4_ya60dp6QondExiHvTdiRs5Y0zlcWTuc4GoAZPXQo5bs867PwHQknRMXXV_3HWiAKq7hpF6nB42VjvKYZEIqZAXo11yntq_FzpG2q150Xp7wXRWE-XhXaKSNpE_nFcfpLkVp6LhY6XICy5FupZtCc05imuf8y0NamY6AATvbrgLzMLlaOIRWr1reFPm1oI38f0M"/>
+<div class="flex-1">
+<h3 class="font-headline text-lg leading-none">Artefacts Culturels</h3>
+<p class="text-[11px] text-on-surface-variant mt-2">Accédez aux archives rares de la Core Sphere.</p>
+</div>
+<span class="material-symbols-outlined text-primary/40">arrow_forward_ios</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Fragment -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 bg-[#131314]/90 backdrop-blur-2xl z-50 rounded-t-[4px] shadow-[0_-10px_40px_rgba(0,0,0,0.6)]">
+<!-- Explore -->
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Explore</span>
+</div>
+<!-- Network -->
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Network</span>
+</div>
+<!-- BRAIN -->
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">BRAIN</span>
+</div>
+<!-- Shop (ACTIVE) -->
+<div class="flex flex-col items-center justify-center text-[#E8D5A0] scale-110 drop-shadow-[0_0_8px_rgba(232,213,160,0.4)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_mall</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Shop</span>
+</div>
+<!-- Profile -->
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-all duration-300">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Profile</span>
+</div>
+</nav>
+<!-- Asymmetrical Decorative Element -->
+<div class="fixed top-1/2 -right-12 w-24 h-64 bg-primary/5 blur-[100px] pointer-events-none"></div>
+<div class="fixed bottom-1/4 -left-12 w-32 h-32 bg-secondary/5 blur-[80px] pointer-events-none"></div>
+</body></html>

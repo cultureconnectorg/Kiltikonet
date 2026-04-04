@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#3d2f00",
+                        "on-primary-fixed": "#241a00",
+                        "inverse-on-surface": "#303030",
+                        "outline": "#98907e",
+                        "on-tertiary-container": "#4e3d06",
+                        "on-primary-fixed-variant": "#584400",
+                        "primary": "#e5c363",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "surface-variant": "#353535",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#56450e",
+                        "on-surface": "#e2e2e2",
+                        "primary-fixed": "#ffe08c",
+                        "secondary-container": "#474746",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "surface-container": "#1f1f1f",
+                        "primary-container": "#c8a84b",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#c1a969",
+                        "on-primary": "#3d2f00",
+                        "outline-variant": "#4d4637",
+                        "on-secondary": "#313030",
+                        "primary-fixed-dim": "#e5c363",
+                        "on-primary-container": "#4f3d00",
+                        "tertiary": "#dec482",
+                        "surface-container-low": "#1b1b1b",
+                        "surface-container-high": "#2a2a2a",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e2e2e2",
+                        "on-surface-variant": "#d0c5b2",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-secondary-container": "#b7b5b4",
+                        "surface-container-highest": "#353535",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-tint": "#e5c363",
+                        "secondary-fixed": "#e5e2e1",
+                        "secondary": "#c8c6c5",
+                        "on-background": "#e2e2e2",
+                        "inverse-primary": "#745b00",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#393939",
+                        "background": "#131313",
+                        "surface-dim": "#131313",
+                        "tertiary-fixed-dim": "#dec482",
+                        "surface": "#131313",
+                        "tertiary-fixed": "#fbe09b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131313;
+            color: #e2e2e2;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .sovereign-glass {
+            background: rgba(27, 27, 27, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .chart-gradient {
+            background: linear-gradient(to bottom, rgba(200, 168, 75, 0.15), transparent);
+        }
+        .cta-gradient {
+            background: linear-gradient(135deg, #e5c363 0%, #c8a84b 100%);
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-3xl flex justify-between items-center px-6 py-3 w-full max-w-none bg-gradient-to-b from-[#353535]/20 to-transparent">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#C8A84B] active:scale-95 transition-transform" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<h1 class="font-['Manrope'] tracking-widest uppercase font-black text-xl text-[#C8A84B]">SOVEREIGN</h1>
+<div class="w-7 h-7 rounded-full overflow-hidden border border-[#C8A84B]/20 active:scale-95 transition-transform">
+<img alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuTq9_s26hP_iNeebxLpbLRQGXd8q61j2kNLiS6hb1ZyJBd_nKW1M_0lEz9Cw1iorxgPxD5vLJ7OJ2RBEz_pPYqGfoVqf2E7zXdyOMDyWcFyab9VQNzw1RwSd1q2JokzY3INIXdkhzsH3tKayao96Ple9YWmEmEQchqGIIR-VLGzbbt1iyGQn7LUuRuPeMHs6toYwhAJi1AQKkC8REABHGc0MhFaT4L2TcAq37c6rnhjshnTYccrMFCI92tYIzT-NBOucRVZ5chzM"/>
+</div>
+</header>
+<main class="flex-1 flex flex-col pt-14 pb-16 px-4 gap-3 overflow-hidden">
+<!-- Price Chart Section (More compact) -->
+<section class="flex flex-col gap-1">
+<div class="flex justify-between items-end">
+<div>
+<p class="text-on-surface-variant font-label text-[10px] uppercase tracking-widest">Kilti Token (KT)</p>
+<h2 class="text-2xl font-headline font-bold text-on-surface flex items-baseline gap-2">
+                        2.484 <span class="text-xs font-normal text-primary">SC</span>
+</h2>
+</div>
+<div class="text-right">
+<span class="text-emerald-400 font-label text-xs font-bold">+12.4%</span>
+<p class="text-on-surface-variant/40 text-[9px] uppercase">Last 24h</p>
+</div>
+</div>
+<div class="w-full h-16 relative mt-1 overflow-hidden rounded-lg bg-surface-container-low/40">
+<svg class="w-full h-full preserve-3d" preserveaspectratio="none" viewbox="0 0 400 100">
+<path d="M0,80 Q50,70 100,75 T200,40 T300,50 T400,20" fill="none" stroke="#C8A84B" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path d="M0,80 Q50,70 100,75 T200,40 T300,50 T400,20 L400,100 L0,100 Z" fill="url(#chart-fill)" opacity="0.15"></path>
+<defs>
+<lineargradient id="chart-fill" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#C8A84B"></stop>
+<stop offset="100%" stop-color="transparent"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</section>
+<!-- Swap Interface (Condensed) -->
+<section class="flex flex-col gap-2">
+<div class="relative space-y-1">
+<!-- From Field -->
+<div class="bg-surface-container-high rounded-xl p-3.5 border-b border-outline-variant/15">
+<div class="flex justify-between items-center mb-1">
+<label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Exchange</label>
+<span class="text-[9px] text-on-surface-variant/60">Bal: 1,240.00</span>
+</div>
+<div class="flex justify-between items-center">
+<input class="bg-transparent border-none text-xl font-headline font-bold text-on-surface focus:ring-0 p-0 w-1/2" placeholder="0.00" type="number" value="450.00"/>
+<button class="flex items-center gap-2 bg-surface-container-highest px-2 py-1 rounded-full border border-outline-variant/20">
+<span class="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-primary" data-icon="token">token</span>
+</span>
+<span class="font-headline font-bold text-xs uppercase">KT</span>
+<span class="material-symbols-outlined text-[10px] text-on-surface-variant" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+<!-- Swap Icon Divider (Smaller & integrated) -->
+<div class="flex justify-center -my-2.5 z-10 relative">
+<div class="bg-[#1b1b1b] w-8 h-8 rounded-full flex items-center justify-center border border-outline-variant/30 shadow-md active:rotate-180 transition-transform duration-500">
+<span class="material-symbols-outlined text-primary text-base" data-icon="swap_vert">swap_vert</span>
+</div>
+</div>
+<!-- To Field -->
+<div class="bg-surface-container-high rounded-xl p-3.5 border-b border-outline-variant/15">
+<div class="flex justify-between items-center mb-1">
+<label class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Receive</label>
+<span class="text-[9px] text-on-surface-variant/60">Bal: 14.50</span>
+</div>
+<div class="flex justify-between items-center">
+<input class="bg-transparent border-none text-xl font-headline font-bold text-on-surface focus:ring-0 p-0 w-1/2" placeholder="0.00" readonly="" type="number" value="1117.80"/>
+<button class="flex items-center gap-2 bg-surface-container-highest px-2 py-1 rounded-full border border-outline-variant/20">
+<span class="w-4 h-4 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-primary" data-icon="currency_exchange">currency_exchange</span>
+</span>
+<span class="font-headline font-bold text-xs uppercase">SC</span>
+<span class="material-symbols-outlined text-[10px] text-on-surface-variant" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Transaction Details (Denser) -->
+<div class="px-1 space-y-1">
+<div class="flex justify-between text-[10px] uppercase tracking-wider text-on-surface-variant/60">
+<span>Network Fee</span>
+<span class="text-on-surface">~0.002 KT ($0.04)</span>
+</div>
+<div class="flex justify-between text-[10px] uppercase tracking-wider text-on-surface-variant/60">
+<span>Slippage / Min Received</span>
+<span class="text-on-surface"><span class="text-primary font-bold">0.5%</span> / 1,112.21 SC</span>
+</div>
+</div>
+</section>
+<!-- Action Buttons (Single line compact) -->
+<div class="mt-auto grid grid-cols-2 gap-2 pb-2">
+<button class="bg-surface-container-highest text-on-surface font-headline font-bold uppercase tracking-widest text-[10px] py-3.5 rounded-lg active:scale-95 transition-transform border border-outline-variant/10">
+                Liquidity
+            </button>
+<button class="cta-gradient text-on-primary font-headline font-extrabold uppercase tracking-widest text-[10px] py-3.5 rounded-lg shadow-lg active:scale-95 transition-transform">
+                Confirm Swap
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pt-2 pb-4 px-4 bg-[#1b1b1b]/80 backdrop-blur-3xl text-[#C8A84B] font-['Manrope'] text-[9px] uppercase tracking-[0.1em] font-bold z-50 border-t border-[#353535]/15">
+<div class="flex flex-col items-center justify-center text-[#e2e2e2]/40">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="lock_open">lock_open</span>
+<span>Vault</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#C8A84B]">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="swap_horiz">swap_horiz</span>
+<span>Exch.</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e2e2e2]/40">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="auto_awesome">auto_awesome</span>
+<span>Culture</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e2e2e2]/40">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="gavel">gavel</span>
+<span>Gov.</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e2e2e2]/40">
+<span class="material-symbols-outlined text-xl mb-0.5" data-icon="account_balance">account_balance</span>
+<span>Stake</span>
+</div>
+</nav>
+</body></html>

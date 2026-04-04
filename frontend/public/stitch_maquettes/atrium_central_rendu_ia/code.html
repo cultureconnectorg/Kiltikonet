@@ -1,0 +1,180 @@
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-bright": "#393939",
+            "secondary-container": "#474746",
+            "secondary-fixed": "#e5e2e1",
+            "on-tertiary-container": "#4e3d06",
+            "tertiary-fixed": "#fbe09b",
+            "surface-variant": "#353535",
+            "surface-container-highest": "#353535",
+            "on-secondary-container": "#b7b5b4",
+            "on-error": "#690005",
+            "inverse-on-surface": "#303030",
+            "surface-container-high": "#2a2a2a",
+            "on-primary": "#3d2f00",
+            "on-error-container": "#ffdad6",
+            "on-surface-variant": "#d0c5b2",
+            "surface": "#131313",
+            "on-primary-fixed": "#241a00",
+            "on-secondary-fixed-variant": "#474746",
+            "on-tertiary-fixed-variant": "#56450e",
+            "primary-fixed": "#ffe08c",
+            "outline": "#98907e",
+            "secondary": "#c8c6c5",
+            "inverse-primary": "#745b00",
+            "on-secondary-fixed": "#1c1b1b",
+            "inverse-surface": "#e2e2e2",
+            "on-surface": "#e2e2e2",
+            "error": "#ffb4ab",
+            "tertiary-fixed-dim": "#dec482",
+            "on-tertiary": "#3d2f00",
+            "primary-fixed-dim": "#e5c363",
+            "on-tertiary-fixed": "#241a00",
+            "secondary-fixed-dim": "#c8c6c5",
+            "on-background": "#e2e2e2",
+            "tertiary-container": "#c1a969",
+            "surface-container-low": "#1b1b1b",
+            "on-primary-fixed-variant": "#584400",
+            "on-secondary": "#313030",
+            "primary-container": "#c8a84b",
+            "tertiary": "#dec482",
+            "surface-tint": "#e5c363",
+            "surface-dim": "#131313",
+            "error-container": "#93000a",
+            "on-primary-container": "#4f3d00",
+            "primary": "#e5c363",
+            "surface-container": "#1f1f1f",
+            "surface-container-lowest": "#0e0e0e",
+            "background": "#131313",
+            "outline-variant": "#4d4637"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "headline": ["Manrope"],
+            "body": ["Plus Jakarta Sans"],
+            "label": ["Plus Jakarta Sans"],
+            "display": ["Newsreader"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .onyx-gradient {
+      background: linear-gradient(135deg, rgba(19, 19, 19, 0.8) 0%, rgba(27, 27, 27, 0.4) 100%);
+    }
+    .glass-border {
+      border: 1px solid rgba(200, 168, 75, 0.15);
+    }
+    .text-glow {
+      text-shadow: 0 0 20px rgba(229, 195, 99, 0.3);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body overflow-hidden">
+<!-- TopAppBar Section -->
+<header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl shadow-[0_32px_64px_-12px_rgba(20,20,20,0.8)]">
+<div class="flex justify-between items-center px-8 py-4 w-full max-w-none">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#C8A84B] active:scale-95 duration-200 cursor-pointer">menu</span>
+<h1 class="font-['Manrope'] tracking-tighter uppercase font-bold text-xl tracking-[0.2em] text-[#C8A84B]">KILTIKONET</h1>
+</div>
+<div class="hidden md:flex items-center gap-10">
+<a class="font-['Manrope'] tracking-tighter uppercase font-bold text-[#e5c363] scale-105 transition-all duration-300" href="#">Atrium</a>
+<a class="font-['Manrope'] tracking-tighter uppercase font-bold text-[#e2e2e2]/70 hover:text-[#C8A84B] transition-all duration-300" href="#">Archive</a>
+<a class="font-['Manrope'] tracking-tighter uppercase font-bold text-[#e2e2e2]/70 hover:text-[#C8A84B] transition-all duration-300" href="#">Identity</a>
+</div>
+<div class="w-10 h-10 rounded-full border border-[#C8A84B]/30 overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="Close-up portrait of a sophisticated person with neutral expression, high-end studio lighting, minimalist dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf4N5f2FoN9HE6-1-3YIe4ZJzFLi5fVtHXJcBBPNyBhmB5W3izQoSm4WyDxan10btDsZ_RFO-PAaIoaFjeNk7qOtQjngjCzi1qdKMynUaeQUPNa0z7UFgL__PROalYPDq_Vt-fpexYm7M43Kdi_VANmdiUyVCwZrcqT2mUQQzBlsVRN0vxMOFPXHqRiSutBp9Nx_c2OZcIRtgIdgTJ7HybOfHgaxR2FDOPyvy2SPBkV3gLDh5uCtkFSdlU1LACuZZh-2J4Cwk-yTc"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas: Central Atrium -->
+<main class="relative h-screen w-full flex items-center justify-center">
+<!-- Background Image - Neo-Brutalist Onyx Architecture -->
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40 z-10"></div>
+<img alt="Neo-Brutalist Architecture" class="w-full h-full object-cover" data-alt="Cinematic 3D render of neo-brutalist interior with massive black onyx pillars, polished gold accents, soaring ceilings, dramatic lighting and deep shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsOOSHUIP_IxpoTdxah5pPMJqNlhkFIJmwg3lXlLmXTjdGtmaJmlHlB7r-be5XKefiGr1HIIlIxepVdO6KTHSDxvnihugQ_2vu8uklRMMBMYvPPGvihvx4VRNynrb0PqXNXeB_M85csgT319wsJHdbty9yeuZMa0RFEzRZchuusnVa_hcQsucNlDVrujT_MTbbbsRGF9hVDmdS7jiyZEX79kjUzI4wBzQlZIQX0Xp-9vIjFf8eMknhsl18iuJcMr0NckPvPm7YzqI"/>
+</div>
+<!-- Floating Interface Content -->
+<div class="relative z-20 flex flex-col items-center gap-12 w-full px-6">
+<!-- Title Section -->
+<div class="text-center space-y-2">
+<p class="font-label text-primary tracking-[0.4em] text-[10px] uppercase opacity-80 mb-4">Central Neural Node</p>
+<h2 class="font-display italic text-6xl md:text-8xl text-on-surface font-light tracking-tight text-glow">Atrium_Alpha_01.png</h2>
+</div>
+<!-- Action Cluster (Glassmorphism) -->
+<div class="flex flex-wrap justify-center items-center gap-4 p-2 bg-[#1b1b1b]/30 backdrop-blur-2xl rounded-xl glass-border">
+<button class="group relative flex items-center gap-3 px-8 py-4 bg-gradient-to-tr from-[#e5c363] to-[#c8a84b] text-[#131313] font-label font-bold text-xs uppercase tracking-widest rounded-lg transition-all duration-300 hover:shadow-[0_0_30px_rgba(200,168,75,0.4)] active:scale-95">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">encrypted</span>
+          Sauvegarder dans le Vault
+        </button>
+<button class="flex items-center gap-3 px-8 py-4 bg-[#353535]/40 backdrop-blur-md text-on-surface font-label font-medium text-xs uppercase tracking-widest rounded-lg border border-outline-variant/20 hover:bg-[#353535]/60 hover:border-primary/40 transition-all duration-300">
+<span class="material-symbols-outlined text-[18px]">share</span>
+          Partager
+        </button>
+<button class="flex items-center gap-3 px-8 py-4 bg-[#353535]/40 backdrop-blur-md text-on-surface font-label font-medium text-xs uppercase tracking-widest rounded-lg border border-outline-variant/20 hover:bg-[#353535]/60 hover:border-primary/40 transition-all duration-300">
+<span class="material-symbols-outlined text-[18px]">auto_fix_high</span>
+          Raffiner
+        </button>
+</div>
+<!-- Supplemental Meta -->
+<div class="absolute bottom-32 left-12 hidden lg:block max-w-xs space-y-4 opacity-60">
+<div class="h-px w-12 bg-primary"></div>
+<p class="font-body text-[11px] leading-relaxed tracking-wide text-on-surface-variant">
+          Structural integrity verified. Sovereign Onyx protocols active. The atrium serves as the primary gateway for high-fidelity cultural curation.
+        </p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-8 w-full flex justify-center z-50">
+<div class="bg-[#1b1b1b]/60 backdrop-blur-2xl w-auto min-w-[280px] rounded-full px-6 py-3 border border-[#353535]/15 shadow-2xl shadow-black/50 flex items-center justify-between gap-8">
+<div class="bg-gradient-to-tr from-[#e5c363] to-[#c8a84b] text-[#131313] rounded-full p-3 shadow-[0_0_15px_rgba(200,168,75,0.4)] transition-all tap-highlight-none active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</div>
+<div class="text-[#e2e2e2]/50 p-3 hover:text-[#e2e2e2] hover:bg-[#353535]/40 transition-all tap-highlight-none active:scale-90 cursor-pointer rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</div>
+<div class="text-[#e2e2e2]/50 p-3 hover:text-[#e2e2e2] hover:bg-[#353535]/40 transition-all tap-highlight-none active:scale-90 cursor-pointer rounded-full">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+</div>
+<div class="text-[#e2e2e2]/50 p-3 hover:text-[#e2e2e2] hover:bg-[#353535]/40 transition-all tap-highlight-none active:scale-90 cursor-pointer rounded-full">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</nav>
+<!-- Background Decorative Grain -->
+<div class="fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay">
+<svg viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<filter id="noiseFilter">
+<feturbulence basefrequency="0.65" numoctaves="3" stitchtiles="stitch" type="fractalNoise"></feturbulence>
+</filter>
+<rect filter="url(#noiseFilter)" height="100%" width="100%"></rect>
+</svg>
+</div>
+</body></html>

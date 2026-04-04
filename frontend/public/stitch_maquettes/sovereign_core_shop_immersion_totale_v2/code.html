@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,600;0,700;1,400&amp;family=Manrope:wght@300;400;500;600&amp;family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&amp;family=DM+Sans:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-high": "#2a2a2b",
+                        "primary-fixed-dim": "#d8c591",
+                        "surface-container-low": "#1c1b1c",
+                        "surface-container-highest": "#353436",
+                        "outline-variant": "#4b463b",
+                        "inverse-primary": "#6b5d33",
+                        "error": "#ffb4ab",
+                        "on-surface": "#e5e2e3",
+                        "outline": "#979083",
+                        "on-secondary-container": "#beb49c",
+                        "inverse-surface": "#e5e2e3",
+                        "on-secondary-fixed": "#201b0b",
+                        "on-primary-fixed-variant": "#52461d",
+                        "on-secondary": "#36301e",
+                        "on-background": "#e5e2e3",
+                        "background": "#131314",
+                        "surface-tint": "#d8c591",
+                        "on-tertiary": "#2f2d4a",
+                        "on-surface-variant": "#cdc6b7",
+                        "secondary-fixed-dim": "#d0c6ad",
+                        "on-primary": "#3a2f09",
+                        "on-error": "#690005",
+                        "on-tertiary-container": "#5b5978",
+                        "surface-bright": "#3a393a",
+                        "inverse-on-surface": "#313031",
+                        "surface-container": "#201f20",
+                        "tertiary-container": "#d6d2f7",
+                        "surface-variant": "#353436",
+                        "on-secondary-fixed-variant": "#4d4633",
+                        "tertiary-fixed": "#e3dfff",
+                        "on-tertiary-fixed": "#1a1834",
+                        "surface": "#131314",
+                        "tertiary": "#f4f0ff",
+                        "secondary": "#d0c6ad",
+                        "on-primary-fixed": "#231b00",
+                        "on-primary-container": "#695c31",
+                        "tertiary-fixed-dim": "#c6c3e7",
+                        "secondary-fixed": "#ede2c8",
+                        "primary-fixed": "#f5e1ab",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#454462",
+                        "surface-dim": "#131314",
+                        "primary-container": "#e8d5a0",
+                        "secondary-container": "#4d4633",
+                        "surface-container-lowest": "#0e0e0f",
+                        "primary": "#fff2d2",
+                        "error-container": "#93000a"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    fontFamily: {
+                        "headline": ["Cormorant Garamond", "serif"],
+                        "body": ["DM Sans", "sans-serif"],
+                        "label": ["DM Sans", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0e0e0f;
+            color: #e5e2e3;
+            overflow-x: hidden;
+        }
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+        }
+        .glass-panel {
+            background: rgba(32, 31, 32, 0.7);
+            backdrop-filter: blur(24px);
+        }
+        .mask-gradient {
+            mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131314]/70 backdrop-blur-3xl flex justify-between items-center px-8 h-20 w-full no-border bg-gradient-to-b from-[#131314] to-transparent">
+<div class="flex items-center gap-4">
+<button class="hover:scale-105 transition-transform duration-300 text-[#E8D5A0]">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="text-xl font-bold tracking-widest text-[#E8D5A0] uppercase font-headline">SOVEREIGN CORE</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8 text-on-surface-variant font-label text-xs uppercase tracking-widest">
+<a class="text-[#E8D5A0] hover:scale-105 transition-transform duration-300" href="#">Galerie</a>
+<a class="hover:scale-105 transition-transform duration-300" href="#">Brain</a>
+<a class="hover:scale-105 transition-transform duration-300" href="#">Vault</a>
+</nav>
+<div class="w-10 h-10 rounded-full border border-outline-variant/30 overflow-hidden hover:scale-105 transition-transform duration-300">
+<img class="w-full h-full object-cover" data-alt="Sophisticated male portrait in shadow with dramatic warm lighting, high-end editorial style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDObc9PJGDoQflm5PtXHSQsqZFkZsFzv4N80yUGe1RON1p1bBAxYLFbW7ytWakGMyNorpGrSNGKiSMSNaNeWYk-vMsO4-SG-Pdt6MK044j7XWgVkibfhNldkDPUsyIYfI1E2Rhl99r0HFVko5B2vso169kGsuYqOWp1Au013ekePmKz8j0cZwM_O7sWJDw-pP0ZBOEOkqWe9m-mXW9hTl-mzOCo7v8NPt9FUmGDDuLdNrV9e3fRrdOp4H2JtAbqi2A3NnCFwdy0S5c"/>
+</div>
+</div>
+</header>
+<main class="pt-32 pb-40 px-6 max-w-7xl mx-auto">
+<!-- Hero Section: The Core Sphere -->
+<section class="relative mb-40 min-h-[618px] flex flex-col items-center justify-center text-center">
+<div class="absolute inset-0 z-0 flex items-center justify-center opacity-40">
+<div class="relative w-[500px] h-[500px]">
+<img class="w-full h-full object-contain animate-pulse" data-alt="A pulsating, glowing geometric core sphere made of golden light and obsidian shards, ethereal dark atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARb2p_nerkbtcwppA3EUBHgtmBUR2EoY_mJpdvt37oaSjq5CP2_jUFXM-Dw68crQU2aFNrNJCl7u-2tMXrzuDUitdW3TgipY5jm4U1WNNqIxpPh6bx5kxzruVVhw1Mm6Y-pDWA3jtBqLqjTGLQYHz_HqKxyhgX8FV79MeGjTxUpgUmgo1AO46pPmqh94yqPXJrAEPsHqiSQmJiNpNqz8LgNR491rYIj8ajWGWGXvLr8jMC5OtJ4edB1ZZFME0Q0NHBHnhzy6RGke0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+</div>
+</div>
+<div class="relative z-10 space-y-6">
+<span class="text-primary-fixed-dim uppercase tracking-[0.4em] text-xs font-medium">L'Origine du Protocole</span>
+<h1 class="text-7xl md:text-9xl font-headline italic font-light tracking-tighter text-on-surface">
+                    Sovereign <br/> <span class="not-italic text-primary-fixed-dim">Core Shop</span>
+</h1>
+<p class="max-w-xl mx-auto text-on-surface-variant font-light text-lg leading-relaxed">
+                    Accédez aux artefacts numériques les plus rares de l'écosystème. 
+                    Chaque actif est une clé vers votre autonomie absolue.
+                </p>
+<div class="pt-8 flex gap-4 justify-center">
+<button class="bg-primary-container text-on-primary px-10 py-4 font-label uppercase tracking-widest text-xs hover:scale-105 transition-transform duration-300 active:scale-95">
+                        Entrer dans l'expérience
+                    </button>
+</div>
+</div>
+</section>
+<!-- Editorial Assets Section -->
+<section class="editorial-grid">
+<!-- Item 1: JCC Tokens -->
+<div class="col-span-12 md:col-span-7 group">
+<div class="relative h-[600px] overflow-hidden">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" data-alt="Highly detailed 3D render of golden digital coins floating in a void of dark liquid, cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANIKqJDdWaXD7Yc6CdO5oJiA9biytzClTuIIWB5_pTkqG8vIBomjdMAsvdSudATMmAw9zFojpPrzUjZOrzDl6l-IJgkXt0FybkzW767Un2JKPjtLdBEkypT2SvXQezJFavHlLwy7ASIlXesl0QjWBhg_uRK6tlhlZdGRM8w5hi4sr6lOBORUF0MkpzDurINbb5BOAXecwDQGE0xfCps6TWzsgbCabGtLpCGcHF2P9sijPRS3iWS-X_MCjb1m5KXVSHm66te8Fby8E"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0e0e0f] via-transparent to-transparent"></div>
+<div class="absolute bottom-12 left-12 right-12">
+<div class="flex justify-between items-end">
+<div>
+<h3 class="text-4xl font-headline italic mb-2">Jetons JCC</h3>
+<p class="text-on-surface-variant text-sm tracking-wide uppercase">Réserve de Valeur Souveraine</p>
+</div>
+<button class="border border-outline-variant/30 px-6 py-3 text-xs uppercase tracking-widest hover:border-primary-fixed-dim transition-colors">
+                                Acquérir l'artefact
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2: Private AI (Asymmetric placement) -->
+<div class="col-span-12 md:col-span-5 md:mt-24">
+<div class="glass-panel p-12 h-full flex flex-col justify-center border-l border-primary-fixed-dim/10">
+<span class="text-primary-fixed-dim text-[10px] uppercase tracking-widest mb-6 block">Technologie Curator</span>
+<h3 class="text-5xl font-headline mb-6 leading-tight">Intelligence <br/> Privée Onyx</h3>
+<p class="text-on-surface-variant mb-10 font-light leading-relaxed">
+                        Un modèle de langage localisé, déconnecté des réseaux publics, 
+                        agissant comme le conservateur unique de votre patrimoine intellectuel.
+                    </p>
+<div class="flex items-center gap-4">
+<span class="text-2xl font-headline text-primary-fixed-dim">2.4 ETH</span>
+<div class="h-[1px] flex-grow bg-outline-variant/20"></div>
+<button class="text-primary-fixed-dim material-symbols-outlined hover:scale-110 transition-transform">arrow_forward</button>
+</div>
+</div>
+</div>
+<!-- Item 3: Identity Mask -->
+<div class="col-span-12 md:col-span-5 md:mt-[-80px]">
+<div class="relative aspect-square group overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110" data-alt="Abstract translucent glass mask reflecting golden light patterns, dark obsidian background, mysterious mood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkOoBfhQn2CmfFOwS2D1u--Uz_tgamEfpiauJdFemRk25cSe8bPJ83OAqAAQZTG8h3fKqrCkUyO-Qse6HJtKIEiT3J7lhSip6CwcTwk5oNkjZy-DkWcYW-RCgXakdrnRtCgf2cphkc3a8EFm8vekrFGm3Y6AZ5i6cjkFeNGZvdiH56aWeQYmJTbPm3hT0N_kxHyQ15nDAfTMrkHiwRFiBCI7dEQ-vY81vUJIvQwcdbnl5lS53C7Ey_gi4XN22Zy3PX2ZbhZsTDsaM"/>
+<div class="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors duration-500"></div>
+<div class="absolute inset-0 p-12 flex flex-col justify-end">
+<h3 class="text-4xl font-headline italic mb-4">Identity Mask</h3>
+<p class="text-xs uppercase tracking-widest mb-6 opacity-70">Protocole de Dissimulation Cryptographique</p>
+<button class="w-fit bg-on-surface text-background px-8 py-3 text-[10px] uppercase tracking-[0.2em] font-bold">
+                            Réserver l'ID
+                        </button>
+</div>
+</div>
+</div>
+<!-- Decorative Quote / Brand Moment -->
+<div class="col-span-12 md:col-span-6 md:col-start-7 py-24 flex items-center">
+<div class="max-w-md">
+<span class="material-symbols-outlined text-primary-fixed-dim mb-6" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<p class="text-3xl font-headline italic text-on-surface leading-snug">
+                        "La rareté n'est pas un manque, c'est une intention. Nous ne créons pas des produits, nous forgeons des héritages."
+                    </p>
+<div class="mt-8 flex items-center gap-4">
+<div class="w-12 h-[1px] bg-primary-fixed-dim"></div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">The Sovereign Manifesto</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats / Details Bento -->
+<section class="mt-32 grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="md:col-span-2 bg-surface-container-low p-8 border-l border-primary-fixed-dim/20">
+<div class="flex justify-between items-start mb-12">
+<span class="material-symbols-outlined text-primary-fixed-dim">verified_user</span>
+<span class="text-[10px] uppercase tracking-widest text-outline-variant">Status: Actif</span>
+</div>
+<h4 class="text-2xl font-headline mb-2 uppercase tracking-tighter">Sécurité Tier-Onyx</h4>
+<p class="text-on-surface-variant text-sm font-light">Validation biométrique multi-couches pour chaque transfert d'artefact.</p>
+</div>
+<div class="bg-surface-container-low p-8 flex flex-col justify-end">
+<span class="text-4xl font-headline text-primary-fixed-dim mb-2">12</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Artefacts Disponibles</span>
+</div>
+<div class="bg-primary-container p-8 flex flex-col justify-end text-on-primary group cursor-pointer overflow-hidden relative">
+<div class="absolute -top-4 -right-4 w-24 h-24 border border-on-primary/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+<span class="text-4xl font-headline mb-2">Join</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">The Sovereign Circle</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 pb-safe bg-[#131314]/80 backdrop-blur-2xl shadow-[0_-20px_40px_rgba(0,0,0,0.4)] no-border bg-gradient-to-t from-[#0e0e0f] to-transparent">
+<div class="flex justify-around items-center h-20 px-12">
+<a class="flex flex-col items-center justify-center text-[#E8D5A0] relative after:content-[''] after:absolute after:-bottom-2 after:w-1 after:h-1 after:bg-[#E8D5A0] after:rounded-full hover:text-[#fff2d2] transition-colors duration-450 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1 hidden md:block">Galerie</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4b463b] hover:text-[#fff2d2] transition-colors duration-450 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">shelves</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1 hidden md:block">Brain</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4b463b] hover:text-[#fff2d2] transition-colors duration-450 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1 hidden md:block">Vault</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4b463b] hover:text-[#fff2d2] transition-colors duration-450 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1 hidden md:block">Identity</span>
+</a>
+</div>
+</nav>
+<!-- Background Elements -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary-fixed-dim/5 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-surface-container-highest/20 blur-[100px] rounded-full"></div>
+</div>
+</body></html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KILTIKONET - Caribbean Digital Heritage</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#474746",
+                    "tertiary": "#dec482",
+                    "error-container": "#93000a",
+                    "primary": "#e5c363",
+                    "tertiary-fixed-dim": "#dec482",
+                    "surface-tint": "#e5c363",
+                    "surface-container-lowest": "#0e0e0e",
+                    "primary-container": "#c8a84b",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "inverse-surface": "#e2e2e2",
+                    "on-error": "#690005",
+                    "on-surface": "#e2e2e2",
+                    "error": "#ffb4ab",
+                    "on-primary": "#3d2f00",
+                    "surface-dim": "#131313",
+                    "inverse-primary": "#745b00",
+                    "on-secondary": "#313030",
+                    "on-tertiary": "#3d2f00",
+                    "tertiary-fixed": "#fbe09b",
+                    "on-background": "#e2e2e2",
+                    "outline-variant": "#4d4637",
+                    "on-tertiary-container": "#4e3d06",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "on-primary-container": "#4f3d00",
+                    "surface-container": "#1f1f1f",
+                    "inverse-on-surface": "#303030",
+                    "tertiary-container": "#c1a969",
+                    "secondary-container": "#474746",
+                    "surface": "#131313",
+                    "surface-container-highest": "#353535",
+                    "surface-bright": "#393939",
+                    "outline": "#98907e",
+                    "on-tertiary-fixed-variant": "#56450e",
+                    "primary-fixed-dim": "#e5c363",
+                    "on-tertiary-fixed": "#241a00",
+                    "surface-container-high": "#2a2a2a",
+                    "surface-container-low": "#1b1b1b",
+                    "on-secondary-container": "#b7b5b4",
+                    "background": "#131313",
+                    "on-primary-fixed-variant": "#584400",
+                    "surface-variant": "#353535",
+                    "secondary": "#c8c6c5",
+                    "on-surface-variant": "#d0c5b2",
+                    "secondary-fixed": "#e5e2e1",
+                    "primary-fixed": "#ffe08c",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed": "#241a00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope", "Newsreader", "serif"],
+                    "body": ["Plus Jakarta Sans", "Cormorant Garamond", "serif"],
+                    "label": ["Plus Jakarta Sans", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .madras-overlay {
+            background-image: repeating-linear-gradient(45deg, rgba(229, 195, 99, 0.05) 0px, rgba(229, 195, 99, 0.05) 1px, transparent 1px, transparent 10px),
+                              repeating-linear-gradient(-45deg, rgba(229, 195, 99, 0.05) 0px, rgba(229, 195, 99, 0.05) 1px, transparent 1px, transparent 10px);
+        }
+        .luxury-text-shadow {
+            text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 w-full bg-[#131313]/60 backdrop-blur-xl shadow-2xl shadow-[#131313]/50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#C8A84B]">menu</span>
+</div>
+<h1 class="text-2xl font-black tracking-tighter text-[#C8A84B] uppercase font-['Manrope']">KILTIKONET</h1>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#e2e2e2]/70 hover:text-[#C8A84B] transition-colors duration-300">chat_bubble_outline</span>
+</div>
+</header>
+<!-- Edge-to-Edge Experience Container -->
+<main class="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+<!-- Video/Visual Background -->
+<div class="absolute inset-0 z-0">
+<img alt="Cinematic close-up of traditional Caribbean pottery being shaped by hands with warm golden lighting" class="w-full h-full object-cover" data-alt="Cinematic close-up of traditional Caribbean pottery being shaped by artisan hands, warm golden lighting, dramatic shadows, clay textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG0DSvNaSCd33f4aAHUImWoyVYe6QX8PNJI_8gXh5KiQ8sPrPIbHU8BRbzGX3uMjafuN8dT-0iOeOEO3cUz18KBT8fyN8hEhP8Sy9FUH5ItYkEdMCTpu-WGi3ZNpGfAhBzua4cBAYpU2VeCgWLlHl4slxjZYJtD7a6ZC8KHQ08pPsEBIuxgbDREmCIUTJfFV1jveu1vRQjZn5LPGjH3OaaC96I07Ws4T163ChHqSqmr_Ce6upEzNB7_dtggxHjycwJLQreAzaPLDk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-transparent to-[#131313]/40"></div>
+<div class="absolute inset-0 madras-overlay pointer-events-none"></div>
+</div>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed right-6 top-1/2 -translate-y-1/2 z-40 w-14 h-14 bg-gradient-to-br from-primary to-primary-container rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(200,168,75,0.4)] text-on-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined font-bold text-3xl">add</span>
+</button>
+<!-- Content Overlay -->
+<div class="relative z-10 w-full max-w-4xl px-8 flex flex-col items-start gap-12 mt-20">
+<!-- Hero Title & Identity -->
+<div class="space-y-4">
+<p class="font-label text-primary uppercase tracking-[0.3em] text-xs font-bold luxury-text-shadow">Patrimoine Vivant</p>
+<h2 class="font-headline text-6xl md:text-8xl font-extrabold leading-none tracking-tight luxury-text-shadow italic text-on-surface">
+                    L'Âme <br/> <span class="text-primary not-italic">Du Sud.</span>
+</h2>
+<p class="font-body text-xl md:text-2xl text-on-surface/80 max-w-lg leading-relaxed italic">
+                    The fusion of Madras textiles and sacred pottery, reimagined for the sovereign digital age.
+                </p>
+</div>
+<!-- Interaction Modes Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+<!-- ÉCLAIR (Energy) -->
+<div class="group relative p-8 bg-surface-container-lowest/40 backdrop-blur-2xl rounded-xl border border-white/5 flex flex-col gap-6 hover:bg-surface-container-low/60 transition-all duration-500 cursor-pointer">
+<div class="w-12 h-12 flex items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold tracking-wider text-on-surface">ÉCLAIR</h3>
+<p class="font-body text-sm text-on-surface/60 mt-1 uppercase tracking-tighter">Energy flux</p>
+</div>
+</div>
+<!-- RYTHME (Drum) -->
+<div class="group relative p-8 bg-surface-container-lowest/40 backdrop-blur-2xl rounded-xl border border-white/5 flex flex-col gap-6 hover:bg-surface-container-low/60 transition-all duration-500 cursor-pointer">
+<div class="w-12 h-12 flex items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold tracking-wider text-on-surface">RYTHME</h3>
+<p class="font-body text-sm text-on-surface/60 mt-1 uppercase tracking-tighter">Drum vibration</p>
+</div>
+</div>
+<!-- POÉSIE (Plume) -->
+<div class="group relative p-8 bg-surface-container-lowest/40 backdrop-blur-2xl rounded-xl border border-white/5 flex flex-col gap-6 hover:bg-surface-container-low/60 transition-all duration-500 cursor-pointer">
+<div class="w-12 h-12 flex items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold tracking-wider text-on-surface">POÉSIE</h3>
+<p class="font-body text-sm text-on-surface/60 mt-1 uppercase tracking-tighter">Plume of thought</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Decorative Ceramic Texture Corner -->
+<div class="absolute bottom-24 right-0 w-64 h-64 opacity-20 pointer-events-none">
+<img alt="Abstract close-up of terracotta pottery texture" class="w-full h-full object-contain rotate-12" data-alt="Abstract close-up of authentic terracotta pottery texture, deep clay red with hand-crafted imperfections and grains" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBwjlBKPb0YxUO1Rdj3d_p9fJBWFXmx9EVBRDhM1tMNj9Nn-DHhqvdYNLVCLI6tXf_pmWmFjMtfydFwh-kIU6aUHuYhXVrbZsCLBo57WQHfKwsNDf0ZBnWICKpoMZdMdEhLqHp86EoADmxUvsjF9xg_n519l9a9qX57fH_RTpiAyPjW4HdiZC79ns5Eqb5jFlJvSPxwLkk4makcmO7vUcWbM6-3X48ktX8lr1W1VI-fPIl6uYV_rFvTOmEdebg6Thcmkr6AEmzX48"/>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#131313]/60 backdrop-blur-2xl z-50 rounded-t-xl shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+<div class="flex flex-col items-center justify-center bg-gradient-to-b from-[#e5c363] to-[#c8a84b] text-[#131313] rounded-full p-3 shadow-[0_0_15px_rgba(200,168,75,0.4)] scale-110 duration-200 ease-out">
+<span class="material-symbols-outlined">explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e2e2e2]/50 p-3 hover:text-[#C8A84B] transition-all duration-300">
+<span class="material-symbols-outlined">shopping_bag</span>
+</div>
+<!-- Central BRAIN Button -->
+<div class="flex flex-col items-center justify-center -mt-12">
+<div class="w-16 h-16 bg-surface-container-highest rounded-full flex items-center justify-center border-2 border-primary shadow-[0_0_20px_rgba(200,168,75,0.3)] group cursor-pointer transition-transform duration-300 hover:scale-105">
+<span class="material-symbols-outlined text-primary text-3xl font-variation-settings: 'FILL' 1" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-primary mt-2 font-['Plus_Jakarta_Sans'] font-bold">CORE</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e2e2e2]/50 p-3 hover:text-[#C8A84B] transition-all duration-300">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e2e2e2]/50 p-3 hover:text-[#C8A84B] transition-all duration-300">
+<span class="material-symbols-outlined">person</span>
+</div>
+</nav>
+<!-- Vignette Styling -->
+<div class="fixed inset-0 pointer-events-none ring-[120px] ring-inset ring-background/20"></div>
+</body></html>

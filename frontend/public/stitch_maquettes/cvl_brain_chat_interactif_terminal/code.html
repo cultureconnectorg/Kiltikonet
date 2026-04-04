@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;family=DM+Sans:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body {
+      background-color: #131313;
+      color: #e2e2e2;
+    }
+    .glass-panel {
+      background: rgba(31, 31, 31, 0.6);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #353535;
+      border-radius: 10px;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "outline": "#98907e",
+                  "on-secondary-fixed": "#1c1b1b",
+                  "on-primary-fixed": "#241a00",
+                  "on-background": "#e2e2e2",
+                  "on-tertiary-fixed": "#241a00",
+                  "on-tertiary": "#3d2f00",
+                  "inverse-primary": "#745b00",
+                  "secondary-fixed": "#e5e2e1",
+                  "surface-tint": "#e5c363",
+                  "tertiary-container": "#c1a969",
+                  "on-tertiary-container": "#4e3d06",
+                  "on-surface-variant": "#d0c5b2",
+                  "primary-fixed-dim": "#e5c363",
+                  "on-primary-container": "#4f3d00",
+                  "surface-container-highest": "#353535",
+                  "on-error-container": "#ffdad6",
+                  "secondary-fixed-dim": "#c8c6c5",
+                  "surface-variant": "#353535",
+                  "on-tertiary-fixed-variant": "#56450e",
+                  "on-primary-fixed-variant": "#584400",
+                  "surface-container": "#1f1f1f",
+                  "primary-fixed": "#ffe08c",
+                  "primary": "#e5c363",
+                  "inverse-surface": "#e2e2e2",
+                  "tertiary-fixed-dim": "#dec482",
+                  "secondary": "#c8c6c5",
+                  "on-error": "#690005",
+                  "surface-container-lowest": "#0e0e0e",
+                  "surface-bright": "#393939",
+                  "on-surface": "#e2e2e2",
+                  "surface-dim": "#131313",
+                  "secondary-container": "#474746",
+                  "error": "#ffb4ab",
+                  "surface-container-high": "#2a2a2a",
+                  "background": "#131313",
+                  "surface-container-low": "#1b1b1b",
+                  "error-container": "#93000a",
+                  "tertiary-fixed": "#fbe09b",
+                  "surface": "#131313",
+                  "primary-container": "#c8a84b",
+                  "on-secondary": "#313030",
+                  "inverse-on-surface": "#303030",
+                  "on-secondary-fixed-variant": "#474746",
+                  "on-secondary-container": "#b7b5b4",
+                  "on-primary": "#3d2f00",
+                  "outline-variant": "#4d4637",
+                  "tertiary": "#dec482"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.125rem",
+                  "lg": "0.25rem",
+                  "xl": "0.5rem",
+                  "full": "0.75rem"
+          },
+          "fontFamily": {
+                  "headline": ["Manrope"],
+                  "body": ["Plus Jakarta Sans"],
+                  "label": ["Plus Jakarta Sans"],
+                  "serif": ["Newsreader"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation (Authority Source: TopAppBar JSON) -->
+<header class="fixed top-0 w-full z-50 bg-[#131314]/70 backdrop-blur-2xl flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#E8D5A0] cursor-pointer hover:scale-[1.02] transition-transform duration-300">menu</span>
+<h1 class="text-2xl font-serif italic text-[#E8D5A0] tracking-[-0.02em]">KILTIKONET</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col items-end mr-2 hidden md:flex">
+<span class="text-[10px] uppercase tracking-widest text-[#E8D5A0]/80 font-medium">CVL BRAIN - Active</span>
+<span class="text-[9px] text-[#E5E2E3]/40 tracking-wider">SECURE LINK ESTABLISHED</span>
+</div>
+<div class="w-10 h-10 rounded-full border border-outline-variant/30 overflow-hidden hover:scale-[1.02] transition-transform duration-300 cursor-pointer">
+<img alt="curator_avatar" class="w-full h-full object-cover" data-alt="Portrait of a sophisticated man with silver hair in a dark studio, minimalist high-end lighting, onyx and gold aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAU6dVAnBWe3kjdPVrhXSbEnwCBw1zhr0rRAYE44j86tcE1TZiT5-2cq4264VvWz3Q0HGeELXz9Elfe_8UocrSdo8fmsDtvmVXg8ykRSYhN6UFrVk59zD8miuUBzbbc_0El1M6qbhjBXqAkTJ8fRXrN2LUT6InjqYe89NKOT5MJsM6XmhHbZrVXPFi4zHP8JQ-7w5oYUTnmBkf_NNULdbf94BMdI4edG1HZ_iOeqbd0_95lwhRQ7VJhfPQcj08gvNstXnChHCQ4ye4"/>
+</div>
+</div>
+</header>
+<!-- Main Chat Canvas -->
+<main class="relative min-h-screen pt-24 pb-32 max-w-5xl mx-auto px-4 md:px-8">
+<div class="flex flex-col gap-10">
+<!-- AI Message Container -->
+<div class="flex flex-col gap-4 max-w-4xl">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 bg-primary-container rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container text-xs" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest font-semibold text-primary">CVL BRAIN</span>
+<span class="text-[10px] text-on-surface-variant/50">14:02 UTC</span>
+</div>
+<div class="font-serif text-xl leading-relaxed text-on-surface/90">
+          Greetings, Sovereign. I have processed the cultural architectural data for the Onyx District. Here is the preliminary analysis and the requested generative assets.
+        </div>
+<!-- Integrated Tools: Mini Code Terminal -->
+<div class="rounded-lg overflow-hidden bg-surface-container-lowest shadow-2xl border border-outline-variant/10 group transition-all duration-500 hover:border-primary/20">
+<div class="px-4 py-2 bg-surface-container-low flex justify-between items-center">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-error/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-primary/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-secondary/40"></div>
+</div>
+<span class="text-[10px] font-mono tracking-widest text-on-surface-variant/40">PY_EXECUTOR v4.2</span>
+</div>
+<div class="p-6 font-mono text-sm leading-6">
+<div class="flex gap-4">
+<span class="text-primary/50 select-none">01</span>
+<span class="text-on-surface/80"><span class="text-primary">import</span> cvl_onyx <span class="text-primary">as</span> ox</span>
+</div>
+<div class="flex gap-4">
+<span class="text-primary/50 select-none">02</span>
+<span class="text-on-surface/80">analysis = ox.<span class="text-tertiary">analyze_cultural_density</span>(district=<span class="text-primary-container">'onyx_prime'</span>)</span>
+</div>
+<div class="flex gap-4">
+<span class="text-primary/50 select-none">03</span>
+<span class="text-on-surface/80"><span class="text-primary">print</span>(analysis.<span class="text-tertiary">visualize_geometry</span>())</span>
+</div>
+<div class="mt-4 p-3 bg-surface-container/50 border-l-2 border-primary rounded-r-sm">
+<div class="text-[10px] uppercase tracking-tighter text-primary mb-1">Execution Result</div>
+<div class="text-xs text-on-surface-variant font-mono italic">Onyx Geometry: 0.984 Symmetry - Pure Cultural Extraction Successful.</div>
+</div>
+</div>
+</div>
+<!-- Integrated Tools: File Card & Media Preview -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Document Card -->
+<div class="glass-panel p-5 rounded-lg border border-outline-variant/10 flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-surface-container-highest rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">description</span>
+</div>
+<div>
+<div class="text-sm font-semibold tracking-tight">Onyx_Manifesto.pdf</div>
+<div class="text-[10px] text-on-surface-variant uppercase tracking-widest">4.8 MB • Encrypted PDF</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">download</span>
+</div>
+<!-- Image Preview -->
+<div class="relative aspect-video rounded-lg overflow-hidden border border-outline-variant/10 group cursor-pointer">
+<img alt="concept_render" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Futuristic architectural interior with black marble, gold recessed lighting, and fluid crystalline structures, cinematic moody atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUB-zazhkSPRsr-B7vH75Duuua2uh5x0-2jXBpyCAHti9HQB3lO315VtOc6-eE52ioSiFbExOppN7xvZjGqDDx7JS9qD1TB-3i2UH_6yp1ABFisMaFgEUQFedVgR_bIquB_ZG6iTDVlMTRdWUcRfCMqDTSGUe9L3Dmx2AhvJMzXEUhpr-QWJN3C5rX9XcOIjLZBoqQNtlFK-w33MRPZeakOj3gbJzoo3FGCBLV04NgM4a918YpJvIq0moSzNgqLQxBY0jl8xLbr9s"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4">
+<div class="flex justify-between items-center">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-primary font-bold">Visual Preview</span>
+<div class="text-xs text-on-surface font-medium">Concept_Render_01.png</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">fullscreen</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- User Message Container (Asymmetric Alignment) -->
+<div class="flex flex-col gap-4 max-w-3xl self-end items-end">
+<div class="flex items-center gap-3">
+<span class="text-[10px] text-on-surface-variant/50">14:05 UTC</span>
+<span class="text-[10px] uppercase tracking-widest font-semibold text-secondary">Sovereign Curator</span>
+<div class="w-6 h-6 rounded-full overflow-hidden bg-surface-container">
+<img alt="curator_avatar" class="w-full h-full object-cover grayscale opacity-80" data-alt="Close up of a man's face in high contrast lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYajqS2Lihyf_ZYLz1VgFPj_TPOVYYV79DxSa_Es6LLhfXo8L2q1uy-ABOyhBPusavtDWWQOxYnLu4fcHCbWPUMqzFnt6juMho25fkX1rxXsv2RoL3ufZ-uA6oQErNAXBATzMwUDBweN-zm_5J6BdfqtoTo4C2CQytNXT6XUNru1LC-GbR8MWVjzt3gfEhdxIYw8Uof3enZ82sdAMRV9JATY4iT3jFu2oqHDgqbdz1uiyzyDdakpGrq3T_lsZCnbahDmHtW_PBAzk"/>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/5 shadow-xl text-on-surface/90 text-right">
+          The geometry is exquisite. Generate an audio signature for this visual manifesto. Focus on deep resonant frequencies and metallic textures. Save everything to my Vault.
+        </div>
+</div>
+<!-- AI Generating / Audio Tool -->
+<div class="flex flex-col gap-4 max-w-4xl">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 bg-primary-container rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container text-xs" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest font-semibold text-primary">CVL BRAIN</span>
+<span class="text-xs text-primary animate-pulse italic">Thinking...</span>
+</div>
+<!-- Audio Tool -->
+<div class="glass-panel p-6 rounded-lg border border-outline-variant/10">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">equalizer</span>
+<span class="text-xs font-bold uppercase tracking-widest">Audio Signature Generated</span>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant/50">02:44 / 24-bit WAV</span>
+</div>
+<div class="flex items-end gap-1 h-12 mb-6">
+<div class="flex-1 bg-primary/20 h-4 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-8 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/60 h-12 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/30 h-6 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/50 h-10 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-4 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-8 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/70 h-12 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/30 h-6 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/90 h-11 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-7 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-4 rounded-t-sm"></div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="flex-1 h-1 bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute left-0 top-0 bottom-0 w-1/3 bg-primary"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">save</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Input Bar -->
+<div class="fixed bottom-0 w-full px-4 md:px-8 pb-8 z-40 bg-gradient-to-t from-background via-background/90 to-transparent">
+<div class="max-w-4xl mx-auto">
+<div class="glass-panel border border-outline-variant/20 rounded-xl p-2 flex items-end gap-2 shadow-2xl">
+<button class="w-12 h-12 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">attach_file</span>
+</button>
+<div class="flex-1 min-h-[48px] py-3 px-4">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/40 resize-none font-body text-sm" placeholder="Instruct the Brain..." rows="1"></textarea>
+</div>
+<div class="flex items-center gap-1 p-1">
+<button class="w-10 h-10 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-xl">mic</span>
+</button>
+<button class="w-10 h-10 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center hover:bg-primary transition-colors shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<div class="flex justify-center gap-8 mt-4">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(229,195,99,0.8)]"></div>
+<span class="text-[9px] uppercase tracking-widest text-on-surface-variant/60 font-bold">Encrypted Node</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[9px] uppercase tracking-widest text-on-surface-variant/60 font-bold">Neural Load: 12%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation (Authority Source: BottomNavBar JSON) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 bg-[#131314]/70 backdrop-blur-2xl rounded-t-sm shadow-[0_-20px_40px_rgba(0,0,0,0.4)] md:hidden">
+<div class="flex flex-col items-center justify-center text-[#E5E2E3]/50 pt-2 hover:text-[#E8D5A0] transition-colors duration-300">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-['DM_Sans'] text-[10px] tracking-widest uppercase">Feed</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#E5E2E3]/50 pt-2 hover:text-[#E8D5A0] transition-colors duration-300">
+<span class="material-symbols-outlined">search</span>
+<span class="font-['DM_Sans'] text-[10px] tracking-widest uppercase">Search</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#E8D5A0] border-t-2 border-[#E8D5A0] pt-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-['DM_Sans'] text-[10px] tracking-widest uppercase">BRAIN</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#E5E2E3]/50 pt-2 hover:text-[#E8D5A0] transition-colors duration-300">
+<span class="material-symbols-outlined">lock</span>
+<span class="font-['DM_Sans'] text-[10px] tracking-widest uppercase">Vault</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#E5E2E3]/50 pt-2 hover:text-[#E8D5A0] transition-colors duration-300">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['DM_Sans'] text-[10px] tracking-widest uppercase">Profile</span>
+</div>
+</nav>
+<!-- Side Navigation Overlay (Floating subtle gradient) -->
+<aside class="hidden lg:flex fixed left-0 top-1/2 -translate-y-1/2 h-fit flex-col gap-8 p-6 z-40 bg-surface-container-low/40 backdrop-blur-lg rounded-r-2xl border-y border-r border-outline-variant/10">
+<div class="group relative flex items-center justify-center">
+<span class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">history</span>
+<div class="absolute left-full ml-4 px-3 py-1 bg-surface-container text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-outline-variant/10">Past Cognition</div>
+</div>
+<div class="group relative flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">auto_awesome</span>
+<div class="absolute left-full ml-4 px-3 py-1 bg-surface-container text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-outline-variant/10">Curation Tools</div>
+</div>
+<div class="group relative flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">tune</span>
+<div class="absolute left-full ml-4 px-3 py-1 bg-surface-container text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-outline-variant/10">Brain Tuning</div>
+</div>
+</aside>
+</body></html>

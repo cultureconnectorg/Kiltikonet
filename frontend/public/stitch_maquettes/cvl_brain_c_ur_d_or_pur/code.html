@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#e5c363",
+                    "background": "#000000",
+                    "surface-container": "#1f1f1f",
+                    "on-background": "#e2e2e2"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .core-sphere-glow {
+            background: radial-gradient(circle at 35% 35%, #F5E6BE 0%, #C8A84B 50%, #745B00 100%);
+            box-shadow: 0 0 60px 10px rgba(232, 213, 160, 0.4);
+            animation: core-pulse 4s ease-in-out infinite;
+        }
+        @keyframes core-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 60px 10px rgba(232, 213, 160, 0.4);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 100px 20px rgba(232, 213, 160, 0.6);
+                transform: scale(1.02);
+            }
+        }
+        .sphere-ripple {
+            border: 1px solid rgba(232, 213, 160, 0.15);
+        }
+    </style>
+<style>
+        body {
+            min-height: 100dvh;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body class="bg-black text-on-background font-body overflow-hidden flex items-center justify-center min-h-screen">
+<!-- Main Voice Interface Canvas -->
+<main class="relative flex items-center justify-center w-full h-full">
+<div class="relative z-10 flex flex-col items-center">
+<!-- Ripple Effects Containers -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sphere-ripple rounded-full opacity-20"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] sphere-ripple rounded-full opacity-10"></div>
+<!-- Central Core Sphere -->
+<div class="relative w-64 h-64 rounded-full core-sphere-glow flex items-center justify-center transition-all duration-700 ease-in-out">
+<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-40"></div>
+<!-- Sphere Center Detail (Minimal mic icon to maintain organic feel while indicating function) -->
+<div class="w-12 h-12 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-[#745B00] text-3xl opacity-40" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

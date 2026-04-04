@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#e5c363",
+                    "on-tertiary-fixed": "#241a00",
+                    "on-background": "#e2e2e2",
+                    "on-primary-fixed-variant": "#584400",
+                    "tertiary": "#dec482",
+                    "outline-variant": "#4d4637",
+                    "inverse-surface": "#e2e2e2",
+                    "on-tertiary-fixed-variant": "#56450e",
+                    "secondary-container": "#474746",
+                    "on-secondary-container": "#b7b5b4",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "tertiary-fixed-dim": "#dec482",
+                    "outline": "#98907e",
+                    "tertiary-container": "#c1a969",
+                    "primary-fixed": "#ffe08c",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-secondary": "#313030",
+                    "surface-bright": "#393939",
+                    "surface-container-low": "#1b1b1b",
+                    "primary-fixed-dim": "#e5c363",
+                    "on-secondary-fixed-variant": "#474746",
+                    "surface-dim": "#131313",
+                    "on-tertiary": "#3d2f00",
+                    "inverse-on-surface": "#303030",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "inverse-primary": "#745b00",
+                    "secondary": "#c8c6c5",
+                    "primary-container": "#c8a84b",
+                    "surface-container-high": "#2a2a2a",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface-container-highest": "#353535",
+                    "on-primary": "#3d2f00",
+                    "error-container": "#93000a",
+                    "primary": "#e5c363",
+                    "background": "#131313",
+                    "surface-variant": "#353535",
+                    "on-primary-fixed": "#241a00",
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed": "#fbe09b",
+                    "surface": "#131313",
+                    "on-primary-container": "#4f3d00",
+                    "surface-container": "#1f1f1f",
+                    "error": "#ffb4ab",
+                    "on-surface": "#e2e2e2",
+                    "on-error": "#690005",
+                    "on-tertiary-container": "#4e3d06",
+                    "on-surface-variant": "#d0c5b2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-glass {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(229, 195, 99, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(229, 195, 99, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 195, 99, 0); }
+        }
+        .animate-pulse-gold {
+            animation: pulse-gold 2s infinite;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body select-none overflow-hidden">
+<!-- Immersive Video Background Container -->
+<div class="fixed inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 z-10"></div>
+<img alt="Immersive Studio Experience" class="w-full h-full object-cover" data-alt="cinematic close-up of a recording studio with warm mahogany textures, vintage microphones, and soft golden ambient lighting in a Caribbean setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASBR8qAmsdIeZqPa0OG-I_QYbC9ZE0obZgHZ9opsI5O6ntF79p6EvItzTBtdDsLNVVYXSFSOaaS6OlA63IrSo50z16Tw6SjuF1dlzSWugzS8tZmHUnNlrgyjNt-uxi7voKewd79vouQKZj7NeLIyCQv9VY2wsxZbASbsnZkAhlklsmqC33GsFNdnb7PmWXDLmonYgkbQZIvVAL9WQfotR48zF0MdvSAuDoA9wmhQ3bASmgmbB486qpANYIQf2JkoHZttoIlHvWAgE"/>
+</div>
+<!-- TopAppBar (Predicted Component) -->
+<header class="fixed top-0 w-full z-50 bg-black/60 backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full shadow-2xl shadow-black/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#C8A84B] text-2xl" data-icon="logo_dev">logo_dev</span>
+<h1 class="font-['Manrope'] tracking-tighter text-2xl font-bold text-[#C8A84B] uppercase">Kiltikonet</h1>
+</div>
+<button class="text-[#C8A84B] hover:text-[#e5c363] transition-colors active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-2xl" data-icon="chat_bubble">chat_bubble</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative z-20 h-screen w-full flex flex-col justify-end pb-32 px-6">
+<div class="flex justify-between items-end w-full mb-8">
+<!-- Text Overlay Section -->
+<div class="max-w-[70%] space-y-4">
+<div class="inline-flex items-center px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md border border-primary/20">
+<span class="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">MUSIQUE</span>
+</div>
+<div class="space-y-1">
+<h2 class="text-5xl font-headline font-extrabold tracking-tighter text-on-surface leading-none">
+                        Riddim de la Diaspora
+                    </h2>
+<p class="text-primary text-sm font-semibold tracking-wide">KILTICONET ORIGINALS</p>
+</div>
+<p class="text-on-surface-variant text-base leading-relaxed font-light max-w-sm">
+                    Une fusion transcendante de percussions ancestrales et de textures synthétiques modernes. Le souffle de l'archipel dans chaque note.
+                </p>
+</div>
+<!-- Right Side Cultural Impressions -->
+<div class="flex flex-col gap-6 items-center">
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest/40 backdrop-blur-xl flex items-center justify-center border border-outline-variant/20 group-hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-on-surface group-hover:text-primary transition-colors" data-icon="bolt">bolt</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Énergie</span>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest/40 backdrop-blur-xl flex items-center justify-center border border-outline-variant/20 group-hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-on-surface group-hover:text-primary transition-colors" data-icon="reorder">reorder</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Tambour</span>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest/40 backdrop-blur-xl flex items-center justify-center border border-outline-variant/20 group-hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-on-surface group-hover:text-primary transition-colors" data-icon="history_edu">history_edu</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Poésie</span>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest/40 backdrop-blur-xl flex items-center justify-center border border-outline-variant/20 group-hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-on-surface group-hover:text-primary transition-colors" data-icon="share">share</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Partage</span>
+</div>
+</div>
+</div>
+<!-- Floating Action Button -->
+<div class="absolute bottom-28 right-6 z-30">
+<button class="w-14 h-14 bg-gradient-to-tr from-primary to-primary-container text-on-primary rounded-xl shadow-2xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl font-bold" data-icon="add">add</span>
+</button>
+</div>
+</main>
+<!-- BottomNavBar (Predicted Component) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-end pb-6 pt-2 px-2 bg-[#1b1b1b]/60 backdrop-blur-2xl rounded-t-xl shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+<!-- Explore -->
+<a class="flex flex-col items-center justify-center text-[#C8A84B] font-bold scale-110 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="explore" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] uppercase tracking-widest mt-1">Explore</span>
+</a>
+<!-- Shop -->
+<a class="flex flex-col items-center justify-center text-gray-500 opacity-70 hover:opacity-100 hover:text-[#e5c363] active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] uppercase tracking-widest mt-1">Shop</span>
+</a>
+<!-- BRAIN (Center Highlight) -->
+<div class="relative -top-4">
+<div class="absolute inset-0 bg-primary/20 blur-xl animate-pulse rounded-full"></div>
+<button class="relative w-16 h-16 bg-gradient-to-b from-[#e5c363] to-[#c8a84b] rounded-full flex items-center justify-center shadow-2xl shadow-primary/40 animate-pulse-gold active:scale-95 transition-transform border-4 border-black/20">
+<span class="material-symbols-outlined text-black text-3xl font-bold" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="absolute -bottom-6 font-['Plus_Jakarta_Sans'] text-[10px] uppercase tracking-[0.2em] font-black text-primary">BRAIN</span>
+</button>
+</div>
+<!-- Vault -->
+<a class="flex flex-col items-center justify-center text-gray-500 opacity-70 hover:opacity-100 hover:text-[#e5c363] active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] uppercase tracking-widest mt-1">Vault</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-gray-500 opacity-70 hover:opacity-100 hover:text-[#e5c363] active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] uppercase tracking-widest mt-1">Profile</span>
+</a>
+<!-- Visual Anchor Gradient Background behind nav items -->
+<div class="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+</nav>
+<!-- Visual Edge Glow -->
+<div class="fixed inset-0 pointer-events-none z-40 border-[1px] border-white/5"></div>
+</body></html>

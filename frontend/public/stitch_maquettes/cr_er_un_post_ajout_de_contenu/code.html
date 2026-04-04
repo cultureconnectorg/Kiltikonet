@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&amp;family=Manrope:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#201f20",
+                    "outline": "#979083",
+                    "on-tertiary": "#2f2d4a",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "secondary-container": "#4d4633",
+                    "surface-container-lowest": "#0e0e0f",
+                    "on-tertiary-container": "#5b5978",
+                    "on-secondary-fixed": "#201b0b",
+                    "tertiary": "#f4f0ff",
+                    "primary-container": "#e8d5a0",
+                    "on-primary": "#3a2f09",
+                    "on-error": "#690005",
+                    "background": "#131314",
+                    "tertiary-fixed": "#e3dfff",
+                    "surface-container-low": "#1c1b1c",
+                    "surface-variant": "#353436",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#cdc6b7",
+                    "on-primary-fixed": "#231b00",
+                    "surface": "#131314",
+                    "secondary-fixed": "#ede2c8",
+                    "on-secondary": "#36301e",
+                    "primary": "#fff2d2",
+                    "on-primary-container": "#695c31",
+                    "surface-dim": "#131314",
+                    "primary-fixed-dim": "#d8c591",
+                    "on-primary-fixed-variant": "#52461d",
+                    "surface-container-high": "#2a2a2b",
+                    "inverse-primary": "#6b5d33",
+                    "on-tertiary-fixed": "#1a1834",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "inverse-surface": "#e5e2e3",
+                    "on-secondary-container": "#beb49c",
+                    "error": "#ffb4ab",
+                    "surface-container-highest": "#353436",
+                    "outline-variant": "#4b463b",
+                    "on-surface": "#e5e2e3",
+                    "on-background": "#e5e2e3",
+                    "surface-bright": "#3a393a",
+                    "primary-fixed": "#f5e1ab",
+                    "secondary": "#d0c6ad",
+                    "inverse-on-surface": "#313031",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "tertiary-container": "#d6d2f7",
+                    "surface-tint": "#d8c591",
+                    "on-error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0a0a0b;
+            color: #e5e2e3;
+            font-family: 'Manrope', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .editorial-title {
+            font-family: 'Newsreader', serif;
+        }
+        .glass-panel {
+            background: rgba(32, 31, 32, 0.7);
+            backdrop-filter: blur(24px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #e8d5a0 0%, #d8c591 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #131314;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b463b;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 w-full max-w-full border-none bg-[#201f20]">
+<div class="flex items-center gap-4">
+<button class="hover:scale-[1.02] transition-transform duration-300 Active: scale-95 duration-200">
+<span class="material-symbols-outlined text-on-surface" data-icon="close">close</span>
+</button>
+</div>
+<div class="text-xl font-bold tracking-tighter text-[#E8D5A0] font-['Newsreader'] tracking-tighter text-on-surface">KILTIKONET</div>
+<button class="bg-[#e8d5a0] text-[#3a2f09] px-5 py-1.5 rounded-sm text-sm font-bold tracking-tight hover:scale-[1.02] transition-transform duration-300 active:scale-95">
+            Publish
+        </button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow pt-24 pb-32 px-6 max-w-3xl mx-auto w-full">
+<div class="space-y-8">
+<!-- Media Upload Zone (Bento Style Card) -->
+<section class="relative group cursor-pointer">
+<div class="w-full aspect-[4/3] rounded-sm border border-dashed border-outline-variant/30 bg-surface-container-low flex flex-col items-center justify-center transition-all duration-450 hover:bg-surface-container hover:border-primary-container/40 overflow-hidden">
+<div class="z-10 flex flex-col items-center gap-4">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center text-primary-container border border-outline-variant/20">
+<span class="material-symbols-outlined text-3xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="text-center">
+<p class="editorial-title text-2xl font-light text-on-surface italic">Capture your legacy</p>
+<p class="text-xs tracking-widest uppercase text-on-surface-variant/60 mt-1">Video or High-Res Portrait</p>
+</div>
+</div>
+<!-- Subtle background decoration -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-container/20 blur-[100px] rounded-full"></div>
+<div class="absolute bottom-0 left-0 w-48 h-48 bg-primary-fixed-dim/10 blur-[80px] rounded-full"></div>
+</div>
+</div>
+</section>
+<!-- Text Area (Caption) -->
+<section class="space-y-3">
+<label class="text-[10px] uppercase tracking-[0.2em] text-primary-container/80 font-bold">Legende</label>
+<div class="relative">
+<textarea class="w-full bg-transparent border-b border-outline-variant/30 py-4 text-xl editorial-title text-on-surface focus:outline-none focus:border-primary-container transition-colors duration-300 resize-none min-h-[120px] placeholder:text-on-surface-variant/30" placeholder="Partagez votre héritage..."></textarea>
+</div>
+</section>
+<!-- Tags Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="text-[10px] uppercase tracking-[0.2em] text-primary-container/80 font-bold">Spiritual &amp; Cultural Markers</label>
+<span class="text-[10px] text-on-surface-variant/40">3 selected</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 rounded-full border border-primary-container bg-primary-container text-on-primary text-xs font-bold tracking-tight transition-all duration-300">#diaspora</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant/40 text-on-surface-variant text-xs font-medium tracking-tight hover:border-primary-container transition-all duration-300">#tradition</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant/40 text-on-surface-variant text-xs font-medium tracking-tight hover:border-primary-container transition-all duration-300">#modernity</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant/40 text-on-surface-variant text-xs font-medium tracking-tight hover:border-primary-container transition-all duration-300">#ritual</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant/40 text-on-surface-variant text-xs font-medium tracking-tight hover:border-primary-container transition-all duration-300">#roots</button>
+<button class="w-8 h-8 rounded-full border border-dashed border-outline-variant/40 flex items-center justify-center text-on-surface-variant hover:border-primary-container transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+</button>
+</div>
+</section>
+<!-- Visibility Settings -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-4 rounded-sm bg-surface-container border border-outline-variant/10 flex items-center justify-between hover:bg-surface-container-high transition-colors cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container/60" data-icon="public">public</span>
+<div>
+<p class="text-sm font-bold text-on-surface">Public</p>
+<p class="text-[10px] text-on-surface-variant/60 uppercase">Visible to all curators</p>
+</div>
+</div>
+<div class="w-4 h-4 rounded-full border-2 border-primary-container flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-primary-container rounded-full"></div>
+</div>
+</div>
+<div class="p-4 rounded-sm bg-surface-container/40 border border-outline-variant/10 flex items-center justify-between hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant/40" data-icon="groups">groups</span>
+<div>
+<p class="text-sm font-bold text-on-surface-variant/60">Private Circles</p>
+<p class="text-[10px] text-on-surface-variant/40 uppercase">Selected ancestors only</p>
+</div>
+</div>
+<div class="w-4 h-4 rounded-full border-2 border-outline-variant/40"></div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#131314]/70 backdrop-blur-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.4)] z-50 rounded-t-sm">
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest mt-1">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest mt-1">Collect</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#E8D5A0] scale-110 relative" href="#">
+<div class="absolute inset-0 bg-primary-container/20 blur-xl rounded-full"></div>
+<span class="material-symbols-outlined relative z-10 text-3xl" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest mt-1 relative z-10">Create</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest mt-1">Archive</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-450" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

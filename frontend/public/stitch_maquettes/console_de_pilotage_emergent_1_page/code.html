@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#e8d5a0",
+                    "error-container": "#93000a",
+                    "tertiary-container": "#d6d2f7",
+                    "on-primary": "#3a2f09",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "surface-container": "#201f20",
+                    "on-secondary": "#36301e",
+                    "primary-fixed-dim": "#d8c591",
+                    "outline-variant": "#4b463b",
+                    "primary": "#fff2d2",
+                    "on-secondary-fixed": "#201b0b",
+                    "on-tertiary": "#2f2d4a",
+                    "on-primary-fixed": "#231b00",
+                    "inverse-on-surface": "#313031",
+                    "outline": "#979083",
+                    "on-tertiary-container": "#5b5978",
+                    "on-primary-fixed-variant": "#52461d",
+                    "on-surface": "#e5e2e3",
+                    "primary-fixed": "#f5e1ab",
+                    "secondary-container": "#4d4633",
+                    "surface-variant": "#353436",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "secondary": "#d0c6ad",
+                    "on-background": "#e5e2e3",
+                    "inverse-primary": "#6b5d33",
+                    "surface-container-lowest": "#0e0e0f",
+                    "surface-tint": "#d8c591",
+                    "secondary-fixed": "#ede2c8",
+                    "surface-dim": "#131314",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "surface": "#131314",
+                    "tertiary-fixed": "#e3dfff",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#3a393a",
+                    "background": "#131314",
+                    "surface-container-low": "#1c1b1c",
+                    "surface-container-high": "#2a2a2b",
+                    "on-error-container": "#ffdad6",
+                    "inverse-surface": "#e5e2e3",
+                    "on-primary-container": "#695c31",
+                    "tertiary": "#f4f0ff",
+                    "surface-container-highest": "#353436",
+                    "on-tertiary-fixed": "#1a1834",
+                    "on-surface-variant": "#cdc6b7",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "on-secondary-container": "#beb49c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(32, 31, 32, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .gold-shimmer {
+            background: linear-gradient(135deg, #e8d5a0 0%, #d8c591 100%);
+        }
+        body {
+            background-color: #131314;
+            color: #e5e2e3;
+            font-family: 'Manrope', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body class="safe-area-inset-top">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 py-4 flex-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#E8D5A0] text-xl">menu</span>
+<h1 class="text-xl font-['Newsreader'] italic text-[#E8D5A0] tracking-[-0.02em]">KILTIKONET</h1>
+</div>
+<div class="w-7 h-7 rounded-full overflow-hidden bg-surface-container-highest border border-outline-variant/20">
+<img alt="curator_avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVXFx_orExD51jmGxfOgn8uFoOG_f1pP261kUcZfjCVQIhnLp5gNmK25W5ccGPERri7aF-2_K13V1Yxm75qKj8YIUmFD9KnmT7mJqtoQ_FfFmL_DkNNu4NNg68TM4twrTMhU62RJuHKSdt8kdrmg9nH7Ie-Pn6iT_38rurUEWZgyOs2Q4X_4Yc6R7EqyrLDIQan3D-Dzp3YMvZuHaoe4EJwQTeuhEI3oe__agsN0fB5cXHXyBqAQr4iJoCcSyuGqQJ0AYxqa3W_pU"/>
+</div>
+</header>
+<main class="flex-1 px-6 flex flex-col gap-5 overflow-hidden">
+<!-- Header / Environment -->
+<section class="flex-none">
+<p class="font-['DM_Sans'] text-[9px] tracking-[0.2em] uppercase text-primary-container mb-1">Production: emergent.sh</p>
+<h2 class="font-['Newsreader'] text-4xl font-light text-on-surface tracking-tight leading-none">Console</h2>
+<div class="mt-3 flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-sm w-fit">
+<span class="relative flex h-1.5 w-1.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-75"></span>
+<span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary-container"></span>
+</span>
+<span class="font-['DM_Sans'] text-[9px] tracking-widest uppercase text-on-surface/60">System Ready</span>
+</div>
+</section>
+<!-- Metrics Grid -->
+<section class="grid grid-cols-2 gap-3 flex-none">
+<div class="glass-panel p-4 border-l border-[#E8D5A0]/20">
+<p class="font-['DM_Sans'] text-[8px] tracking-widest uppercase text-on-surface-variant mb-1">Active Nodes</p>
+<p class="font-['Newsreader'] text-xl text-primary-container italic">14 Units</p>
+</div>
+<div class="glass-panel p-4 border-l border-outline-variant/20">
+<p class="font-['DM_Sans'] text-[8px] tracking-widest uppercase text-on-surface-variant mb-1">Build Time</p>
+<p class="font-['Newsreader'] text-xl text-on-surface italic">42s</p>
+</div>
+<div class="glass-panel p-4 border-l border-outline-variant/20">
+<p class="font-['DM_Sans'] text-[8px] tracking-widest uppercase text-on-surface-variant mb-1">Audit Status</p>
+<p class="font-['Newsreader'] text-xl text-on-surface italic">Verified</p>
+</div>
+<div class="glass-panel p-4 border-l border-outline-variant/20">
+<p class="font-['DM_Sans'] text-[8px] tracking-widest uppercase text-on-surface-variant mb-1">Latency</p>
+<p class="font-['Newsreader'] text-xl text-on-surface italic">12ms</p>
+</div>
+</section>
+<!-- Environment Schema Condensed -->
+<section class="glass-panel p-5 border-l border-outline-variant/10 flex-1 min-h-0 flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-['Newsreader'] text-lg italic text-on-surface">Schema</h3>
+<span class="text-[9px] font-['DM_Sans'] tracking-widest uppercase text-[#E8D5A0]">Config +</span>
+</div>
+<div class="space-y-4 overflow-y-auto pr-1 custom-scrollbar">
+<div class="flex flex-col border-b border-outline-variant/10 pb-3">
+<span class="font-['DM_Sans'] text-[8px] tracking-[0.15em] uppercase text-on-surface-variant/70">Database URL</span>
+<span class="font-mono text-[10px] text-primary-fixed-dim/50 mt-1 truncate">db.sovereign.onyx.cluster_0x4f...</span>
+</div>
+<div class="flex flex-col border-b border-outline-variant/10 pb-3">
+<span class="font-['DM_Sans'] text-[8px] tracking-[0.15em] uppercase text-on-surface-variant/70">API Secret</span>
+<span class="font-mono text-[10px] text-primary-fixed-dim/50 mt-1">••••••••••••••••••••</span>
+</div>
+<div class="flex flex-col">
+<span class="font-['DM_Sans'] text-[8px] tracking-[0.15em] uppercase text-on-surface-variant/70">Node Identity</span>
+<span class="font-mono text-[10px] text-primary-fixed-dim/50 mt-1">onyx_v4_shards_main</span>
+</div>
+</div>
+</section>
+<!-- Action Area -->
+<section class="flex-none pb-2">
+<div class="bg-surface-container-highest p-5 relative overflow-hidden">
+<div class="absolute -right-2 -top-2 opacity-10 rotate-12">
+<span class="material-symbols-outlined text-6xl">rocket_launch</span>
+</div>
+<div class="relative z-10 mb-4">
+<h3 class="font-['Newsreader'] text-xl text-on-surface leading-tight italic">Propagate Update</h3>
+<p class="text-[10px] text-on-surface-variant/60 font-light mt-1">Push staging variables to global edge nodes.</p>
+</div>
+<button class="gold-shimmer w-full py-3.5 text-on-primary font-['DM_Sans'] text-[10px] tracking-[0.2em] uppercase font-bold active:scale-[0.98] transition-transform">
+                    Deploy to Production
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="flex justify-around items-center px-4 pb-8 pt-4 bg-[#131314]/90 backdrop-blur-xl border-t border-outline-variant/10 flex-none">
+<div class="flex flex-col items-center text-[#E5E2E3]/40">
+<span class="material-symbols-outlined text-xl">grid_view</span>
+</div>
+<div class="flex flex-col items-center text-[#E5E2E3]/40">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<div class="flex flex-col items-center text-[#E8D5A0] relative">
+<span class="material-symbols-outlined text-xl">psychology</span>
+<div class="absolute -bottom-2 w-4 h-0.5 bg-[#E8D5A0]"></div>
+</div>
+<div class="flex flex-col items-center text-[#E5E2E3]/40">
+<span class="material-symbols-outlined text-xl">lock</span>
+</div>
+<div class="flex flex-col items-center text-[#E5E2E3]/40">
+<span class="material-symbols-outlined text-xl">person</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Sovereign Admin - Kiltikonet Deployment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,700&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#695c31",
+                        "tertiary": "#f4f0ff",
+                        "surface-container-low": "#1c1b1c",
+                        "surface-container-high": "#2a2a2b",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e5e2e3",
+                        "on-surface-variant": "#cdc6b7",
+                        "on-secondary-fixed-variant": "#4d4633",
+                        "on-secondary-container": "#beb49c",
+                        "surface-container-highest": "#353436",
+                        "on-tertiary-fixed": "#1a1834",
+                        "surface-tint": "#d8c591",
+                        "secondary-fixed": "#ede2c8",
+                        "secondary": "#d0c6ad",
+                        "on-background": "#e5e2e3",
+                        "inverse-primary": "#6b5d33",
+                        "surface-container-lowest": "#0e0e0f",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#3a393a",
+                        "background": "#131314",
+                        "surface-dim": "#131314",
+                        "tertiary-fixed-dim": "#c6c3e7",
+                        "surface": "#131314",
+                        "tertiary-fixed": "#e3dfff",
+                        "on-tertiary": "#2f2d4a",
+                        "on-primary-fixed": "#231b00",
+                        "inverse-on-surface": "#313031",
+                        "outline": "#979083",
+                        "on-tertiary-container": "#5b5978",
+                        "on-primary-fixed-variant": "#52461d",
+                        "primary": "#fff2d2",
+                        "on-secondary-fixed": "#201b0b",
+                        "surface-variant": "#353436",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#454462",
+                        "on-surface": "#e5e2e3",
+                        "primary-fixed": "#f5e1ab",
+                        "secondary-container": "#4d4633",
+                        "secondary-fixed-dim": "#d0c6ad",
+                        "surface-container": "#201f20",
+                        "primary-container": "#e8d5a0",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#d6d2f7",
+                        "on-primary": "#3a2f09",
+                        "outline-variant": "#4b463b",
+                        "on-secondary": "#36301e",
+                        "primary-fixed-dim": "#d8c591"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; height: 100vh; overflow: hidden; }
+        .serif { font-family: 'Newsreader', serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .glass { background: rgba(32, 31, 32, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(75, 70, 59, 0.15); }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full bg-[#131314]/90 backdrop-blur-xl flex justify-between items-center px-6 h-16 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#E8D5A0] text-2xl" data-icon="terminal">terminal</span>
+<div class="flex flex-col">
+<h1 class="text-xl font-bold text-[#E8D5A0] font-serif tracking-tight leading-none">Sovereign Admin</h1>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-[9px] uppercase tracking-widest font-bold text-on-surface-variant">v1.4.2-stable</span>
+</div>
+</div>
+</div>
+<button class="hover:scale-[1.02] transition-transform duration-300 active:scale-95 flex items-center gap-2">
+<span class="text-[9px] font-bold text-on-surface-variant border border-outline-variant/30 px-1.5 py-0.5 rounded">SW: ACTIVE</span>
+<span class="material-symbols-outlined text-[#E8D5A0] text-2xl" data-icon="settings">settings</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-16 pb-24 px-4 h-full flex flex-col overflow-y-auto no-scrollbar max-w-lg mx-auto space-y-4">
+<!-- Environment Indicator -->
+<div class="pt-4 flex justify-between items-end">
+<div>
+<p class="text-[10px] uppercase tracking-tighter text-on-surface-variant mb-1">Environment</p>
+<p class="serif text-2xl text-on-surface leading-tight">emergent.sh</p>
+</div>
+<div class="text-right">
+<p class="text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">SSL Expires</p>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest border border-outline-variant/20 text-[9px] font-bold text-primary tracking-widest uppercase">128 Days</span>
+</div>
+</div>
+<!-- Health Grid (Enriched) -->
+<div class="grid grid-cols-2 gap-2">
+<div class="glass p-3 rounded-sm">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Compute Load</p>
+<div class="flex items-baseline justify-between">
+<span class="serif text-xl text-primary">12.4%</span>
+<div class="w-12 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 12.4%"></div>
+</div>
+</div>
+<p class="text-[8px] text-on-surface-variant/60 mt-1">4vCPU • 16GB RAM (8.2GB free)</p>
+</div>
+<div class="glass p-3 rounded-sm">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">API Performance</p>
+<div class="flex items-baseline gap-2">
+<span class="serif text-xl text-primary">124<small class="text-sm">ms</small></span>
+<span class="text-[8px] text-tertiary uppercase font-bold px-1 bg-tertiary/10 rounded">Avg</span>
+</div>
+<p class="text-[8px] text-on-surface-variant/60 mt-1">P99: 184ms • 4.2k req/s</p>
+</div>
+<div class="glass p-3 rounded-sm">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Cluster Nodes</p>
+<div class="flex items-baseline gap-2">
+<span class="serif text-xl text-primary">14</span>
+<span class="text-[10px] text-on-surface-variant italic">Stable</span>
+</div>
+<p class="text-[8px] text-on-surface-variant/60 mt-1">Global Distribution (EU/US/AS)</p>
+</div>
+<div class="glass p-3 rounded-sm">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Database State</p>
+<div class="flex items-baseline gap-2">
+<span class="serif text-xl text-primary uppercase">Primary</span>
+</div>
+<p class="text-[8px] text-on-surface-variant/60 mt-1">Replica Lag: 2ms • Connected</p>
+</div>
+</div>
+<!-- Technical Schema & Log Section -->
+<div class="space-y-2">
+<div class="bg-surface-container-low p-4 rounded-sm border-l-2 border-primary-container/30">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="database">database</span>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant">System Registry</span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-[10px] font-mono border-b border-outline-variant/10 pb-1">
+<span class="text-on-surface-variant">HOST_URL</span>
+<span class="text-on-surface truncate ml-4">kilti-prd-01.internal</span>
+</div>
+<div class="flex justify-between items-center text-[10px] font-mono border-b border-outline-variant/10 pb-1">
+<span class="text-on-surface-variant">CERT_THUMB</span>
+<span class="text-on-surface tracking-widest uppercase">fa92...88e1</span>
+</div>
+<div class="flex justify-between items-center text-[10px] font-mono">
+<span class="text-on-surface-variant">NODE_ID</span>
+<span class="text-on-surface">onyx-curator-v4</span>
+</div>
+</div>
+</div>
+<!-- Deployment Log Preview -->
+<div class="bg-surface-container-lowest/50 p-3 rounded-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Latest Commits</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="history">history</span>
+</div>
+<div class="space-y-1.5">
+<div class="flex items-center gap-2">
+<span class="font-mono text-[10px] text-primary">7f2c91a</span>
+<span class="text-[10px] text-on-surface-variant truncate">feat: update mesh-network topology</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-[10px] text-on-surface-variant/70">a102bc4</span>
+<span class="text-[10px] text-on-surface-variant/70 truncate">fix: overflow bug in mobile admin</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-[10px] text-on-surface-variant/70">9d33f11</span>
+<span class="text-[10px] text-on-surface-variant/70 truncate">chore: bump deps to 1.4.2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Production Control (CTA) -->
+<div class="pt-2 pb-4">
+<button class="w-full bg-[#E8D5A0] text-[#3a2f09] p-5 rounded-sm flex items-center justify-between group hover:scale-[1.01] transition-all duration-300 shadow-[0_0_30px_rgba(232,213,160,0.15)] active:scale-95">
+<div class="text-left">
+<p class="text-[10px] uppercase tracking-widest font-bold leading-none mb-1 opacity-70">Execute Deployment</p>
+<p class="serif text-xl font-bold tracking-tight uppercase">Deploy to Production</p>
+</div>
+<div class="w-12 h-12 bg-[#3a2f09]/10 rounded-full flex items-center justify-center group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-2xl" data-icon="rocket_launch" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+</button>
+<p class="text-[9px] text-center text-on-surface-variant mt-3 tracking-[0.2em] uppercase opacity-50">Authorized access only • ID: Admin-091</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-[#131314]/80 backdrop-blur-3xl border-t-[0.5px] border-[#4b463b]/15 shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+<!-- Dashboard Active -->
+<a class="flex flex-col items-center justify-center bg-[#E8D5A0] text-[#3a2f09] rounded-sm p-3 scale-97 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#E5E2E3]/50 p-3 hover:text-[#E8D5A0] scale-97 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#E5E2E3]/50 p-3 hover:text-[#E8D5A0] scale-97 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="database">database</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#E5E2E3]/50 p-3 hover:text-[#E8D5A0] scale-97 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</a>
+</nav>
+</body></html>

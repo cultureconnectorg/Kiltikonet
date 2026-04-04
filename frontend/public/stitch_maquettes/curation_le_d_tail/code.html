@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Curation | Sovereign Onyx</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#e8d5a0",
+                    "primary": "#fff2d2",
+                    "surface-container-highest": "#353436",
+                    "tertiary": "#f4f0ff",
+                    "on-error": "#690005",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-container": "#5b5978",
+                    "primary-fixed-dim": "#d8c591",
+                    "on-surface": "#e5e2e3",
+                    "surface-bright": "#3a393a",
+                    "on-background": "#e5e2e3",
+                    "surface-container-high": "#2a2a2b",
+                    "on-secondary-container": "#beb49c",
+                    "secondary-fixed": "#ede2c8",
+                    "on-primary": "#3a2f09",
+                    "surface-tint": "#d8c591",
+                    "on-secondary": "#36301e",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#cdc6b7",
+                    "tertiary-container": "#d6d2f7",
+                    "outline-variant": "#4b463b",
+                    "on-primary-fixed": "#231b00",
+                    "outline": "#979083",
+                    "surface-variant": "#353436",
+                    "secondary-container": "#4d4633",
+                    "surface-container-lowest": "#0e0e0f",
+                    "secondary-fixed-dim": "#d0c6ad",
+                    "on-tertiary": "#2f2d4a",
+                    "inverse-on-surface": "#313031",
+                    "error-container": "#93000a",
+                    "surface-container-low": "#1c1b1c",
+                    "background": "#131314",
+                    "surface-container": "#201f20",
+                    "on-secondary-fixed-variant": "#4d4633",
+                    "on-primary-fixed-variant": "#52461d",
+                    "inverse-primary": "#6b5d33",
+                    "tertiary-fixed": "#e3dfff",
+                    "on-tertiary-fixed-variant": "#454462",
+                    "tertiary-fixed-dim": "#c6c3e7",
+                    "surface": "#131314",
+                    "secondary": "#d0c6ad",
+                    "on-tertiary-fixed": "#1a1834",
+                    "inverse-surface": "#e5e2e3",
+                    "on-secondary-fixed": "#201b0b",
+                    "primary-fixed": "#f5e1ab",
+                    "surface-dim": "#131314",
+                    "on-primary-container": "#695c31"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .drop-cap::first-letter {
+            float: left;
+            font-family: 'Newsreader', serif;
+            font-size: 5.5rem;
+            line-height: 0.8;
+            padding-right: 0.75rem;
+            padding-top: 0.25rem;
+            color: #e8d5a0;
+            font-weight: 700;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0e0e0f; }
+        ::-webkit-scrollbar-thumb { background: #353436; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="bg-[#131314] dark:bg-[#131314] w-full top-0 z-50 flex justify-between items-center px-6 h-16 w-full shadow-none">
+<div class="flex items-center gap-4">
+<button class="text-[#E8D5A0] hover:scale-105 transition-transform duration-300 active:scale-95">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-serif tracking-tight text-[#e5e2e3] text-xl font-bold tracking-tighter text-[#E8D5A0]">BRAIN</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-[#e5e2e3]/60 font-label text-sm tracking-widest hover:text-[#E8D5A0] transition-colors" href="#">NETWORK</a>
+<a class="text-[#E8D5A0] font-label text-sm tracking-widest" href="#">CURATION</a>
+</nav>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border-[0.5px] border-outline-variant/30 hover:scale-105 transition-transform duration-300">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a thoughtful man in a dark turtleneck against a charcoal background with cinematic soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5V5JDJfn-RsQ_o2AtZex0QufVe4VZqZIKGuHA3_YfqDwgk5D5n9klYFgxZ5NFTpIMtWmtRg6-TEkxOsnC9b9MqwxTOwWCeCr8NczGb8R6t1FiXCXdQQBGssBDbT0ib8xhPnexBfimKlsc61l-V_0oos7Ozo56KeeBDomlOFJt0KPVrOnde2DOmc9GRzE04yXwvjn5bGSy0edqbuXJJuSVBAFIOBSM5BARF40PYwLvM9Cgm62uVlKRvnYz3zAVjYiCJJonKQcCu1I"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-12 md:py-24">
+<!-- Hero Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
+<div class="lg:col-span-7 flex flex-col gap-6">
+<nav class="flex items-center gap-2 text-primary-fixed-dim font-label text-[10px] uppercase tracking-[0.3em]">
+<span>Archives</span>
+<span class="material-symbols-outlined text-[12px]" data-icon="chevron_right">chevron_right</span>
+<span>Volume 04</span>
+<span class="material-symbols-outlined text-[12px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-on-surface">Architectural Silence</span>
+</nav>
+<h2 class="text-6xl md:text-8xl font-headline font-bold text-on-surface leading-[0.9] tracking-tighter">
+                    The Theology of <br/><span class="italic text-primary-container">Negative Space.</span>
+</h2>
+<p class="text-on-surface-variant text-lg md:text-xl font-headline italic leading-relaxed max-w-xl border-l border-primary-container/20 pl-6 py-2">
+                    "Silence is not the absence of sound, but the presence of a deeper intention." — The Curator
+                </p>
+</div>
+<div class="lg:col-span-5 relative group">
+<div class="aspect-[4/5] w-full overflow-hidden rounded-sm bg-surface-container shadow-2xl">
+<img class="w-full h-full object-cover grayscale brightness-75 group-hover:scale-105 transition-transform duration-[2000ms] ease-out" data-alt="minimalist architectural shot of a brutalist concrete interior with a single beam of sharp dramatic sunlight cutting through the darkness" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAMsAi6oiLDN6etvLXZFC28BI2OdB8GrJH8Uc2Y0OZmFZFrMrJDTq5-wxUHKlKste58CUY0z71PrIBiWAFKcxwkqNIBlhTQlzOswH5LUZqmKs6MauRcEs8rv2wZcJWrz1IgYsYSO0AhO1icpEQJ1wQ47ZXJe26Tu0CQl7prx0ghgy9xiEv7A_3XEybM-vo0CwxC7rywdA-wdM5EXDgICNuqqDUKqG4w6qWyKTRwosNzgdQv_5N8XaTeCodN7xSwDMHJHD3v1aNSUk"/>
+</div>
+<div class="absolute -bottom-6 -left-6 bg-surface-container-high p-6 shadow-2xl backdrop-blur-md bg-opacity-90">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="history_edu">history_edu</span>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-label">Curated By</p>
+<p class="font-headline text-lg text-primary">The Sovereign Circle</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Editorial Content -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+<!-- Sidebar: Stats & Metadata -->
+<aside class="lg:col-span-3 space-y-12 order-last lg:order-first">
+<div class="space-y-6">
+<h3 class="font-label text-[10px] uppercase tracking-[0.4em] text-primary-container/60 border-b border-outline-variant/10 pb-2">Impact Analytics</h3>
+<div class="space-y-8">
+<div class="flex flex-col gap-1">
+<span class="text-3xl font-headline text-on-surface">8.4k</span>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant">Cultural Resonance</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-3xl font-headline text-on-surface">122</span>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant">Private Citations</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-3xl font-headline text-on-surface">Gold</span>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant">Curation Tier</span>
+</div>
+</div>
+</div>
+<div class="space-y-6">
+<h3 class="font-label text-[10px] uppercase tracking-[0.4em] text-primary-container/60 border-b border-outline-variant/10 pb-2">Interaction</h3>
+<div class="flex flex-col gap-4">
+<button class="flex items-center justify-between group p-3 rounded-sm hover:bg-surface-container transition-colors">
+<span class="font-label text-xs tracking-wider">IGNITE (BOLT)</span>
+<span class="material-symbols-outlined text-primary-container group-hover:scale-110 transition-transform" data-icon="bolt">bolt</span>
+</button>
+<button class="flex items-center justify-between group p-3 rounded-sm hover:bg-surface-container transition-colors">
+<span class="font-label text-xs tracking-wider">RESONATE (DRUM)</span>
+<span class="material-symbols-outlined text-primary-container group-hover:scale-110 transition-transform" data-icon="water_drop">water_drop</span>
+</button>
+<button class="flex items-center justify-between group p-3 rounded-sm hover:bg-surface-container transition-colors">
+<span class="font-label text-xs tracking-wider">ANNOTATE (QUILL)</span>
+<span class="material-symbols-outlined text-primary-container group-hover:scale-110 transition-transform" data-icon="edit_note">edit_note</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Body Text -->
+<article class="lg:col-span-9 space-y-12">
+<div class="prose prose-invert max-w-none">
+<p class="drop-cap text-xl md:text-2xl font-headline text-on-surface leading-relaxed mb-12">
+                        n the pantheon of modern aesthetics, the concept of "nothingness" has often been mischaracterized as an absence. However, within the Sovereign Onyx framework, we recognize that the void is the most potent vessel for meaning. Architectural silence is not merely the space between walls; it is the tension that gives the walls their purpose. 
+                    </p>
+<div class="my-16 flex flex-col md:flex-row gap-12 items-center">
+<div class="flex-1 text-on-surface-variant leading-loose font-body text-base">
+                            The pursuit of the digital curator is to strip away the noise of the algorithm. We are currently living in an era of hyper-saturation, where every pixel screams for attention. To choose onyx—to choose depth—is an act of profound rebellion. It requires a discipline that most platforms lack: the discipline to let the user breathe.
+                        </div>
+<div class="flex-1 relative">
+<div class="absolute -inset-4 bg-primary-container/5 blur-3xl rounded-full"></div>
+<blockquote class="relative border-l-2 border-primary-container pl-8 py-4">
+<p class="text-3xl font-headline text-primary italic leading-tight">"Luxury is the ability to ignore the temporary."</p>
+<cite class="block mt-4 font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant">— Manifesto III, Section 4</cite>
+</blockquote>
+</div>
+</div>
+<h4 class="text-3xl font-headline font-bold text-on-surface mt-16 mb-8 tracking-tight">The Obsidian Synthesis</h4>
+<p class="text-on-surface-variant leading-loose text-lg mb-8">
+                        As we navigate the deeper layers of the BRAIN network, we find that the most impactful 'Curation' happens in the shadows. When we provide the eye with a dark background, we aren't just saving battery life or reducing strain; we are creating a focused theater for the content to perform. The gold highlights represent the 'signal' in a sea of noise.
+                    </p>
+<div class="grid grid-cols-2 gap-4 my-16">
+<div class="aspect-square bg-surface-container overflow-hidden rounded-sm">
+<img class="w-full h-full object-cover brightness-50" data-alt="extreme close up of black ink swirling in clear water, capturing high contrast organic shapes and fluid motion" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpQEBxkBXFY1V6DxXorJfsvyCckf1qIqVFv4Mr46HRYs3v98_qNnt2-LJUX_2lKmry-WDLDFYCOK8o6jk-LM9ybGT866VopT_-pAyxYBSB46NXQnI09wacBMYv8XUoWT7zZoQDoL_uXrGQc3f-9VYPsFwMu3HdcZXH8wCrsWQIv-D1GdaxuW3MywG7WI3Ft_JI7Kigg6yl-o00zjCwWlonc4dYqTfSgGmd87ZgfUgmEa3LOlrPft7lEUrUzqPrBJoUMx4NFJA7cw0"/>
+</div>
+<div class="aspect-square bg-surface-container overflow-hidden rounded-sm">
+<img class="w-full h-full object-cover grayscale" data-alt="black and white macro shot of a mountain peak shrouded in thick fog, emphasizing jagged textures and mysterious atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADp7IYT6zH4YUIg98ojXB2s1eyynMK_lWNeFiz4F1QUV24CAuQfPL6uQhrenZrKoTvS-d-J35m9MZyV5Xj8j-Zwzb28aUa97mIjIEY3xce-arXpr5IVDfm5X6A1RHiVpyQ7wYdly1A2XQZdr3qV68GUgSV7aVC-Rma4MrRB1FveKjCktUvkc6Ij8Dx_rCKhzwp5M8wPqXjxpTrqvKfQP4HFH_IrVVfgm-hzdCmWVZptPqWk89j__7SIyDE0zs-nhUHqxnsBVgJV98"/>
+</div>
+</div>
+<p class="text-on-surface-variant leading-loose text-lg">
+                        This is the Sovereign Onyx philosophy. It is an invitation to slow down. To read. To think. To become a curator of your own attention. In the following chapters, we will explore how this visual language translates into social dynamics and private circles.
+                    </p>
+</div>
+<!-- Tags / Taxonomy -->
+<div class="pt-12 border-t border-outline-variant/10 flex flex-wrap gap-3">
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/20 text-[10px] font-label uppercase tracking-widest text-primary-container">Philosophy</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/20 text-[10px] font-label uppercase tracking-widest text-primary-container">Minimalism</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/20 text-[10px] font-label uppercase tracking-widest text-primary-container">Design Ethics</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/20 text-[10px] font-label uppercase tracking-widest text-primary-container">Onyx Protocol</span>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-8 pb-4 bg-[#131314]/70 backdrop-blur-xl z-50 border-none shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-450 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Network</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#e5e2e3]/40 hover:text-[#E8D5A0] transition-colors duration-450 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">BRAIN</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#E8D5A0] scale-110 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="menu_book" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Curation</span>
+</div>
+</nav>
+<!-- Decorative Gradient Mesh for Depth -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(232,213,160,0.03)_0%,rgba(19,19,20,1)_70%)]"></div>
+</body></html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#584400",
+                        "outline": "#98907e",
+                        "on-secondary-container": "#b7b5b4",
+                        "inverse-surface": "#e2e2e2",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "surface-container-low": "#1b1b1b",
+                        "surface-container-highest": "#353535",
+                        "outline-variant": "#4d4637",
+                        "inverse-primary": "#745b00",
+                        "error": "#ffb4ab",
+                        "on-surface": "#e2e2e2",
+                        "surface-container-high": "#2a2a2a",
+                        "primary-fixed-dim": "#e5c363",
+                        "surface-bright": "#393939",
+                        "inverse-on-surface": "#303030",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-primary": "#3d2f00",
+                        "on-error": "#690005",
+                        "on-tertiary-container": "#4e3d06",
+                        "surface-tint": "#e5c363",
+                        "on-tertiary": "#3d2f00",
+                        "on-surface-variant": "#d0c5b2",
+                        "on-secondary": "#313030",
+                        "on-background": "#e2e2e2",
+                        "background": "#131313",
+                        "surface": "#131313",
+                        "on-secondary-fixed-variant": "#474746",
+                        "tertiary-fixed": "#fbe09b",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-container": "#1f1f1f",
+                        "tertiary-container": "#c1a969",
+                        "surface-variant": "#353535",
+                        "surface-dim": "#131313",
+                        "primary-container": "#c8a84b",
+                        "secondary-container": "#474746",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary": "#e5c363",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#56450e",
+                        "on-primary-fixed": "#241a00",
+                        "on-primary-container": "#4f3d00",
+                        "tertiary-fixed-dim": "#dec482",
+                        "secondary-fixed": "#e5e2e1",
+                        "primary-fixed": "#ffe08c",
+                        "tertiary": "#dec482",
+                        "secondary": "#c8c6c5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0e0e0e;
+            color: #e2e2e2;
+            overflow: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen w-full">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-zinc-950/60 backdrop-blur-xl shadow-[0_32px_64px_-15px_rgba(0,0,0,0.8)] flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Recipient Avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20" data-alt="Close up portrait of a sophisticated man with a groomed beard against a minimalist dark grey studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-aTxO89HzPCC7HLUAfcctgI6_1UB_jJY1qVFerTNHwTF-cqVbXMVSo941JuumRNdlkQHgkgwT--zz9AUveAboGykdmrxKR2t6TLObSyGrLb4tkjqNeO9aAjXv2i881IeeM6HGP3FCToQK3GT7Y943SFDO8jcPGYj0mSry0qgqLgewbZ0yQny5OugA_J-Stj9U9TLC1dcC1CJreQUJiCtKVnXw_1RTr5sKUmYjOP3UO0bFJ7FDna67-HhRkUwgc7VHl3JCenlEwsw"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-950"></span>
+</div>
+<div>
+<h1 class="text-xl font-black text-[#C8A84B] tracking-tighter font-['Manrope']">Kiltikonet</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-medium">Online</p>
+</div>
+</div>
+<button class="text-[#C8A84B] active:scale-95 duration-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</nav>
+<!-- Chat Thread Area -->
+<main class="flex-1 overflow-y-auto px-6 pt-24 pb-32 flex flex-col gap-6">
+<!-- Recipient Message -->
+<div class="flex flex-col items-start max-w-[85%] gap-2">
+<div class="bg-surface-container-high rounded-xl rounded-tl-none p-4 shadow-xl">
+<p class="text-on-surface font-headline leading-relaxed text-[15px]">
+                    L'architecture du nouveau palais est enfin finalisée. Souhaitez-vous consulter les rendus dorés ?
+                </p>
+</div>
+<span class="text-[10px] text-zinc-500 font-label tracking-wider ml-1">14:02</span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col items-end self-end max-w-[85%] gap-2">
+<div class="bg-zinc-950 border border-primary/30 rounded-xl rounded-tr-none p-4 shadow-2xl relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+<p class="text-on-surface font-headline leading-relaxed text-[15px] relative z-10">
+                    Absolument. Assurez-vous que l'éclairage mette en valeur la texture de l'onyx.
+                </p>
+</div>
+<span class="text-[10px] text-zinc-500 font-label tracking-wider mr-1 flex items-center gap-1">
+                14:05 <span class="material-symbols-outlined text-[12px] text-primary">done_all</span>
+</span>
+</div>
+<!-- Recipient Message (Image Context) -->
+<div class="flex flex-col items-start max-w-[85%] gap-2">
+<div class="bg-surface-container-high rounded-xl rounded-tl-none p-1 shadow-xl overflow-hidden">
+<img alt="Interior Design" class="w-full aspect-[4/3] object-cover rounded-lg" data-alt="Ultra-luxurious modern penthouse interior with dark onyx floors, gold accents, and large windows overlooking a city at night" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo2pR0rStsFWjP_0Kbz3A3jS4Y1dVbFG4bNH6tXxWtzwJHfUzdHkXYfAD9WFbA2ybiU6s5dDhRJhR5zKgif7jQHTUVtp9k2TLNW11tpFnE1r8QykCmAu1iiy35EsSR-DsOY-iCrVbZRSZ7r5hM9002fRtV-K9lWg7v2BfDmUWN3TyaZN1Ag6_b91o2ISS8JZhNPi_pHoqJCytX2Q0z2yo-9mUGvIAT2JSwf9lzlE0CdovrmzZipyZGsaD3HhDxM6IoE2KUpOaK-fU"/>
+<div class="p-3">
+<p class="text-on-surface font-headline leading-relaxed text-[15px]">
+                        Voici le salon principal. L'onyx a été poli selon vos exigences.
+                    </p>
+</div>
+</div>
+<span class="text-[10px] text-zinc-500 font-label tracking-wider ml-1">14:06</span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col items-end self-end max-w-[85%] gap-2">
+<div class="bg-zinc-950 border border-primary/30 rounded-xl rounded-tr-none p-4 shadow-2xl">
+<p class="text-on-surface font-headline leading-relaxed text-[15px]">
+                    C'est exceptionnel. Validez la phase finale.
+                </p>
+</div>
+<span class="text-[10px] text-zinc-500 font-label tracking-wider mr-1 flex items-center gap-1">
+                14:08 <span class="material-symbols-outlined text-[12px] text-primary">done_all</span>
+</span>
+</div>
+</main>
+<!-- Input Bar Wrapper (Floating above nav) -->
+<div class="fixed bottom-[88px] left-0 w-full px-6 z-40">
+<div class="flex items-center gap-3 bg-zinc-900/80 backdrop-blur-2xl rounded-2xl p-2 border border-white/5 shadow-2xl">
+<button class="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder-zinc-500 font-label text-sm" placeholder="Écrire un message..." type="text"/>
+<button class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E5C363] to-[#C8A84B] text-black flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-zinc-950/60 backdrop-blur-xl rounded-t-xl z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+<div class="flex flex-col items-center justify-center bg-gradient-to-br from-[#E5C363] to-[#C8A84B] text-black rounded-xl p-2.5 active:scale-90 duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 p-2.5 hover:bg-zinc-800/50 transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 p-2.5 hover:bg-zinc-800/50 transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 p-2.5 hover:bg-zinc-800/50 transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">settings</span>
+</div>
+</nav>
+</body></html>
