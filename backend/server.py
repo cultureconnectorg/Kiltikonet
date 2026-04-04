@@ -3725,21 +3725,15 @@ async def generate_embedding_endpoint(request: EmbeddingRequest):
 async def llm_chat_endpoint(request: ChatRequest):
     """Chat completion using Emergent LLM"""
     try:
-        session_id = str(uuid.uuid4())
-        chat = LlmChat(
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat_obj = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            session_id=session_id,
-            system_message=request.system_prompt or "Tu es un assistant expert en industries culturelles afro-caribéennes."
+            session_id=str(uuid.uuid4()),
+            system_message=request.system_prompt or "Tu es un assistant expert en industries culturelles afro-caribéennes.",
         )
-        
-        if request.provider == "anthropic":
-            chat.with_model("anthropic", request.model or "claude-4-sonnet-20250514")
-        else:
-            chat.with_model("openai", request.model or "gpt-5.2")
-        
-        user_message = UserMessage(text=request.message)
-        response = await chat.send_message(user_message)
-        
+        chat_obj.with_model("anthropic", request.model or "claude-sonnet-4-5-20250929")
+        user_msg = UserMessage(text=request.message)
+        response = await chat_obj.send_message(user_msg)
         return {"response": response}
     except Exception as e:
         logger.error(f"Chat error: {str(e)}")
@@ -9385,17 +9379,18 @@ Tu donnes des conseils concrets. Tu ne fais JAMAIS de réponse générique.
 Réponds en 2-3 phrases maximum. Sois direct et humain.{web_context}"""
 
     try:
-        from emergentintegrations.llm.chat import chat, ChatMessage
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
         emergent_key = os.environ.get("EMERGENT_LLM_KEY", "")
-        response = await chat(
+        import uuid
+        chat_obj = LlmChat(
             api_key=emergent_key,
-            model="claude-sonnet-4-5-20250929",
-            messages=[
-                ChatMessage(role="system", content=system_prompt),
-                ChatMessage(role="user", content=message),
-            ],
+            session_id=str(uuid.uuid4()),
+            system_message=system_prompt,
         )
-        return {"response": response.content, "web_enriched": bool(web_context)}
+        chat_obj.with_model("anthropic", "claude-sonnet-4-5-20250929")
+        user_msg = UserMessage(text=message)
+        response = await chat_obj.send_message(user_msg)
+        return {"response": response, "web_enriched": bool(web_context)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur CVL BRAIN: {str(e)}")
 

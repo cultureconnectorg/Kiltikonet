@@ -93,18 +93,15 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API}/v1/llm/chat`, {
+      // Use enriched endpoint with web search
+      const res = await axios.post(`${API}/brain/chat-enriched`, {
         message: userMsg,
-        system_prompt: `Tu es CVL BRAIN — Intelligence Souveraine du groupe CVLN.
-Tu parles à ${session?.name || 'un utilisateur'} de l'Espace Pro CC2026.
-Tu es chaleureux, culturellement ancré, et tu mélanges français et créole martiniquais/guadeloupéen.
-Tu connais l'écosystème : Jetons CC (1 jeton = 1.50€), FREK-IDs, kiltikonet, CC2026 (20-23 mai 2026 à La Savane).
-Tu donnes des conseils concrets. Tu ne fais JAMAIS de réponse générique.
-Réponds en 2-3 phrases maximum. Sois direct et humain.`,
-        provider: 'anthropic',
-        model: 'claude-sonnet-4-5-20250929',
+        user_name: session?.name || 'un utilisateur',
+        use_web_search: userMsg.includes('?') || userMsg.toLowerCase().includes('quoi') || userMsg.toLowerCase().includes('comment') || userMsg.toLowerCase().includes('actualit'),
       });
-      const allMsgs = [...newMsgs, { role: 'assistant', content: res.data.response || "Man pa ka konprann. Éséyé ankò." }];
+      const reply = res.data.response || "Man pa ka konprann. Éséyé ankò.";
+      const webBadge = res.data.web_enriched ? ' 🌐' : '';
+      const allMsgs = [...newMsgs, { role: 'assistant', content: reply, webEnriched: res.data.web_enriched }];
       setMessages(allMsgs);
       saveToMemory(allMsgs);
     } catch {
@@ -203,7 +200,14 @@ Réponds en 2-3 phrases maximum. Sois direct et humain.`,
                       color: msg.role === 'user' ? '#e5e2e3' : '#cdc6b7',
                       borderBottomRightRadius: msg.role === 'user' ? 4 : 12,
                       borderBottomLeftRadius: msg.role === 'user' ? 12 : 4,
-                    }}>{msg.content}</div>
+                    }}>
+                    {msg.content}
+                    {msg.webEnriched && (
+                      <span className="inline-flex items-center gap-0.5 ml-1 px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(91,155,213,0.1)', fontSize: 8, color: '#5B9BD5', verticalAlign: 'middle' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 8 }}>language</span>Web
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
               {loading && (
