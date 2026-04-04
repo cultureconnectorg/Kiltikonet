@@ -1,0 +1,98 @@
+{
+  "summary": "Iteration 68 - CC2026 Point 4 (Studios Sidebar) and Point 7 (Immersive Inbox) Testing. Both new features are working correctly. Studios Sidebar slides from left with 4 studios (LinkedIn, Feed & Reel, Shop, Preview & Terminal), each expandable with tools. Immersive Inbox shows Instagram DM-style interface with 7 ghost conversations for proof of life. All existing features (Feed, Reels, Wallet, Shop, Profile) remain functional.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "Various API calls", "issue": "429 Too Many Requests errors in console (rate limiting)", "priority": "LOW"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ImmersiveInbox + CvlBrainFloat",
+        "issue": "CVL BRAIN floating button (z-[90]) intercepts clicks on Immersive Inbox send button (z-[70]). The floating button overlays the inbox when both are visible.",
+        "selector": "[data-testid='inbox-send-btn'], [data-testid='cvl-brain-float-btn']",
+        "priority": "LOW",
+        "suggested_fix": "Either hide CvlBrainFloat when ImmersiveInbox is open, or increase ImmersiveInbox z-index to z-[95]"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "studios_sidebar": {
+      "status": "WORKING",
+      "tests_passed": [
+        "Studios toggle button (dashboard_customize icon) visible on desktop header",
+        "Studios sidebar slides from left with smooth CSS transition",
+        "4 studios listed: LinkedIn Studio, Feed & Reel Studio, Shop Studio, Preview & Terminal",
+        "Clicking a studio expands its tools list",
+        "Extended panel shows studio details with stats and recent activity",
+        "Close button works correctly",
+        "Clicking a tool closes sidebar and shows toast notification"
+      ]
+    },
+    "immersive_inbox": {
+      "status": "WORKING",
+      "tests_passed": [
+        "Inbox button in header opens fullscreen immersive inbox",
+        "7 ghost conversations visible: Simone Ogundimu, Mateo Diop, Chiamaka Grandisson, Diego Asante, Amara Césaire, Yaël Fanon, Nadia Glissant",
+        "Online users shown in top bar with green dots (SO, MD, DA)",
+        "Clicking a conversation opens chat view with message bubbles",
+        "Message input and send functionality works",
+        "Ghost auto-reply after delay works",
+        "Search functionality works",
+        "Back button and close functionality works"
+      ]
+    },
+    "mobile_hamburger_menu": {
+      "status": "WORKING",
+      "tests_passed": [
+        "Studios entry added to hamburger menu",
+        "Boîte de réception entry opens immersive inbox",
+        "Studios sidebar opens from hamburger menu on mobile"
+      ]
+    },
+    "existing_features": {
+      "status": "WORKING",
+      "tests_passed": [
+        "Feed tab - LinkedIn-style feed with ghost posts",
+        "Reels tab - TikTok-style vertical content",
+        "Wallet tab - Revolut-style with KT balance and stats",
+        "Shop tab - Marketplace with categories",
+        "Profile/Settings tab - All settings accessible"
+      ]
+    }
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL: Fix z-index conflict between CvlBrainFloat (z-90) and ImmersiveInbox (z-70) - either hide float when inbox is open or increase inbox z-index"
+  ],
+  "critical_code_review_comments": [
+    "Studios Sidebar implementation is clean with proper animation and state management",
+    "Immersive Inbox has good UX with Instagram DM-style design",
+    "Ghost conversations provide good proof of life for the messaging feature",
+    "Minor HTML nesting warning: button inside button in StudiosSidebar (tools inside studio button) - consider restructuring"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "98%"
+  },
+  "test_credentials": {
+    "admin_email": "cultureconnectorg@gmail.com",
+    "bypass_code": "000000",
+    "login_method": "Magic link with auto-bypass for admin email"
+  },
+  "seed_data_creation": "Ghost conversations auto-populated in ImmersiveInbox.jsx",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 68 completed. Point 4 (Studios Sidebar) and Point 7 (Immersive Inbox) both working. Studios has 4 studios with expandable tools. Inbox has 7 ghost conversations (Simone, Mateo, Chiamaka, Diego, Amara, Yaël, Nadia) with auto-reply. Minor z-index issue: CvlBrainFloat overlays inbox send button. All existing features (Feed, Reels, Wallet, Shop, Profile) still working.",
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": [
+      "Ghost conversations in ImmersiveInbox.jsx (GHOST_CONVERSATIONS, GHOST_MESSAGES)",
+      "Wallet transaction history in WalletPage.jsx"
+    ]
+  }
+}

@@ -13,6 +13,8 @@ import LinkedInFeed from './pro/LinkedInFeed';
 import ReelsFeed from './pro/ReelsFeed';
 import WalletPage from './pro/WalletPage';
 import ShopPage from './pro/ShopPage';
+import StudiosSidebar from './pro/StudiosSidebar';
+import ImmersiveInbox from './pro/ImmersiveInbox';
 import { ArchivesSection, GovernanceSection, ConsoleSection, SettingsSovereign, MessagesSection } from './pro/SovereignSections';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -127,6 +129,8 @@ const ProSpaceDashboard = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [brainOpen, setBrainOpen] = useState(false);
   const [culturalIdentity, setCulturalIdentity] = useState(null);
+  const [studiosOpen, setStudiosOpen] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
 
   useEffect(() => { if (!loading && !isAuthenticated) navigate('/espace-pro/connexion'); }, [loading, isAuthenticated, navigate]);
   useEffect(() => { if (session?.id) loadAll(); }, [session?.id]);
@@ -209,6 +213,11 @@ const ProSpaceDashboard = () => {
             <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 24 }}>menu</span>
           </button>
 
+          {/* Studios button — slide left */}
+          <button onClick={() => setStudiosOpen(true)} className="hidden md:flex items-center justify-center" style={{ minHeight: 44, minWidth: 44 }} aria-label="Studios" data-testid="studios-toggle">
+            <span className="material-symbols-outlined" style={{ color: '#72727a', fontSize: 22 }}>dashboard_customize</span>
+          </button>
+
           {/* Logo KILTIKONET — Sovereign Serif */}
           <button onClick={() => setActiveSection('feed')} className="flex-shrink-0 flex items-center gap-2" aria-label="Accueil Espace Pro" data-testid="logo-home">
             <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, fontWeight: 400, letterSpacing: '-0.02em', color: '#E8D5A0', lineHeight: 1 }}>Kiltikonet</h1>
@@ -239,7 +248,7 @@ const ProSpaceDashboard = () => {
           </nav>
 
           {/* Inbox icon */}
-          <button onClick={() => setShowMessages(!showMessages)} className="relative" style={{ minHeight: 44, minWidth: 44 }} data-testid="inbox-btn">
+          <button onClick={() => setInboxOpen(true)} className="relative" style={{ minHeight: 44, minWidth: 44 }} data-testid="inbox-btn">
             <span className="material-symbols-outlined" style={{ color: '#72727a', fontSize: 22 }}>inbox</span>
             {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#ffb4ab', color: '#690005', fontSize: 9, fontWeight: 700 }}>{unreadCount}</span>}
           </button>
@@ -271,9 +280,10 @@ const ProSpaceDashboard = () => {
             {[
               { id: 'feed', icon: 'dynamic_feed', label: 'Feed LinkedIn' },
               { id: 'reels', icon: 'play_circle', label: 'Reels / Shorts' },
-              { id: 'messages', icon: 'inbox', label: 'Boîte de réception' },
+              { id: 'open-inbox', icon: 'inbox', label: 'Boîte de réception' },
               { id: 'brain', icon: 'psychology', label: 'CVL BRAIN' },
               { id: 'wallet', icon: 'account_balance_wallet', label: 'Wallet KT' },
+              { id: 'open-studios', icon: 'dashboard_customize', label: 'Studios' },
               { id: 'shop', icon: 'storefront', label: 'Sovereign Shop' },
               { id: 'archives', icon: 'cloud', label: 'Archives / Cloud' },
               { id: 'profile', icon: 'person', label: 'Mon Profil' },
@@ -281,7 +291,11 @@ const ProSpaceDashboard = () => {
               { id: 'console', icon: 'terminal', label: 'Console / Terminal' },
               { id: 'settings', icon: 'settings', label: 'Paramètres' },
             ].map(item => (
-              <button key={item.id} onClick={() => { setActiveSection(item.id); setMobileMenu(false); }}
+              <button key={item.id} onClick={() => {
+                if (item.id === 'open-inbox') { setInboxOpen(true); setMobileMenu(false); }
+                else if (item.id === 'open-studios') { setStudiosOpen(true); setMobileMenu(false); }
+                else { setActiveSection(item.id); setMobileMenu(false); }
+              }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
                 style={{ background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent', color: activeSection === item.id ? '#E8D5A0' : '#72727a' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 20, fontVariationSettings: activeSection === item.id ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300" }}>{item.icon}</span>
@@ -298,7 +312,7 @@ const ProSpaceDashboard = () => {
         </div>
       )}
       {activeSection === 'feed' ? (
-        <LinkedInFeed session={session} onOpenInbox={() => setShowMessages(true)} />
+        <LinkedInFeed session={session} onOpenInbox={() => setInboxOpen(true)} />
       ) : activeSection === 'brain' ? (
         <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
           {/* Brain — Full page Sovereign with Golden Sphere */}
@@ -374,7 +388,7 @@ const ProSpaceDashboard = () => {
           </div>
         </div>
       ) : activeSection === 'reels' ? (
-        <ReelsFeed session={session} onOpenInbox={() => setShowMessages(true)} />
+        <ReelsFeed session={session} onOpenInbox={() => setInboxOpen(true)} />
       ) : (
         <div className="max-w-5xl mx-auto px-4 py-6">
           {activeSection === 'profile' && <ProfilePage profile={profile} session={session} connections={connections} onUpdate={loadAll} />}
@@ -388,6 +402,22 @@ const ProSpaceDashboard = () => {
           {activeSection === 'settings-detail' && <SettingsSection session={session} jetonsBalance={jetonsBalance} onLogout={handleLogout} />}
         </div>
       )}}
+
+      {/* Studios Sidebar — slides from left */}
+      <StudiosSidebar
+        isOpen={studiosOpen}
+        onClose={() => setStudiosOpen(false)}
+        onSelectStudio={(studioId, toolLabel) => {
+          toast.success(`Studio: ${toolLabel}`);
+          if (studioId === 'linkedin') setActiveSection('feed');
+          else if (studioId === 'reel') setActiveSection('reels');
+          else if (studioId === 'shop') setActiveSection('shop');
+          else if (studioId === 'terminal') setActiveSection('console');
+        }}
+      />
+
+      {/* Immersive Inbox — fullscreen */}
+      <ImmersiveInbox session={session} isOpen={inboxOpen} onClose={() => setInboxOpen(false)} />
 
       {showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
       <CvlBrainFloat session={session} externalOpen={brainOpen} onExternalClose={() => setBrainOpen(false)} />
