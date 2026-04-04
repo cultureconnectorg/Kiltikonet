@@ -25,6 +25,7 @@ import CulturalReactions from './pro/CulturalReactions';
 import MobileNavigation from './pro/MobileNavigation';
 import ShopPage from './pro/ShopPage';
 import { ProofOfLifeBadge, OnboardingWidget, CreationNudge } from './pro/GrowthWidgets';
+import { ArchivesSection, GovernanceSection, ConsoleSection, SettingsSovereign, MessagesSection } from './pro/SovereignSections';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -289,7 +290,43 @@ const ProSpaceDashboard = () => {
         </div>
       </header>
 
-      {/* ─── MAIN ─── */}
+      {/* ─── MOBILE MENU SOVEREIGN ─── */}
+      {mobileMenu && (
+        <div className="fixed inset-0 z-[60] md:hidden" onClick={() => setMobileMenu(false)}>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <nav className="absolute left-0 top-0 bottom-0 w-72 py-8 px-6 space-y-1 overflow-y-auto"
+            style={{ background: '#131314', boxShadow: '10px 0 40px rgba(0,0,0,0.6)' }}
+            onClick={e => e.stopPropagation()}>
+            <h2 className="mb-6" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, color: G }}>Kiltikonet</h2>
+            {[
+              { id: 'feed', icon: 'explore', label: 'Explore' },
+              { id: 'network', icon: 'hub', label: 'Réseau' },
+              { id: 'brain', icon: 'psychology', label: 'CVL BRAIN' },
+              { id: 'shop', icon: 'local_mall', label: 'Shop' },
+              { id: 'events', icon: 'event', label: 'Agenda' },
+              { id: 'messages', icon: 'chat', label: 'Messages' },
+              { id: 'archives', icon: 'auto_stories', label: 'Archives' },
+              { id: 'governance', icon: 'gavel', label: 'Gouvernance' },
+              { id: 'console', icon: 'monitoring', label: 'Console' },
+              { id: 'settings', icon: 'settings', label: 'Paramètres' },
+              { id: 'profile', icon: 'person', label: 'Mon Profil' },
+            ].map(item => (
+              <button key={item.id} onClick={() => { setActiveSection(item.id === 'brain' ? 'brain' : item.id); setMobileMenu(false); if (item.id === 'brain') setBrainOpen(true); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
+                style={{ background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent', color: activeSection === item.id ? G : '#72727a' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 20, fontVariationSettings: activeSection === item.id ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300" }}>{item.icon}</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 600 }}>{item.label}</span>
+              </button>
+            ))}
+            <div className="pt-6">
+              <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" style={{ color: '#ffb4ab' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 600 }}>Se déconnecter</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
       {activeSection === 'feed' ? (
         <FeedLayout session={session} profile={profile} connections={connections} onRefresh={loadAll} jetonsBalance={jetonsBalance} culturalIdentity={culturalIdentity} />
       ) : activeSection === 'brain' ? (
@@ -353,7 +390,11 @@ const ProSpaceDashboard = () => {
           {activeSection === 'network' && <NetworkPage connections={connections} session={session} onConnect={loadAll} />}
           {activeSection === 'shop' && <ShopSection session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'events' && <EventsPage events={events} />}
-          {activeSection === 'settings' && <SettingsSection session={session} jetonsBalance={jetonsBalance} onLogout={handleLogout} />}
+          {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} />}
+          {activeSection === 'archives' && <ArchivesSection />}
+          {activeSection === 'governance' && <GovernanceSection />}
+          {activeSection === 'console' && <ConsoleSection session={session} />}
+          {activeSection === 'messages' && <MessagesSection session={session} />}
         </div>
       )}
 
@@ -820,99 +861,118 @@ const ProfilePage = ({ profile, session, connections, onUpdate }) => {
   const tags = profile?.expertise_tags || [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
-      {/* Banner */}
-      <div className="rounded-xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <div className="h-40 sm:h-52 relative" style={{ background: `linear-gradient(135deg, ${C.accent}60, ${C.gold}30, ${C.forest}25, ${C.turquoise}20)` }}>
-          {/* Madras pattern overlay */}
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 40px), repeating-linear-gradient(-45deg, transparent, transparent 20px, rgba(255,255,255,0.05) 20px, rgba(255,255,255,0.05) 40px)' }} />
+    <div className="max-w-3xl mx-auto space-y-6 pb-16">
+      {/* Banner — Sovereign */}
+      <div className="rounded-2xl overflow-hidden" style={{ background: '#1c1b1c' }}>
+        <div className="h-40 sm:h-52 relative" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.06), rgba(200,168,75,0.03), rgba(74,93,78,0.04))' }}>
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.05) 20px, rgba(255,255,255,0.05) 40px)' }} />
         </div>
         <div className="px-5 sm:px-8 pb-6 relative">
           <div className="absolute -top-14 sm:-top-16">
             <Avatar src={profile?.image || session.image} name={session.name} type={session.type} size={112}
-              style={{ border: `4px solid ${C.card}` }} />
+              style={{ border: '4px solid #1c1b1c' }} />
           </div>
           <div className="flex justify-end pt-4 gap-2">
-            <Button onClick={() => editing ? handleSave() : setEditing(true)} data-testid="edit-profile-btn"
-              className="rounded-full text-base" style={editing ? { background: C.gold, color: '#000', minHeight: 44 } : { background: 'transparent', border: `2px solid ${C.gold}`, color: C.gold, minHeight: 44 }}>
-              {editing ? (saving ? 'Sauvegarde...' : <><Save size={16} className="mr-2" /> Enregistrer</>) : <><Edit2 size={16} className="mr-2" /> Modifier</>}
-            </Button>
-            {editing && <Button variant="ghost" onClick={() => setEditing(false)} className="rounded-full" style={{ color: C.muted, minHeight: 44 }}><X size={16} /></Button>}
+            <button onClick={() => editing ? handleSave() : setEditing(true)} data-testid="edit-profile-btn"
+              className="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.97]"
+              style={editing ? { background: C.gold, color: '#0a0a0b', minHeight: 44 } : { background: 'transparent', border: '1px solid rgba(232,213,160,0.3)', color: C.gold, minHeight: 44, fontFamily: "'Manrope', sans-serif" }}>
+              {editing ? (saving ? 'Sauvegarde...' : 'Enregistrer') : 'Modifier'}
+            </button>
+            {editing && <button onClick={() => setEditing(false)} className="px-3 py-2 rounded-full hover:bg-white/5" style={{ color: '#72727a', minHeight: 44 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+            </button>}
           </div>
           <div className="mt-10 sm:mt-12">
-            <h1 className="text-2xl sm:text-3xl font-black" style={{ color: C.text }}>{session.name}</h1>
-            <p className="text-base sm:text-lg mt-1" style={{ color: C.muted }}>{profile?.organization_name || PROFILE_LABELS[session.type]}</p>
-            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm" style={{ color: C.dim }}>
-              {profile?.country && <span className="flex items-center gap-1"><MapPin size={16} /> {profile.country}</span>}
-              <span className="flex items-center gap-1" style={{ color: C.gold }}><Users size={16} /> {connections.length} connexion{connections.length !== 1 ? 's' : ''}</span>
+            <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 400, color: '#e5e2e3' }}>{session.name}</h1>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', marginTop: 4 }}>{profile?.organization_name || PROFILE_LABELS[session.type]}</p>
+            <div className="flex flex-wrap items-center gap-4 mt-3">
+              {profile?.country && <span className="flex items-center gap-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>location_on</span> {profile.country}
+              </span>}
+              <span className="flex items-center gap-1" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: C.gold }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>group</span> {connections.length} connexion{connections.length !== 1 ? 's' : ''}
+              </span>
             </div>
             <div className="flex flex-wrap gap-2 mt-4">
-              <span className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium" style={{ background: `${C.gold}20`, color: C.gold }}>
-                <Award size={14} /> Accrédité CC2026
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: 'rgba(232,213,160,0.08)', color: C.gold }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>verified</span> Accrédité CC2026
               </span>
-              {profile?.frek_id && <span className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium" style={{ background: `${C.blue}20`, color: C.blue }}><Shield size={14} /> {profile.frek_id}</span>}
+              {profile?.frek_id && <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: 'rgba(91,155,213,0.08)', color: C.blue }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>shield</span> {profile.frek_id}
+              </span>}
             </div>
           </div>
         </div>
       </div>
 
-      {/* About */}
-      <div className="rounded-xl p-5 sm:p-6" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+      {/* About — Sovereign */}
+      <div className="rounded-2xl p-5 sm:p-6" style={{ background: '#1c1b1c' }}>
         <button className="flex items-center justify-between w-full" onClick={() => setAboutOpen(!aboutOpen)} style={{ minHeight: 44 }}>
-          <h2 className="text-lg font-bold" style={{ color: C.text }}>À propos</h2>
-          {aboutOpen ? <ChevronUp size={20} style={{ color: C.dim }} /> : <ChevronDown size={20} style={{ color: C.dim }} />}
+          <h2 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>À propos</h2>
+          <span className="material-symbols-outlined" style={{ color: '#555', fontSize: 20 }}>{aboutOpen ? 'expand_less' : 'expand_more'}</span>
         </button>
         {aboutOpen && (
           <div className="mt-4">
             {editing ? (
               <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} rows={4} aria-label="Votre biographie"
-                placeholder="Décrivez votre parcours, vos projets..." className="w-full p-4 rounded-xl text-base"
-                style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none', lineHeight: 1.6 }} />
-            ) : <p className="text-base leading-relaxed" style={{ color: profile?.bio ? C.muted : C.dim }}>{profile?.bio || 'Aucune description. Cliquez sur Modifier pour ajouter.'}</p>}
+                placeholder="Décrivez votre parcours, vos projets..."
+                className="w-full p-4 rounded-xl text-sm"
+                style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', lineHeight: 1.7, fontFamily: "'Manrope', sans-serif" }} />
+            ) : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, lineHeight: 1.7, color: profile?.bio ? '#72727a' : '#555' }}>{profile?.bio || 'Aucune description. Cliquez sur Modifier pour ajouter.'}</p>}
           </div>
         )}
       </div>
 
-      {/* Skills */}
-      <div className="rounded-xl p-5 sm:p-6" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <h2 className="text-lg font-bold mb-4" style={{ color: C.text }}>Compétences</h2>
+      {/* Skills — Sovereign */}
+      <div className="rounded-2xl p-5 sm:p-6" style={{ background: '#1c1b1c' }}>
+        <h2 className="mb-4" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>Compétences</h2>
         {tags.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {tags.map(tag => <span key={tag} className="px-4 py-2 rounded-full text-sm font-medium" style={{ background: `${C.gold}15`, color: C.gold, border: `1px solid ${C.gold}25` }}>{tag}</span>)}
+            {tags.map(tag => <span key={tag} className="px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'rgba(232,213,160,0.08)', color: C.gold }}>{tag}</span>)}
           </div>
-        ) : <p className="text-base" style={{ color: C.dim }}>Aucune compétence renseignée</p>}
+        ) : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>Aucune compétence renseignée</p>}
       </div>
 
-      {/* Seeking / Offering */}
+      {/* Seeking / Offering — Sovereign */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: C.text }}><Search size={18} style={{ color: C.forest }} /> Je recherche</h2>
-          {editing ? <textarea value={formData.seeking} onChange={e => setFormData({ ...formData, seeking: e.target.value })} rows={2} aria-label="Ce que vous recherchez"
-            placeholder="Ex: Distribution, Booking..." className="w-full p-3 rounded-lg text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} />
-          : <p className="text-base" style={{ color: profile?.seeking ? C.muted : C.dim }}>{profile?.seeking || 'Non renseigné'}</p>}
+        <div className="rounded-2xl p-5" style={{ background: '#1c1b1c' }}>
+          <h2 className="flex items-center gap-2 mb-3" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 16, color: '#e5e2e3' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#4A5D4E' }}>search</span> Je recherche
+          </h2>
+          {editing ? <textarea value={formData.seeking} onChange={e => setFormData({ ...formData, seeking: e.target.value })} rows={2}
+            placeholder="Ex: Distribution, Booking..." className="w-full p-3 rounded-xl text-sm"
+            style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} />
+          : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: profile?.seeking ? '#72727a' : '#555' }}>{profile?.seeking || 'Non renseigné'}</p>}
         </div>
-        <div className="rounded-xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: C.text }}><Handshake size={18} style={{ color: C.accent }} /> Je propose</h2>
-          {editing ? <textarea value={formData.offering} onChange={e => setFormData({ ...formData, offering: e.target.value })} rows={2} aria-label="Ce que vous proposez"
-            placeholder="Ex: Production, Conseil..." className="w-full p-3 rounded-lg text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, outline: 'none' }} />
-          : <p className="text-base" style={{ color: profile?.offering ? C.muted : C.dim }}>{profile?.offering || 'Non renseigné'}</p>}
+        <div className="rounded-2xl p-5" style={{ background: '#1c1b1c' }}>
+          <h2 className="flex items-center gap-2 mb-3" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 16, color: '#e5e2e3' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: C.accent }}>handshake</span> Je propose
+          </h2>
+          {editing ? <textarea value={formData.offering} onChange={e => setFormData({ ...formData, offering: e.target.value })} rows={2}
+            placeholder="Ex: Production, Conseil..." className="w-full p-3 rounded-xl text-sm"
+            style={{ background: '#131314', border: 'none', color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} />
+          : <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: profile?.offering ? '#72727a' : '#555' }}>{profile?.offering || 'Non renseigné'}</p>}
         </div>
       </div>
 
-      {/* Links */}
-      <div className="rounded-xl p-5 sm:p-6" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <h2 className="text-lg font-bold mb-4" style={{ color: C.text }}>Liens</h2>
+      {/* Links — Sovereign */}
+      <div className="rounded-2xl p-5 sm:p-6" style={{ background: '#1c1b1c' }}>
+        <h2 className="mb-4" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>Liens</h2>
         {editing ? (
           <div className="space-y-3">
-            <Input placeholder="Site web" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} aria-label="Site web" className="text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, minHeight: 44 }} />
-            <Input placeholder="LinkedIn" value={formData.linkedin} onChange={e => setFormData({ ...formData, linkedin: e.target.value })} aria-label="LinkedIn" className="text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, minHeight: 44 }} />
-            <Input placeholder="Instagram" value={formData.instagram} onChange={e => setFormData({ ...formData, instagram: e.target.value })} aria-label="Instagram" className="text-base" style={{ background: C.input, border: `1px solid ${C.border}`, color: C.text, minHeight: 44 }} />
+            <Input placeholder="Site web" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} className="text-sm rounded-xl" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 44 }} />
+            <Input placeholder="LinkedIn" value={formData.linkedin} onChange={e => setFormData({ ...formData, linkedin: e.target.value })} className="text-sm rounded-xl" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 44 }} />
+            <Input placeholder="Instagram" value={formData.instagram} onChange={e => setFormData({ ...formData, instagram: e.target.value })} className="text-sm rounded-xl" style={{ background: '#131314', border: 'none', color: '#e5e2e3', minHeight: 44 }} />
           </div>
         ) : (
           <div className="space-y-3">
-            {profile?.website && <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-base hover:underline" style={{ color: C.gold }}><Globe size={16} /> {profile.website}</a>}
-            {profile?.linkedin && <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-base hover:underline" style={{ color: C.gold }}><Link2 size={16} /> LinkedIn</a>}
-            {!profile?.website && !profile?.linkedin && <p className="text-base" style={{ color: C.dim }}>Aucun lien</p>}
+            {profile?.website && <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: C.gold }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>language</span> {profile.website}
+            </a>}
+            {profile?.linkedin && <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: C.gold }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>link</span> LinkedIn
+            </a>}
+            {!profile?.website && !profile?.linkedin && <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#555' }}>Aucun lien</p>}
           </div>
         )}
       </div>

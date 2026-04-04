@@ -132,7 +132,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth/magic")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth/magic") or path.startswith("/api/brain")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -9303,4 +9303,183 @@ async def smart_engine_cron_check(request: Request):
 # Shared workspace routes extracted to /routes/shared.py
 # Terrain/scan routes extracted to /routes/terrain.py
 # ═══════════════════════════════════════════════════════════════════════════════
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CVL BRAIN — MODULE 2: WEB SEARCH TEMPS RÉEL (Tavily)
+# Enrichit les prompts CVL BRAIN avec des résultats web en temps réel
+# ═══════════════════════════════════════════════════════════════════════════════
+
+TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
+
+@app.post("/api/brain/web-search")
+async def brain_web_search(request: Request):
+    """Search the web for real-time information to enrich CVL BRAIN responses"""
+    if not TAVILY_API_KEY:
+        return {"results": [], "enriched": False, "reason": "TAVILY_API_KEY not configured"}
+
+    body = await request.json()
+    query = body.get("query", "")
+    if not query:
+        raise HTTPException(status_code=400, detail="query required")
+
+    try:
+        from tavily import TavilyClient
+        client = TavilyClient(api_key=TAVILY_API_KEY)
+        response = client.search(
+            query=query,
+            search_depth="basic",
+            max_results=5,
+            include_answer=True,
+        )
+
+        results = []
+        for r in response.get("results", []):
+            results.append({
+                "title": r.get("title", ""),
+                "url": r.get("url", ""),
+                "content": r.get("content", "")[:300],
+            })
+
+        return {
+            "results": results,
+            "answer": response.get("answer", ""),
+            "enriched": True,
+            "query": query,
+        }
+    except Exception as e:
+        return {"results": [], "enriched": False, "reason": str(e)}
+
+
+@app.post("/api/brain/chat-enriched")
+async def brain_chat_enriched(request: Request):
+    """CVL BRAIN chat with optional web search enrichment"""
+    body = await request.json()
+    message = body.get("message", "")
+    use_web = body.get("use_web_search", False)
+    user_name = body.get("user_name", "un utilisateur")
+
+    web_context = ""
+    if use_web and TAVILY_API_KEY:
+        try:
+            from tavily import TavilyClient
+            client = TavilyClient(api_key=TAVILY_API_KEY)
+            response = client.search(query=message, search_depth="basic", max_results=3, include_answer=True)
+            web_results = response.get("results", [])
+            if web_results:
+                web_context = "\n\n[CONTEXTE WEB RÉCENT]\n"
+                for r in web_results[:3]:
+                    web_context += f"- {r.get('title', '')}: {r.get('content', '')[:200]}\n"
+                web_context += f"\nRéponse synthétisée: {response.get('answer', '')}\n"
+        except Exception:
+            pass
+
+    system_prompt = f"""Tu es CVL BRAIN — Intelligence Souveraine du groupe CVLN.
+Tu parles à {user_name} de l'Espace Pro CC2026.
+Tu es chaleureux, culturellement ancré, et tu mélanges français et créole martiniquais/guadeloupéen.
+Tu connais l'écosystème : Jetons CC (1 jeton = 1.50€), FREK-IDs, kiltikonet, CC2026 (20-23 mai 2026 à La Savane).
+Tu donnes des conseils concrets. Tu ne fais JAMAIS de réponse générique.
+Réponds en 2-3 phrases maximum. Sois direct et humain.{web_context}"""
+
+    try:
+        from emergentintegrations.llm.chat import chat, ChatMessage
+        emergent_key = os.environ.get("EMERGENT_LLM_KEY", "")
+        response = await chat(
+            api_key=emergent_key,
+            model="claude-sonnet-4-5-20250929",
+            messages=[
+                ChatMessage(role="system", content=system_prompt),
+                ChatMessage(role="user", content=message),
+            ],
+        )
+        return {"response": response.content, "web_enriched": bool(web_context)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur CVL BRAIN: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CVL BRAIN — MODULE 1: MÉMOIRE PERSISTANTE
+# Sauvegarde/récupération des conversations CVL BRAIN
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/brain/memory/save")
+async def brain_memory_save(request: Request):
+    """Save a CVL BRAIN conversation to persistent memory"""
+    body = await request.json()
+    session_id = body.get("session_id")
+    messages = body.get("messages", [])
+    title = body.get("title", "")
+    tags = body.get("tags", [])
+    user_id = body.get("user_id", "")
+
+    if not session_id or not messages:
+        raise HTTPException(status_code=400, detail="session_id and messages required")
+
+    # Auto-generate title from first user message if not provided
+    if not title:
+        user_msgs = [m for m in messages if m.get("role") == "user"]
+        title = user_msgs[0]["content"][:80] if user_msgs else "Conversation sans titre"
+
+    doc = {
+        "session_id": session_id,
+        "user_id": user_id,
+        "title": title,
+        "messages": messages,
+        "tags": tags,
+        "message_count": len(messages),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    existing = await db.brain_memory.find_one({"session_id": session_id})
+    if existing:
+        await db.brain_memory.update_one(
+            {"session_id": session_id},
+            {"$set": {"messages": messages, "title": title, "tags": tags, "message_count": len(messages), "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    else:
+        await db.brain_memory.insert_one(doc)
+
+    return {"success": True, "session_id": session_id}
+
+
+@app.get("/api/brain/memory/history")
+async def brain_memory_history(user_id: str = "", limit: int = 20, skip: int = 0):
+    """Get conversation history for a user"""
+    query = {}
+    if user_id:
+        query["user_id"] = user_id
+
+    cursor = db.brain_memory.find(query, {"_id": 0}).sort("updated_at", -1).skip(skip).limit(limit)
+    conversations = []
+    async for doc in cursor:
+        conversations.append({
+            "session_id": doc.get("session_id"),
+            "title": doc.get("title"),
+            "message_count": doc.get("message_count", 0),
+            "tags": doc.get("tags", []),
+            "created_at": doc.get("created_at"),
+            "updated_at": doc.get("updated_at"),
+        })
+
+    total = await db.brain_memory.count_documents(query)
+    return {"conversations": conversations, "total": total}
+
+
+@app.get("/api/brain/memory/{session_id}")
+async def brain_memory_get(session_id: str):
+    """Get a specific conversation by session_id"""
+    doc = await db.brain_memory.find_one({"session_id": session_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Conversation non trouvée")
+    return doc
+
+
+@app.delete("/api/brain/memory/{session_id}")
+async def brain_memory_delete(session_id: str):
+    """Delete a conversation from memory"""
+    result = await db.brain_memory.delete_one({"session_id": session_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation non trouvée")
+    return {"success": True}
 
