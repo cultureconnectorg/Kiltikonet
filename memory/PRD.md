@@ -40,26 +40,26 @@ Plateforme evenementielle/culturelle premium omnicanale (React 19 + FastAPI + Mo
 - GET /api/auth/github/callback : echange code → session
 - Necessite GITHUB_CLIENT_ID et GITHUB_CLIENT_SECRET (non configure)
 
-## CVL BRAIN — Intelligence Souveraine (v3)
-### Base de connaissances CVLN (16 modules distilles)
-- Ecosysteme CVLN (kiltikonet, developers.cvln.group, authority, rights)
-- CC2026 (20-23 mai 2026, La Savane, 40 000 FREK-IDs)
-- FREK-ID (UUID v4, fingerprint SHA256, 5 stages Luciole)
-- Jeton CC (1=1.50EUR, 4 packs, marge 10%, buyback J+3)
-- KT Token (gouvernance, staking 3 paliers, conversion 10:1)
-- Flywheel Economy (CC→KT→staking→visibilite)
-- 10 Agents IA (Veille, Contenu, Growth, Sentinelle, Support, Finance, Marketing, Carte, Evenement, Entreprise)
-- API 4 tiers (Discovery, Developer, Cultural AI, Partner CC)
-- Strategie GAFAM (3 vecteurs: data licensing, standard CC, FREK authority)
-- FinOps (4 tiers modeles, distillation, Edge AI)
-- Souverainete (Mistral fallback, IPFS, multi-rail paiement)
+## CVL BRAIN — Intelligence Culturelle (v3)
+### Base de connaissances (pare-feu d'information)
+- Connait l'ecosysteme complet en interne mais ne revele que les infos publiques
+- INTERDIT de mentionner : entites meres, strategies internes, architecture technique, plans futurs non publics
+- INTERDIT de donner : codes d'acces, FREK-IDs d'autres utilisateurs, details FREKcore
+- Repond en creole martiniquais quand il refuse : "Man pa ka pale de sa"
 
-### Fonctionnalites CVL BRAIN
+### Connaissances publiques partagees
+- kiltikonet.fr et ses fonctionnalites
+- CC2026 (dates, lieu, programme)
+- Jeton CC (packs, prix, usage)
+- FREK-ID (identifiant personnel, usage basique)
+- Espace Pro (Feed, Reels, Wallet, Shop, Archives, Messagerie)
+
+### Fonctionnalites techniques
 - Multi-turn conversation (historique envoye a chaque requete)
-- Contexte utilisateur (nom, FREK-ID, type profil, solde)
-- Suggestions rapides (6 boutons: CVLN, Profil, Jeton CC, CC2026, FREK-ID, API)
+- Contexte utilisateur (nom, FREK-ID propre, type profil)
+- 6 suggestions rapides (Kiltikonet, Profil, Jeton CC, CC2026, FREK-ID, Espace Pro)
 - Enrichissement web via Tavily
-- Memoire persistante (save/history/get/delete)
+- Memoire persistante MongoDB
 
 ## Backlog P1
 - [ ] Wallet : remplacer historique mocke par vraie logique DB/trading

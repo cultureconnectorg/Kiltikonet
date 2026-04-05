@@ -10,12 +10,12 @@ const WELCOME_MESSAGES = [
 ];
 
 const QUICK_ACTIONS = [
-  { label: "C'est quoi CVLN ?", icon: "info", q: "Explique-moi l'écosystème CVLN Group en résumé" },
-  { label: "Mon profil", icon: "person", q: "Analyse mon profil et donne-moi des conseils pour améliorer ma visibilité" },
-  { label: "Jeton CC", icon: "toll", q: "Comment fonctionne le Jeton CC et les packs disponibles ?" },
-  { label: "CC2026", icon: "festival", q: "Donne-moi les infos clés sur CC2026 à La Savane" },
-  { label: "FREK-ID", icon: "fingerprint", q: "Comment fonctionne mon FREK-ID et à quoi ça sert ?" },
-  { label: "API", icon: "api", q: "Quels sont les 4 tiers d'accès à l'API publique kiltikonet ?" },
+  { label: "Kiltikonet ?", icon: "info", q: "C'est quoi kiltikonet et qu'est-ce que je peux faire sur la plateforme ?" },
+  { label: "Mon profil", icon: "person", q: "Donne-moi des conseils pour améliorer ma visibilité sur la plateforme" },
+  { label: "Jeton CC", icon: "toll", q: "Comment fonctionne le Jeton CC et quels packs sont disponibles ?" },
+  { label: "CC2026", icon: "festival", q: "Donne-moi les infos clés sur Culture Connect 2026" },
+  { label: "Mon FREK-ID", icon: "fingerprint", q: "À quoi sert mon FREK-ID ?" },
+  { label: "Espace Pro", icon: "dashboard", q: "Quelles sont les fonctionnalités de l'Espace Pro ?" },
 ];
 
 const genSessionId = () => `brain_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
