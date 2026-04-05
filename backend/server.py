@@ -6756,22 +6756,20 @@ async def auth_frek_initiate(request: FrekAuthRequest, req: Request):
 
     email = profile["email"].lower()
 
-    # OTP cooldown
-    cooldown = _check_otp_cooldown(f"frek_{frek_id}")
-    if cooldown > 0:
-        raise HTTPException(status_code=429, detail=f"Veuillez patienter {cooldown}s avant de demander un nouveau code.")
+    # BYPASS for admin/test emails — skip cooldown entirely
+    BYPASS_EMAILS = [
+        os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr").lower(),
+        "admin@kiltikonet.fr", "cultureconnectorg@gmail.com",
+    ]
+    is_bypass = email in BYPASS_EMAILS
 
-    # Generate 6-digit OTP
-    otp = generate_access_code()
-    _otp_cooldown_store[f"frek_{frek_id}"] = datetime.now(timezone.utc).timestamp()
-    _frek_auth_codes[frek_id] = {
-        "code": otp,
-        "email": email,
-        "profile_id": profile.get("id", ""),
-        "expires": datetime.now(timezone.utc) + timedelta(minutes=10),
-    }
+    # OTP cooldown (skip for bypass)
+    if not is_bypass:
+        cooldown = _check_otp_cooldown(f"frek_{frek_id}")
+        if cooldown > 0:
+            raise HTTPException(status_code=429, detail=f"Veuillez patienter {cooldown}s avant de demander un nouveau code.")
 
-    # Mask email for hint (show first 2 chars + domain hint)
+    # Mask email for hint
     parts = email.split("@")
     local = parts[0]
     domain = parts[1] if len(parts) > 1 else ""
@@ -6780,14 +6778,18 @@ async def auth_frek_initiate(request: FrekAuthRequest, req: Request):
     masked_domain = domain_parts[0][:2] + "***" + ("." + domain_parts[-1] if len(domain_parts) > 1 else "")
     email_hint = f"{masked_local}@{masked_domain}"
 
-    # BYPASS for admin/test emails
-    BYPASS_EMAILS = [
-        os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr").lower(),
-        "admin@kiltikonet.fr", "cultureconnectorg@gmail.com",
-    ]
-    is_bypass = email in BYPASS_EMAILS
+    # Generate 6-digit OTP
+    otp = generate_access_code()
+    if not is_bypass:
+        _otp_cooldown_store[f"frek_{frek_id}"] = datetime.now(timezone.utc).timestamp()
+    _frek_auth_codes[frek_id] = {
+        "code": "000000" if is_bypass else otp,
+        "email": email,
+        "profile_id": profile.get("id", ""),
+        "expires": datetime.now(timezone.utc) + timedelta(minutes=10),
+    }
+
     if is_bypass:
-        _frek_auth_codes[frek_id]["code"] = "000000"
         logger.info(f"[FREK_AUTH] Admin bypass for FREK-ID {frek_id}")
         return {"success": True, "email_hint": email_hint, "bypass": True, "name": profile.get("full_name", "")}
 
@@ -9661,11 +9663,13 @@ async def brain_web_search(request: Request):
 
 @app.post("/api/brain/chat-enriched")
 async def brain_chat_enriched(request: Request):
-    """CVL BRAIN chat with optional web search enrichment"""
+    """CVL BRAIN chat with multi-turn memory, user context, and web enrichment"""
     body = await request.json()
     message = body.get("message", "")
+    messages_history = body.get("messages", [])  # Full conversation history
     use_web = body.get("use_web_search", False)
     user_name = body.get("user_name", "un utilisateur")
+    user_context = body.get("user_context", None)  # Profile data
 
     web_context = ""
     if use_web and TAVILY_API_KEY:
@@ -9682,12 +9686,8 @@ async def brain_chat_enriched(request: Request):
         except Exception:
             pass
 
-    system_prompt = f"""Tu es CVL BRAIN — Intelligence Souveraine du groupe CVLN.
-Tu parles à {user_name} de l'Espace Pro CC2026.
-Tu es chaleureux, culturellement ancré, et tu mélanges français et créole martiniquais/guadeloupéen.
-Tu connais l'écosystème : Jetons CC (1 jeton = 1.50€), FREK-IDs, kiltikonet, CC2026 (20-23 mai 2026 à La Savane).
-Tu donnes des conseils concrets. Tu ne fais JAMAIS de réponse générique.
-Réponds en 2-3 phrases maximum. Sois direct et humain.{web_context}"""
+    from services.cvl_brain_knowledge import build_cvl_brain_prompt
+    system_prompt = build_cvl_brain_prompt(user_name, user_context, web_context)
 
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -9699,6 +9699,19 @@ Réponds en 2-3 phrases maximum. Sois direct et humain.{web_context}"""
             system_message=system_prompt,
         )
         chat_obj.with_model("anthropic", "claude-sonnet-4-5-20250929")
+
+        # Inject conversation history for multi-turn context
+        if messages_history:
+            # Send previous messages to build context (skip last user msg, we send it fresh)
+            for hist_msg in messages_history[:-1]:
+                if hist_msg.get("role") == "user":
+                    hist_user = UserMessage(text=hist_msg["content"])
+                    try:
+                        await chat_obj.send_message(hist_user)
+                    except Exception:
+                        pass  # History replay best-effort
+
+        # Send current message
         user_msg = UserMessage(text=message)
         response = await chat_obj.send_message(user_msg)
         return {"response": response, "web_enriched": bool(web_context)}

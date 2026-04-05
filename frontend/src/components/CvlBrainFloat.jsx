@@ -4,9 +4,18 @@ import axios from 'axios';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const WELCOME_MESSAGES = [
-  "Sak pasé ? Man sé CVL BRAIN. Ki mannyè man pé édé'w jòdi-a ?",
-  "Bienvenue dans l'écosystème CC2026. Posez-moi vos questions sur la culture caribéenne.",
-  "Man la pou ou. Comment puis-je valoriser votre pratique culturelle ?",
+  "Sak pasé ? Man sé CVL BRAIN — Intelligence Souveraine CVLN. Ki mannyè man pé édé'w jòdi-a ?",
+  "Bienvenue. Man konnet tout sou CC2026, FREK-ID, Jeton CC, et l'écosystème CVLN. Pozé kestion'w.",
+  "Man la pou ou. Demandez-moi n'importe quoi sur kiltikonet, la flywheel economy, ou votre profil.",
+];
+
+const QUICK_ACTIONS = [
+  { label: "C'est quoi CVLN ?", icon: "info", q: "Explique-moi l'écosystème CVLN Group en résumé" },
+  { label: "Mon profil", icon: "person", q: "Analyse mon profil et donne-moi des conseils pour améliorer ma visibilité" },
+  { label: "Jeton CC", icon: "toll", q: "Comment fonctionne le Jeton CC et les packs disponibles ?" },
+  { label: "CC2026", icon: "festival", q: "Donne-moi les infos clés sur CC2026 à La Savane" },
+  { label: "FREK-ID", icon: "fingerprint", q: "Comment fonctionne mon FREK-ID et à quoi ça sert ?" },
+  { label: "API", icon: "api", q: "Quels sont les 4 tiers d'accès à l'API publique kiltikonet ?" },
 ];
 
 const genSessionId = () => `brain_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -84,23 +93,38 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
     setShowHistory(false);
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
-    setInput('');
+  const sendMessage = async (overrideMsg) => {
+    // Handle case where overrideMsg is an event object (from button click)
+    const msgToSend = typeof overrideMsg === 'string' ? overrideMsg : null;
+    const userMsg = (msgToSend || input).trim();
+    if (!userMsg || loading) return;
+    if (!msgToSend) setInput('');
     const newMsgs = [...messages, { role: 'user', content: userMsg }];
     setMessages(newMsgs);
     setLoading(true);
 
     try {
-      // Use enriched endpoint with web search
+      // Build user context from session
+      const userContext = session ? {
+        name: session.name || session.email,
+        email: session.email,
+        frek_id: session.frek_id,
+        profile_type: session.type || session.profile_type,
+      } : null;
+
+      // Prepare conversation history (only user/assistant, limit to last 10 exchanges)
+      const historyMsgs = newMsgs
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .slice(-20);
+
       const res = await axios.post(`${API}/brain/chat-enriched`, {
         message: userMsg,
+        messages: historyMsgs,
         user_name: session?.name || 'un utilisateur',
+        user_context: userContext,
         use_web_search: userMsg.includes('?') || userMsg.toLowerCase().includes('quoi') || userMsg.toLowerCase().includes('comment') || userMsg.toLowerCase().includes('actualit'),
       });
       const reply = res.data.response || "Man pa ka konprann. Éséyé ankò.";
-      const webBadge = res.data.web_enriched ? ' 🌐' : '';
       const allMsgs = [...newMsgs, { role: 'assistant', content: reply, webEnriched: res.data.web_enriched }];
       setMessages(allMsgs);
       saveToMemory(allMsgs);
@@ -210,6 +234,20 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
                   </div>
                 </div>
               ))}
+              {/* Quick Actions — show only after welcome message */}
+              {messages.length === 1 && messages[0].role === 'assistant' && !loading && (
+                <div className="flex flex-wrap gap-1.5 pt-1" data-testid="brain-quick-actions">
+                  {QUICK_ACTIONS.map((qa, i) => (
+                    <button key={i} onClick={() => sendMessage(qa.q)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:scale-[1.03] active:scale-[0.97]"
+                      data-testid={`brain-qa-${i}`}
+                      style={{ background: 'rgba(232,213,160,0.06)', color: '#cdc6b7', border: '1px solid rgba(232,213,160,0.1)', fontFamily: "'Manrope', sans-serif" }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#E8D5A0', fontVariationSettings: "'FILL' 0, 'wght' 300" }}>{qa.icon}</span>
+                      {qa.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               {loading && (
                 <div className="flex justify-start">
                   <div className="px-4 py-3 rounded-2xl" style={{ background: '#1b1b1c' }}>
