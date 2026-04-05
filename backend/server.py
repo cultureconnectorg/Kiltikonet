@@ -6719,6 +6719,317 @@ async def google_auth_session(request: Request):
 
 
 # ═══════════════════════════════════════════════════════════════
+# FREK-ID AUTHENTICATION
+# ═══════════════════════════════════════════════════════════════
+
+class FrekAuthRequest(BaseModel):
+    frek_id: str
+
+class FrekVerifyRequest(BaseModel):
+    frek_id: str
+    code: str
+
+# In-memory store for FREK auth OTPs
+_frek_auth_codes: Dict[str, dict] = {}
+
+@app.post("/api/auth/frek")
+async def auth_frek_initiate(request: FrekAuthRequest, req: Request):
+    """Step 1: Lookup a FREK-ID → send OTP to associated email."""
+    frek_id = request.frek_id.strip().upper()
+    if not frek_id or not frek_id.startswith("FREK-"):
+        raise HTTPException(status_code=400, detail="Format FREK-ID invalide. Exemple: FREK-ABCD-1234")
+
+    # Lookup in registrations
+    profile = await db.registrations.find_one({"frek_id": frek_id, "status": "approved"}, {"_id": 0})
+    if not profile:
+        # Also check badges
+        badge = await db.cc_badges.find_one({"frek_id": frek_id}, {"_id": 0})
+        if badge:
+            profile = {
+                "id": badge.get("badge_id"), "email": badge.get("email", ""),
+                "full_name": f"{badge.get('prenom','')} {badge.get('nom','')}".strip(),
+                "profile_type": badge.get("type_badge", "other"), "status": "approved",
+                "frek_id": frek_id,
+            }
+    if not profile or not profile.get("email"):
+        raise HTTPException(status_code=404, detail="FREK-ID introuvable. Verifiez votre identifiant.")
+
+    email = profile["email"].lower()
+
+    # OTP cooldown
+    cooldown = _check_otp_cooldown(f"frek_{frek_id}")
+    if cooldown > 0:
+        raise HTTPException(status_code=429, detail=f"Veuillez patienter {cooldown}s avant de demander un nouveau code.")
+
+    # Generate 6-digit OTP
+    otp = generate_access_code()
+    _otp_cooldown_store[f"frek_{frek_id}"] = datetime.now(timezone.utc).timestamp()
+    _frek_auth_codes[frek_id] = {
+        "code": otp,
+        "email": email,
+        "profile_id": profile.get("id", ""),
+        "expires": datetime.now(timezone.utc) + timedelta(minutes=10),
+    }
+
+    # Mask email for hint (show first 2 chars + domain hint)
+    parts = email.split("@")
+    local = parts[0]
+    domain = parts[1] if len(parts) > 1 else ""
+    masked_local = local[:2] + "*" * max(0, len(local) - 2)
+    domain_parts = domain.split(".")
+    masked_domain = domain_parts[0][:2] + "***" + ("." + domain_parts[-1] if len(domain_parts) > 1 else "")
+    email_hint = f"{masked_local}@{masked_domain}"
+
+    # BYPASS for admin/test emails
+    BYPASS_EMAILS = [
+        os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr").lower(),
+        "admin@kiltikonet.fr", "cultureconnectorg@gmail.com",
+    ]
+    is_bypass = email in BYPASS_EMAILS
+    if is_bypass:
+        _frek_auth_codes[frek_id]["code"] = "000000"
+        logger.info(f"[FREK_AUTH] Admin bypass for FREK-ID {frek_id}")
+        return {"success": True, "email_hint": email_hint, "bypass": True, "name": profile.get("full_name", "")}
+
+    # Send OTP email
+    otp_html = f"""
+    <div style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background: #0a0a0b; color: #e5e2e3;">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #E8D5A0; margin: 0; font-size: 22px;">Connexion FREK-ID</h1>
+            <p style="color: #72727a; font-size: 13px; margin-top: 6px;">Verification d'identite pour {frek_id}</p>
+        </div>
+        <div style="background: #1b1b1c; padding: 32px; border-radius: 16px; text-align: center; border: 1px solid rgba(232,213,160,0.1);">
+            <p style="margin: 0 0 16px; font-size: 14px; color: #e5e2e3;">Votre code de verification :</p>
+            <div style="background: #0a0a0b; padding: 16px 24px; border-radius: 12px; display: inline-block; border: 1px solid rgba(232,213,160,0.2);">
+                <span style="font-size: 32px; font-weight: 900; letter-spacing: 6px; color: #E8D5A0; font-family: 'JetBrains Mono', monospace;">{otp}</span>
+            </div>
+            <p style="margin: 16px 0 0; font-size: 12px; color: #72727a;">Ce code expire dans 10 minutes.</p>
+        </div>
+    </div>
+    """
+    asyncio.create_task(send_email_async(email, f"Code FREK-ID : {otp}", otp_html))
+
+    logger.info(f"[FREK_AUTH] OTP sent for FREK-ID {frek_id} to {email_hint}")
+    return {"success": True, "email_hint": email_hint, "name": profile.get("full_name", "")}
+
+
+@app.post("/api/auth/frek/verify")
+async def auth_frek_verify(request: FrekVerifyRequest, req: Request):
+    """Step 2: Verify FREK-ID + OTP → create session."""
+    frek_id = request.frek_id.strip().upper()
+    code = request.code.strip()
+
+    stored = _frek_auth_codes.get(frek_id)
+    if not stored:
+        raise HTTPException(status_code=400, detail="Aucune demande de connexion pour ce FREK-ID. Recommencez.")
+
+    if datetime.now(timezone.utc) > stored["expires"]:
+        _frek_auth_codes.pop(frek_id, None)
+        raise HTTPException(status_code=410, detail="Code expire. Recommencez la procedure.")
+
+    if stored["code"] != code:
+        raise HTTPException(status_code=401, detail="Code incorrect.")
+
+    # Code valid — clean up
+    _frek_auth_codes.pop(frek_id, None)
+
+    email = stored["email"]
+    # Find full profile
+    profile = await db.registrations.find_one({"email": email, "status": "approved"}, {"_id": 0})
+    if not profile:
+        badge = await db.cc_badges.find_one({"email": email}, {"_id": 0})
+        if badge:
+            profile = {
+                "id": badge.get("badge_id"), "email": email,
+                "full_name": f"{badge.get('prenom','')} {badge.get('nom','')}".strip(),
+                "profile_type": badge.get("type_badge", "other"), "status": "approved", "frek_id": frek_id,
+            }
+    if not profile:
+        BYPASS_EMAILS = [os.environ.get("ADMIN_EMAIL", "cc@kiltikonet.fr").lower(), "admin@kiltikonet.fr", "cultureconnectorg@gmail.com"]
+        if email in BYPASS_EMAILS:
+            profile = {"id": "admin-bypass", "email": email, "full_name": "Admin CC2026", "profile_type": "admin", "status": "approved", "is_admin": True, "frek_id": frek_id, "language": "fr"}
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profil introuvable.")
+
+    # Update auth methods
+    await db.registrations.update_one({"email": email}, {"$addToSet": {"auth_methods": "frek_id"}})
+
+    # Log access
+    await db.pro_access_logs.insert_one({
+        "email": email, "profile_id": profile.get("id"),
+        "action": "frek_id_login", "frek_id": frek_id,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+    response = JSONResponse(content={
+        "success": True,
+        "profile": {
+            "id": profile.get("id"), "email": email,
+            "full_name": profile.get("full_name", ""),
+            "image": profile.get("image", ""),
+            "frek_id": frek_id,
+            "profile_type": profile.get("profile_type", "pro"),
+            "language": profile.get("language", "fr"),
+        }
+    })
+    set_session_cookie(response, {
+        "role": profile.get("profile_type", "pro"),
+        "email": email,
+        "name": profile.get("full_name", ""),
+        "profile_id": profile.get("id", ""),
+        "profile_type": profile.get("profile_type", ""),
+        "is_admin": profile.get("is_admin", False),
+    })
+    return response
+
+
+# ═══════════════════════════════════════════════════════════════
+# GITHUB OAUTH
+# ═══════════════════════════════════════════════════════════════
+
+GITHUB_CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "")
+GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "")
+
+@app.get("/api/auth/github")
+async def auth_github_redirect(request: Request):
+    """Redirect to GitHub OAuth authorize URL."""
+    if not GITHUB_CLIENT_ID:
+        raise HTTPException(status_code=503, detail="GitHub OAuth non configure. Contactez l'administrateur.")
+
+    redirect_uri = os.environ.get("GITHUB_REDIRECT_URI", f"{BASE_URL}/api/auth/github/callback")
+    state = str(uuid.uuid4())
+    # Store state for CSRF protection
+    await db.oauth_states.insert_one({
+        "state": state, "provider": "github",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
+    })
+    github_url = (
+        f"https://github.com/login/oauth/authorize"
+        f"?client_id={GITHUB_CLIENT_ID}"
+        f"&redirect_uri={redirect_uri}"
+        f"&scope=user:email"
+        f"&state={state}"
+    )
+    from starlette.responses import RedirectResponse
+    return RedirectResponse(url=github_url)
+
+
+@app.get("/api/auth/github/callback")
+async def auth_github_callback(code: str = "", state: str = ""):
+    """Handle GitHub OAuth callback → exchange code → create session."""
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Parametres manquants")
+
+    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
+        raise HTTPException(status_code=503, detail="GitHub OAuth non configure.")
+
+    # Verify state (CSRF)
+    stored_state = await db.oauth_states.find_one({"state": state, "provider": "github"}, {"_id": 0})
+    if not stored_state:
+        raise HTTPException(status_code=400, detail="Etat OAuth invalide.")
+    await db.oauth_states.delete_one({"state": state})
+    if datetime.now(timezone.utc).isoformat() > stored_state.get("expires_at", ""):
+        raise HTTPException(status_code=410, detail="Session OAuth expiree. Recommencez.")
+
+    # Exchange code for access token
+    import httpx
+    async with httpx.AsyncClient() as http_client:
+        token_resp = await http_client.post(
+            "https://github.com/login/oauth/access_token",
+            json={"client_id": GITHUB_CLIENT_ID, "client_secret": GITHUB_CLIENT_SECRET, "code": code},
+            headers={"Accept": "application/json"},
+        )
+        if token_resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Echec d'authentification GitHub.")
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise HTTPException(status_code=401, detail=f"Token GitHub invalide: {token_data.get('error_description', 'Unknown')}")
+
+        # Get user info
+        user_resp = await http_client.get(
+            "https://api.github.com/user",
+            headers={"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github+json"},
+        )
+        gh_user = user_resp.json()
+
+        # Get primary email
+        emails_resp = await http_client.get(
+            "https://api.github.com/user/emails",
+            headers={"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github+json"},
+        )
+        gh_emails = emails_resp.json()
+        primary_email = ""
+        if isinstance(gh_emails, list):
+            for e in gh_emails:
+                if e.get("primary") and e.get("verified"):
+                    primary_email = e["email"].lower()
+                    break
+            if not primary_email and gh_emails:
+                primary_email = gh_emails[0].get("email", "").lower()
+        if not primary_email:
+            primary_email = (gh_user.get("email") or f"{gh_user.get('login', 'unknown')}@github.local").lower()
+
+    github_id = str(gh_user.get("id", ""))
+    github_login = gh_user.get("login", "")
+    github_name = gh_user.get("name") or github_login
+    github_avatar = gh_user.get("avatar_url", "")
+
+    # FUSION: check if email exists
+    existing = await db.registrations.find_one({"email": primary_email}, {"_id": 0})
+    if existing:
+        await db.registrations.update_one(
+            {"email": primary_email},
+            {"$set": {"github_id": github_id, "github_login": github_login, "github_avatar": github_avatar},
+             "$addToSet": {"auth_methods": "github"}}
+        )
+        profile = existing
+    else:
+        frek_id = await generate_unique_frek_id()
+        profile = {
+            "id": str(uuid.uuid4()),
+            "email": primary_email,
+            "full_name": github_name,
+            "image": github_avatar,
+            "github_id": github_id,
+            "github_login": github_login,
+            "auth_methods": ["github"],
+            "profile_type": "pro",
+            "status": "approved",
+            "frek_id": frek_id,
+            "language": "fr",
+            "cultural_score": 0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.registrations.insert_one({**profile})
+        profile.pop("_id", None)
+
+    await db.pro_access_logs.insert_one({
+        "email": primary_email, "profile_id": profile.get("id"),
+        "action": "github_login", "github_login": github_login,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+    # Build redirect response with session cookie → redirect to frontend
+    frontend_url = os.environ.get("FRONTEND_URL", BASE_URL)
+    redirect_url = f"{frontend_url}/espace-pro/connexion#github_auth=success&email={primary_email}&name={github_name}"
+    from starlette.responses import RedirectResponse
+    response = RedirectResponse(url=redirect_url)
+    set_session_cookie(response, {
+        "role": profile.get("profile_type", "pro"),
+        "email": primary_email,
+        "name": profile.get("full_name", github_name),
+        "profile_id": profile.get("id", ""),
+        "profile_type": profile.get("profile_type", ""),
+        "is_admin": profile.get("is_admin", False),
+    })
+    return response
+
+
+
+# ═══════════════════════════════════════════════════════════════
 # EMERGENCY ADMIN ACCESS (dev only)
 # ═══════════════════════════════════════════════════════════════
 

@@ -1738,8 +1738,26 @@ export const ProSpaceLogin = () => {
   const [loading, setLoading] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
   const [legalModal, setLegalModal] = useState(null);
+  // FREK-ID login state
+  const [frekMode, setFrekMode] = useState(false);
+  const [frekId, setFrekId] = useState('');
+  const [frekStep, setFrekStep] = useState(1); // 1=enter ID, 2=enter OTP
+  const [frekHint, setFrekHint] = useState('');
+  const [frekName, setFrekName] = useState('');
+  const [frekOtp, setFrekOtp] = useState('');
 
-  // Check if returning from Google OAuth (Emergent Auth callback)
+  const finishLogin = (p) => {
+    sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
+      id: p.id, email: p.email, name: p.full_name, image: p.image,
+      type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr',
+      verified: true, createdAt: Date.now()
+    }));
+    toast.success(`Bienvenue ${p.full_name || p.email} !`);
+    window.location.hash = '';
+    navigate('/espace-pro', { replace: true });
+  };
+
+  // Check if returning from Google OAuth or GitHub OAuth
   useEffect(() => {
     const hash = window.location.hash;
     if (hash?.includes('session_id=')) {
@@ -1748,19 +1766,30 @@ export const ProSpaceLogin = () => {
         setLoading(true);
         axios.post(`${API}/auth/google/session`, { session_id: sessionId }, { withCredentials: true })
           .then(res => {
-            if (res.data.success) {
-              const p = res.data.profile;
-              sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
-                id: p.id, email: p.email, name: p.full_name, image: p.image,
-                type: p.profile_type, frek_id: p.frek_id, verified: true, createdAt: Date.now()
-              }));
-              toast.success(`Bienvenue ${p.full_name} !`);
-              window.location.hash = '';
-              navigate('/espace-pro', { replace: true });
-            }
+            if (res.data.success) finishLogin(res.data.profile);
           })
           .catch(() => { toast.error('Erreur de connexion Google'); setLoading(false); });
       }
+    }
+    // GitHub OAuth callback
+    if (hash?.includes('github_auth=success')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const ghName = decodeURIComponent(params.get('name') || '');
+      toast.success(`Bienvenue ${ghName} !`);
+      window.location.hash = '';
+      // Session cookie already set by backend, just verify via /auth/me
+      axios.get(`${API}/auth/me`, { withCredentials: true })
+        .then(res => {
+          if (res.data.authenticated) {
+            const s = res.data.session;
+            sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
+              id: s.profile_id, email: s.email, name: s.name, type: s.profile_type,
+              verified: true, createdAt: Date.now()
+            }));
+            navigate('/espace-pro', { replace: true });
+          }
+        })
+        .catch(() => {});
     }
   }, [navigate]);
 
@@ -1774,13 +1803,7 @@ export const ProSpaceLogin = () => {
         if (res.data.bypass) {
           try {
             const verifyRes = await axios.post(`${API}/pro/verify-code`, { email, code: '000000' }, { withCredentials: true });
-            if (verifyRes.data.success) {
-              const p = verifyRes.data.profile;
-              sessionStorage.setItem('cc2026_pro_session', JSON.stringify({ id: p.id, email: p.email, name: p.full_name, image: p.image, type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr', verified: true, createdAt: Date.now() }));
-              toast.success(`Bienvenue ${p.full_name} !`);
-              navigate('/espace-pro', { replace: true });
-              return;
-            }
+            if (verifyRes.data.success) { finishLogin(verifyRes.data.profile); return; }
           } catch {}
         }
         setLinkSent(true);
@@ -1792,9 +1815,48 @@ export const ProSpaceLogin = () => {
   };
 
   const handleGoogleLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + '/espace-pro/connexion';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  };
+
+  const handleGitHubLogin = () => {
+    window.location.href = `${API}/auth/github`;
+  };
+
+  const handleFrekInitiate = async (e) => {
+    e.preventDefault();
+    if (!frekId.trim()) return;
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API}/auth/frek`, { frek_id: frekId.trim() });
+      if (res.data.success) {
+        setFrekHint(res.data.email_hint);
+        setFrekName(res.data.name || '');
+        if (res.data.bypass) {
+          // Admin bypass — auto-verify with 000000
+          try {
+            const verifyRes = await axios.post(`${API}/auth/frek/verify`, { frek_id: frekId.trim(), code: '000000' }, { withCredentials: true });
+            if (verifyRes.data.success) { finishLogin(verifyRes.data.profile); return; }
+          } catch {}
+        }
+        setFrekStep(2);
+        toast.success('Code envoye !', { description: `Verifiez ${res.data.email_hint}` });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'FREK-ID introuvable');
+    } finally { setLoading(false); }
+  };
+
+  const handleFrekVerify = async (e) => {
+    e.preventDefault();
+    if (!frekOtp.trim()) return;
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API}/auth/frek/verify`, { frek_id: frekId.trim(), code: frekOtp.trim() }, { withCredentials: true });
+      if (res.data.success) finishLogin(res.data.profile);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Code incorrect');
+    } finally { setLoading(false); }
   };
 
   if (loading) {
@@ -1874,7 +1936,7 @@ export const ProSpaceLogin = () => {
               </button>
 
               {/* GitHub OAuth Button */}
-              <button onClick={() => { toast.info('Connexion GitHub en cours de configuration'); }}
+              <button onClick={handleGitHubLogin}
                 className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all hover:bg-[#2a2a2b] active:scale-[0.97] mb-3"
                 data-testid="github-login-btn"
                 style={{ background: '#161b22', color: '#e5e2e3', border: '1px solid rgba(75,70,59,0.2)', minHeight: 48 }}>
@@ -1883,13 +1945,82 @@ export const ProSpaceLogin = () => {
               </button>
 
               {/* FREK ID Button */}
-              <button onClick={() => { toast.info('Connexion FREK ID en cours de configuration'); }}
+              <button onClick={() => { setFrekMode(true); setFrekStep(1); setFrekId(''); setFrekOtp(''); }}
                 className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01] active:scale-[0.97] mb-3"
                 data-testid="frekid-login-btn"
                 style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.12), rgba(232,213,160,0.04))', color: C.gold, border: `1px solid rgba(232,213,160,0.2)`, minHeight: 48 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 20, color: C.gold, fontVariationSettings: "'FILL' 1" }}>fingerprint</span>
                 Continuer avec FREK ID
               </button>
+
+              {/* FREK ID Login Modal */}
+              {frekMode && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setFrekMode(false)}>
+                  <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+                  <div className="relative w-full max-w-sm rounded-xl overflow-hidden"
+                    style={{ background: C.card, border: `1px solid rgba(232,213,160,0.15)` }} onClick={e => e.stopPropagation()}
+                    data-testid="frek-login-modal">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined" style={{ color: C.gold, fontSize: 22, fontVariationSettings: "'FILL' 1" }}>fingerprint</span>
+                          <h2 className="text-base font-black" style={{ color: C.text }}>
+                            {frekStep === 1 ? 'Connexion FREK-ID' : 'Verification'}
+                          </h2>
+                        </div>
+                        <button onClick={() => setFrekMode(false)} className="p-1.5 rounded-lg hover:bg-white/5" data-testid="close-frek-modal">
+                          <span className="material-symbols-outlined" style={{ color: '#72727a', fontSize: 18 }}>close</span>
+                        </button>
+                      </div>
+
+                      {frekStep === 1 ? (
+                        <form onSubmit={handleFrekInitiate} className="space-y-4">
+                          <div>
+                            <label className="block text-xs mb-2 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>
+                              Votre FREK-ID
+                            </label>
+                            <input type="text" placeholder="FREK-XXXX-YYYY" value={frekId} onChange={e => setFrekId(e.target.value.toUpperCase())}
+                              className="w-full px-4 rounded-xl text-sm transition-all focus:ring-1"
+                              data-testid="frek-id-input" autoFocus autoComplete="off"
+                              style={{ background: '#0a0a0b', border: `1px solid rgba(232,213,160,0.15)`, color: C.gold, outline: 'none', minHeight: 48, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 2 }} />
+                            <p className="text-[10px] mt-1.5" style={{ color: C.dim }}>
+                              Votre identifiant unique figure sur votre badge ou profil.
+                            </p>
+                          </div>
+                          <button type="submit" disabled={loading || !frekId.trim()} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
+                            style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading || !frekId.trim() ? 0.5 : 1 }} data-testid="frek-submit-btn">
+                            {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#0a0a0b' }} />Verification...</span> : 'Identifier'}
+                          </button>
+                        </form>
+                      ) : (
+                        <form onSubmit={handleFrekVerify} className="space-y-4">
+                          <div className="text-center py-2">
+                            <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center"
+                              style={{ background: 'rgba(232,213,160,0.1)', border: '1px solid rgba(232,213,160,0.2)' }}>
+                              <span className="material-symbols-outlined" style={{ color: C.gold, fontSize: 18 }}>mail</span>
+                            </div>
+                            {frekName && <p className="text-sm font-bold" style={{ color: C.text }}>{frekName}</p>}
+                            <p className="text-xs mt-1" style={{ color: C.muted }}>
+                              Code envoye a <strong style={{ color: C.gold }}>{frekHint}</strong>
+                            </p>
+                          </div>
+                          <input type="text" placeholder="000000" value={frekOtp} onChange={e => setFrekOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            className="w-full px-4 rounded-xl text-center text-lg transition-all focus:ring-1"
+                            data-testid="frek-otp-input" autoFocus autoComplete="one-time-code" inputMode="numeric"
+                            style={{ background: '#0a0a0b', border: `1px solid rgba(232,213,160,0.15)`, color: C.gold, outline: 'none', minHeight: 52, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 8, fontWeight: 900 }} />
+                          <button type="submit" disabled={loading || frekOtp.length < 6} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
+                            style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading || frekOtp.length < 6 ? 0.5 : 1 }} data-testid="frek-verify-btn">
+                            {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#0a0a0b' }} />Verification...</span> : 'Valider'}
+                          </button>
+                          <button type="button" onClick={() => { setFrekStep(1); setFrekOtp(''); }} className="w-full text-xs underline transition-colors hover:text-white" style={{ color: C.dim }} data-testid="frek-back-btn">
+                            Utiliser un autre FREK-ID
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Separator */}
               <div className="flex items-center gap-3 my-4">
