@@ -24,25 +24,90 @@ def init_db(db):
 # ═══════════════════════════════════════════════════════════
 LINKEDIN_TEMPLATES = [
     {"type": "insight", "templates": [
-        "Le marché culturel caribéen représente un potentiel inexploité de {value}M€. Voici pourquoi les investisseurs commencent à s'y intéresser :\n\n1. Croissance de {pct}% du tourisme culturel\n2. Diaspora connectée et engagée\n3. Patrimoine UNESCO reconnu\n\n#CultureConnect #Investissement #Caraïbes",
-        "J'ai passé {months} mois à étudier l'écosystème musical antillais. Ce que j'ai découvert va changer notre approche de la distribution :\n\nLe streaming ne capture que {pct}% de la valeur réelle. Le reste est dans le live, le merch, et surtout — la communauté.\n\n#Musique #Innovation #CC2026",
-        "Retour d'expérience : comment nous avons multiplié par {mult}x l'engagement de notre communauté culturelle en {months} mois.\n\nLa clé ? L'authenticité. Pas de marketing artificiel, juste des histoires vraies.\n\n#Growth #Culture #Authenticité",
+        "Le marche culturel caribeen represente un potentiel inexploite de {value}M. Voici pourquoi les investisseurs commencent a s'y interesser :\n\n1. Croissance de {pct}% du tourisme culturel\n2. Diaspora connectee et engagee\n3. Patrimoine UNESCO reconnu\n\n#CultureConnect #Investissement #Caraibes",
+        "J'ai passe {months} mois a etudier l'ecosysteme musical antillais. Ce que j'ai decouvert va changer notre approche de la distribution :\n\nLe streaming ne capture que {pct}% de la valeur reelle. Le reste est dans le live, le merch, et surtout — la communaute.\n\n#Musique #Innovation #CC2026",
+        "Retour d'experience : comment nous avons multiplie par {mult}x l'engagement de notre communaute culturelle en {months} mois.\n\nLa cle ? L'authenticite. Pas de marketing artificiel, juste des histoires vraies.\n\n#Growth #Culture #Authenticite",
     ]},
     {"type": "question", "templates": [
-        "Question pour la communauté :\n\nComment préservez-vous vos traditions culturelles tout en innovant ?\n\nJe travaille sur un projet qui mêle {art} traditionnel et technologie. Vos retours m'intéressent.\n\n#Innovation #Tradition #CC2026",
-        "Débat : La tokenisation de la culture est-elle une opportunité ou une menace ?\n\nLes Kilti-Tokens montrent une voie intéressante. Mais jusqu'où peut-on aller ?\n\n#KiltiToken #Blockchain #Culture",
+        "Question pour la communaute :\n\nComment preservez-vous vos traditions culturelles tout en innovant ?\n\nJe travaille sur un projet qui mele {art} traditionnel et technologie. Vos retours m'interessent.\n\n#Innovation #Tradition #CC2026",
+    ]},
+    {"type": "debate", "templates": [
+        "DEBAT : La tokenisation de la culture est-elle une opportunite ou une menace ?\n\nLes Jetons CC montrent une voie interessante. Mais jusqu'ou peut-on aller sans denaturer l'essence meme de la creation ?\n\nJe veux entendre vos arguments. Pour ou contre ?\n\n#KiltiToken #Culture #Debat",
+        "DEBAT : Faut-il subventionner la culture ou la rendre autonome ?\n\n{pct}% des artistes caribeeens vivent sous le seuil de pauvrete. Pourtant, la culture genere {value}M annuellement dans la region.\n\nQuelle est la vraie solution ?\n\n#PolitiqueCulturelle #Autonomie",
+        "DEBAT : Le creole doit-il devenir langue officielle ?\n\nAvec {pct}% de locuteurs natifs dans les Antilles, la question n'est plus si mais quand.\n\nVotre position ?\n\n#LangueCreole #Identite #Debat",
+    ]},
+    {"type": "video", "templates": [
+        "Nouveau clip disponible — {months} mois de travail, {count} prises, et cette emotion pure qui ne s'invente pas.\n\nRegardez. Partagez. La culture caribeeenne merite d'etre vue.\n\n#NouveauClip #Musique #Caraibes",
+        "LIVE REPLAY — {count} personnes ont suivi notre session studio en direct hier.\n\nOn a enregistre un morceau complet en {mult}h. Du gwoka fusion comme vous n'en avez jamais entendu.\n\nLe replay est la.\n\n#LiveSession #Studio #Gwoka",
+        "DOCUMENTAIRE — 'Voix de la diaspora' Episode {mult}\n\nQuand {art} rencontre la modernite a {city}. {months} mois de tournage. Des histoires qui meritent d'etre racontees.\n\n#Documentaire #Diaspora #Culture",
+    ]},
+    {"type": "repost", "templates": [
+        "Je partage cet article incroyable sur l'evolution du marche culturel caribeen.\n\n'{count} artistes ont genere {value}M en {months} mois grace au digital.'\n\nLa preuve que notre ecosysteme fonctionne.\n\n#Repost #MarcheCulturel #Digital",
+        "A relire absolument — cette analyse du festival de {city} montre exactement pourquoi CC2026 sera different.\n\n{pct}% de satisfaction, {count} exposants, et une energie qu'on ne retrouve nulle part ailleurs.\n\n#FestivalCulturel #CC2026",
+    ]},
+    {"type": "interview", "templates": [
+        "INTERVIEW EXCLUSIVE — Rencontre avec un·e pionnier·e de {art} a {city}.\n\n'La culture caribeeenne est la prochaine frontiere de l'innovation. Dans {years} ans, le monde entier parlera de ce que nous construisons ici.'\n\nLisez l'interview complete.\n\n#Interview #Innovation #Caraibes",
+        "3 QUESTIONS A... un·e entrepreneur·e culturel·le qui a tout quitte pour revenir aux Antilles.\n\n'Mon grand-pere disait : la terre ou tu plantes, c'est la qui pousse. J'ai mis {years} ans a comprendre.'\n\n#RetourAuxSources #Entrepreneuriat",
+    ]},
+    {"type": "institution", "templates": [
+        "COMMUNIQUE — Le Conseil Regional a valide un budget de {value}K pour le developpement culturel numerique.\n\n{count} projets seront finances, dont {mult} directement lies a CC2026.\n\nLes candidatures ouvrent le {pct}/01.\n\n#SubventionCulture #RegionMartinique #CC2026",
+        "OFFICIEL — Le Ministere de la Culture reconnait kiltikonet comme plateforme de reference pour la diaspora caribeeenne.\n\nUn pas de plus vers la visibilite de nos createurs.\n\n#Reconnaissance #MinistreCulture #Kiltikonet",
+        "PARTENARIAT — L'UNESCO et le Festival International des Arts Caribeeens signent un accord de cooperation.\n\n{count} artistes beneficieront d'un accompagnement sur {months} mois.\n\n#UNESCO #Partenariat #ArtsCaribeeens",
     ]},
     {"type": "announcement", "templates": [
-        "Fier·e d'annoncer notre participation à Culture Connect 2026 !\n\nNotre équipe présentera {project} — un projet qui réunit {count} artistes de {regions} pays.\n\nRendez-vous en Martinique.\n\n#CC2026 #Kiltikonet #Culture",
-        "Nouveau milestone : {count} créateurs ont rejoint notre plateforme ce mois-ci.\n\nChaque jour, la communauté grandit. Chaque jour, la culture caribéenne rayonne un peu plus.\n\nMerci à vous tous. Annou kontinié ! 🏝\n\n#Kiltikonet #Communauté",
+        "Fier·e d'annoncer notre participation a Culture Connect 2026 !\n\nNotre equipe presentera {project} — un projet qui reunit {count} artistes de {regions} pays.\n\nRendez-vous en Martinique.\n\n#CC2026 #Kiltikonet #Culture",
+        "Nouveau milestone : {count} createurs ont rejoint notre plateforme ce mois-ci.\n\nChaque jour, la communaute grandit. Chaque jour, la culture caribeeenne rayonne un peu plus.\n\nMerci a vous tous. Annou kontinie !\n\n#Kiltikonet #Communaute",
     ]},
     {"type": "story", "templates": [
-        "Il y a {years} ans, ma grand-mère me racontait des contes créoles au clair de lune.\n\nAujourd'hui, je digitalise ces histoires pour que mes enfants les découvrent. La technologie au service de la mémoire.\n\nQui d'autre porte cet héritage ?\n\n#Patrimoine #Créole #Mémoire",
-        "De Fort-de-France à {city} : mon parcours d'artiste caribéen dans le monde.\n\nLes défis ? La visibilité. Les opportunités ? Infinies quand on est connecté à sa communauté.\n\nCC2026 change la donne.\n\n#Artiste #Diaspora #CC2026",
+        "Il y a {years} ans, ma grand-mere me racontait des contes creoles au clair de lune.\n\nAujourd'hui, je digitalise ces histoires pour que mes enfants les decouvrent. La technologie au service de la memoire.\n\nQui d'autre porte cet heritage ?\n\n#Patrimoine #Creole #Memoire",
+        "De Fort-de-France a {city} : mon parcours d'artiste caribeen dans le monde.\n\nLes defis ? La visibilite. Les opportunites ? Infinies quand on est connecte a sa communaute.\n\nCC2026 change la donne.\n\n#Artiste #Diaspora #CC2026",
     ]},
     {"type": "tip", "templates": [
-        "5 conseils pour les créateurs culturels qui veulent vivre de leur art :\n\n1. Construisez votre communauté AVANT de monétiser\n2. Documentez votre processus créatif\n3. Collaborez avec d'autres artistes\n4. Utilisez les KT pour financer vos projets\n5. Racontez VOTRE histoire, pas celle des autres\n\n#Conseils #Créateurs #CC2026",
+        "5 conseils pour les createurs culturels qui veulent vivre de leur art :\n\n1. Construisez votre communaute AVANT de monetiser\n2. Documentez votre processus creatif\n3. Collaborez avec d'autres artistes\n4. Utilisez les Jetons CC pour financer vos projets\n5. Racontez VOTRE histoire, pas celle des autres\n\n#Conseils #Createurs #CC2026",
     ]},
+    {"type": "extrait", "templates": [
+        "EXTRAIT — Chapitre 3 de mon livre 'Racines & Futur'\n\n'La diaspora n'est pas un exil. C'est un reseau. Chaque ile, chaque ville, chaque communaute est un noeud dans une toile invisible qui pulse au rythme du ka.'\n\n{pct} pages, {months} mois d'ecriture. Sortie prevue avant CC2026.\n\n#Litterature #Diaspora #Livre",
+        "EXTRAIT SONORE — Preview de mon prochain album '{art} Session Vol.{mult}'\n\n{count} titres. {months} mois de production entre {city} et Fort-de-France.\n\nPremieres notes ici. L'album complet arrive pour CC2026.\n\n#Preview #Album #Musique",
+    ]},
+]
+
+# Video thumbnail URLs for video posts (culturally relevant free images)
+VIDEO_THUMBNAILS = [
+    "https://images.pexels.com/photos/2531728/pexels-photo-2531728.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1916818/pexels-photo-1916818.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2747446/pexels-photo-2747446.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1540406/pexels-photo-1540406.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/3171837/pexels-photo-3171837.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2263410/pexels-photo-2263410.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1749822/pexels-photo-1749822.jpeg?auto=compress&cs=tinysrgb&w=600",
+]
+
+# Pexels free video URLs for reels
+REEL_VIDEO_URLS = [
+    "https://videos.pexels.com/video-files/3015488/3015488-sd_640_360_24fps.mp4",
+    "https://videos.pexels.com/video-files/3571264/3571264-sd_640_360_30fps.mp4",
+    "https://videos.pexels.com/video-files/4763824/4763824-sd_640_360_25fps.mp4",
+    "https://videos.pexels.com/video-files/5752729/5752729-sd_640_360_25fps.mp4",
+    "https://videos.pexels.com/video-files/6010489/6010489-sd_640_360_25fps.mp4",
+    "https://videos.pexels.com/video-files/4434242/4434242-sd_640_360_30fps.mp4",
+    "https://videos.pexels.com/video-files/4253262/4253262-sd_640_360_25fps.mp4",
+    "https://videos.pexels.com/video-files/5547573/5547573-sd_640_360_25fps.mp4",
+    "https://videos.pexels.com/video-files/3209211/3209211-sd_640_360_25fps.mp4",
+    "https://videos.pexels.com/video-files/5377700/5377700-sd_640_360_25fps.mp4",
+]
+
+REEL_THUMBNAILS = [
+    "https://images.pexels.com/photos/2531728/pexels-photo-2531728.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "https://images.pexels.com/photos/1916818/pexels-photo-1916818.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "https://images.pexels.com/photos/2747446/pexels-photo-2747446.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "https://images.pexels.com/photos/1540406/pexels-photo-1540406.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "https://images.pexels.com/photos/3171837/pexels-photo-3171837.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "https://images.pexels.com/photos/2263410/pexels-photo-2263410.jpeg?auto=compress&cs=tinysrgb&w=400",
 ]
 
 REEL_TEMPLATES = [
