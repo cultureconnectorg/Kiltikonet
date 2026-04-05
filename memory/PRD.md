@@ -11,9 +11,9 @@ Plateforme evenementielle/culturelle premium omnicanale (React 19 + FastAPI + Mo
 5. Feed LinkedIn culturel (ghost population 24/7) — **DONE**
 6. Feed Reels/TikTok culturel (ghost population) — **DONE**
 7. Boite de reception immersive — **DONE** (v2: groupes, vocaux, musique, typing, reactions)
-8. CVL BRAIN complet — **DONE** (v3: multi-turn, knowledge base 16 modules, quick actions, contexte utilisateur)
-9. Wallet KT (style Revolut) — **DONE**
-10. Sovereign Corp Shop — **DONE** (v2: marketplace diasporique, collections, 9 produits)
+8. CVL BRAIN complet — **DONE** (v3: inline page, multi-turn, anticipation 5 niveaux, sage culturel, pare-feu info)
+9. Wallet KT (style Revolut) — **DONE** (v2: donnees reelles MongoDB, achat packs Stripe, historique, analytics)
+10. Sovereign Corp Shop — **DONE** (v2: marketplace diasporique, collections, Stripe checkout)
 11. Archives / Cloud — **DONE** (v2: upload, dossiers, CVL Brain Data, datasets)
 12. 3 Profils (Fiche, Gouvernance, SaaS) — **DONE**
 13. Terminal code IA + API deploiement — **DONE**
@@ -22,63 +22,60 @@ Plateforme evenementielle/culturelle premium omnicanale (React 19 + FastAPI + Mo
 ## Stack
 - **Frontend**: React 19, Tailwind CSS, Sovereign Onyx Design System
 - **Backend**: FastAPI, MongoDB
-- **Integrations**: Stripe, Brevo, Anthropic Claude Sonnet (Emergent LLM Key), Tavily
-- **Design**: OLED #0a0a0b, Or #E8D5A0, Newsreader/Manrope, Material Symbols, JetBrains Mono (terminal)
+- **Integrations**: Stripe (paiements), Anthropic Claude Sonnet (Emergent LLM Key), Tavily
+- **Design**: OLED #0a0a0b, Or #E8D5A0, Newsreader/Manrope, Material Symbols, JetBrains Mono
 
-## Authentification — 3 methodes implementees
-### Google OAuth (Emergent-managed)
-- Bouton "Continuer avec Google" → redirect auth.emergentagent.com
-- Callback: POST /api/auth/google/session avec session_id
-
-### FREK-ID (2-step OTP)
-- POST /api/auth/frek : lookup FREK-ID → envoie OTP a l'email associe
-- POST /api/auth/frek/verify : verification FREK-ID + code → session
-- Admin bypass : code 000000, pas de cooldown
-
-### GitHub OAuth
-- GET /api/auth/github : redirect GitHub authorize URL
-- GET /api/auth/github/callback : echange code → session
-- Necessite GITHUB_CLIENT_ID et GITHUB_CLIENT_SECRET (non configure)
+## Authentification — 3 methodes
+- Google OAuth (Emergent-managed)
+- FREK-ID (2-step OTP, admin bypass 000000)
+- GitHub OAuth (necessite GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET)
 
 ## CVL BRAIN — Intelligence Culturelle (v3)
-### Base de connaissances (pare-feu d'information)
-- Connait l'ecosysteme complet en interne mais ne revele que les infos publiques
-- INTERDIT de mentionner : entites meres, strategies internes, architecture technique, plans futurs non publics
-- INTERDIT de donner : codes d'acces, FREK-IDs d'autres utilisateurs, details FREKcore
-- Repond en creole martiniquais quand il refuse : "Man pa ka pale de sa"
+### Personnalite
+- Sage culturel diasporique afro-descendant
+- Cool, poli, tres smart, jamais defensif
+- Melange francais et creole naturellement
+- Se met dans la peau de differentes perspectives culturelles
+### Pare-feu d'information
+- S'entraine en silence, ne revele rien de strategique
+- Redirige avec elegance (jamais de refus visible)
+- Connait CVLN/GAFAM/FREK en profondeur mais ne le montre pas
+### Anticipation contextuelle (5 niveaux)
+- Anticipe les besoins jusqu'a 5 coups d'avance
+- Mais laisse la place a l'utilisateur car il apprend aussi
+- Propose la prochaine etape sous forme de question/suggestion douce
+### Fonctionnalites
+- Chat inline (page Brain) + bulle flottante (autres pages)
+- Multi-turn conversation (historique complet)
+- Contexte utilisateur (FREK-ID, profil)
+- Archives Cloud alimentent le contexte
+- 6 suggestions rapides
+- Enrichissement web Tavily
 
-### Connaissances publiques partagees
-- kiltikonet.fr et ses fonctionnalites
-- CC2026 (dates, lieu, programme)
-- Jeton CC (packs, prix, usage)
-- FREK-ID (identifiant personnel, usage basique)
-- Espace Pro (Feed, Reels, Wallet, Shop, Archives, Messagerie)
+## Wallet — v2 (Real DB + Stripe)
+- GET /api/my-wallet/me — solde, chart, stats mensuels
+- POST /api/my-wallet/buy-pack — achat direct (fallback)
+- GET /api/my-wallet/history — historique transactions
+- GET /api/my-wallet/analytics — repartition depenses
+- Stripe Checkout via /api/shop/checkout/create (channel='wallet')
+- 4 packs: Decouverte 10EUR/6CC, Culture 25EUR/16CC, Diaspora 50EUR/33CC, VIP 100EUR/66CC
 
-### Fonctionnalites techniques
-- Multi-turn conversation (historique envoye a chaque requete)
-- Contexte utilisateur (nom, FREK-ID propre, type profil)
-- 6 suggestions rapides (Kiltikonet, Profil, Jeton CC, CC2026, FREK-ID, Espace Pro)
-- Enrichissement web via Tavily
-- Memoire persistante MongoDB
+## Smart Analytics — 100% Interne
+- POST /api/analytics/track — tracking evenement unique
+- POST /api/analytics/batch — tracking batch (SmartAnalytics.js)
+- GET /api/analytics/site-stats — overview, top pages, devices, timeline
+- Pas de Google Analytics ni outil tiers
 
 ## Backlog P1
-- [ ] Wallet : remplacer historique mocke par vraie logique DB/trading
-- [ ] Smart Engine & Analytics personnalises (tracking 100% interne)
+- [ ] Archives Cloud : stockage reel (Object Storage) + connexion complete CVL Brain
+- [ ] Ghost LLM intelligent (reduction credits)
 
 ## Backlog P2
-- [ ] Archives Cloud : connexion reelle au contexte CVL Brain
 - [ ] Shop : integration API reelles diasporiques
-- [ ] Ghost LLM intelligent (reduction credits)
 - [ ] DNS IONOS personnalise (attente action utilisateur)
 - [ ] Trading settings : persistance backend
 
 ## Backlog P3
-- [ ] Refactoring server.py (~9800 lignes)
+- [ ] Refactoring server.py (~9900 lignes)
 - [ ] AWS SES : sortie sandbox (attente action utilisateur)
-- [ ] Module 03 : Orchestration agents (event-driven, pub/sub)
-- [ ] Module 04 : Base vectorielle partagee (ChromaDB)
-- [ ] Module 05 : FinOps IA (model router 4 tiers)
-- [ ] Module 06-07 : Jeton CC complet + Flywheel
-- [ ] Module 08 : Dashboard Admin Logs (SSE temps reel)
-- [ ] Module 09 : Smart Contracts Polygon (Phase 4, 2027+)
-- [ ] Module 10 : Souverainete GAFAM (Mistral local, IPFS)
+- [ ] Modules 03-10 (orchestration agents, base vectorielle, FinOps, Jeton CC complet, Dashboard admin, Smart Contracts, souverainete)
