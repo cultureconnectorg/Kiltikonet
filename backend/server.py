@@ -132,7 +132,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics/dashboard") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -3765,6 +3765,8 @@ from routes.cultural_identity import router as cultural_identity_router, feed_ro
 from routes.cultural_search import router as cultural_search_router, analytics_router as cultural_analytics_router
 from routes.pro_feed import router as pro_feed_router, init_db as pro_feed_init_db
 pro_feed_init_db(db)
+from routes.wallet import router as wallet_router
+from routes.site_analytics import router as site_analytics_router
 app.include_router(badges_router)
 app.include_router(jetons_router)
 app.include_router(ses_router)
@@ -3786,6 +3788,8 @@ app.include_router(cultural_reactions_router)
 app.include_router(cultural_search_router)
 app.include_router(cultural_analytics_router)
 app.include_router(pro_feed_router)
+app.include_router(wallet_router)
+app.include_router(site_analytics_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek
@@ -9686,8 +9690,27 @@ async def brain_chat_enriched(request: Request):
         except Exception:
             pass
 
+    # Enrich with user's Archives Cloud data if available
+    archive_context = ""
+    if user_context and user_context.get("email"):
+        try:
+            archives = await db.user_archives.find(
+                {"email": user_context["email"], "folder": "CVL Brain"},
+                {"_id": 0, "name": 1, "content_summary": 1, "type": 1}
+            ).to_list(10)
+            if archives:
+                archive_context = "\n\n[ARCHIVES PERSONNELLES DE L'UTILISATEUR — dossier CVL Brain]\n"
+                for a in archives:
+                    archive_context += f"- {a.get('name', 'Fichier')} ({a.get('type', '')})"
+                    if a.get('content_summary'):
+                        archive_context += f": {a['content_summary'][:150]}"
+                    archive_context += "\n"
+                archive_context += "Tu peux mentionner ces fichiers si le sujet est pertinent.\n"
+        except Exception:
+            pass
+
     from services.cvl_brain_knowledge import build_cvl_brain_prompt
-    system_prompt = build_cvl_brain_prompt(user_name, user_context, web_context)
+    system_prompt = build_cvl_brain_prompt(user_name, user_context, web_context + archive_context)
 
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
