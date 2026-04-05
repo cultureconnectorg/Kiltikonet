@@ -5,7 +5,17 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const POST_TYPE_ICONS = {
   insight: 'lightbulb', question: 'help', announcement: 'campaign',
-  story: 'auto_stories', tip: 'school', default: 'article',
+  story: 'auto_stories', tip: 'school', debate: 'forum',
+  video: 'play_circle', interview: 'mic', repost: 'repeat',
+  institution: 'account_balance', extrait: 'auto_stories', default: 'article',
+};
+const POST_TYPE_LABELS = {
+  debate: 'Debat', video: 'Video', interview: 'Interview',
+  repost: 'Repost', institution: 'Institution', extrait: 'Extrait',
+};
+const POST_TYPE_COLORS = {
+  debate: '#f87171', video: '#818cf8', interview: '#2DD4BF',
+  repost: '#5B9BD5', institution: '#4A5D4E', extrait: '#C4714A',
 };
 
 const timeAgo = (iso) => {
@@ -173,6 +183,19 @@ const LinkedInFeed = ({ session, onOpenInbox }) => {
 
                 {/* Content */}
                 <div className="mt-3">
+                  {/* Post type badge for special types */}
+                  {POST_TYPE_LABELS[post.post_type] && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full mb-2"
+                      style={{ background: `${POST_TYPE_COLORS[post.post_type] || '#555'}15`, border: `1px solid ${POST_TYPE_COLORS[post.post_type] || '#555'}25` }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 11, color: POST_TYPE_COLORS[post.post_type] || '#555' }}>
+                        {POST_TYPE_ICONS[post.post_type] || 'article'}
+                      </span>
+                      <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, color: POST_TYPE_COLORS[post.post_type] || '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        {POST_TYPE_LABELS[post.post_type]}
+                      </span>
+                    </span>
+                  )}
+
                   <p style={{
                     fontFamily: "'Manrope', sans-serif", fontSize: 13, lineHeight: 1.65, color: '#ccc',
                     whiteSpace: 'pre-line',
@@ -188,6 +211,27 @@ const LinkedInFeed = ({ session, onOpenInbox }) => {
                       style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 700, color: '#E8D5A0', marginTop: 4, background: 'none', border: 'none', cursor: 'pointer' }}>
                       ...voir plus
                     </button>
+                  )}
+
+                  {/* Thumbnail for video/interview/extrait posts */}
+                  {post.thumbnail_url && (
+                    <div className="mt-3 rounded-xl overflow-hidden relative cursor-pointer group" data-testid={`post-thumbnail-${post.id}`}>
+                      <img src={post.thumbnail_url} alt="" className="w-full h-48 object-cover transition-transform group-hover:scale-105" style={{ filter: 'brightness(0.8)' }} />
+                      {post.video_url && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', border: '2px solid rgba(232,213,160,0.3)' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: 28, color: '#E8D5A0', fontVariationSettings: "'FILL' 1", marginLeft: 2 }}>play_arrow</span>
+                          </div>
+                        </div>
+                      )}
+                      {post.post_type === 'interview' && !post.video_url && (
+                        <div className="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#2DD4BF' }}>mic</span>
+                          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: '#e5e2e3' }}>Interview exclusive</span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 

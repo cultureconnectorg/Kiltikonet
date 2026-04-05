@@ -103,8 +103,26 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
     setMessages(newMsgs);
     setLoading(true);
 
+    // Show thought process
+    const thinkingSteps = [
+      "Je reflechis a ta question...",
+      "Je consulte mes connaissances...",
+      "C'est genial, je synthetise..."
+    ];
+    let thinkingIdx = 0;
+    const thinkingMsg = { role: 'thinking', content: thinkingSteps[0] };
+    setMessages(prev => [...prev, thinkingMsg]);
+    const thinkTimer = setInterval(() => {
+      thinkingIdx = (thinkingIdx + 1) % thinkingSteps.length;
+      setMessages(prev => {
+        const copy = [...prev];
+        const tIdx = copy.findIndex(m => m.role === 'thinking');
+        if (tIdx >= 0) copy[tIdx] = { ...copy[tIdx], content: thinkingSteps[thinkingIdx] };
+        return copy;
+      });
+    }, 1200);
+
     try {
-      // Build user context from session
       const userContext = session ? {
         name: session.name || session.email,
         email: session.email,
@@ -112,7 +130,6 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
         profile_type: session.type || session.profile_type,
       } : null;
 
-      // Prepare conversation history (only user/assistant, limit to last 10 exchanges)
       const historyMsgs = newMsgs
         .filter(m => m.role === 'user' || m.role === 'assistant')
         .slice(-20);
@@ -124,12 +141,15 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
         user_context: userContext,
         use_web_search: userMsg.includes('?') || userMsg.toLowerCase().includes('quoi') || userMsg.toLowerCase().includes('comment') || userMsg.toLowerCase().includes('actualit'),
       });
-      const reply = res.data.response || "Man pa ka konprann. Éséyé ankò.";
+      clearInterval(thinkTimer);
+      const reply = res.data.response || "Man pa ka konprann. Eseye anko.";
+      // Remove thinking message and add real reply
       const allMsgs = [...newMsgs, { role: 'assistant', content: reply, webEnriched: res.data.web_enriched }];
       setMessages(allMsgs);
       saveToMemory(allMsgs);
     } catch {
-      const allMsgs = [...newMsgs, { role: 'assistant', content: "Désolé, man ni an ti pwoblèm. Éséyé ankò dan an ti moman." }];
+      clearInterval(thinkTimer);
+      const allMsgs = [...newMsgs, { role: 'assistant', content: "Desole, man ni an ti pwoblem. Eseye anko dan an ti moman." }];
       setMessages(allMsgs);
     } finally {
       setLoading(false);
@@ -210,18 +230,19 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 200, maxHeight: 360 }}>
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.role === 'assistant' && (
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mr-2 mt-1" style={{ background: 'linear-gradient(135deg, #E8D5A0, #d8c591)' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#3a2f09', fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                  {(msg.role === 'assistant' || msg.role === 'thinking') && (
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mr-2 mt-1" style={{ background: msg.role === 'thinking' ? 'rgba(232,213,160,0.15)' : 'linear-gradient(135deg, #E8D5A0, #d8c591)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 12, color: msg.role === 'thinking' ? '#E8D5A0' : '#3a2f09', fontVariationSettings: "'FILL' 1", animation: msg.role === 'thinking' ? 'spin 2s linear infinite' : 'none' }}>psychology</span>
                     </div>
                   )}
                   <div className="max-w-[80%] px-4 py-3 rounded-xl leading-relaxed"
                     style={{
-                      fontFamily: msg.role === 'assistant' ? "'Newsreader', serif" : "'Manrope', sans-serif",
-                      fontSize: 13,
+                      fontFamily: msg.role === 'user' ? "'Manrope', sans-serif" : "'Newsreader', serif",
+                      fontStyle: msg.role === 'thinking' ? 'italic' : 'normal',
+                      fontSize: msg.role === 'thinking' ? 11 : 13,
                       lineHeight: 1.6,
-                      background: msg.role === 'user' ? '#201f20' : 'transparent',
-                      color: msg.role === 'user' ? '#e5e2e3' : '#cdc6b7',
+                      background: msg.role === 'user' ? '#201f20' : msg.role === 'thinking' ? 'rgba(232,213,160,0.04)' : 'transparent',
+                      color: msg.role === 'user' ? '#e5e2e3' : msg.role === 'thinking' ? '#a09070' : '#cdc6b7',
                       borderBottomRightRadius: msg.role === 'user' ? 4 : 12,
                       borderBottomLeftRadius: msg.role === 'user' ? 12 : 4,
                     }}>

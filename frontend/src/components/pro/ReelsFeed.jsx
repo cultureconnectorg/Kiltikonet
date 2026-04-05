@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -13,18 +13,13 @@ const DIM_ICONS = {
   'Langue Creole': 'translate',
 };
 
-const timeAgo = (iso) => {
-  if (!iso) return '';
-  const d = (Date.now() - new Date(iso)) / 1000;
-  if (d < 3600) return `${Math.floor(d / 60)}m`;
-  if (d < 86400) return `${Math.floor(d / 3600)}h`;
-  return `${Math.floor(d / 86400)}j`;
-};
-
 const ReelsFeed = ({ session, onOpenInbox }) => {
   const [reels, setReels] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [mutedMap, setMutedMap] = useState({});
+  const [likedMap, setLikedMap] = useState({});
+  const videoRefs = useRef({});
 
   useEffect(() => {
     const load = async () => {
@@ -37,11 +32,34 @@ const ReelsFeed = ({ session, onOpenInbox }) => {
     load();
   }, []);
 
+  // Autoplay current video, pause others
+  useEffect(() => {
+    Object.entries(videoRefs.current).forEach(([idx, videoEl]) => {
+      if (!videoEl) return;
+      if (parseInt(idx) === currentIdx) {
+        videoEl.play().catch(() => {});
+      } else {
+        videoEl.pause();
+      }
+    });
+  }, [currentIdx]);
+
   const handleScroll = useCallback((e) => {
     const container = e.target;
     const idx = Math.round(container.scrollTop / container.clientHeight);
     setCurrentIdx(idx);
   }, []);
+
+  const toggleMute = (reelId) => {
+    setMutedMap(prev => ({ ...prev, [reelId]: !prev[reelId] }));
+  };
+
+  const toggleLike = (reelId) => {
+    setLikedMap(prev => ({ ...prev, [reelId]: !prev[reelId] }));
+    if (session?.id) {
+      axios.post(`${API}/pro/feed/like`, { post_id: reelId, user_id: session.id }).catch(() => {});
+    }
+  };
 
   if (loading) {
     return (
@@ -63,66 +81,89 @@ const ReelsFeed = ({ session, onOpenInbox }) => {
   return (
     <div className="relative" data-testid="reels-feed"
       style={{ height: 'calc(100vh - 140px)', overflow: 'hidden' }}>
-      {/* Snap scroll container */}
       <div className="h-full overflow-y-auto snap-y snap-mandatory no-scrollbar"
         onScroll={handleScroll}>
         {reels.map((reel, idx) => {
           const dimColor = DIM_COLORS[reel.dimension] || '#E8D5A0';
           const dimIcon = DIM_ICONS[reel.dimension] || 'play_circle';
           const isActive = idx === currentIdx;
+          const isMuted = mutedMap[reel.id] !== false; // muted by default
+          const isLiked = likedMap[reel.id];
 
           return (
             <div key={reel.id} className="snap-start relative flex flex-col justify-end"
               style={{ height: 'calc(100vh - 140px)', minHeight: 500 }}
               data-testid={`reel-${reel.id}`}>
-              {/* Background */}
-              <div className="absolute inset-0" style={{
-                background: `linear-gradient(${45 + idx * 30}deg, ${dimColor}08, #0a0a0b 30%, ${dimColor}04 70%, #0a0a0b)`,
-              }}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="material-symbols-outlined" style={{ fontSize: 120, color: dimColor, opacity: 0.04, fontVariationSettings: "'FILL' 1" }}>{dimIcon}</span>
+
+              {/* Video Background */}
+              {reel.video_url ? (
+                <video
+                  ref={el => { videoRefs.current[idx] = el; }}
+                  src={reel.video_url}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loop
+                  muted={isMuted}
+                  playsInline
+                  preload="metadata"
+                  poster={reel.thumbnail_url || ''}
+                  data-testid={`reel-video-${reel.id}`}
+                />
+              ) : (
+                <div className="absolute inset-0" style={{
+                  background: `linear-gradient(${45 + idx * 30}deg, ${dimColor}08, #0a0a0b 30%, ${dimColor}04 70%, #0a0a0b)`,
+                }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="material-symbols-outlined" style={{ fontSize: 120, color: dimColor, opacity: 0.04, fontVariationSettings: "'FILL' 1" }}>{dimIcon}</span>
+                  </div>
                 </div>
-                {/* Gradient overlays */}
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,10,11,0.95) 0%, transparent 40%, transparent 60%, rgba(10,10,11,0.4) 100%)' }} />
-              </div>
+              )}
+
+              {/* Gradient overlays */}
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,10,11,0.92) 0%, rgba(10,10,11,0.3) 30%, transparent 50%, rgba(10,10,11,0.4) 100%)', pointerEvents: 'none' }} />
 
               {/* Dimension badge — top */}
               <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
+                style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)' }}>
                 <span className="material-symbols-outlined" style={{ color: dimColor, fontSize: 12 }}>{dimIcon}</span>
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: dimColor }}>
                   {reel.dimension}
                 </span>
               </div>
 
-              {/* Duration */}
-              {reel.duration && (
-                <div className="absolute top-4 right-4 z-10 px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}>
-                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, color: '#fff' }}>{reel.duration}</span>
-                </div>
-              )}
+              {/* Duration + Mute */}
+              <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                {reel.video_url && (
+                  <button onClick={() => toggleMute(reel.id)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
+                    data-testid={`reel-mute-${reel.id}`}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fff' }}>
+                      {isMuted ? 'volume_off' : 'volume_up'}
+                    </span>
+                  </button>
+                )}
+                {reel.duration && (
+                  <div className="px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}>
+                    <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, color: '#fff' }}>{reel.duration}</span>
+                  </div>
+                )}
+              </div>
 
-              {/* Play indicator center */}
-              {isActive && (
-                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex items-center justify-center z-10 opacity-60"
-                  style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#fff', fontVariationSettings: "'FILL' 1", marginLeft: 3 }}>play_arrow</span>
-                </div>
-              )}
-
-              {/* ─── Right Actions Column ─── */}
+              {/* Right Actions Column */}
               <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-5">
                 {[
-                  { icon: 'favorite', count: reel.likes_count, color: '#f87171' },
+                  { icon: 'favorite', count: (reel.likes_count || 0) + (isLiked ? 1 : 0), color: isLiked ? '#f87171' : '#e5e2e3', fill: isLiked, action: () => toggleLike(reel.id) },
                   { icon: 'chat_bubble', count: reel.comments_count, color: '#e5e2e3' },
                   { icon: 'share', count: reel.shares_count, color: '#e5e2e3' },
                   { icon: 'bolt', count: '', color: '#E8D5A0', special: true },
                 ].map(action => (
-                  <button key={action.icon} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
+                  <button key={action.icon} onClick={action.action}
+                    className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
+                    data-testid={`reel-action-${action.icon}-${reel.id}`}>
                     <div className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ background: action.special ? 'rgba(232,213,160,0.15)' : 'rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}>
-                      <span className="material-symbols-outlined" style={{ color: action.color, fontSize: 20, fontVariationSettings: "'FILL' 1" }}>{action.icon}</span>
+                      style={{ background: action.special ? 'rgba(232,213,160,0.15)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}>
+                      <span className="material-symbols-outlined" style={{ color: action.color, fontSize: 20, fontVariationSettings: action.fill ? "'FILL' 1" : "'FILL' 0" }}>{action.icon}</span>
                     </div>
                     {action.count !== '' && (
                       <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: '#e5e2e3' }}>{action.count}</span>
@@ -131,23 +172,26 @@ const ReelsFeed = ({ session, onOpenInbox }) => {
                 ))}
               </div>
 
-              {/* ─── Bottom Content ─── */}
+              {/* Bottom Content */}
               <div className="relative z-10 px-5 pb-5">
-                {/* Author */}
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0"
                     style={{ border: '2px solid rgba(232,213,160,0.4)', padding: 2 }}>
-                    <div className="w-full h-full rounded-full flex items-center justify-center"
-                      style={{ background: `linear-gradient(135deg, ${dimColor}20, ${dimColor}08)` }}>
-                      <span className="material-symbols-outlined" style={{ color: dimColor, fontSize: 14 }}>person</span>
-                    </div>
+                    {reel.author_image ? (
+                      <img src={reel.author_image} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full rounded-full flex items-center justify-center"
+                        style={{ background: `linear-gradient(135deg, ${dimColor}20, ${dimColor}08)` }}>
+                        <span className="material-symbols-outlined" style={{ color: dimColor, fontSize: 14 }}>person</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 700, color: '#e5e2e3' }}>{reel.author_name}</span>
                       <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#E8D5A0', fontVariationSettings: "'FILL' 1" }}>verified</span>
                     </div>
-                    <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 500, color: '#72727a' }}>{reel.author_country}</span>
+                    <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 500, color: '#a0a0a5' }}>{reel.author_country}</span>
                   </div>
                   <button className="px-3 py-1 rounded-full active:scale-95 transition-transform"
                     style={{ background: '#E8D5A0', color: '#3a2f09', fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700 }}>
@@ -155,25 +199,22 @@ const ReelsFeed = ({ session, onOpenInbox }) => {
                   </button>
                 </div>
 
-                {/* Title */}
                 <h2 className="pr-14" style={{
                   fontFamily: "'Manrope', sans-serif", fontSize: 'clamp(16px, 3.5vw, 22px)',
                   fontWeight: 800, color: '#e5e2e3', lineHeight: 1.3,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
                 }}>
                   {reel.content}
                 </h2>
 
-                {/* Hashtags */}
                 <div className="flex gap-2 mt-2">
                   <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, color: dimColor }}>#{reel.dimension?.replace(/\s+/g, '')}</span>
                   <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, color: dimColor }}>#CC2026</span>
                 </div>
 
-                {/* Views */}
                 <div className="mt-2 flex items-center gap-1">
-                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#555' }}>visibility</span>
-                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#555' }}>{(reel.views_count || 0).toLocaleString()} vues</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#a0a0a5' }}>visibility</span>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#a0a0a5' }}>{(reel.views_count || 0).toLocaleString()} vues</span>
                 </div>
               </div>
             </div>

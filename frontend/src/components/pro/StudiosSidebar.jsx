@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════
 // STUDIOS SIDEBAR — 4 Studios avec slide animation depuis la gauche
 // Design System: Sovereign Onyx · Material Symbols Only
-// Studios: LinkedIn, Feed/Reel, Shop, Preview+Terminal
+// Studios: Reseau, Feed/Reel, Shop, Preview+Terminal
 // ═══════════════════════════════════════════════════════════
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -9,16 +9,16 @@ const G = '#E8D5A0';
 
 const STUDIOS = [
   {
-    id: 'linkedin',
+    id: 'reseau',
     icon: 'dynamic_feed',
-    label: 'LinkedIn Studio',
-    desc: 'Créez et planifiez vos publications professionnelles',
+    label: 'Reseau Studio',
+    desc: 'Creez et planifiez vos publications professionnelles',
     color: '#5B9BD5',
     tools: [
-      { icon: 'edit_note', label: 'Nouvel article', desc: 'Rédigez un post long format' },
-      { icon: 'image', label: 'Média enrichi', desc: 'Ajoutez images et carrousels' },
+      { icon: 'edit_note', label: 'Nouvel article', desc: 'Redigez un post long format' },
+      { icon: 'image', label: 'Media enrichi', desc: 'Ajoutez images et carrousels' },
       { icon: 'schedule', label: 'Planifier', desc: 'Programmez vos publications' },
-      { icon: 'psychology', label: 'CVL BRAIN Assist', desc: 'Génération IA de contenu' },
+      { icon: 'psychology', label: 'CVL BRAIN Assist', desc: 'Generation IA de contenu' },
     ],
   },
   {
@@ -267,18 +267,18 @@ const StudiosSidebar = ({ isOpen, onClose, onSelectStudio }) => {
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-3 rounded-lg" style={{ background: '#1c1b1c' }}>
                   <span style={{ fontFamily: "'Newsreader', serif", fontSize: 20, color: active.color }}>
-                    {active.id === 'linkedin' ? '12' : active.id === 'reel' ? '8' : active.id === 'shop' ? '24' : '3'}
+                    {active.id === 'reseau' ? '12' : active.id === 'reel' ? '8' : active.id === 'shop' ? '24' : '3'}
                   </span>
                   <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a', marginTop: 2 }}>
-                    {active.id === 'linkedin' ? 'Brouillons' : active.id === 'reel' ? 'En montage' : active.id === 'shop' ? 'Produits' : 'APIs actives'}
+                    {active.id === 'reseau' ? 'Brouillons' : active.id === 'reel' ? 'En montage' : active.id === 'shop' ? 'Produits' : 'APIs actives'}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg" style={{ background: '#1c1b1c' }}>
                   <span style={{ fontFamily: "'Newsreader', serif", fontSize: 20, color: '#e5e2e3' }}>
-                    {active.id === 'linkedin' ? '2.4K' : active.id === 'reel' ? '5.1K' : active.id === 'shop' ? '89' : '99.8%'}
+                    {active.id === 'reseau' ? '2.4K' : active.id === 'reel' ? '5.1K' : active.id === 'shop' ? '89' : '99.8%'}
                   </span>
                   <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a', marginTop: 2 }}>
-                    {active.id === 'linkedin' ? 'Impressions' : active.id === 'reel' ? 'Vues totales' : active.id === 'shop' ? 'Commandes' : 'Uptime'}
+                    {active.id === 'reseau' ? 'Impressions' : active.id === 'reel' ? 'Vues totales' : active.id === 'shop' ? 'Commandes' : 'Uptime'}
                   </p>
                 </div>
               </div>
@@ -290,9 +290,9 @@ const StudiosSidebar = ({ isOpen, onClose, onSelectStudio }) => {
                 </h4>
                 <div className="space-y-2">
                   {[
-                    { time: '2h', text: active.id === 'linkedin' ? 'Post "Collaboration CC2026" publié' : active.id === 'reel' ? 'Reel "Gwoka moderne" monté' : active.id === 'shop' ? 'Nouveau pack KT ajouté' : 'API /feed déployée' },
-                    { time: '5h', text: active.id === 'linkedin' ? '3 commentaires reçus' : active.id === 'reel' ? '12 likes sur capsule Madras' : active.id === 'shop' ? '5 commandes traitées' : 'Test unitaire validé' },
-                    { time: '1j', text: active.id === 'linkedin' ? 'Article en brouillon sauvé' : active.id === 'reel' ? 'Filtre caribéen appliqué' : active.id === 'shop' ? 'Promotion -20% créée' : 'Debug endpoint /wallet' },
+                    { time: '2h', text: active.id === 'reseau' ? 'Post "Collaboration CC2026" publie' : active.id === 'reel' ? 'Reel "Gwoka moderne" monte' : active.id === 'shop' ? 'Nouveau pack KT ajoute' : 'API /feed deployee' },
+                    { time: '5h', text: active.id === 'reseau' ? '3 commentaires recus' : active.id === 'reel' ? '12 likes sur capsule Madras' : active.id === 'shop' ? '5 commandes traitees' : 'Test unitaire valide' },
+                    { time: '1j', text: active.id === 'reseau' ? 'Article en brouillon sauve' : active.id === 'reel' ? 'Filtre caribeen applique' : active.id === 'shop' ? 'Promotion -20% creee' : 'Debug endpoint /wallet' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-2 py-2 px-3 rounded-lg" style={{ background: '#1c1b1c' }}>
                       <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, color: active.color, flexShrink: 0, marginTop: 2 }}>{item.time}</span>

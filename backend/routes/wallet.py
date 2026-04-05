@@ -220,3 +220,59 @@ async def wallet_analytics(request: Request):
             result.append({"label": name, "pct": round(val / total * 100), "color": colors.get(name, "#72727a")})
 
     return {"categories": sorted(result, key=lambda x: x["pct"], reverse=True), "total_spent": total}
+
+
+
+class TransferRequest(BaseModel):
+    recipient_email: str
+    amount: int
+    note: str = ""
+
+
+@router.post("/transfer")
+async def wallet_transfer(request: Request, body: TransferRequest):
+    """Transfer jetons to another user."""
+    email = _get_session_email(request)
+    if email == body.recipient_email.lower():
+        raise HTTPException(400, "Impossible de s'envoyer des jetons a soi-meme")
+    if body.amount <= 0:
+        raise HTTPException(400, "Montant invalide")
+
+    # Check sender balance
+    reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "jetons_solde": 1, "full_name": 1})
+    balance = (reg or {}).get("jetons_solde", 0)
+    if balance < body.amount:
+        raise HTTPException(400, f"Solde insuffisant ({balance} CC disponibles)")
+
+    # Check recipient exists
+    recipient = await _db.registrations.find_one(
+        {"email": body.recipient_email.lower()}, {"_id": 0, "full_name": 1, "email": 1}
+    )
+    if not recipient:
+        raise HTTPException(404, "Destinataire non trouve")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    tx_id = str(uuid.uuid4())[:12]
+    sender_name = (reg or {}).get("full_name", email)
+    recipient_name = recipient.get("full_name", body.recipient_email)
+
+    # Debit sender
+    await _db.registrations.update_one({"email": email}, {"$inc": {"jetons_solde": -body.amount}})
+    await _db.cc_transactions.insert_one({
+        "id": f"tx_{tx_id}_out", "email": email, "type": "transfer",
+        "label": f"Envoi a {recipient_name}" + (f" — {body.note}" if body.note else ""),
+        "jetons": -body.amount, "timestamp": now_iso, "status": "completed",
+    })
+
+    # Credit recipient
+    await _db.registrations.update_one(
+        {"email": body.recipient_email.lower()}, {"$inc": {"jetons_solde": body.amount}}
+    )
+    await _db.cc_transactions.insert_one({
+        "id": f"tx_{tx_id}_in", "email": body.recipient_email.lower(), "type": "credit",
+        "label": f"Recu de {sender_name}" + (f" — {body.note}" if body.note else ""),
+        "jetons": body.amount, "timestamp": now_iso, "status": "completed",
+    })
+
+    new_balance = balance - body.amount
+    return {"success": True, "new_balance": new_balance, "transferred": body.amount, "to": recipient_name}

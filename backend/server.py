@@ -7631,6 +7631,22 @@ async def mark_message_read(message_id: str):
     )
     return {"success": result.matched_count > 0}
 
+
+@app.post("/api/pro/messages/read")
+async def mark_conversation_read(request: Request):
+    """Mark all messages in a conversation as read (batch)"""
+    body = await request.json()
+    user_id = body.get("user_id", "")
+    conversation_id = body.get("conversation_id", "")
+    if not user_id or not conversation_id:
+        return {"success": False}
+    result = await db.pro_messages.update_many(
+        {"to": user_id, "from": conversation_id, "read": {"$ne": True}},
+        {"$set": {"read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True, "marked": result.modified_count}
+
+
 # Public catalog endpoint - LIMITED data for non-authenticated users
 @app.get("/api/catalog/public")
 async def get_public_catalog():

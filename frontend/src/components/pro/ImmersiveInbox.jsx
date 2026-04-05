@@ -138,10 +138,15 @@ const ImmersiveInbox = ({ session, isOpen, onClose }) => {
 
   useEffect(() => {
     if (activeConv) {
+      // Mark conversation as read in UI
+      setConversations(prev => prev.map(c => c.id === activeConv ? { ...c, unread: 0 } : c));
+      
       // Load ghost messages or real messages
       if (activeConv.startsWith('ghost_')) {
         setChatMessages(GHOST_MESSAGES[activeConv] || []);
       } else if (session?.id) {
+        // Mark as read in backend
+        axios.post(`${API}/pro/messages/read`, { user_id: session.id, conversation_id: activeConv }).catch(() => {});
         axios.get(`${API}/pro/messages/${session.id}`)
           .then(r => {
             const msgs = (r.data.messages || []).filter(m => m.from === activeConv || m.to === activeConv);

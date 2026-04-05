@@ -121,3 +121,34 @@ async def list_alerts(limit: int = 20):
 async def profile_analysis(badge_id: str):
     """Get CVL BRAIN analysis for a specific badge."""
     return await get_profile_analysis(badge_id)
+
+
+
+# ─── Simple chat endpoint (used by Terminal) ───────────────
+@router.post("/chat")
+async def brain_chat(data: dict):
+    """Simple CVL BRAIN chat endpoint for the Terminal."""
+    import os
+    message = data.get("message", "")
+    session_id = data.get("session_id", "")
+    user_id = data.get("user_id", "")
+    if not message:
+        return {"reply": "Pose-moi une question !"}
+    try:
+        from services.cvl_brain_knowledge import build_cvl_brain_prompt
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import uuid
+        emergent_key = os.environ.get("EMERGENT_LLM_KEY", "")
+        system_prompt = build_cvl_brain_prompt("Terminal User")
+        chat_obj = LlmChat(
+            api_key=emergent_key,
+            session_id=session_id or str(uuid.uuid4()),
+            system_message=system_prompt,
+        )
+        chat_obj.with_model("anthropic", "claude-sonnet-4-5-20250929")
+        user_msg = UserMessage(text=message)
+        response = await chat_obj.send_message(user_msg)
+        return {"reply": response}
+    except Exception as e:
+        logger.error(f"Brain chat error: {e}")
+        return {"reply": f"Erreur: {str(e)}"}

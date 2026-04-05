@@ -215,6 +215,11 @@ async def _generate_batch_posts(count: int = 50):
             "created_at": post_time.isoformat(),
             "updated_at": post_time.isoformat(),
         }
+        # Add media for video/interview/repost types
+        if cat["type"] in ("video", "interview", "extrait"):
+            post["thumbnail_url"] = random.choice(VIDEO_THUMBNAILS)
+        if cat["type"] == "video":
+            post["video_url"] = random.choice(REEL_VIDEO_URLS)
         posts.append(post)
 
     if posts:
@@ -249,6 +254,8 @@ async def _generate_batch_reels(count: int = 20):
             "post_type": "reel",
             "dimension": dim["dimension"],
             "duration": f"0:{random.randint(15, 59):02d}",
+            "video_url": random.choice(REEL_VIDEO_URLS),
+            "thumbnail_url": random.choice(REEL_THUMBNAILS),
             "likes": [],
             "likes_count": random.randint(10, 500),
             "comments_count": random.randint(1, 30),

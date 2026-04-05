@@ -121,6 +121,41 @@ const GovernanceProfile = ({ session }) => {
 
   return (
     <div className="space-y-6" data-testid="governance-profile">
+      {/* Association Kiltikonet — Membership */}
+      <div className="rounded-xl p-6 relative overflow-hidden" style={{ background: '#131314', border: '1px solid rgba(74,93,78,0.2)' }}>
+        <div className="absolute top-0 right-0 w-40 h-40" style={{ background: 'radial-gradient(circle, rgba(74,93,78,0.1), transparent)', filter: 'blur(40px)' }} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #4A5D4E, #2d3a30)', boxShadow: '0 4px 16px rgba(74,93,78,0.2)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 28, color: '#4ADE80', fontVariationSettings: "'FILL' 1" }}>eco</span>
+          </div>
+          <div>
+            <h3 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 18, color: '#e5e2e3' }}>Association Kiltikonet</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.1)', color: '#4ADE80', fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                Adherant
+              </span>
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#72727a' }}>Membre depuis Jan 2026</span>
+            </div>
+          </div>
+          <div className="ml-auto flex-shrink-0">
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#4ADE80' }}>verified</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3 mt-4 pt-4" style={{ borderTop: '1px solid rgba(74,93,78,0.15)' }}>
+          {[
+            { label: 'Hierarchie', value: 'Adherant', icon: 'account_tree' },
+            { label: 'Droits de vote', value: 'Actif', icon: 'how_to_vote' },
+            { label: 'Cotisation', value: 'A jour', icon: 'check_circle' },
+          ].map(item => (
+            <div key={item.label} className="text-center">
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#4A5D4E' }}>{item.icon}</span>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 700, color: '#e5e2e3', marginTop: 4 }}>{item.value}</p>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, color: '#72727a', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Pouvoir de vote */}
       <div className="rounded-xl p-6 relative overflow-hidden" style={{ background: '#131314' }}>
         <div className="absolute top-0 right-0 w-32 h-32" style={{ background: 'radial-gradient(circle, rgba(232,213,160,0.06), transparent)', filter: 'blur(40px)' }} />

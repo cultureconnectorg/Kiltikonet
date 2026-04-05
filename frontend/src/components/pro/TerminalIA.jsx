@@ -10,16 +10,15 @@ import axios from 'axios';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const G = '#E8D5A0';
 
-// ─── API Explorer endpoints ─────────────────────────────
+// ─── API Explorer endpoints (masque les sensibles) ─────
 const CC2026_APIS = [
-  { method: 'GET', path: '/api/cultural-feed/linkedin', desc: 'Flux LinkedIn culturel', category: 'Feed' },
-  { method: 'GET', path: '/api/cultural-feed/reels', desc: 'Flux Reels culturel', category: 'Feed' },
-  { method: 'POST', path: '/api/growth/engine/seed', desc: 'Seeder les posts ghosts', category: 'Growth' },
-  { method: 'GET', path: '/api/brain/memory/history', desc: 'Historique CVL BRAIN', category: 'Brain' },
+  { method: 'GET', path: '/api/pro/feed', desc: 'Flux reseau culturel', category: 'Feed' },
+  { method: 'GET', path: '/api/pro/feed/reels', desc: 'Flux Reels culturel', category: 'Feed' },
+  { method: 'POST', path: '/api/pro/feed/post', desc: 'Publier un contenu', category: 'Feed' },
+  { method: 'GET', path: '/api/my-wallet/me', desc: 'Mon portefeuille', category: 'Wallet' },
+  { method: 'GET', path: '/api/my-wallet/history', desc: 'Historique transactions', category: 'Wallet' },
   { method: 'POST', path: '/api/brain/chat', desc: 'Chat avec CVL BRAIN', category: 'Brain' },
-  { method: 'GET', path: '/api/accreditation/status', desc: 'Statut accréditation', category: 'Core' },
-  { method: 'GET', path: '/api/catalog/live', desc: 'Catalogue en direct', category: 'Core' },
-  { method: 'GET', path: '/api/health', desc: 'État du serveur', category: 'Système' },
+  { method: 'GET', path: '/api/health', desc: 'Etat du serveur', category: 'Systeme' },
 ];
 
 const METHOD_COLORS = { GET: '#4ADE80', POST: '#5B9BD5', PUT: '#E8D5A0', DELETE: '#ffb4ab', PATCH: '#C4714A' };
@@ -170,14 +169,26 @@ const TerminalIA = ({ session }) => {
           setLines(prev => [...prev, { type: 'error', content: 'Usage: brain <votre question>' }]);
           break;
         }
-        setLines(prev => [...prev, { type: 'info', content: 'CVL BRAIN réfléchit...' }]);
+        setLines(prev => [...prev, { type: 'info', content: 'CVL BRAIN reflechit...' }]);
+        
+        // Thought process display
+        const thoughts = [
+          'Analyse de la question...',
+          'Consultation de la base de connaissances culturelle...',
+          'Synthese des informations pertinentes...',
+        ];
+        for (const thought of thoughts) {
+          await new Promise(r => setTimeout(r, 400 + Math.random() * 300));
+          setLines(prev => [...prev, { type: 'system', content: `  > ${thought}` }]);
+        }
+        
         try {
           const res = await axios.post(`${API}/brain/chat`, {
             message: question,
-            session_id: `terminal_${Date.now()}`,
+            session_id: `terminal_${session?.id || 'anon'}_${Date.now()}`,
             user_id: session?.id || '',
           }, { timeout: 30000 });
-          const reply = res.data.reply || res.data.response || 'Pas de réponse.';
+          const reply = res.data.reply || res.data.response || 'Pas de reponse.';
           setLines(prev => [...prev, { type: 'brain', content: `BRAIN: ${reply}` }]);
         } catch {
           setLines(prev => [...prev, { type: 'error', content: 'CVL BRAIN indisponible.' }]);
