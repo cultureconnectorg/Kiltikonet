@@ -56,6 +56,182 @@ const PROFILE_LABELS = {
 const CC2026_DATE = new Date('2026-05-20T09:00:00');
 const getDaysUntil = () => Math.max(0, Math.ceil((CC2026_DATE - Date.now()) / 86400000));
 
+// ─── Brain Inline Chat (Full Page) ─────────────────────
+const BRAIN_SUGGESTIONS = [
+  { label: 'Kiltikonet', icon: 'info', q: "C'est quoi kiltikonet ?" },
+  { label: 'Jeton CC', icon: 'toll', q: 'Comment fonctionne le Jeton CC ?' },
+  { label: 'CC2026', icon: 'festival', q: 'Parle-moi de Culture Connect 2026' },
+  { label: 'Mon FREK-ID', icon: 'fingerprint', q: 'À quoi sert mon FREK-ID ?' },
+  { label: 'Espace Pro', icon: 'dashboard', q: "Quelles sont les fonctionnalités de l'Espace Pro ?" },
+  { label: 'Culture', icon: 'music_note', q: 'Parle-moi de la culture caribéenne' },
+];
+
+const BrainInlineChat = ({ session }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, loading]);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const sendMessage = async (overrideMsg) => {
+    const msgToSend = typeof overrideMsg === 'string' ? overrideMsg : null;
+    const userMsg = (msgToSend || input).trim();
+    if (!userMsg || loading) return;
+    if (!msgToSend) setInput('');
+    const newMsgs = [...messages, { role: 'user', content: userMsg }];
+    setMessages(newMsgs);
+    setLoading(true);
+    try {
+      const userContext = session ? {
+        name: session.name || session.email, email: session.email,
+        frek_id: session.frek_id, profile_type: session.type,
+      } : null;
+      const historyMsgs = newMsgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-20);
+      const res = await axios.post(`${API}/brain/chat-enriched`, {
+        message: userMsg, messages: historyMsgs,
+        user_name: session?.name || 'un utilisateur', user_context: userContext,
+        use_web_search: userMsg.includes('?') || userMsg.toLowerCase().includes('quoi'),
+      });
+      const reply = res.data.response || "Man pa ka konprann. Éséyé ankò.";
+      setMessages([...newMsgs, { role: 'assistant', content: reply, webEnriched: res.data.web_enriched }]);
+    } catch {
+      setMessages([...newMsgs, { role: 'assistant', content: "Désolé, man ni an ti pwoblèm. Éséyé ankò." }]);
+    } finally { setLoading(false); }
+  };
+
+  const showSphere = messages.length === 0;
+
+  return (
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }} data-testid="brain-inline-chat">
+      {/* Ambient glow */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: 64 }}>
+        <div style={{ width: '60%', height: '40%', background: 'radial-gradient(circle, rgba(232,213,160,0.05) 0%, transparent 60%)', filter: 'blur(80px)' }} />
+      </div>
+
+      {/* Messages Area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto relative" style={{ paddingBottom: 8 }}>
+        {showSphere ? (
+          /* Welcome State — Golden Sphere + Suggestions */
+          <div className="flex flex-col items-center justify-center h-full px-6">
+            {/* Sphere */}
+            <div className="relative flex items-center justify-center mb-8" data-testid="brain-golden-sphere">
+              <div className="absolute w-44 h-44 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.06)', animationDuration: '4s' }} />
+              <div className="absolute w-56 h-56 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.03)', animationDuration: '5s', animationDelay: '0.5s' }} />
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full" style={{
+                background: 'radial-gradient(circle at 35% 35%, #F5E6BE 0%, #C8A84B 50%, #745B00 100%)',
+                boxShadow: '0 0 50px 8px rgba(232,213,160,0.35), 0 0 100px 25px rgba(200,168,75,0.12), inset 0 -6px 12px rgba(0,0,0,0.3)',
+              }}>
+                <div className="w-full h-full rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined" style={{ fontSize: 36, color: 'rgba(58,47,9,0.5)', fontVariationSettings: "'FILL' 1, 'wght' 300" }}>psychology</span>
+                </div>
+              </div>
+            </div>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#d8c591' }}>Intelligence Culturelle</span>
+            <h1 className="mt-2" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 'clamp(30px, 5vw, 44px)', fontWeight: 300, letterSpacing: '-0.03em', color: '#e5e2e3', lineHeight: 1 }}>
+              CVL <span style={{ color: '#E8D5A0' }}>BRAIN</span>
+            </h1>
+            <p className="max-w-sm mx-auto mt-3 text-center" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, color: '#72727a', lineHeight: 1.7 }}>
+              Posez vos questions. Man la pou ou.
+            </p>
+            {/* Suggestions */}
+            <div className="flex flex-wrap justify-center gap-2 mt-6 max-w-lg" data-testid="brain-page-suggestions">
+              {BRAIN_SUGGESTIONS.map((s, i) => (
+                <button key={i} onClick={() => sendMessage(s.q)}
+                  className="flex items-center gap-1.5 py-2 px-3 rounded-full transition-all hover:scale-[1.03] active:scale-95"
+                  data-testid={`brain-page-qa-${i}`}
+                  style={{ background: 'rgba(232,213,160,0.06)', color: '#cdc6b7', border: '1px solid rgba(232,213,160,0.1)', fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 600 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: C.gold, fontVariationSettings: "'FILL' 0, 'wght' 300" }}>{s.icon}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Chat Messages */
+          <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+            {messages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                {msg.role === 'assistant' && (
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center mr-2.5 mt-1" style={{ background: 'linear-gradient(135deg, #E8D5A0, #c8a84b)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#3a2f09', fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                  </div>
+                )}
+                <div className={`max-w-[75%] px-4 py-3 rounded-2xl`} style={{
+                  fontFamily: msg.role === 'assistant' ? "'Newsreader', serif" : "'Manrope', sans-serif",
+                  fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap',
+                  background: msg.role === 'user' ? '#201f20' : 'rgba(232,213,160,0.04)',
+                  color: msg.role === 'user' ? '#e5e2e3' : '#cdc6b7',
+                  border: msg.role === 'assistant' ? '1px solid rgba(232,213,160,0.06)' : 'none',
+                  borderBottomRightRadius: msg.role === 'user' ? 4 : 16,
+                  borderBottomLeftRadius: msg.role === 'user' ? 16 : 4,
+                }}>
+                  {msg.content}
+                  {msg.webEnriched && (
+                    <span className="inline-flex items-center gap-0.5 ml-1.5 px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(91,155,213,0.1)', fontSize: 9, color: '#5B9BD5', verticalAlign: 'middle' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 9 }}>language</span>Web
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E8D5A0, #c8a84b)' }}>
+                  <span className="material-symbols-outlined animate-pulse" style={{ fontSize: 14, color: '#3a2f09', fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                </div>
+                <div className="px-4 py-3 rounded-2xl" style={{ background: 'rgba(232,213,160,0.04)', border: '1px solid rgba(232,213,160,0.06)' }}>
+                  <div className="flex gap-1.5">
+                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ background: '#E8D5A0', animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ background: '#E8D5A0', animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ background: '#E8D5A0', animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Command Bar — Bottom */}
+      <div className="px-4 pb-4 pt-2 max-w-2xl mx-auto w-full relative z-10">
+        <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(19,19,20,0.95)', backdropFilter: 'blur(32px)', border: '1px solid rgba(75,70,59,0.1)', boxShadow: '0 -4px 24px rgba(0,0,0,0.4)' }}>
+          <div className="relative flex items-center">
+            <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && sendMessage()}
+              placeholder="Posez votre question..." autoComplete="off"
+              className="w-full bg-transparent border-none py-4 pl-5 pr-14 text-sm font-medium"
+              data-testid="brain-page-input"
+              style={{ color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} />
+            <button onClick={() => sendMessage()} disabled={loading || !input.trim()}
+              className="absolute right-2 w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-90"
+              data-testid="brain-page-send"
+              style={{ background: input.trim() ? '#E8D5A0' : 'rgba(232,213,160,0.15)', opacity: loading ? 0.5 : 1 }}>
+              <span className="material-symbols-outlined" style={{ color: input.trim() ? '#3a2f09' : '#72727a', fontSize: 20 }}>
+                {loading ? 'hourglass_top' : 'arrow_upward'}
+              </span>
+            </button>
+          </div>
+          <div className="flex items-center gap-1 px-3 pb-2">
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555' }}>BRAIN v2.4</span>
+            {messages.length > 0 && (
+              <button onClick={() => setMessages([])} className="ml-auto text-[10px] px-2 py-0.5 rounded hover:bg-white/5 transition-colors" style={{ color: '#555' }}>
+                Nouveau chat
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 // ─── Session Hook ──────────────────────────────────────
 const useProSession = () => {
   const [session, setSession] = useState(null);
@@ -303,6 +479,7 @@ const ProSpaceDashboard = () => {
                 else if (item.id === 'open-studios') { setStudiosOpen(true); setMobileMenu(false); }
                 else { setActiveSection(item.id); setMobileMenu(false); }
               }}
+                data-testid={`mobile-nav-${item.id}`}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
                 style={{ background: activeSection === item.id ? 'rgba(232,213,160,0.08)' : 'transparent', color: activeSection === item.id ? '#E8D5A0' : '#72727a' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 20, fontVariationSettings: activeSection === item.id ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300" }}>{item.icon}</span>
@@ -321,79 +498,7 @@ const ProSpaceDashboard = () => {
       {activeSection === 'feed' ? (
         <LinkedInFeed session={session} onOpenInbox={() => setInboxOpen(true)} />
       ) : activeSection === 'brain' ? (
-        <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
-          {/* Brain — Full page Sovereign with Golden Sphere */}
-          <main className="flex-1 overflow-y-auto flex flex-col items-center justify-center relative">
-            {/* Radial ambient glow */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div style={{ width: '70%', height: '70%', background: 'radial-gradient(circle, rgba(232,213,160,0.06) 0%, transparent 60%)', filter: 'blur(60px)' }} />
-            </div>
-
-            {/* Golden Sphere — Stitch "cvl_brain_c_ur_d_or_pur" */}
-            <div className="relative flex items-center justify-center mb-12" data-testid="brain-golden-sphere">
-              {/* Ripple rings */}
-              <div className="absolute w-56 h-56 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.08)', animationDuration: '4s' }} />
-              <div className="absolute w-72 h-72 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.04)', animationDuration: '5s', animationDelay: '0.5s' }} />
-              <div className="absolute w-96 h-96 rounded-full animate-pulse" style={{ border: '1px solid rgba(232,213,160,0.02)', animationDuration: '6s', animationDelay: '1s' }} />
-              {/* Sphere */}
-              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full cursor-pointer transition-transform hover:scale-105 active:scale-95"
-                onClick={() => setBrainOpen(true)}
-                style={{
-                  background: 'radial-gradient(circle at 35% 35%, #F5E6BE 0%, #C8A84B 50%, #745B00 100%)',
-                  boxShadow: '0 0 60px 10px rgba(232,213,160,0.4), 0 0 120px 30px rgba(200,168,75,0.15), inset 0 -8px 16px rgba(0,0,0,0.3)',
-                }}>
-                <div className="w-full h-full rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'rgba(58,47,9,0.6)', fontVariationSettings: "'FILL' 1, 'wght' 300" }}>psychology</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Brain title */}
-            <div className="text-center space-y-3 px-6">
-              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#d8c591' }}>Intelligence Souveraine</span>
-              <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 300, letterSpacing: '-0.03em', color: '#e5e2e3', lineHeight: 0.95 }}>
-                CVL <span style={{ color: '#E8D5A0' }}>BRAIN</span>
-              </h1>
-              <p className="max-w-md mx-auto" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, color: '#72727a', lineHeight: 1.7 }}>
-                Posez vos questions sur l'écosystème CC2026, la culture caribéenne, ou demandez une analyse de vos projets.
-              </p>
-            </div>
-
-            {/* Contextual suggestions — Stitch "AI Tool suggestions" */}
-            <div className="flex flex-wrap justify-center gap-2 mt-8 px-6">
-              {['Analyse mon profil', 'Stratégie CC2026', 'Pitch artistique', 'Recherche web'].map(s => (
-                <button key={s} onClick={() => setBrainOpen(true)}
-                  className="py-2 px-4 rounded-full transition-all hover:scale-[1.02] active:scale-95"
-                  style={{ background: '#2a2a2b', color: '#d8c591', fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{s}</button>
-              ))}
-            </div>
-          </main>
-
-          {/* Bottom Command Bar — Stitch "Floating Command Bar" */}
-          <div className="px-4 pb-6 pt-2 max-w-2xl mx-auto w-full">
-            <div className="p-2 rounded-xl" style={{ background: 'rgba(19,19,20,0.95)', backdropFilter: 'blur(32px)', boxShadow: '0 -10px 40px rgba(0,0,0,0.6)' }}>
-              {/* AI Tools Compact Bar */}
-              <div className="flex items-center gap-1 px-2 py-1">
-                <button className="p-2 hover:text-[#E8D5A0] transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>upload_file</span></button>
-                <button className="p-2 hover:text-[#E8D5A0] transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>mic</span></button>
-                <button className="p-2 hover:text-[#E8D5A0] transition-colors" style={{ color: '#72727a' }}><span className="material-symbols-outlined" style={{ fontSize: 20 }}>code</span></button>
-                <div className="h-4 w-px mx-2" style={{ background: 'rgba(75,70,59,0.3)' }} />
-                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#72727a' }}>BRAIN v2.4</span>
-              </div>
-              {/* Input Area */}
-              <div className="relative flex items-center rounded-lg" style={{ background: 'rgba(53,52,54,0.3)' }}>
-                <input placeholder="Command the Curator..." onClick={() => setBrainOpen(true)}
-                  className="w-full bg-transparent border-none py-4 pl-5 pr-12 text-sm font-medium" data-testid="brain-page-input"
-                  style={{ color: '#e5e2e3', outline: 'none', fontFamily: "'Manrope', sans-serif" }} readOnly />
-                <button onClick={() => setBrainOpen(true)}
-                  className="absolute right-2 w-10 h-10 rounded-lg flex items-center justify-center active:scale-90 transition-transform"
-                  style={{ background: '#E8D5A0' }}>
-                  <span className="material-symbols-outlined" style={{ color: '#3a2f09' }}>arrow_upward</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <BrainInlineChat session={session} />
       ) : activeSection === 'reels' ? (
         <ReelsFeed session={session} onOpenInbox={() => setInboxOpen(true)} />
       ) : (
@@ -429,7 +534,7 @@ const ProSpaceDashboard = () => {
       <ImmersiveInbox session={session} isOpen={inboxOpen} onClose={() => setInboxOpen(false)} />
 
       {!inboxOpen && !studiosOpen && showMessages && <MessagesPanel messages={messages} session={session} onUpdate={loadAll} onClose={() => setShowMessages(false)} />}
-      {!inboxOpen && <CvlBrainFloat session={session} externalOpen={brainOpen} onExternalClose={() => setBrainOpen(false)} />}
+      {!inboxOpen && activeSection !== 'brain' && <CvlBrainFloat session={session} externalOpen={brainOpen} onExternalClose={() => setBrainOpen(false)} />}
 
       {/* ─── MOBILE BOTTOM NAV ─── */}
       <MobileNavigation

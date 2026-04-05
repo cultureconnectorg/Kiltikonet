@@ -381,6 +381,9 @@ async def create_checkout(data: dict, request: Request):
     if channel == "web":
         success_url = f"{origin_url}/wallet?payment=success&session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{origin_url}/wallet?payment=cancelled"
+    elif channel == "wallet":
+        success_url = f"{origin_url}/espace-pro?section=wallet&payment=success&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{origin_url}/espace-pro?section=wallet&payment=cancelled"
     else:
         success_url = f"{origin_url}/espace-pro?section=shop&payment=success&session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{origin_url}/espace-pro?section=shop&payment=cancelled"

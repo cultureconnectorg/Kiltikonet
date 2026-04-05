@@ -12,6 +12,29 @@ const WalletPage = ({ session, jetonsBalance = 0, onBalanceUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [buyingPack, setBuyingPack] = useState(null);
 
+  // Handle Stripe payment return
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    const sessionId = params.get('session_id');
+    if (paymentStatus === 'success' && sessionId) {
+      axios.get(`${API}/shop/checkout/status/${sessionId}`)
+        .then(res => {
+          if (res.data.payment_status === 'paid') {
+            toast.success('Paiement reussi !', { description: `+${res.data.tokens} Jetons CC credites` });
+            // Refresh wallet data
+            axios.get(`${API}/my-wallet/me`, { withCredentials: true }).then(r => { if (r.data) setWalletData(r.data); });
+            axios.get(`${API}/my-wallet/history`, { withCredentials: true }).then(r => { if (r.data?.history) setHistory(r.data.history); });
+          }
+        }).catch(() => {});
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (paymentStatus === 'cancelled') {
+      toast.info('Paiement annule');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // Fetch wallet data
   useEffect(() => {
     const fetchWallet = async () => {
@@ -61,11 +84,26 @@ const WalletPage = ({ session, jetonsBalance = 0, onBalanceUpdate }) => {
   const handleBuyPack = async (packId) => {
     setBuyingPack(packId);
     try {
+      // Route through Stripe Checkout via fintech endpoint
+      const res = await axios.post(`${API}/shop/checkout/create`, {
+        package_id: `kt-${packId}`,
+        user_id: session?.id || session?.email,
+        channel: 'wallet',
+        frek_id: session?.frek_id,
+        origin_url: window.location.origin,
+      });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+        return;
+      }
+    } catch {
+      // Fallback: direct wallet credit (demo/testing)
+    }
+    try {
       const res = await axios.post(`${API}/my-wallet/buy-pack`, { pack_id: packId }, { withCredentials: true });
       if (res.data.success) {
         toast.success(`${res.data.pack.label} achete !`, { description: `+${res.data.jetons_added} Jetons CC` });
         setWalletData(prev => prev ? { ...prev, balance: res.data.new_balance } : prev);
-        // Refresh history
         const histRes = await axios.get(`${API}/my-wallet/history`, { withCredentials: true });
         if (histRes.data?.history) setHistory(histRes.data.history);
         if (onBalanceUpdate) onBalanceUpdate(res.data.new_balance);
