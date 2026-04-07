@@ -16,7 +16,7 @@ const PROFILE_TABS = [
 ];
 
 // ─── FICHE PERSONNELLE ──────────────────────────────────
-const FicheProfile = ({ session }) => {
+const FicheProfile = ({ session, doctrine }) => {
   const stats = [
     { icon: 'visibility', value: '2.4K', label: 'Vues du profil' },
     { icon: 'people', value: '147', label: 'Connexions' },
@@ -52,7 +52,15 @@ const FicheProfile = ({ session }) => {
           </div>
           <div className="flex-1 min-w-0 pb-1">
             <h2 style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, fontWeight: 400, color: '#e5e2e3' }}>{session?.name || 'Utilisateur'}</h2>
-            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, color: '#72727a', marginTop: 2 }}>Professionnel culturel · Martinique</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 11, color: '#72727a' }}>Professionnel culturel</p>
+              {doctrine?.label_fr && (
+                <span className="px-2 py-0.5 rounded-full" data-testid="profile-doctrine-badge"
+                  style={{ background: 'rgba(232,213,160,0.1)', border: '1px solid rgba(232,213,160,0.15)', fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: G }}>
+                  {doctrine.label_fr}
+                </span>
+              )}
+            </div>
           </div>
           <button className="px-4 py-2 rounded-lg" style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.15)', color: G, fontFamily: "'Manrope', sans-serif", fontSize: 11, fontWeight: 700 }}>
             <span className="material-symbols-outlined mr-1" style={{ fontSize: 14, verticalAlign: 'middle' }}>edit</span>
@@ -86,6 +94,33 @@ const FicheProfile = ({ session }) => {
           ))}
         </div>
       </div>
+
+      {/* Role doctrinal & Actions autorisees */}
+      {doctrine?.can && doctrine.can.length > 0 && (
+        <div className="rounded-xl p-5" style={{ background: '#131314' }} data-testid="doctrine-permissions-card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#72727a' }}>
+              Permissions — {doctrine.label_fr || 'Membre'}
+            </h3>
+            {doctrine.governance_weight > 1 && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: 'rgba(74,93,78,0.15)', border: '1px solid rgba(74,93,78,0.2)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 11, color: '#4A5D4E' }}>how_to_vote</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, color: '#4A5D4E' }}>Poids {doctrine.governance_weight}x</span>
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {doctrine.can.map(action => (
+              <div key={action} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(232,213,160,0.04)', border: '1px solid rgba(232,213,160,0.08)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 13, color: G, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, color: '#ccc' }}>
+                  {action.replace(/_/g, ' ')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Activité récente */}
       <div className="rounded-xl p-5" style={{ background: '#131314' }}>
@@ -345,7 +380,7 @@ const SaasProfile = ({ session }) => {
 };
 
 // ─── COMPOSANT PRINCIPAL — 3 PROFILS ────────────────────
-const ProfileTriptych = ({ session }) => {
+const ProfileTriptych = ({ session, doctrine }) => {
   const [activeTab, setActiveTab] = useState('fiche');
 
   return (
@@ -378,7 +413,7 @@ const ProfileTriptych = ({ session }) => {
       </header>
 
       {/* Content */}
-      {activeTab === 'fiche' && <FicheProfile session={session} />}
+      {activeTab === 'fiche' && <FicheProfile session={session} doctrine={doctrine} />}
       {activeTab === 'governance' && <GovernanceProfile session={session} />}
       {activeTab === 'saas' && <SaasProfile session={session} />}
     </div>

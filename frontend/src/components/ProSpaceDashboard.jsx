@@ -312,6 +312,7 @@ const ProSpaceDashboard = () => {
   const [culturalIdentity, setCulturalIdentity] = useState(null);
   const [studiosOpen, setStudiosOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
+  const [doctrine, setDoctrine] = useState(null);
 
   useEffect(() => { if (!loading && !isAuthenticated) navigate('/espace-pro/connexion'); }, [loading, isAuthenticated, navigate]);
   useEffect(() => { if (session?.id) loadAll(); }, [session?.id]);
@@ -349,6 +350,13 @@ const ProSpaceDashboard = () => {
       setProfile(p.data); setConnections(co.data.connections || []); setMessages(m.data.messages || []);
       setOpportunities(o.data.opportunities || []); setEvents(e.data.events || []);
     } catch {}
+    // Fetch doctrine permissions (single call, shared across header + profile)
+    axios.get(`${API}/doctrine/my-permissions`, { withCredentials: true })
+      .then(r => setDoctrine(r.data))
+      .catch(err => {
+        if (err.response?.status === 401) { /* handled by auth flow */ }
+        else setDoctrine({ actor_role: 'consumer', label_fr: 'Membre', can: [], receives: [], cc_flow: {}, governance_weight: 1 });
+      });
   };
 
   const handleLogout = () => { logout(); toast.success('Déconnexion'); navigate('/espace-pro/connexion'); };
@@ -442,10 +450,16 @@ const ProSpaceDashboard = () => {
             <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, color: '#E8D5A0', opacity: 0.6 }}>KT</span>
           </button>
 
-          {/* Profile Avatar — Gold ring */}
+          {/* Profile Avatar — Gold ring + doctrine badge */}
           <button onClick={() => setActiveSection('profile')} data-testid="nav-profile"
-            className="flex items-center rounded-full" style={{ minHeight: 44 }} aria-label="Mon profil">
+            className="flex items-center gap-2 rounded-full" style={{ minHeight: 44 }} aria-label="Mon profil">
             <Avatar src={session.image} name={session.name} type={session.type} size={36} ring />
+            {doctrine?.label_fr && (
+              <span className="hidden sm:inline-block px-2 py-0.5 rounded-full" data-testid="navbar-doctrine-badge"
+                style={{ background: 'rgba(232,213,160,0.1)', border: '1px solid rgba(232,213,160,0.15)', fontFamily: "'Manrope', sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#E8D5A0' }}>
+                {doctrine.label_fr}
+              </span>
+            )}
           </button>
         </div>
       </header>
@@ -503,7 +517,7 @@ const ProSpaceDashboard = () => {
         <ReelsFeed session={session} onOpenInbox={() => setInboxOpen(true)} />
       ) : (
         <div className="max-w-5xl mx-auto px-4 py-6">
-          {activeSection === 'profile' && <ProfileTriptych session={session} />}
+          {activeSection === 'profile' && <ProfileTriptych session={session} doctrine={doctrine} />}
           {activeSection === 'vitrine' && <VitrinePage session={session} />}
           {activeSection === 'wallet' && <WalletPage session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'shop' && <ShopPageEnhanced session={session} jetonsBalance={jetonsBalance} />}
@@ -691,6 +705,12 @@ const FeedLayout = ({ session, profile, connections, onRefresh, jetonsBalance, c
               <Avatar src={session.image} name={session.name} type={session.type} size={64} className="mx-auto" ring style={{ border: '3px solid #1b1b1c' }} />
               <h3 className="mt-2" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 16, fontWeight: 400, color: '#e5e2e3' }}>{session.name}</h3>
               <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#72727a', marginTop: 2 }}>{PROFILE_LABELS[session.type] || 'Professionnel'}</p>
+              {doctrine?.label_fr && (
+                <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full" data-testid="sidebar-doctrine-badge"
+                  style={{ background: 'rgba(232,213,160,0.08)', border: '1px solid rgba(232,213,160,0.12)', fontFamily: "'Manrope', sans-serif", fontSize: 8, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#E8D5A0' }}>
+                  {doctrine.label_fr}
+                </span>
+              )}
             </div>
             <div className="px-4 pb-4">
               <CulturalIdentityBar score={culturalIdentity?.score || 0} levelName={culturalIdentity?.level?.name || ''} />

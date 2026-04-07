@@ -21,6 +21,7 @@ Matrice des 5 acteurs CVLN implementee :
 - `governance_weight` reequilibre (creator:3, distributor:2, institutional:3, professional:2, consumer:1)
 - **Gate middleware `require_permission(action)`** applique les `can[]` en conditions reelles sur 10 routes POST
 - Endpoint `GET /api/doctrine/my-permissions` retourne les permissions du user connecte
+- **Frontend** : badge `label_fr` affiche dans le header navbar, le sidebar desktop, et le profil. Liste des `can[]` visible sur la fiche profil (un seul fetch, zero double appel).
 - Mapping automatique `profile_type` -> `actor_role` a l'inscription
 - Backfill des utilisateurs existants au startup
 - Audit trail dans `doctrine_audit` (assignations + refus de permission)
