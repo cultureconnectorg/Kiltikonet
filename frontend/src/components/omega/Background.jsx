@@ -10,31 +10,35 @@ export default function Background() {
 
       {/* Starfield / Data Particles */}
       <div className="absolute inset-0">
-        {sparkles.map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{
-              x: Math.random() * 100 + "%",
-              y: Math.random() * 100 + "%",
-              opacity: Math.random() * 0.5,
-              scale: Math.random() * 0.5 + 0.5
-            }}
-            animate={{
-              opacity: [0.1, 0.6, 0.1],
-              scale: [1, 1.2, 1],
-              y: ["-2%", "2%", "-2%"],
-              x: ["-1%", "1%", "-1%"]
-            }}
-            transition={{
-              duration: 4 + Math.random() * 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: Math.random() * 10
-            }}
-            className="absolute w-0.5 h-0.5 rounded-full"
-            style={{ background: '#f2ca50', boxShadow: '0 0 8px #f2ca50' }}
-          />
-        ))}
+        {sparkles.map((_, i) => {
+          const size = 0.5 + Math.random() * 2.5;
+          const dur = 2 + Math.random() * 6;
+          return (
+            <motion.div
+              key={i}
+              initial={{
+                x: Math.random() * 100 + "%",
+                y: Math.random() * 100 + "%",
+                opacity: Math.random() * 0.5,
+                scale: Math.random() * 0.5 + 0.5
+              }}
+              animate={{
+                opacity: [0.1, 0.7, 0.1],
+                scale: [1, 1.3, 1],
+                y: ["-3%", "3%", "-3%"],
+                x: ["-2%", "2%", "-2%"]
+              }}
+              transition={{
+                duration: dur,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: Math.random() * 8
+              }}
+              className="absolute rounded-full"
+              style={{ width: size + 'px', height: size + 'px', background: '#f2ca50', boxShadow: `0 0 ${size * 3}px #f2ca50` }}
+            />
+          );
+        })}
       </div>
 
       {/* Liquid DNA SVG Background — Double Helix */}

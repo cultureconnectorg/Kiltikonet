@@ -43,8 +43,9 @@ export default function OrbitalMenu({ onSelect }) {
         </div>
       </header>
 
-      {/* Orbital Path Visual */}
-      <div className="absolute w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-full pointer-events-none" style={{ border: '1px solid rgba(242,202,80,0.1)' }} data-testid="orbital-ring" />
+      {/* Orbital Path Visual — Double ring for depth */}
+      <div className="absolute w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-full pointer-events-none" style={{ border: '1px solid rgba(242,202,80,0.3)' }} data-testid="orbital-ring" />
+      <div className="absolute w-[360px] h-[360px] sm:w-[410px] sm:h-[410px] rounded-full pointer-events-none" style={{ border: '1px solid rgba(242,202,80,0.1)' }} data-testid="orbital-ring-outer" />
 
       {/* Rotating Menu */}
       <div className="absolute w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] omega-animate-orbit flex items-center justify-center">
