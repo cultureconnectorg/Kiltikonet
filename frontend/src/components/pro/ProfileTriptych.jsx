@@ -126,6 +126,25 @@ const FicheProfile = ({ session, doctrine, onDoctrineUpdate }) => {
         </div>
       )}
 
+      {/* Droits recus (receives[]) */}
+      {doctrine?.receives && doctrine.receives.length > 0 && (
+        <div className="rounded-xl p-5" style={{ background: '#131314' }} data-testid="doctrine-receives-card">
+          <h3 className="mb-4" style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#72727a' }}>
+            Avantages — {doctrine.label_fr || 'Membre'}
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {doctrine.receives.map(item => (
+              <div key={item} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.08)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#4ADE80', fontVariationSettings: "'FILL' 1" }}>card_giftcard</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 600, color: '#ccc' }}>
+                  {item.replace(/_/g, ' ')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Bouton Devenir Createur — visible uniquement pour consumer */}
       {doctrine?.actor_role === 'consumer' && (
         <button onClick={async () => {

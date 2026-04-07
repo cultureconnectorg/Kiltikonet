@@ -282,12 +282,18 @@ async def transfer_tokens(data: dict):
     if not from_id or not to_id or amount <= 0:
         raise HTTPException(400, "from_user_id, to_user_id et amount > 0 requis")
 
+    # Resolve actor_roles for cc_flow tracking
+    sender_reg = await _db.registrations.find_one({"id": from_id}, {"_id": 0, "actor_role": 1})
+    receiver_reg = await _db.registrations.find_one({"id": to_id}, {"_id": 0, "actor_role": 1})
+    sender_role = (sender_reg or {}).get("actor_role", "consumer")
+    receiver_role = (receiver_reg or {}).get("actor_role", "consumer")
+
     # Debit sender
     await debit_wallet(from_id, amount, "transfer_out", f"Soutien envoyé: {reason}", channel,
-                       {"target_user_id": to_id})
+                       {"target_user_id": to_id, "from_role": sender_role, "to_role": receiver_role, "cc_flow_applied": "support_creators"})
     # Credit receiver
     await credit_wallet(to_id, amount, "transfer_in", f"Soutien reçu: {reason}", channel,
-                        {"source_user_id": from_id})
+                        {"source_user_id": from_id, "from_role": sender_role, "to_role": receiver_role, "cc_flow_applied": "support_creators"})
 
     return {"success": True, "amount": amount, "message": f"{amount} KT transférés"}
 
@@ -317,8 +323,13 @@ async def consume_tokens(data: dict):
             raise HTTPException(404, "FREK-ID non reconnu")
         user_id = wallet["user_id"]
 
+    # Resolve actor_role for cc_flow tracking
+    consumer_reg = await _db.registrations.find_one({"id": user_id}, {"_id": 0, "actor_role": 1})
+    consumer_role = (consumer_reg or {}).get("actor_role", "consumer")
+
     tx = await debit_wallet(user_id, amount, "consumption", item, "terminal",
-                            {"terminal_id": terminal_id, "frek_id": frek_id})
+                            {"terminal_id": terminal_id, "frek_id": frek_id,
+                             "from_role": consumer_role, "to_role": "platform", "cc_flow_applied": "consume_content"})
 
     return {"success": True, "amount": amount, "item": item, "balance_after": tx["balance_after"]}
 
@@ -378,6 +389,10 @@ async def create_checkout(data: dict, request: Request):
     # Ensure wallet exists
     await get_or_create_wallet(user_id, frek_id)
 
+    # Resolve actor_role for cc_flow tracking
+    buyer_reg = await _db.registrations.find_one({"id": user_id}, {"_id": 0, "actor_role": 1})
+    buyer_role = (buyer_reg or {}).get("actor_role", "consumer")
+
     # Dynamic return URLs based on channel
     if channel == "web":
         success_url = f"{origin_url}/wallet?payment=success&session_id={{CHECKOUT_SESSION_ID}}"
@@ -409,6 +424,9 @@ async def create_checkout(data: dict, request: Request):
             "business_location": LEGAL_ENTITY["business_location"],
             "validity_extension": "true",
             "validity_note": "KT reportables CC2027",
+            "from_role": buyer_role,
+            "to_role": "platform",
+            "cc_flow_applied": "buy_tokens",
         },
     )
     session = await stripe.create_checkout_session(checkout_req)

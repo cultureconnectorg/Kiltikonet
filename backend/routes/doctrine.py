@@ -458,6 +458,60 @@ class PromoteRequest(BaseModel):
     target_role: str = "creator"
 
 
+@router.get("/flow-stats")
+async def flow_stats():
+    """
+    Aggregate cc_flow volumes by from_role → to_role pair over the last 30 days.
+    Sources: cc_transactions (wallet.py) + kn_transactions (fintech.py).
+    """
+    from datetime import timedelta
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+
+    # Aggregate cc_transactions (wallet routes)
+    pipeline_cc = [
+        {"$match": {"from_role": {"$exists": True}, "timestamp": {"$gte": cutoff}}},
+        {"$group": {
+            "_id": {"from_role": "$from_role", "to_role": "$to_role", "cc_flow_applied": "$cc_flow_applied"},
+            "volume": {"$sum": {"$abs": "$jetons"}},
+            "count": {"$sum": 1},
+        }},
+    ]
+    cc_results = await _db.cc_transactions.aggregate(pipeline_cc).to_list(100)
+
+    # Aggregate kn_transactions (fintech routes) via metadata
+    pipeline_kn = [
+        {"$match": {"metadata.from_role": {"$exists": True}, "created_at": {"$gte": cutoff}}},
+        {"$group": {
+            "_id": {
+                "from_role": "$metadata.from_role",
+                "to_role": "$metadata.to_role",
+                "cc_flow_applied": "$metadata.cc_flow_applied",
+            },
+            "volume": {"$sum": {"$abs": "$amount"}},
+            "count": {"$sum": 1},
+        }},
+    ]
+    kn_results = await _db.kn_transactions.aggregate(pipeline_kn).to_list(100)
+
+    # Merge results
+    flows = {}
+    for r in cc_results + kn_results:
+        key = f"{r['_id'].get('from_role', '?')}→{r['_id'].get('to_role', '?')}"
+        action = r["_id"].get("cc_flow_applied", "unknown")
+        if key not in flows:
+            flows[key] = {"from_role": r["_id"].get("from_role"), "to_role": r["_id"].get("to_role"), "actions": {}, "total_volume": 0, "total_count": 0}
+        flows[key]["actions"][action] = flows[key]["actions"].get(action, 0) + r["volume"]
+        flows[key]["total_volume"] += r["volume"]
+        flows[key]["total_count"] += r["count"]
+
+    return {
+        "period": "30d",
+        "cutoff": cutoff,
+        "flows": list(flows.values()),
+        "total_pairs": len(flows),
+    }
+
+
 @router.post("/promote")
 async def promote_user(request: Request, body: PromoteRequest):
     """
