@@ -3874,7 +3874,7 @@ async def get_cms_media(category: Optional[str] = None, tenant_id: str = DEFAULT
     media = await db.cms_media.find(query, {"_id": 0}).sort("order", 1).to_list(100)
     return {"media": media, "total": len(media)}
 
-@app.post("/api/cms/media")
+@app.post("/api/cms/media", dependencies=[Depends(_require_perm("publish_content"))])
 async def create_cms_media(item: CMSMediaItem):
     """Create a new media item"""
     item_dict = item.model_dump()
@@ -3885,7 +3885,7 @@ async def create_cms_media(item: CMSMediaItem):
     await db.cms_media.insert_one(item_dict)
     return {"success": True, "media": {k: v for k, v in item_dict.items() if k != "_id"}}
 
-@app.put("/api/cms/media/{media_id}")
+@app.put("/api/cms/media/{media_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def update_cms_media(media_id: str, item: CMSMediaItem):
     """Update a media item"""
     item_dict = item.model_dump(exclude_unset=True)
@@ -3901,7 +3901,7 @@ async def update_cms_media(media_id: str, item: CMSMediaItem):
     
     return {"success": True}
 
-@app.delete("/api/cms/media/{media_id}")
+@app.delete("/api/cms/media/{media_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def delete_cms_media(media_id: str, tenant_id: str = DEFAULT_TENANT):
     """Delete a media item"""
     result = await db.cms_media.delete_one({"id": media_id, "tenant_id": tenant_id})
@@ -3911,7 +3911,7 @@ async def delete_cms_media(media_id: str, tenant_id: str = DEFAULT_TENANT):
     
     return {"success": True}
 
-@app.post("/api/cms/media/{media_id}/upload")
+@app.post("/api/cms/media/{media_id}/upload", dependencies=[Depends(_require_perm("publish_content"))])
 async def upload_cms_media_image(media_id: str, file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
     """Upload image for a media item"""
     image_url = await upload_to_cloudinary(file, f"culture-connect/cms/{media_id}")
@@ -3926,7 +3926,7 @@ async def upload_cms_media_image(media_id: str, file: UploadFile = File(...), te
     
     return {"success": True, "image_url": image_url}
 
-@app.post("/api/cms/upload")
+@app.post("/api/cms/upload", dependencies=[Depends(_require_perm("publish_content"))])
 async def upload_cms_file(file: UploadFile = File(...), type: str = "image"):
     """Generic CMS file upload (images, audio)"""
     # Generate unique folder based on file type
@@ -3959,7 +3959,7 @@ async def get_cms_exhibitors(tenant_id: str = DEFAULT_TENANT):
     ).to_list(200)
     return {"exhibitors": photos, "total": len(photos)}
 
-@app.post("/api/cms/exhibitors/{profile_id}/upload")
+@app.post("/api/cms/exhibitors/{profile_id}/upload", dependencies=[Depends(_require_perm("publish_content"))])
 async def upload_exhibitor_photo(
     profile_id: str, 
     profile_type: str = "smart_engine",
@@ -3988,7 +3988,7 @@ async def upload_exhibitor_photo(
     
     return {"success": True, "photo_url": image_url}
 
-@app.delete("/api/cms/exhibitors/{profile_id}")
+@app.delete("/api/cms/exhibitors/{profile_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def delete_exhibitor_photo(profile_id: str, tenant_id: str = DEFAULT_TENANT):
     """Delete exhibitor photo"""
     result = await db.cms_exhibitor_photos.delete_one({"profile_id": profile_id, "tenant_id": tenant_id})
@@ -4004,7 +4004,7 @@ async def get_cms_speakers(tenant_id: str = DEFAULT_TENANT):
     ).sort("order", 1).to_list(100)
     return {"speakers": speakers, "total": len(speakers)}
 
-@app.post("/api/cms/speakers")
+@app.post("/api/cms/speakers", dependencies=[Depends(_require_perm("publish_content"))])
 async def create_cms_speaker(speaker: CMSSpeaker):
     """Create a new speaker"""
     speaker_dict = speaker.model_dump()
@@ -4015,7 +4015,7 @@ async def create_cms_speaker(speaker: CMSSpeaker):
     await db.cms_speakers.insert_one(speaker_dict)
     return {"success": True, "speaker": {k: v for k, v in speaker_dict.items() if k != "_id"}}
 
-@app.put("/api/cms/speakers/{speaker_id}")
+@app.put("/api/cms/speakers/{speaker_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def update_cms_speaker(speaker_id: str, speaker: CMSSpeaker):
     """Update a speaker"""
     speaker_dict = speaker.model_dump(exclude_unset=True)
@@ -4031,7 +4031,7 @@ async def update_cms_speaker(speaker_id: str, speaker: CMSSpeaker):
     
     return {"success": True}
 
-@app.delete("/api/cms/speakers/{speaker_id}")
+@app.delete("/api/cms/speakers/{speaker_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def delete_cms_speaker(speaker_id: str, tenant_id: str = DEFAULT_TENANT):
     """Delete a speaker"""
     result = await db.cms_speakers.delete_one({"id": speaker_id, "tenant_id": tenant_id})
@@ -4041,7 +4041,7 @@ async def delete_cms_speaker(speaker_id: str, tenant_id: str = DEFAULT_TENANT):
     
     return {"success": True}
 
-@app.post("/api/cms/speakers/{speaker_id}/upload")
+@app.post("/api/cms/speakers/{speaker_id}/upload", dependencies=[Depends(_require_perm("publish_content"))])
 async def upload_speaker_photo(speaker_id: str, file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
     """Upload photo for a speaker"""
     image_url = await upload_to_cloudinary(file, f"culture-connect/speakers/{speaker_id}")
@@ -4056,7 +4056,7 @@ async def upload_speaker_photo(speaker_id: str, file: UploadFile = File(...), te
     
     return {"success": True, "photo_url": image_url}
 
-@app.put("/api/cms/speakers/reorder")
+@app.put("/api/cms/speakers/reorder", dependencies=[Depends(_require_perm("publish_content"))])
 async def reorder_speakers(orders: List[dict], tenant_id: str = DEFAULT_TENANT):
     """Reorder speakers via drag & drop"""
     for item in orders:
@@ -4076,7 +4076,7 @@ async def get_cms_partners(tenant_id: str = DEFAULT_TENANT):
     ).sort("order", 1).to_list(100)
     return {"partners": partners, "total": len(partners)}
 
-@app.post("/api/cms/partners")
+@app.post("/api/cms/partners", dependencies=[Depends(_require_perm("publish_content"))])
 async def create_cms_partner(partner: CMSPartnerBanner):
     """Create a new partner banner"""
     partner_dict = partner.model_dump()
@@ -4087,7 +4087,7 @@ async def create_cms_partner(partner: CMSPartnerBanner):
     await db.cms_partner_banners.insert_one(partner_dict)
     return {"success": True, "partner": {k: v for k, v in partner_dict.items() if k != "_id"}}
 
-@app.put("/api/cms/partners/{partner_id}")
+@app.put("/api/cms/partners/{partner_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def update_cms_partner(partner_id: str, partner: CMSPartnerBanner):
     """Update a partner banner"""
     partner_dict = partner.model_dump(exclude_unset=True)
@@ -4103,7 +4103,7 @@ async def update_cms_partner(partner_id: str, partner: CMSPartnerBanner):
     
     return {"success": True}
 
-@app.delete("/api/cms/partners/{partner_id}")
+@app.delete("/api/cms/partners/{partner_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def delete_cms_partner(partner_id: str, tenant_id: str = DEFAULT_TENANT):
     """Delete a partner banner"""
     result = await db.cms_partner_banners.delete_one({"id": partner_id, "tenant_id": tenant_id})
@@ -4113,7 +4113,7 @@ async def delete_cms_partner(partner_id: str, tenant_id: str = DEFAULT_TENANT):
     
     return {"success": True}
 
-@app.post("/api/cms/partners/{partner_id}/upload")
+@app.post("/api/cms/partners/{partner_id}/upload", dependencies=[Depends(_require_perm("publish_content"))])
 async def upload_partner_logo(partner_id: str, file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
     """Upload logo for a partner"""
     image_url = await upload_to_cloudinary(file, f"culture-connect/partners/{partner_id}")
@@ -4128,7 +4128,7 @@ async def upload_partner_logo(partner_id: str, file: UploadFile = File(...), ten
     
     return {"success": True, "logo_url": image_url}
 
-@app.put("/api/cms/partners/reorder")
+@app.put("/api/cms/partners/reorder", dependencies=[Depends(_require_perm("publish_content"))])
 async def reorder_partners(orders: List[dict], tenant_id: str = DEFAULT_TENANT):
     """Reorder partner banners"""
     for item in orders:
@@ -4139,7 +4139,7 @@ async def reorder_partners(orders: List[dict], tenant_id: str = DEFAULT_TENANT):
     return {"success": True}
 
 # --- CMS Publish/Preview ---
-@app.post("/api/cms/publish")
+@app.post("/api/cms/publish", dependencies=[Depends(_require_perm("publish_content"))])
 async def publish_cms_changes(tenant_id: str = DEFAULT_TENANT):
     """Publish all draft changes"""
     # Mark all items as published
@@ -4156,7 +4156,7 @@ class VisualEditorChange(BaseModel):
     page: str
     changes: dict
 
-@app.post("/api/cms/visual-editor/save")
+@app.post("/api/cms/visual-editor/save", dependencies=[Depends(_require_perm("publish_content"))])
 async def save_visual_editor_changes(data: VisualEditorChange):
     """Save changes made in the visual editor"""
     try:
@@ -4354,7 +4354,7 @@ async def get_cms_theme(tenant_id: str = DEFAULT_TENANT):
         }
     return config
 
-@app.put("/api/cms/theme")
+@app.put("/api/cms/theme", dependencies=[Depends(_require_perm("publish_content"))])
 async def update_cms_theme(theme: CMSTheme):
     """Update theme configuration"""
     theme_dict = theme.model_dump()
@@ -4371,7 +4371,7 @@ async def update_cms_theme(theme: CMSTheme):
     
     return {"success": True, "message": "Thème mis à jour"}
 
-@app.post("/api/cms/theme/hero-upload")
+@app.post("/api/cms/theme/hero-upload", dependencies=[Depends(_require_perm("publish_content"))])
 async def upload_hero_image(file: UploadFile = File(...), tenant_id: str = DEFAULT_TENANT):
     """Upload hero image"""
     image_url = await upload_to_cloudinary(file, f"culture-connect/theme/hero-{tenant_id}")
@@ -4408,7 +4408,7 @@ async def get_cms_content_section(page: str, section: str, tenant_id: str = DEFA
     )
     return content or {"page": page, "section": section, "content": {}}
 
-@app.put("/api/cms/content/{page}/{section}")
+@app.put("/api/cms/content/{page}/{section}", dependencies=[Depends(_require_perm("publish_content"))])
 async def update_cms_content_section(page: str, section: str, data: dict, tenant_id: str = DEFAULT_TENANT):
     """Update specific content section"""
     content_id = f"{tenant_id}_{page}_{section}"
@@ -4433,7 +4433,7 @@ async def update_cms_content_section(page: str, section: str, data: dict, tenant
     
     return {"success": True}
 
-@app.post("/api/cms/content/init-defaults")
+@app.post("/api/cms/content/init-defaults", dependencies=[Depends(_require_perm("publish_content"))])
 async def init_default_content(tenant_id: str = DEFAULT_TENANT):
     """Initialize default content for all pages"""
     defaults = [
@@ -4576,7 +4576,7 @@ async def get_cms_page_by_slug(slug: str, tenant_id: str = DEFAULT_TENANT):
         raise HTTPException(status_code=404, detail="Page not found")
     return page
 
-@app.post("/api/cms/pages")
+@app.post("/api/cms/pages", dependencies=[Depends(_require_perm("publish_content"))])
 async def create_cms_page(page: CMSPage):
     """Create a new custom page"""
     # Validate slug
@@ -4597,7 +4597,7 @@ async def create_cms_page(page: CMSPage):
     await db.cms_pages.insert_one(page_dict)
     return {"success": True, "page": {k: v for k, v in page_dict.items() if k != "_id"}}
 
-@app.put("/api/cms/pages/{page_id}")
+@app.put("/api/cms/pages/{page_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def update_cms_page(page_id: str, page: CMSPage):
     """Update a custom page"""
     # Validate slug
@@ -4627,7 +4627,7 @@ async def update_cms_page(page_id: str, page: CMSPage):
     
     return {"success": True}
 
-@app.delete("/api/cms/pages/{page_id}")
+@app.delete("/api/cms/pages/{page_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def delete_cms_page(page_id: str, tenant_id: str = DEFAULT_TENANT):
     """Delete a custom page"""
     result = await db.cms_pages.delete_one({"id": page_id, "tenant_id": tenant_id})
@@ -4686,7 +4686,7 @@ async def get_public_content(page: str, tenant_id: str = DEFAULT_TENANT):
 async def get_public_page(slug: str, tenant_id: str = DEFAULT_TENANT):
     """Get a custom page by slug (no auth required)"""
 
-@app.post("/api/cms/cleanup-atrium")
+@app.post("/api/cms/cleanup-atrium", dependencies=[Depends(_require_perm("publish_content"))])
 async def cleanup_atrium_references(tenant_id: str = DEFAULT_TENANT):
     """One-time cleanup: replace all Atrium references in CMS content"""
     import re
@@ -4740,7 +4740,7 @@ async def get_map_territories(tenant_id: str = DEFAULT_TENANT):
     
     return config
 
-@app.post("/api/cms/map-territories")
+@app.post("/api/cms/map-territories", dependencies=[Depends(_require_perm("publish_content"))])
 async def save_map_territories(config: MapConfig):
     """Save map territories configuration"""
     config_dict = config.model_dump()
@@ -4757,7 +4757,7 @@ async def save_map_territories(config: MapConfig):
     
     return {"success": True, "message": "Configuration de la carte sauvegardée"}
 
-@app.post("/api/cms/map-territories/add")
+@app.post("/api/cms/map-territories/add", dependencies=[Depends(_require_perm("publish_content"))])
 async def add_map_territory(territory: MapTerritory, tenant_id: str = DEFAULT_TENANT):
     """Add a new territory to the map"""
     config = await db.map_config.find_one({"tenant_id": tenant_id})
@@ -4785,7 +4785,7 @@ async def add_map_territory(territory: MapTerritory, tenant_id: str = DEFAULT_TE
     
     return {"success": True, "message": "Territoire ajouté"}
 
-@app.delete("/api/cms/map-territories/{territory_id}")
+@app.delete("/api/cms/map-territories/{territory_id}", dependencies=[Depends(_require_perm("publish_content"))])
 async def delete_map_territory(territory_id: str, tenant_id: str = DEFAULT_TENANT):
     """Delete a territory from the map"""
     config = await db.map_config.find_one({"tenant_id": tenant_id})
@@ -4826,7 +4826,7 @@ async def get_site_config(tenant_id: str = DEFAULT_TENANT):
     
     return config
 
-@app.post("/api/cms/site-config")
+@app.post("/api/cms/site-config", dependencies=[Depends(_require_perm("publish_content"))])
 async def save_site_config(config: SiteConfig):
     """Save global site configuration"""
     config_dict = config.model_dump()
@@ -4840,7 +4840,7 @@ async def save_site_config(config: SiteConfig):
     
     return {"success": True, "message": "Configuration du site sauvegardée"}
 
-@app.post("/api/cms/section-background")
+@app.post("/api/cms/section-background", dependencies=[Depends(_require_perm("publish_content"))])
 async def save_section_background(background: SectionBackground, tenant_id: str = DEFAULT_TENANT):
     """Save or update a section background"""
     config = await db.site_config.find_one({"tenant_id": tenant_id})

@@ -19,7 +19,9 @@ Matrice des 5 acteurs CVLN implementee :
 - Collection `doctrine_permissions` avec capacites, revenus, flux CC par role
 - `platform_fee` documente la marge CVLN sur chaque role (creator: 30%)
 - `governance_weight` reequilibre (creator:3, distributor:2, institutional:3, professional:2, consumer:1)
-- **Gate middleware `require_permission(action)`** applique les `can[]` en conditions reelles sur 10 routes POST
+- **Gate middleware `require_permission(action)`** applique les `can[]` en conditions reelles sur **57 routes** POST/PUT/DELETE
+- Routes CMS (32), pro (7), wallet (2), brain (1), shop_payments (4), fintech (8), pro_feed (2), brain (1)
+- Routes publiques GET : zero impact, aucune gate
 - Endpoint `GET /api/doctrine/my-permissions` retourne les permissions du user connecte
 - **Frontend** : badge `label_fr` affiche dans le header navbar, le sidebar desktop, et le profil. Liste des `can[]` visible sur la fiche profil (un seul fetch, zero double appel).
 - Mapping automatique `profile_type` -> `actor_role` a l'inscription

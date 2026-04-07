@@ -25,8 +25,9 @@ import logging
 import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
+from routes.doctrine import require_permission
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["fintech"])
@@ -250,7 +251,7 @@ async def get_wallet_by_frek(frek_id: str):
     }
 
 
-@router.post("/api/wallet/link-frek")
+@router.post("/api/wallet/link-frek", dependencies=[Depends(require_permission("buy_tokens"))])
 async def link_frek_to_wallet(data: dict):
     """Lier un FREK-ID à un wallet existant (activation terminal CC2026)."""
     user_id = data.get("user_id")
@@ -269,7 +270,7 @@ async def link_frek_to_wallet(data: dict):
 # ═══════════════════════════════════════════════════════════
 # TRANSFER SERVICE — Soutien inter-wallet
 # ═══════════════════════════════════════════════════════════
-@router.post("/api/wallet/transfer")
+@router.post("/api/wallet/transfer", dependencies=[Depends(require_permission("support_creators"))])
 async def transfer_tokens(data: dict):
     """Transfert de Kilti-Tokens entre wallets (Soutenir)."""
     from_id = data.get("from_user_id")
@@ -294,7 +295,7 @@ async def transfer_tokens(data: dict):
 # ═══════════════════════════════════════════════════════════
 # TERMINAL SERVICE — Consommation physique CC2026
 # ═══════════════════════════════════════════════════════════
-@router.post("/api/wallet/consume")
+@router.post("/api/wallet/consume", dependencies=[Depends(require_permission("buy_tokens"))])
 async def consume_tokens(data: dict):
     """
     Débiter des tokens au terminal CC2026 (consommation sur place).
@@ -346,7 +347,7 @@ async def list_packages():
     return {"packages": packages}
 
 
-@router.post("/api/shop/checkout/create")
+@router.post("/api/shop/checkout/create", dependencies=[Depends(require_permission("buy_tokens"))])
 async def create_checkout(data: dict, request: Request):
     """
     Crée une session Stripe Checkout — omnicanal.
@@ -487,7 +488,7 @@ async def list_products(category: str = None, search: str = None, limit: int = 5
     return {"products": products, "total": len(products)}
 
 
-@router.post("/api/shop/products")
+@router.post("/api/shop/products", dependencies=[Depends(require_permission("publish_content"))])
 async def create_product(data: dict):
     """Créer un produit."""
     product = {
@@ -511,7 +512,7 @@ async def create_product(data: dict):
     return product
 
 
-@router.put("/api/shop/products/{product_id}")
+@router.put("/api/shop/products/{product_id}", dependencies=[Depends(require_permission("publish_content"))])
 async def update_product(product_id: str, data: dict):
     """Mettre à jour un produit."""
     update = {k: v for k, v in data.items() if k not in ("id", "_id")}
@@ -522,14 +523,14 @@ async def update_product(product_id: str, data: dict):
     return {"success": True}
 
 
-@router.delete("/api/shop/products/{product_id}")
+@router.delete("/api/shop/products/{product_id}", dependencies=[Depends(require_permission("publish_content"))])
 async def delete_product(product_id: str):
     """Désactiver un produit."""
     await _db.shop_products.update_one({"id": product_id}, {"$set": {"active": False}})
     return {"success": True}
 
 
-@router.post("/api/shop/seed")
+@router.post("/api/shop/seed", dependencies=[Depends(require_permission("publish_content"))])
 async def seed_shop():
     """Seed initial products."""
     existing = await _db.shop_products.count_documents({})

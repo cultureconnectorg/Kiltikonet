@@ -13,11 +13,12 @@ import random as _rng
 import logging
 import asyncio
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
 load_dotenv()
+from routes.doctrine import require_permission
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/shop", tags=["shop"])
 
@@ -56,7 +57,7 @@ async def list_products(category: str = None, search: str = None, limit: int = 5
     return {"products": products, "total": len(products)}
 
 
-@router.post("/products")
+@router.post("/products", dependencies=[Depends(require_permission("publish_content"))])
 async def create_product(data: dict):
     """Créer un produit (admin)."""
     product = {
@@ -80,7 +81,7 @@ async def create_product(data: dict):
     return product
 
 
-@router.put("/products/{product_id}")
+@router.put("/products/{product_id}", dependencies=[Depends(require_permission("publish_content"))])
 async def update_product(product_id: str, data: dict):
     """Mettre à jour un produit."""
     update = {k: v for k, v in data.items() if k not in ("id", "_id")}
@@ -91,7 +92,7 @@ async def update_product(product_id: str, data: dict):
     return {"success": True, "id": product_id}
 
 
-@router.delete("/products/{product_id}")
+@router.delete("/products/{product_id}", dependencies=[Depends(require_permission("publish_content"))])
 async def delete_product(product_id: str):
     """Désactiver un produit."""
     await _db.shop_products.update_one({"id": product_id}, {"$set": {"active": False}})
@@ -148,7 +149,7 @@ async def seed_shop():
 # ═══════════════════════════════════════════════════════════
 # STRIPE CHECKOUT — Kilti-Tokens Purchase
 # ═══════════════════════════════════════════════════════════
-@router.post("/checkout/create")
+@router.post("/checkout/create", dependencies=[Depends(require_permission("buy_tokens"))])
 async def create_checkout(data: dict, request: Request):
     """
     Crée une session Stripe Checkout pour un pack de Kilti-Tokens.
