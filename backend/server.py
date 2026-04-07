@@ -132,7 +132,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -3790,6 +3790,8 @@ app.include_router(cultural_analytics_router)
 app.include_router(pro_feed_router)
 app.include_router(wallet_router)
 app.include_router(site_analytics_router)
+from routes.doctrine import router as doctrine_router, seed_doctrine as _doctrine_seed, backfill_actor_roles as _doctrine_backfill
+app.include_router(doctrine_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
 from services.frek_client import frek_client as _frek
@@ -5168,6 +5170,13 @@ async def create_indexes():
         await db.invitations.create_index("email")
         
         logger.info("MongoDB indexes created successfully")
+
+        # Doctrine layer — seed permissions + backfill actor_roles
+        await _doctrine_seed()
+        backfilled = await _doctrine_backfill()
+        if backfilled:
+            logger.info("Doctrine backfill: %d users assigned actor_role", backfilled)
+
     except Exception as e:
         logger.error(f"⚠️ Error creating indexes: {str(e)}")
 
@@ -5773,6 +5782,7 @@ async def register_on_site(data: SiteRegistrationRequest):
         badge_type = "Public"
     
     # Create user in MongoDB
+    from routes.doctrine import resolve_actor_role as _resolve_actor
     user = {
         "id": user_id,
         "full_name": data.full_name,
@@ -5780,6 +5790,7 @@ async def register_on_site(data: SiteRegistrationRequest):
         "phone": data.phone,
         "organization_name": data.organization_name,
         "profile_type": data.profile_type,
+        "actor_role": _resolve_actor(data.profile_type),
         "country": data.country,
         "bio": data.bio,
         "is_professional": data.is_professional,
@@ -6418,6 +6429,7 @@ async def pro_request_access(request: ProAccessRequest, req: Request):
             "email": email_lower,
             "full_name": email_lower.split('@')[0].replace('.', ' ').replace('_', ' ').title(),
             "profile_type": "other",
+            "actor_role": "professional",
             "status": "approved",
             "frek_id": frek_id,
             "jetons_solde": 0,
@@ -6686,6 +6698,7 @@ async def google_auth_session(request: Request):
             "google_id": google_id,
             "auth_methods": ["google"],
             "profile_type": "pro",
+            "actor_role": "professional",
             "status": "approved",
             "frek_id": frek_id,
             "language": "fr",
