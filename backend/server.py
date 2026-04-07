@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, File, UploadFile, Form, HTTPException, Query, Request, BackgroundTasks
+from fastapi import FastAPI, APIRouter, File, UploadFile, Form, HTTPException, Query, Request, BackgroundTasks, Depends
 from fastapi.responses import StreamingResponse, Response, JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -3790,7 +3790,7 @@ app.include_router(cultural_analytics_router)
 app.include_router(pro_feed_router)
 app.include_router(wallet_router)
 app.include_router(site_analytics_router)
-from routes.doctrine import router as doctrine_router, seed_doctrine as _doctrine_seed, backfill_actor_roles as _doctrine_backfill
+from routes.doctrine import router as doctrine_router, seed_doctrine as _doctrine_seed, backfill_actor_roles as _doctrine_backfill, require_permission as _require_perm
 app.include_router(doctrine_router)
 
 # ================== BADGE ACTIVATION (PUBLIC) ==================
@@ -7427,7 +7427,7 @@ async def get_pro_connections(profile_id: str):
     
     return {"connections": connections}
 
-@app.post("/api/pro/connect")
+@app.post("/api/pro/connect", dependencies=[Depends(_require_perm("access_networking"))])
 async def send_connection_request(data: dict):
     """Send connection request"""
     from_id = data.get("from")
@@ -7476,7 +7476,7 @@ async def get_pro_messages(profile_id: str):
     
     return {"messages": messages}
 
-@app.post("/api/pro/messages")
+@app.post("/api/pro/messages", dependencies=[Depends(_require_perm("access_networking"))])
 async def send_pro_message(data: dict):
     """Send a message between professionals"""
     message = {
@@ -7498,7 +7498,7 @@ async def get_pro_opportunities():
     opportunities = await db.pro_opportunities.find({"active": True}, {"_id": 0}).sort("created_at", -1).to_list(50)
     return {"opportunities": opportunities}
 
-@app.post("/api/pro/opportunities")
+@app.post("/api/pro/opportunities", dependencies=[Depends(_require_perm("publish_content"))])
 async def create_pro_opportunity(data: dict):
     """Create a new opportunity"""
     opportunity = {
@@ -7519,7 +7519,7 @@ async def create_pro_opportunity(data: dict):
     await db.pro_opportunities.insert_one(opportunity)
     return {"success": True, "opportunity": {k: v for k, v in opportunity.items() if k != "_id"}}
 
-@app.post("/api/pro/opportunities/{opportunity_id}/apply")
+@app.post("/api/pro/opportunities/{opportunity_id}/apply", dependencies=[Depends(_require_perm("respond_to_calls"))])
 async def apply_to_opportunity(opportunity_id: str, data: dict):
     """Apply to an opportunity"""
     applicant_id = data.get("applicant_id")
@@ -7550,7 +7550,7 @@ async def get_pro_events():
     events = await db.pro_events.find({"active": True}, {"_id": 0}).sort("date", 1).to_list(50)
     return {"events": events}
 
-@app.post("/api/pro/events")
+@app.post("/api/pro/events", dependencies=[Depends(_require_perm("publish_content"))])
 async def create_pro_event(data: dict):
     """Create a new event"""
     event = {
@@ -7569,7 +7569,7 @@ async def create_pro_event(data: dict):
     await db.pro_events.insert_one(event)
     return {"success": True, "event": {k: v for k, v in event.items() if k != "_id"}}
 
-@app.post("/api/pro/events/{event_id}/register")
+@app.post("/api/pro/events/{event_id}/register", dependencies=[Depends(_require_perm("attend_events"))])
 async def register_for_event(event_id: str, data: dict):
     """Register for an event"""
     attendee_id = data.get("attendee_id")
@@ -9694,7 +9694,7 @@ async def brain_web_search(request: Request):
         return {"results": [], "enriched": False, "reason": str(e)}
 
 
-@app.post("/api/brain/chat-enriched")
+@app.post("/api/brain/chat-enriched", dependencies=[Depends(_require_perm("use_terminal_ia"))])
 async def brain_chat_enriched(request: Request):
     """CVL BRAIN chat with multi-turn memory, user context, and web enrichment"""
     body = await request.json()

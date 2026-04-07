@@ -5,10 +5,11 @@ import os
 import uuid
 import logging
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 import jwt as pyjwt
+from routes.doctrine import require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,7 @@ class BuyPackRequest(BaseModel):
     pack_id: str
 
 
-@router.post("/buy-pack")
+@router.post("/buy-pack", dependencies=[Depends(require_permission("buy_tokens"))])
 async def wallet_buy_pack(request: Request, body: BuyPackRequest):
     """Buy a jeton pack — creates transaction and updates balance."""
     email = _get_session_email(request)
@@ -229,7 +230,7 @@ class TransferRequest(BaseModel):
     note: str = ""
 
 
-@router.post("/transfer")
+@router.post("/transfer", dependencies=[Depends(require_permission("support_creators"))])
 async def wallet_transfer(request: Request, body: TransferRequest):
     """Transfer jetons to another user."""
     email = _get_session_email(request)

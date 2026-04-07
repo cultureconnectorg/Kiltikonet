@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Depends
 from services.cvl_brain import analyse
 from services.cvl_brain_agents import (
     brain_smart_engine_analyse, brain_alert_check, brain_enrich_badge,
@@ -6,6 +6,7 @@ from services.cvl_brain_agents import (
     brain_batch_process, get_all_agent_statuses, get_analyses,
     get_alerts, get_profile_analysis,
 )
+from routes.doctrine import require_permission
 import logging
 
 logger = logging.getLogger(__name__)
@@ -125,7 +126,7 @@ async def profile_analysis(badge_id: str):
 
 
 # ─── Simple chat endpoint (used by Terminal) ───────────────
-@router.post("/chat")
+@router.post("/chat", dependencies=[Depends(require_permission("use_terminal_ia"))])
 async def brain_chat(data: dict):
     """Simple CVL BRAIN chat endpoint for the Terminal."""
     import os

@@ -7,10 +7,11 @@ Ref: /app/DOCTRINE.md
 import os
 import logging
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from typing import Optional
+import jwt as pyjwt
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/doctrine", tags=["doctrine"])
@@ -32,6 +33,88 @@ PROFILE_TO_ACTOR = {
 }
 
 VALID_ACTOR_ROLES = {"creator", "distributor", "institutional", "professional", "consumer"}
+
+SESSION_COOKIE_NAME = "kk_session"
+SESSION_SECRET = os.environ.get("SESSION_SECRET", "fallback-dev-secret")
+
+
+# ═══════════════════════════════════════════════════════════
+# GATE MIDDLEWARE — require_permission(action)
+# ═══════════════════════════════════════════════════════════
+def _decode_session(request: Request) -> dict | None:
+    """Read the session from the httpOnly cookie (read-only, no modification)."""
+    token = request.cookies.get(SESSION_COOKIE_NAME)
+    if not token:
+        return None
+    try:
+        return pyjwt.decode(token, SESSION_SECRET, algorithms=["HS256"])
+    except (pyjwt.ExpiredSignatureError, pyjwt.InvalidTokenError):
+        return None
+
+
+# Permission cache (actor_role → can[]) — populated at startup
+_permission_cache: dict[str, list[str]] = {}
+
+
+async def _load_permission_cache():
+    """Load all can[] lists into memory. Called once at startup."""
+    global _permission_cache
+    docs = await _db.doctrine_permissions.find({}, {"_id": 0, "actor_role": 1, "can": 1}).to_list(10)
+    _permission_cache = {d["actor_role"]: d["can"] for d in docs}
+    logger.info("Permission cache loaded: %s", list(_permission_cache.keys()))
+
+
+def require_permission(action: str):
+    """
+    FastAPI dependency factory.
+    Usage: @app.post("/route", dependencies=[Depends(require_permission("publish_content"))])
+    """
+    async def _guard(request: Request):
+        session = _decode_session(request)
+        if not session:
+            raise HTTPException(401, "Authentification requise")
+
+        email = session.get("email", "")
+        is_admin = session.get("is_admin", False)
+
+        # Admins bypass all doctrine gates
+        if is_admin:
+            return
+
+        # Get actor_role from session or DB
+        actor_role = session.get("actor_role")
+        if not actor_role:
+            reg = await _db.registrations.find_one(
+                {"email": email}, {"_id": 0, "actor_role": 1}
+            )
+            actor_role = (reg or {}).get("actor_role", "consumer")
+
+        # Check permission in cache first, then DB fallback
+        allowed = _permission_cache.get(actor_role)
+        if allowed is None:
+            doc = await _db.doctrine_permissions.find_one(
+                {"actor_role": actor_role}, {"_id": 0, "can": 1}
+            )
+            allowed = (doc or {}).get("can", [])
+
+        if action not in allowed:
+            # Audit the refusal
+            await _db.doctrine_audit.insert_one({
+                "entity": "permission_denied",
+                "email": email,
+                "actor_role": actor_role,
+                "action_requested": action,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "reason": f"Role '{actor_role}' ne possede pas la permission '{action}'",
+            })
+            logger.warning("Permission denied: %s (%s) → %s", email, actor_role, action)
+            raise HTTPException(
+                403,
+                f"Action non autorisee pour votre role ({actor_role}). "
+                f"Permission requise : {action}."
+            )
+
+    return _guard
 
 # ═══════════════════════════════════════════════════════════
 # SEED DATA — doctrine_permissions
@@ -195,6 +278,7 @@ async def seed_doctrine():
         logger.info("Doctrine permissions seeded: %d roles", len(DOCTRINE_SEED))
     await _db.doctrine_permissions.create_index("actor_role", unique=True)
     await _db.registrations.create_index("actor_role", sparse=True)
+    await _load_permission_cache()
     logger.info("Doctrine indexes ensured")
 
 
@@ -331,3 +415,40 @@ async def doctrine_stats():
     distribution = {r["_id"] or "unassigned": r["count"] for r in results}
     total = sum(distribution.values())
     return {"distribution": distribution, "total": total}
+
+
+@router.get("/my-permissions")
+async def my_permissions(request: Request):
+    """Return the can[], receives[], cc_flow of the authenticated user's actor_role."""
+    session = _decode_session(request)
+    if not session:
+        raise HTTPException(401, "Authentification requise")
+
+    email = session.get("email", "")
+    is_admin = session.get("is_admin", False)
+
+    # Get actor_role from DB (source of truth)
+    reg = await _db.registrations.find_one(
+        {"email": email}, {"_id": 0, "actor_role": 1, "profile_type": 1}
+    )
+    actor_role = (reg or {}).get("actor_role")
+    if not actor_role:
+        actor_role = resolve_actor_role((reg or {}).get("profile_type"))
+
+    # Fetch permissions
+    doc = await _db.doctrine_permissions.find_one(
+        {"actor_role": actor_role}, {"_id": 0}
+    )
+    if not doc:
+        raise HTTPException(404, f"Permissions introuvables pour le role {actor_role}")
+
+    return {
+        "actor_role": actor_role,
+        "label_fr": doc.get("label_fr", ""),
+        "is_admin": is_admin,
+        "can": doc.get("can", []),
+        "receives": doc.get("receives", []),
+        "cc_flow": doc.get("cc_flow", {}),
+        "platform_fee": doc.get("platform_fee", 0.0),
+        "governance_weight": doc.get("governance_weight", 1),
+    }

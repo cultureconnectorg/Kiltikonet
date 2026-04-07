@@ -17,9 +17,13 @@ Feed/Reels dynamiques, et gouvernance associative.
 Matrice des 5 acteurs CVLN implementee :
 - `actor_role` ajoute a `registrations` (creator|distributor|institutional|professional|consumer)
 - Collection `doctrine_permissions` avec capacites, revenus, flux CC par role
+- `platform_fee` documente la marge CVLN sur chaque role (creator: 30%)
+- `governance_weight` reequilibre (creator:3, distributor:2, institutional:3, professional:2, consumer:1)
+- **Gate middleware `require_permission(action)`** applique les `can[]` en conditions reelles sur 10 routes POST
+- Endpoint `GET /api/doctrine/my-permissions` retourne les permissions du user connecte
 - Mapping automatique `profile_type` -> `actor_role` a l'inscription
 - Backfill des utilisateurs existants au startup
-- Audit trail dans `doctrine_audit`
+- Audit trail dans `doctrine_audit` (assignations + refus de permission)
 - Ref: /app/DOCTRINE.md
 
 ## Phases completees (session courante)

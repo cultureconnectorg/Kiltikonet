@@ -9,8 +9,9 @@ Endpoints:
 import os, uuid, secrets, random
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 from pydantic import BaseModel
+from routes.doctrine import require_permission
 
 router = APIRouter(prefix="/api/pro/feed", tags=["pro-feed"])
 _db = None
@@ -351,7 +352,7 @@ class CreatePostBody(BaseModel):
     dimension: str = "Musique"
     is_reel: bool = False
 
-@router.post("/post")
+@router.post("/post", dependencies=[Depends(require_permission("publish_content"))])
 async def create_post(body: CreatePostBody):
     """Create a real user post."""
     user = await _db.registrations.find_one({"id": body.author_id}, {"_id": 0, "full_name": 1, "email": 1, "profile_type": 1, "image": 1})
@@ -388,7 +389,7 @@ async def create_post(body: CreatePostBody):
 # ═══════════════════════════════════════════════════════════
 # POST /api/pro/feed/like — Like/unlike a post
 # ═══════════════════════════════════════════════════════════
-@router.post("/like")
+@router.post("/like", dependencies=[Depends(require_permission("consume_content"))])
 async def toggle_like(data: dict):
     """Toggle like on a post."""
     post_id = data.get("post_id")
