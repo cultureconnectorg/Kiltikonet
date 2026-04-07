@@ -61,6 +61,7 @@ export default function Background() {
         {/* Strand pair 1 */}
         <motion.path
           fill="none" stroke="url(#omegaGoldGrad)" strokeWidth="2" strokeLinecap="round" opacity="0.5"
+          initial={{ d: "M0,500 C167,300 333,700 500,500 C667,300 833,700 1000,500" }}
           animate={{
             d: [
               "M0,500 C167,300 333,700 500,500 C667,300 833,700 1000,500",
@@ -72,6 +73,7 @@ export default function Background() {
         />
         <motion.path
           fill="none" stroke="url(#omegaGoldGrad)" strokeWidth="2" strokeLinecap="round" opacity="0.5"
+          initial={{ d: "M0,500 C167,700 333,300 500,500 C667,700 833,300 1000,500" }}
           animate={{
             d: [
               "M0,500 C167,700 333,300 500,500 C667,700 833,300 1000,500",
@@ -85,6 +87,7 @@ export default function Background() {
         {/* Strand pair 2 — offset */}
         <motion.path
           fill="none" stroke="url(#omegaGoldGrad)" strokeWidth="1.5" strokeLinecap="round" opacity="0.35"
+          initial={{ d: "M-50,450 C150,250 350,650 550,450 C750,250 950,650 1050,450" }}
           animate={{
             d: [
               "M-50,450 C150,250 350,650 550,450 C750,250 950,650 1050,450",
@@ -96,6 +99,7 @@ export default function Background() {
         />
         <motion.path
           fill="none" stroke="url(#omegaGoldGrad)" strokeWidth="1.5" strokeLinecap="round" opacity="0.35"
+          initial={{ d: "M-50,550 C150,750 350,350 550,550 C750,750 950,350 1050,550" }}
           animate={{
             d: [
               "M-50,550 C150,750 350,350 550,550 C750,750 950,350 1050,550",
@@ -109,6 +113,7 @@ export default function Background() {
         {/* Strand pair 3 — wider, fainter */}
         <motion.path
           fill="none" stroke="url(#omegaGoldGrad)" strokeWidth="1" strokeLinecap="round" opacity="0.25"
+          initial={{ d: "M-100,400 C100,150 400,650 600,400 C800,150 900,650 1100,400" }}
           animate={{
             d: [
               "M-100,400 C100,150 400,650 600,400 C800,150 900,650 1100,400",
@@ -120,6 +125,7 @@ export default function Background() {
         />
         <motion.path
           fill="none" stroke="url(#omegaGoldGrad)" strokeWidth="1" strokeLinecap="round" opacity="0.25"
+          initial={{ d: "M-100,600 C100,850 400,350 600,600 C800,850 900,350 1100,600" }}
           animate={{
             d: [
               "M-100,600 C100,850 400,350 600,600 C800,850 900,350 1100,600",
