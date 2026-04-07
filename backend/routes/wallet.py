@@ -145,6 +145,10 @@ async def wallet_buy_pack(request: Request, body: BuyPackRequest):
     tx_id = str(uuid.uuid4())[:12]
     now_iso = datetime.now(timezone.utc).isoformat()
 
+    # Resolve actor_role for cc_flow
+    reg_for_role = await _db.registrations.find_one({"email": email}, {"_id": 0, "actor_role": 1})
+    buyer_role = (reg_for_role or {}).get("actor_role", "consumer")
+
     # Create transaction
     tx = {
         "id": tx_id,
@@ -156,6 +160,9 @@ async def wallet_buy_pack(request: Request, body: BuyPackRequest):
         "amount_eur": pack["price_eur"],
         "timestamp": now_iso,
         "status": "completed",
+        "from_role": buyer_role,
+        "to_role": "platform",
+        "cc_flow_applied": "buy_tokens",
     }
     await _db.cc_transactions.insert_one({**tx})
 
@@ -257,12 +264,19 @@ async def wallet_transfer(request: Request, body: TransferRequest):
     sender_name = (reg or {}).get("full_name", email)
     recipient_name = recipient.get("full_name", body.recipient_email)
 
+    # Resolve actor_roles for cc_flow tracking
+    sender_reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "actor_role": 1})
+    recipient_reg = await _db.registrations.find_one({"email": body.recipient_email.lower()}, {"_id": 0, "actor_role": 1})
+    sender_role = (sender_reg or {}).get("actor_role", "consumer")
+    recipient_role = (recipient_reg or {}).get("actor_role", "consumer")
+
     # Debit sender
     await _db.registrations.update_one({"email": email}, {"$inc": {"jetons_solde": -body.amount}})
     await _db.cc_transactions.insert_one({
         "id": f"tx_{tx_id}_out", "email": email, "type": "transfer",
         "label": f"Envoi a {recipient_name}" + (f" — {body.note}" if body.note else ""),
         "jetons": -body.amount, "timestamp": now_iso, "status": "completed",
+        "from_role": sender_role, "to_role": recipient_role, "cc_flow_applied": "support_creators",
     })
 
     # Credit recipient
@@ -273,6 +287,7 @@ async def wallet_transfer(request: Request, body: TransferRequest):
         "id": f"tx_{tx_id}_in", "email": body.recipient_email.lower(), "type": "credit",
         "label": f"Recu de {sender_name}" + (f" — {body.note}" if body.note else ""),
         "jetons": body.amount, "timestamp": now_iso, "status": "completed",
+        "from_role": sender_role, "to_role": recipient_role, "cc_flow_applied": "support_creators",
     })
 
     new_balance = balance - body.amount
