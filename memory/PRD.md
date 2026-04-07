@@ -3,53 +3,77 @@
 
 ## Objectif
 Plateforme culturelle caribéenne full-stack (React 19 + FastAPI + MongoDB).
-Ecosystème "Stitch Sovereign Onyx" avec Espace Pro, Wallet Stripe, CVL Brain IA,
-Feed/Reels dynamiques, et gouvernance associative.
+Ecosystème "Stitch Sovereign Onyx" avec Espace Pro à 14 écrans, Wallet Stripe, CVL Brain IA,
+Feed/Reels dynamiques, gouvernance associative, certification FREK-ID.
 
 ## Architecture
-- Frontend: React 19, design Sovereign Onyx
+- Frontend: React 19 (CRA/Craco), TailwindCSS 3, shadcn/ui
 - Backend: FastAPI, MongoDB (culture_connect_2026)
-- Auth: FREK-ID, GitHub OAuth, Google OAuth, Magic Links
+- Auth: FREK-ID, GitHub OAuth, Magic Links, OTP Email
 - LLM: Claude Sonnet via Emergent LLM Key
 - Paiements: Stripe Checkout
 
-## Couche Doctrinale (2026-04-07)
-Matrice des 5 acteurs CVLN implementee :
-- `actor_role` ajoute a `registrations` (creator|distributor|institutional|professional|consumer)
-- Collection `doctrine_permissions` avec capacites, revenus, flux CC par role
-- `platform_fee` documente la marge CVLN sur chaque role (creator: 30%)
-- `governance_weight` reequilibre (creator:3, distributor:2, institutional:3, professional:2, consumer:1)
-- **Gate middleware `require_permission(action)`** applique les `can[]` en conditions reelles sur **57 routes** POST/PUT/DELETE
-- Routes CMS (32), pro (7), wallet (2), brain (1), shop_payments (4), fintech (8), pro_feed (2), brain (1)
-- Routes publiques GET : zero impact, aucune gate
-- Endpoint `GET /api/doctrine/my-permissions` retourne les permissions du user connecte
-- **Frontend conditionnel** : Studio, Console, Wallet Transfer masques selon `can[]`. Bouton "Devenir Createur" pour les consumers avec flow de promotion complet.
-- Endpoint `POST /api/doctrine/promote` avec validation (email verifie + frek_id) et audit trail.
-- Mapping automatique `profile_type` -> `actor_role` a l'inscription
-- Backfill des utilisateurs existants au startup
-- Audit trail dans `doctrine_audit` (assignations + refus de permission)
-- Ref: /app/DOCTRINE.md
+## ITER.56 — Audit Systeme Complet (2026-04-07) TERMINE
 
-## cc_flow Transactionnel (2026-04-07)
-- **wallet.py** : `buy-pack` et `transfer` enregistrent `from_role`, `to_role`, `cc_flow_applied` dans `cc_transactions`
-- **fintech.py** : `transfer_tokens`, `consume_tokens`, `create_checkout` enregistrent les memes champs dans les metadata `kn_transactions`
-- **Endpoint analytique** : `GET /api/doctrine/flow-stats` agrege les volumes par paire `from_role -> to_role` sur 30 jours (sources: cc_transactions + kn_transactions)
-- **Frontend ProfileTriptych** : Affiche desormais `receives[]` (avantages) en plus de `can[]` (permissions), avec des badges verts distincts
+### Livrables Produits
+22 documents d'ingénierie couvrant :
+- Radiographie système (CORE_SNAPSHOT, ENDPOINT_MAP, MONGO_SCHEMA, AUTH_FLOW, BRAIN_AUDIT, PARAMS_AUDIT)
+- Conflits ZIP Omega x Core (DEPENDENCY_RESOLUTION, CONFLICT_REPORT + MISSING_ENDPOINTS)
+- FREK-ID & Traçabilité (FREK_AUDIT + BLOCKCHAIN_GAP + TRACABILITY_SCHEMA)
+- Fintech (WALLET_AUDIT + JETON_STRATEGY + SHOP_AUDIT + TRADE_SPEC + FINTECH_COMPLIANCE)
+- Adhésion & Gouvernance (ADHESION_AUDIT + GOUVERNANCE_AUDIT)
+- Console Terminal (TERMINAL_SPEC + TERMINAL_ARCH)
+- Architecture Cible (FILE_TREE_TARGET + omega.ts + 12 hooks + skeleton routes + NFC_APP_SPEC + BRAIN_FUSION_PLAN)
+- Validation (ITER56_VALIDATION + EXEC_SUMMARY)
 
-## Phases completees (session courante)
-- Phase 1: Feed vivant + Reels avec videos reelles (video_url, thumbnail_url)
-- Phase 2: Wallet complet (Envoyer/Echanger/Trading modales, bouton +, historique banque)
-- Phase 3: Inbox mark-as-read en base
-- Phase 4: Studio renomme (LinkedIn -> Reseau), Terminal thought process, API masquees
-- Phase 5: CVL Brain upgrade (c'est genial, thinking messages, thought process)
-- Phase 6: Profil Gouvernance (Association Kiltikonet, logo vert, hierarchie adherant)
-- Couche Doctrinale: Matrice 5 acteurs, routes API, backfill, audit
-- cc_flow Transactionnel: from_role/to_role sur toutes transactions, endpoint flow-stats, receives[] frontend
+### Code Additif Créé
+- `src/types/omega.ts` : 350+ lignes d'interfaces TypeScript (référence)
+- `src/hooks/` : 12 hooks avec signatures complètes (useAuth, useWallet, useFeed, useBrain, useNFC, useShop, useTrade, useAdhesion, useGouvernance, useTerminal, useFrek, useSettings)
+- `backend/routes/skeleton_omega.py` : 14 endpoints actifs avec mocks réalistes
+- Fix Brain : prompt créole + coupure conversation (historique dans prompt)
 
-## Backlog
-- (P1) Settings page cablage complet
-- (P1) Smart Engine & Analytics 100% interne
+### Découvertes Critiques
+1. Brain rejouait l'historique via O(n) appels API → corrigé
+2. FREK-ID = string aléatoire, pas DID, pas on-chain
+3. Plafond 150€ non enforcé (risque réglementaire)
+4. Adhésion/Gouvernance/Trade = 0% implémenté
+5. 18 collections MongoDB vides
+6. Settings = coquille vide
+
+### 3 Décisions Business Remontées
+1. Prix des packs Jeton CC (10/50/100 JCC)
+2. Rollover CC2027 des jetons non utilisés
+3. Timing création Holding (impact émetteur)
+
+## Backlog Post-ITER.56
+
+### iter.57 (P0) : Scaffolding React
+- Installer dépendances (motion, react-markdown, @monaco-editor/react)
+- Ajouter classes CSS Omega dans tailwind.config.js
+- Créer AuthContext + WalletContext
+- Convertir composants Omega TSX → JSX
+- Créer ProApp.jsx et brancher /espace-pro
+
+### iter.58 (P0) : Backend Complet
+- Endpoints réels (remplacer mocks skeleton_omega)
+- Collections MongoDB (adhesions, gouvernance, trade, terminal_deploys, audit_logs)
+- Wallet CC séparé
+- Plafond 150 EUR
+- Stripe Subscriptions pour adhésion
+
+### iter.59 (P1) : Intégration UI + Tests
+- Connecter composants Omega aux endpoints
+- Tests E2E complets
+- PWA /scan terrain
+
+### iter.60 (P1) : Production
+- Performance (lazy loading, code splitting)
+- Déploiement production
+- Migration DNS kiltikonet.fr
+
+### Backlog Technique
 - (P2) Refactoring server.py (>9800 lignes)
-- (P2) DNS IONOS domain
+- (P2) DNS IONOS
 - (P3) AWS SES sortie sandbox
-- (P3) Three.js vue 3D (bloque React 19)
+- (P3) Three.js vue 3D (bloqué React 19)
+- (P3) RGPD : endpoint suppression de compte

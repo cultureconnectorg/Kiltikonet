@@ -3761,6 +3761,7 @@ candidatures_init_db(db, send_email_async)
 from routes.ghost_profiles import router as ghost_router
 from routes.ghost_engine import router as growth_engine_router
 from routes.fintech import router as fintech_router
+from routes.skeleton_omega import router as omega_skeleton_router
 from routes.cultural_identity import router as cultural_identity_router, feed_router as cultural_feed_router, reactions_router as cultural_reactions_router
 from routes.cultural_search import router as cultural_search_router, analytics_router as cultural_analytics_router
 from routes.pro_feed import router as pro_feed_router, init_db as pro_feed_init_db
@@ -3782,6 +3783,7 @@ app.include_router(candidatures_router)
 app.include_router(ghost_router)
 app.include_router(growth_engine_router)
 app.include_router(fintech_router)
+app.include_router(omega_skeleton_router)
 app.include_router(cultural_identity_router)
 app.include_router(cultural_feed_router)
 app.include_router(cultural_reactions_router)
@@ -9745,25 +9747,29 @@ async def brain_chat_enriched(request: Request):
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         emergent_key = os.environ.get("EMERGENT_LLM_KEY", "")
         import uuid
+
+        # Build conversation context in the system prompt to avoid O(n) API calls
+        history_context = ""
+        if messages_history and len(messages_history) > 1:
+            # Include last 10 exchanges max to avoid token overflow
+            recent = messages_history[-20:-1] if len(messages_history) > 21 else messages_history[:-1]
+            history_context = "\n\n[HISTORIQUE DE CONVERSATION]\n"
+            for hist_msg in recent:
+                role_label = "Utilisateur" if hist_msg.get("role") == "user" else "CVL Brain"
+                content = hist_msg.get("content", "")[:500]
+                history_context += f"{role_label}: {content}\n"
+            history_context += "\n[FIN HISTORIQUE — réponds au dernier message ci-dessous]\n"
+
+        enriched_prompt = system_prompt + history_context
+
         chat_obj = LlmChat(
             api_key=emergent_key,
             session_id=str(uuid.uuid4()),
-            system_message=system_prompt,
+            system_message=enriched_prompt,
         )
         chat_obj.with_model("anthropic", "claude-sonnet-4-5-20250929")
 
-        # Inject conversation history for multi-turn context
-        if messages_history:
-            # Send previous messages to build context (skip last user msg, we send it fresh)
-            for hist_msg in messages_history[:-1]:
-                if hist_msg.get("role") == "user":
-                    hist_user = UserMessage(text=hist_msg["content"])
-                    try:
-                        await chat_obj.send_message(hist_user)
-                    except Exception:
-                        pass  # History replay best-effort
-
-        # Send current message
+        # Single API call — no history replay
         user_msg = UserMessage(text=message)
         response = await chat_obj.send_message(user_msg)
         return {"response": response, "web_enriched": bool(web_context)}
