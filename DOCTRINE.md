@@ -33,7 +33,7 @@ premiere est de produire du contenu culturel original.
 **Circulation Jeton CC** :
 - Recoit des CC via ventes, streaming, dons, royalties
 - Depense en services (promotion, outils, collaborations)
-- Taux de redistribution : 70% createur / 30% ecosysteme
+- Taux de redistribution : 70% createur / 30% ecosysteme (platform_fee)
 
 **Mapping `profile_type`** : `artist` → `creator`
 
@@ -202,6 +202,31 @@ admin           | professional
 - `registrations.frek_id` : index unique sparse (deja en place)
 - `doctrine_permissions.actor_role` : index unique
 
+## Governance Weight (mis a jour 2026-04-07)
+
+| actor_role     | governance_weight | Justification                                    |
+|----------------|-------------------|--------------------------------------------------|
+| creator        | 3                 | Source de valeur — poids decisionnaire fort       |
+| distributor    | 2                 | Relais actif de la chaine culturelle              |
+| institutional  | 3                 | Autorite, pas superiorite sur le createur          |
+| professional   | 2                 | Service actif dans l'ecosysteme                   |
+| consumer       | 1                 | Participation citoyenne de base                   |
+
+## Platform Fee (marge CVLN)
+
+| actor_role     | platform_fee | Explication                                       |
+|----------------|--------------|---------------------------------------------------|
+| creator        | 30%          | Complement du redistribution_rate 70%              |
+| distributor    | 0%           | Pas de marge plateforme sur les distributeurs      |
+| institutional  | 0%           | Les institutions injectent, ne generent pas        |
+| professional   | 0%           | Pas de marge sur les prestations directes          |
+| consumer       | 0%           | Le consommateur achete, pas de marge additionnelle |
+
+La `platform_fee` du creator (30%) est le complement exact de son
+`redistribution_rate` (70%). Sur chaque transaction generee par un
+createur, 70% lui revient et 30% alimente l'ecosysteme CVLN
+(maintenance, developpement, gouvernance).
+
 ## Collection `doctrine_permissions`
 
 Chaque document definit les capacites d'un `actor_role` :
@@ -217,6 +242,7 @@ Chaque document definit les capacites d'un `actor_role` :
     "spends_on": ["promotion", "tools", "collaborations"],
     "redistribution_rate": 0.70
   },
-  "governance_weight": 1
+  "platform_fee": 0.30,
+  "governance_weight": 3
 }
 ```

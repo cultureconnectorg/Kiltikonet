@@ -62,7 +62,8 @@ DOCTRINE_SEED = [
             "spends_on": ["promotion", "tools", "collaborations"],
             "redistribution_rate": 0.70,
         },
-        "governance_weight": 1,
+        "platform_fee": 0.30,
+        "governance_weight": 3,
     },
     {
         "actor_role": "distributor",
@@ -88,6 +89,7 @@ DOCTRINE_SEED = [
             "spends_on": ["promotion", "visibility", "volume_packs"],
             "redistribution_rate": 0.0,
         },
+        "platform_fee": 0.0,
         "governance_weight": 2,
     },
     {
@@ -114,7 +116,8 @@ DOCTRINE_SEED = [
             "spends_on": ["grants", "sponsorships", "events", "residencies"],
             "redistribution_rate": 0.0,
         },
-        "governance_weight": 5,
+        "platform_fee": 0.0,
+        "governance_weight": 3,
     },
     {
         "actor_role": "professional",
@@ -140,7 +143,8 @@ DOCTRINE_SEED = [
             "spends_on": ["training", "tools", "subscriptions"],
             "redistribution_rate": 0.0,
         },
-        "governance_weight": 1,
+        "platform_fee": 0.0,
+        "governance_weight": 2,
     },
     {
         "actor_role": "consumer",
@@ -164,6 +168,7 @@ DOCTRINE_SEED = [
             "spends_on": ["content", "events", "merchandise", "donations"],
             "redistribution_rate": 0.0,
         },
+        "platform_fee": 0.0,
         "governance_weight": 1,
     },
 ]
