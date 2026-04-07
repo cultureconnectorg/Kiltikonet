@@ -314,6 +314,19 @@ const ProSpaceDashboard = () => {
   const [inboxOpen, setInboxOpen] = useState(false);
   const [doctrine, setDoctrine] = useState(null);
 
+  // Helper: check if connected user has a doctrine permission
+  const hasPerm = (action) => {
+    if (!doctrine) return true; // loading — show everything by default
+    if (doctrine.is_admin) return true;
+    return (doctrine.can || []).includes(action);
+  };
+
+  const reloadDoctrine = () => {
+    axios.get(`${API}/doctrine/my-permissions`, { withCredentials: true })
+      .then(r => setDoctrine(r.data))
+      .catch(() => {});
+  };
+
   useEffect(() => { if (!loading && !isAuthenticated) navigate('/espace-pro/connexion'); }, [loading, isAuthenticated, navigate]);
   useEffect(() => { if (session?.id) loadAll(); }, [session?.id]);
 
@@ -351,12 +364,7 @@ const ProSpaceDashboard = () => {
       setOpportunities(o.data.opportunities || []); setEvents(e.data.events || []);
     } catch {}
     // Fetch doctrine permissions (single call, shared across header + profile)
-    axios.get(`${API}/doctrine/my-permissions`, { withCredentials: true })
-      .then(r => setDoctrine(r.data))
-      .catch(err => {
-        if (err.response?.status === 401) { /* handled by auth flow */ }
-        else setDoctrine({ actor_role: 'consumer', label_fr: 'Membre', can: [], receives: [], cc_flow: {}, governance_weight: 1 });
-      });
+    reloadDoctrine();
   };
 
   const handleLogout = () => { logout(); toast.success('Déconnexion'); navigate('/espace-pro/connexion'); };
@@ -402,10 +410,12 @@ const ProSpaceDashboard = () => {
             <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 24 }}>menu</span>
           </button>
 
-          {/* Studios button — slide left */}
-          <button onClick={() => setStudiosOpen(true)} className="hidden md:flex items-center justify-center" style={{ minHeight: 44, minWidth: 44 }} aria-label="Studios" data-testid="studios-toggle">
-            <span className="material-symbols-outlined" style={{ color: '#72727a', fontSize: 22 }}>dashboard_customize</span>
-          </button>
+          {/* Studios button — slide left (only if publish_content) */}
+          {hasPerm('publish_content') && (
+            <button onClick={() => setStudiosOpen(true)} className="hidden md:flex items-center justify-center" style={{ minHeight: 44, minWidth: 44 }} aria-label="Studios" data-testid="studios-toggle">
+              <span className="material-symbols-outlined" style={{ color: '#72727a', fontSize: 22 }}>dashboard_customize</span>
+            </button>
+          )}
 
           {/* Logo KILTIKONET — Sovereign Serif */}
           <button onClick={() => setActiveSection('feed')} className="flex-shrink-0 flex items-center gap-2" aria-label="Accueil Espace Pro" data-testid="logo-home">
@@ -474,19 +484,19 @@ const ProSpaceDashboard = () => {
             <h2 className="mb-6" style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontSize: 22, color: '#E8D5A0' }}>Kiltikonet</h2>
             {[
               { id: 'vitrine', icon: 'home', label: 'Vitrine' },
-              { id: 'feed', icon: 'dynamic_feed', label: 'Feed LinkedIn' },
+              { id: 'feed', icon: 'dynamic_feed', label: 'Feed' },
               { id: 'reels', icon: 'play_circle', label: 'Reels / Shorts' },
-              { id: 'open-inbox', icon: 'inbox', label: 'Boîte de réception' },
+              { id: 'open-inbox', icon: 'inbox', label: 'Boite de reception' },
               { id: 'brain', icon: 'psychology', label: 'CVL BRAIN' },
               { id: 'wallet', icon: 'account_balance_wallet', label: 'Wallet KT' },
-              { id: 'open-studios', icon: 'dashboard_customize', label: 'Studios' },
+              ...(hasPerm('publish_content') ? [{ id: 'open-studios', icon: 'dashboard_customize', label: 'Studios' }] : []),
               { id: 'shop', icon: 'storefront', label: 'Sovereign Shop' },
               { id: 'archives', icon: 'cloud', label: 'Archives / Cloud' },
               { id: 'profile', icon: 'person', label: 'Mon Profil' },
               { id: 'governance', icon: 'gavel', label: 'Gouvernance' },
-              { id: 'console', icon: 'terminal', label: 'Console / Terminal' },
+              ...(hasPerm('use_terminal_ia') ? [{ id: 'console', icon: 'terminal', label: 'Console / Terminal' }] : []),
               { id: 'trading', icon: 'candlestick_chart', label: 'Trading KT' },
-              { id: 'settings', icon: 'settings', label: 'Paramètres' },
+              { id: 'settings', icon: 'settings', label: 'Parametres' },
             ].map(item => (
               <button key={item.id} onClick={() => {
                 if (item.id === 'open-inbox') { setInboxOpen(true); setMobileMenu(false); }
@@ -517,9 +527,9 @@ const ProSpaceDashboard = () => {
         <ReelsFeed session={session} onOpenInbox={() => setInboxOpen(true)} />
       ) : (
         <div className="max-w-5xl mx-auto px-4 py-6">
-          {activeSection === 'profile' && <ProfileTriptych session={session} doctrine={doctrine} />}
+          {activeSection === 'profile' && <ProfileTriptych session={session} doctrine={doctrine} onDoctrineUpdate={reloadDoctrine} />}
           {activeSection === 'vitrine' && <VitrinePage session={session} />}
-          {activeSection === 'wallet' && <WalletPage session={session} jetonsBalance={jetonsBalance} />}
+          {activeSection === 'wallet' && <WalletPage session={session} jetonsBalance={jetonsBalance} doctrine={doctrine} />}
           {activeSection === 'shop' && <ShopPageEnhanced session={session} jetonsBalance={jetonsBalance} />}
           {activeSection === 'settings' && <SettingsSovereign session={session} onLogout={handleLogout} onNavigate={sec => setActiveSection(sec)} />}
           {activeSection === 'archives' && <ArchivesCloud session={session} />}

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const G = '#E8D5A0';
 
-const WalletPage = ({ session, jetonsBalance = 0, onBalanceUpdate }) => {
+const WalletPage = ({ session, jetonsBalance = 0, onBalanceUpdate, doctrine }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [history, setHistory] = useState([]);
   const [walletData, setWalletData] = useState(null);
@@ -197,7 +197,9 @@ const WalletPage = ({ session, jetonsBalance = 0, onBalanceUpdate }) => {
         <div className="flex border-t" style={{ borderColor: 'rgba(75,70,59,0.1)' }}>
           {[
             { icon: 'add', label: 'Recharger', primary: true, action: () => setActiveTab('packs') },
-            { icon: 'send', label: 'Envoyer', action: () => setShowSendModal(true) },
+            ...((!doctrine || doctrine.is_admin || (doctrine.can || []).includes('support_creators'))
+              ? [{ icon: 'send', label: 'Envoyer', action: () => setShowSendModal(true) }]
+              : []),
             { icon: 'swap_horiz', label: 'Echanger', action: () => setShowExchangeModal(true) },
             { icon: 'candlestick_chart', label: 'Trading', action: () => setShowTradingModal(true) },
           ].map((action, i) => (

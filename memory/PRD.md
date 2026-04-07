@@ -23,7 +23,8 @@ Matrice des 5 acteurs CVLN implementee :
 - Routes CMS (32), pro (7), wallet (2), brain (1), shop_payments (4), fintech (8), pro_feed (2), brain (1)
 - Routes publiques GET : zero impact, aucune gate
 - Endpoint `GET /api/doctrine/my-permissions` retourne les permissions du user connecte
-- **Frontend** : badge `label_fr` affiche dans le header navbar, le sidebar desktop, et le profil. Liste des `can[]` visible sur la fiche profil (un seul fetch, zero double appel).
+- **Frontend conditionnel** : Studio, Console, Wallet Transfer masques selon `can[]`. Bouton "Devenir Createur" pour les consumers avec flow de promotion complet.
+- Endpoint `POST /api/doctrine/promote` avec validation (email verifie + frek_id) et audit trail.
 - Mapping automatique `profile_type` -> `actor_role` a l'inscription
 - Backfill des utilisateurs existants au startup
 - Audit trail dans `doctrine_audit` (assignations + refus de permission)

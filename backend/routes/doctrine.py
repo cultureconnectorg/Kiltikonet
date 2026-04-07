@@ -452,3 +452,78 @@ async def my_permissions(request: Request):
         "platform_fee": doc.get("platform_fee", 0.0),
         "governance_weight": doc.get("governance_weight", 1),
     }
+
+
+class PromoteRequest(BaseModel):
+    target_role: str = "creator"
+
+
+@router.post("/promote")
+async def promote_user(request: Request, body: PromoteRequest):
+    """
+    Promote a user to a new actor_role (e.g. consumer → creator).
+    Validates: email verified + frek_id present.
+    """
+    session = _decode_session(request)
+    if not session:
+        raise HTTPException(401, "Authentification requise")
+
+    if body.target_role not in VALID_ACTOR_ROLES:
+        raise HTTPException(400, f"Role cible invalide. Valides : {sorted(VALID_ACTOR_ROLES)}")
+
+    email = session.get("email", "")
+    reg = await _db.registrations.find_one(
+        {"email": email},
+        {"_id": 0, "actor_role": 1, "frek_id": 1, "status": 1, "id": 1},
+    )
+    if not reg:
+        raise HTTPException(404, "Utilisateur non trouve")
+
+    current_role = reg.get("actor_role", "consumer")
+
+    # Validation: email must be verified (status approved)
+    if reg.get("status") != "approved":
+        raise HTTPException(400, "Votre compte doit etre verifie avant la promotion")
+
+    # Validation: frek_id must be present
+    if not reg.get("frek_id"):
+        raise HTTPException(400, "Un FREK-ID est requis pour la promotion. Completez votre onboarding.")
+
+    # Prevent downgrade or same-role
+    if current_role == body.target_role:
+        raise HTTPException(400, f"Vous etes deja {body.target_role}")
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    await _db.registrations.update_one(
+        {"email": email},
+        {"$set": {
+            "actor_role": body.target_role,
+            "actor_role_assigned_at": now,
+            "actor_role_previous": current_role,
+        }},
+    )
+
+    await _db.doctrine_audit.insert_one({
+        "entity": "promotion",
+        "user_id": reg.get("id", ""),
+        "email": email,
+        "action": "promote",
+        "previous_role": current_role,
+        "new_role": body.target_role,
+        "timestamp": now,
+        "reason": "Self-service promotion",
+    })
+
+    # Return new permissions
+    doc = await _db.doctrine_permissions.find_one(
+        {"actor_role": body.target_role}, {"_id": 0}
+    )
+
+    return {
+        "success": True,
+        "previous_role": current_role,
+        "new_role": body.target_role,
+        "label_fr": (doc or {}).get("label_fr", ""),
+        "can": (doc or {}).get("can", []),
+    }

@@ -6,7 +6,10 @@
 // Design System: Sovereign Onyx · Material Symbols Only
 // ═══════════════════════════════════════════════════════════
 import React, { useState } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const G = '#E8D5A0';
 
 const PROFILE_TABS = [
@@ -16,7 +19,8 @@ const PROFILE_TABS = [
 ];
 
 // ─── FICHE PERSONNELLE ──────────────────────────────────
-const FicheProfile = ({ session, doctrine }) => {
+const FicheProfile = ({ session, doctrine, onDoctrineUpdate }) => {
+  const [promoting, setPromoting] = useState(false);
   const stats = [
     { icon: 'visibility', value: '2.4K', label: 'Vues du profil' },
     { icon: 'people', value: '147', label: 'Connexions' },
@@ -120,6 +124,39 @@ const FicheProfile = ({ session, doctrine }) => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Bouton Devenir Createur — visible uniquement pour consumer */}
+      {doctrine?.actor_role === 'consumer' && (
+        <button onClick={async () => {
+            setPromoting(true);
+            try {
+              const res = await axios.post(`${API}/doctrine/promote`, { target_role: 'creator' }, { withCredentials: true });
+              if (res.data.success) {
+                toast.success(`Promotion reussie : ${res.data.label_fr}`);
+                if (onDoctrineUpdate) onDoctrineUpdate();
+              }
+            } catch (err) {
+              toast.error(err.response?.data?.detail || 'Erreur de promotion');
+            } finally { setPromoting(false); }
+          }}
+          disabled={promoting}
+          className="w-full p-4 rounded-xl flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.08), rgba(232,213,160,0.02))', border: '1px solid rgba(232,213,160,0.2)' }}
+          data-testid="promote-creator-btn">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.15), rgba(232,213,160,0.05))' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 24, color: G, fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+          </div>
+          <div className="flex-1 text-left">
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 700, color: '#e5e2e3' }}>
+              {promoting ? 'Promotion en cours...' : 'Devenir Createur'}
+            </p>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, color: '#72727a' }}>
+              Publiez, monetisez et accedez au Studio complet
+            </p>
+          </div>
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: G }}>arrow_forward</span>
+        </button>
       )}
 
       {/* Activité récente */}
@@ -380,7 +417,7 @@ const SaasProfile = ({ session }) => {
 };
 
 // ─── COMPOSANT PRINCIPAL — 3 PROFILS ────────────────────
-const ProfileTriptych = ({ session, doctrine }) => {
+const ProfileTriptych = ({ session, doctrine, onDoctrineUpdate }) => {
   const [activeTab, setActiveTab] = useState('fiche');
 
   return (
@@ -413,7 +450,7 @@ const ProfileTriptych = ({ session, doctrine }) => {
       </header>
 
       {/* Content */}
-      {activeTab === 'fiche' && <FicheProfile session={session} doctrine={doctrine} />}
+      {activeTab === 'fiche' && <FicheProfile session={session} doctrine={doctrine} onDoctrineUpdate={onDoctrineUpdate} />}
       {activeTab === 'governance' && <GovernanceProfile session={session} />}
       {activeTab === 'saas' && <SaasProfile session={session} />}
     </div>
