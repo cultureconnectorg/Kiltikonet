@@ -26,7 +26,7 @@ export const Header = () => {
 
   const accountLinks = [
     { path: '/mon-espace', label: language === 'fr' ? 'Mon Espace' : 'My Space', icon: User },
-    { path: '/espace-pro/connexion', label: language === 'fr' ? 'Espace Pro' : 'Pro Space', icon: Users },
+    { path: '/pro', label: language === 'fr' ? 'Espace Pro' : 'Pro Space', icon: Users },
     { path: '/admin', label: 'Admin', icon: Settings },
   ];
 

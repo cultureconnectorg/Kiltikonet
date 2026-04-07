@@ -15,7 +15,10 @@ module.exports = {
         lightborder: "#E5E0D8",
         
         // Smart Engine dark theme
-        gold: "#C8922A",
+        gold: "#f2ca50",
+        'gold-dim': "#D4AF37",
+        'omega-bg': "#0e0e0e",
+        'omega-surface': "#1c1b1b",
         'dark-bg': "#1A1A1A",
         'dark-card': "#242424",
         'dark-border': "#333333",
@@ -81,12 +84,22 @@ module.exports = {
         "fade-in": {
           "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" }
+        },
+        "omega-orbit": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" }
+        },
+        "omega-counter-orbit": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(-360deg)" }
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.6s ease-out forwards"
+        "fade-in": "fade-in 0.6s ease-out forwards",
+        "omega-orbit": "omega-orbit 60s linear infinite",
+        "omega-counter-orbit": "omega-counter-orbit 60s linear infinite"
       }
     }
   },

@@ -71,6 +71,8 @@ import AdminMobileDashboard from "./components/AdminMobileDashboard";
 import PerformanceDashboard from "./components/admin/PerformanceDashboard";
 // Admin Finance Dashboard
 import AdminFinanceDashboard from "./components/admin/AdminFinanceDashboard";
+// Omega Espace Pro (ITER.57)
+import ProApp from "./components/omega/ProApp";
 // Standalone Pro Pages
 import MessagesPage from "./components/pro/MessagesPage";
 import NetworkStandalonePage from "./components/pro/NetworkPage";
@@ -135,7 +137,7 @@ const AppLayout = ({ children }) => {
   const location = useLocation();
   
   // Routes where header should be hidden
-  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace', '/dashboard-cc2026', '/espace-pro'];
+  const hideHeaderRoutes = ['/smart-engine', '/admin', '/badge', '/workspace', '/dashboard-cc2026', '/espace-pro', '/pro'];
   const showHeader = !hideHeaderRoutes.some(route => location.pathname.startsWith(route));
   
   return (
@@ -185,8 +187,14 @@ function App() {
           {/* Return welcome message for returning visitors */}
           <ReturnWelcome />
           
-          <AppLayout>
-            <Routes>
+          <Routes>
+            {/* Omega Espace Pro — HORS AppLayout (fullscreen immersif) */}
+            <Route path="/pro" element={<ProtectedRoute><ProApp /></ProtectedRoute>} />
+
+            {/* Toutes les routes vitrine — DANS AppLayout */}
+            <Route path="/*" element={
+              <AppLayout>
+                <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/partnership" element={<PartnershipPage />} />
@@ -266,8 +274,10 @@ function App() {
               <Route path="/cookies" element={<Cookies />} />
               {/* Dynamic CMS Pages */}
               <Route path="/p/:slug" element={<DynamicPage />} />
-            </Routes>
-          </AppLayout>
+                </Routes>
+              </AppLayout>
+            } />
+          </Routes>
         </BrowserRouter>
         <Toaster 
           position="top-right"
