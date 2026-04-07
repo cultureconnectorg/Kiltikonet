@@ -30,6 +30,12 @@ Matrice des 5 acteurs CVLN implementee :
 - Audit trail dans `doctrine_audit` (assignations + refus de permission)
 - Ref: /app/DOCTRINE.md
 
+## cc_flow Transactionnel (2026-04-07)
+- **wallet.py** : `buy-pack` et `transfer` enregistrent `from_role`, `to_role`, `cc_flow_applied` dans `cc_transactions`
+- **fintech.py** : `transfer_tokens`, `consume_tokens`, `create_checkout` enregistrent les memes champs dans les metadata `kn_transactions`
+- **Endpoint analytique** : `GET /api/doctrine/flow-stats` agrege les volumes par paire `from_role -> to_role` sur 30 jours (sources: cc_transactions + kn_transactions)
+- **Frontend ProfileTriptych** : Affiche desormais `receives[]` (avantages) en plus de `can[]` (permissions), avec des badges verts distincts
+
 ## Phases completees (session courante)
 - Phase 1: Feed vivant + Reels avec videos reelles (video_url, thumbnail_url)
 - Phase 2: Wallet complet (Envoyer/Echanger/Trading modales, bouton +, historique banque)
@@ -38,6 +44,7 @@ Matrice des 5 acteurs CVLN implementee :
 - Phase 5: CVL Brain upgrade (c'est genial, thinking messages, thought process)
 - Phase 6: Profil Gouvernance (Association Kiltikonet, logo vert, hierarchie adherant)
 - Couche Doctrinale: Matrice 5 acteurs, routes API, backfill, audit
+- cc_flow Transactionnel: from_role/to_role sur toutes transactions, endpoint flow-stats, receives[] frontend
 
 ## Backlog
 - (P1) Settings page cablage complet
