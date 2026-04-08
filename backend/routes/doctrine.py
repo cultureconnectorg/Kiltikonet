@@ -239,6 +239,7 @@ DOCTRINE_SEED = [
             "support_creators",
             "attend_events",
             "vote_governance_basic",
+            "use_terminal_ia",
         ],
         "receives": [
             "free_and_premium_content",

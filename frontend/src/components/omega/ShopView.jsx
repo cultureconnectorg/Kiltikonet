@@ -2,13 +2,28 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, ShoppingBag, Tag, Star, Search, ChevronRight, Coins, ShieldCheck, Zap, Heart } from "lucide-react";
 
-export default function ShopView({ onBack, onSelect, balance }) {
+export default function ShopView({ onBack, onSelect, balance, auth }) {
   const [activeCategory, setActiveCategory] = useState("all");
   const categories = [
-    { id: "all", label: "Tout" }, { id: "music", label: "Musique" }, { id: "video", label: "Vidéo" }, { id: "art", label: "Art" }, { id: "gastronomy", label: "Gastro" },
+    { id: "all", label: "Tout" }, { id: "jetons", label: "Jetons CC" }, { id: "billetterie", label: "Billetterie" }, { id: "music", label: "Musique" }, { id: "art", label: "Art" }, { id: "gastronomy", label: "Gastro" },
   ];
+
+  // Dynamic countdown to CC2026 (20 mai 2026)
+  const cc2026Date = new Date('2026-05-20T00:00:00');
+  const now = new Date();
+  const daysLeft = Math.max(0, Math.ceil((cc2026Date - now) / (1000 * 60 * 60 * 24)));
+
+  const JETON_PACKS = [
+    { id: "pack-decouverte", title: "Pack Decouverte", author: "Kiltikonet", price: 10, category: "jetons", rating: 5.0, sales: 0, image: "https://images.unsplash.com/photo-1621504450181-5d356f61d307?auto=format&fit=crop&q=80&w=400", desc: "10 JCC" },
+    { id: "pack-culture", title: "Pack Culture", author: "Kiltikonet", price: 25, category: "jetons", rating: 5.0, sales: 0, image: "https://images.unsplash.com/photo-1621504450181-5d356f61d307?auto=format&fit=crop&q=80&w=400", desc: "25 JCC" },
+    { id: "pack-diaspora", title: "Pack Diaspora", author: "Kiltikonet", price: 50, category: "jetons", rating: 5.0, sales: 0, image: "https://images.unsplash.com/photo-1621504450181-5d356f61d307?auto=format&fit=crop&q=80&w=400", desc: "50 JCC" },
+    { id: "pack-vip", title: "Pack VIP", author: "Kiltikonet", price: 100, category: "jetons", rating: 5.0, sales: 0, image: "https://images.unsplash.com/photo-1621504450181-5d356f61d307?auto=format&fit=crop&q=80&w=400", desc: "100 JCC" },
+  ];
+
   const products = [
-    { id: 1, title: "Ti' Punch & Identité Créole", author: "Ben ARRIS", price: 12, category: "gastronomy", rating: 4.9, sales: 242, image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=400" },
+    ...JETON_PACKS,
+    { id: "cc2026-ticket", title: "Badge CC2026 — La Savane", author: "Culture Connect", price: 0, category: "billetterie", rating: 5.0, sales: 0, image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=400", desc: "Gratuit" },
+    { id: 1, title: "Ti' Punch & Identite Creole", author: "Ben ARRIS", price: 12, category: "gastronomy", rating: 4.9, sales: 242, image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=400" },
     { id: 2, title: "Session Studio — Beat Zouk", author: "Kilti Maker", price: 8, category: "music", rating: 4.7, sales: 156, image: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=400" },
     { id: 3, title: "Architecture Luciole v2", author: "Core Engine", price: 45, category: "art", rating: 5.0, sales: 89, image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=400" },
     { id: 4, title: "Diaspora Rhythms", author: "Global Sound", price: 15, category: "music", rating: 4.8, sales: 312, image: "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?auto=format&fit=crop&q=80&w=400" },
@@ -55,10 +70,10 @@ export default function ShopView({ onBack, onSelect, balance }) {
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent p-8 flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-4 h-4" style={{ color: '#f2ca50', fill: '#f2ca50' }} />
-                <span className="text-[10px] tracking-widest uppercase" style={{ color: '#f2ca50', fontFamily: "'Space Grotesk', sans-serif" }}>Nouveauté FREK</span>
+                <span className="text-[10px] tracking-widest uppercase" style={{ color: '#f2ca50', fontFamily: "'Space Grotesk', sans-serif" }}>J-{daysLeft} · Places limitees</span>
               </div>
-              <h2 className="italic text-3xl text-white mb-2" style={{ fontFamily: "'Noto Serif', serif" }}>Collection Diaspora</h2>
-              <p className="text-xs text-gray-300 max-w-xs">Découvrez les dernières œuvres certifiées par le Core Engine.</p>
+              <h2 className="italic text-3xl text-white mb-2" style={{ fontFamily: "'Noto Serif', serif" }}>CC2026 — La Savane</h2>
+              <p className="text-xs text-gray-300 max-w-xs">20-23 mai 2026 · Fort-de-France · Badge FREK-ID inclus</p>
             </div>
           </motion.div>
 

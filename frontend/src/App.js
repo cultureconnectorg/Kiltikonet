@@ -59,6 +59,27 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import DashboardCC2026 from "./components/DashboardCC2026";
 // Pro Space (LinkedIn Culturel)
 import ProSpaceDashboard, { ProSpaceLogin } from "./components/ProSpaceDashboard";
+// ProProtectedRoute — redirige vers /espace-pro/connexion au lieu de /admin
+const ProProtectedRoute = ({ children }) => {
+  const [state, setState] = React.useState('checking');
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      // Check pro session
+      const proSession = sessionStorage.getItem('cc2026_pro_session');
+      if (proSession) { setState('ok'); return; }
+      // Check cookie auth
+      try {
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/me`, { credentials: 'include' });
+        if (res.ok) { const d = await res.json(); if (d.authenticated) { setState('ok'); return; } }
+      } catch {}
+      setState('denied');
+    };
+    checkAuth();
+  }, []);
+  if (state === 'checking') return <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}><div className="animate-pulse text-sm text-[#f2ca50] font-mono tracking-widest">OMEGA PROTOCOL...</div></div>;
+  if (state === 'denied') return <Navigate to="/espace-pro/connexion" state={{ returnTo: '/pro' }} replace />;
+  return children;
+};
 // Auth Pages
 import MagicLinkPage from "./components/MagicLinkPage";
 import InvitePage from "./components/InvitePage";
@@ -189,7 +210,7 @@ function App() {
           
           <Routes>
             {/* Omega Espace Pro — HORS AppLayout (fullscreen immersif) */}
-            <Route path="/pro" element={<ProtectedRoute><ProApp /></ProtectedRoute>} />
+            <Route path="/pro" element={<ProProtectedRoute><ProApp /></ProProtectedRoute>} />
 
             {/* Toutes les routes vitrine — DANS AppLayout */}
             <Route path="/*" element={

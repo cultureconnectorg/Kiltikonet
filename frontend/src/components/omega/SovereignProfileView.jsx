@@ -2,9 +2,16 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ShieldCheck, ArrowLeft, Fingerprint, Database, Globe, Cpu, ChevronRight, QrCode, Share2, Download, User, Scale, Award, History, Settings, Shield, Bell, Eye, LogOut, Moon, Volume2 } from "lucide-react";
 
-export default function SovereignProfileView({ onBack }) {
+export default function SovereignProfileView({ onBack, auth, adhesion, adhesionLevels, onSubscribe, onCancelAdhesion }) {
   const [showSettings, setShowSettings] = useState(false);
   const [activeSection, setActiveSection] = useState("account");
+
+  const userName = auth?.userName || 'Souverain';
+  const frekId = auth?.frekId || '---';
+  const email = auth?.user?.email || 'non connecte';
+  const adhesionLevel = adhesion?.level || 'FREE';
+  const brainQuota = adhesion?.brain_quota_daily || 10;
+  const brainUsed = adhesion?.brain_quota_used_today || 0;
 
   const securityLayers = [
     { label: "Signature Luciole", status: "Active", value: "0x88...f2a1" },
@@ -64,7 +71,7 @@ export default function SovereignProfileView({ onBack }) {
                     </div>
                   </motion.div>
                   <div className="space-y-1">
-                    <h1 className="text-2xl italic text-white tracking-wide" style={{ fontFamily: "'Noto Serif', serif" }}>Souverain #99421</h1>
+                    <h1 className="text-2xl italic text-white tracking-wide" style={{ fontFamily: "'Noto Serif', serif" }}>{userName}</h1>
                     <div className="flex items-center justify-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500" /><span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Identité Certifiée Mainnet</span></div>
                   </div>
                 </div>
@@ -112,7 +119,7 @@ export default function SovereignProfileView({ onBack }) {
                   ); })}
                 </div>
                 <div className="p-6" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <button className="w-full py-3 rounded-xl font-bold tracking-widest text-[10px] flex items-center justify-center gap-2 text-red-500 hover:bg-red-500 hover:text-white transition-all" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <button onClick={auth?.logout} className="w-full py-3 rounded-xl font-bold tracking-widest text-[10px] flex items-center justify-center gap-2 text-red-500 hover:bg-red-500 hover:text-white transition-all" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
                     <LogOut className="w-4 h-4" />DÉCONNEXION
                   </button>
                 </div>
@@ -131,11 +138,11 @@ export default function SovereignProfileView({ onBack }) {
                             <div className="w-16 h-16 rounded-full overflow-hidden" style={{ border: '2px solid rgba(242,202,80,0.3)' }}>
                               <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100" alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             </div>
-                            <div className="flex flex-col"><span className="text-base font-bold text-white uppercase">Souverain #99421</span><span className="text-[10px] text-gray-500">Membre depuis Avril 2026</span></div>
+                            <div className="flex flex-col"><span className="text-base font-bold text-white uppercase">{userName}</span><span className="text-[10px] text-gray-500">FREK-ID: {frekId} | {adhesionLevel}</span></div>
                           </div>
                           <div className="grid grid-cols-1 gap-4">
-                            <div className="space-y-2"><label className="text-[9px] text-gray-500 uppercase tracking-widest font-bold ml-1">Nom d'affichage</label><input type="text" defaultValue="Souverain #99421" className="w-full bg-black/40 rounded-xl py-3 px-4 text-xs outline-none transition-all" style={{ border: '1px solid rgba(255,255,255,0.1)' }} /></div>
-                            <div className="space-y-2"><label className="text-[9px] text-gray-500 uppercase tracking-widest font-bold ml-1">Email</label><input type="email" defaultValue="core@kiltikonet.io" className="w-full bg-black/40 rounded-xl py-3 px-4 text-xs outline-none transition-all" style={{ border: '1px solid rgba(255,255,255,0.1)' }} /></div>
+                            <div className="space-y-2"><label className="text-[9px] text-gray-500 uppercase tracking-widest font-bold ml-1">Nom d'affichage</label><input type="text" defaultValue={userName} className="w-full bg-black/40 rounded-xl py-3 px-4 text-xs outline-none transition-all" style={{ border: '1px solid rgba(255,255,255,0.1)' }} /></div>
+                            <div className="space-y-2"><label className="text-[9px] text-gray-500 uppercase tracking-widest font-bold ml-1">Email</label><input type="email" defaultValue={email} className="w-full bg-black/40 rounded-xl py-3 px-4 text-xs outline-none transition-all" style={{ border: '1px solid rgba(255,255,255,0.1)' }} /></div>
                           </div>
                         </div>
                       )}

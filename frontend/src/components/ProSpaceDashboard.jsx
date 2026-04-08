@@ -1889,7 +1889,7 @@ export const ProSpaceLogin = () => {
     }));
     toast.success(`Bienvenue ${p.full_name || p.email} !`);
     window.location.hash = '';
-    navigate('/espace-pro', { replace: true });
+    navigate('/pro', { replace: true });
   };
 
   // Check if returning from Google OAuth or GitHub OAuth
@@ -1921,7 +1921,7 @@ export const ProSpaceLogin = () => {
               id: s.profile_id, email: s.email, name: s.name, type: s.profile_type,
               verified: true, createdAt: Date.now()
             }));
-            navigate('/espace-pro', { replace: true });
+            navigate('/pro', { replace: true });
           }
         })
         .catch(() => {});
