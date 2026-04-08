@@ -43,8 +43,7 @@ export function useFeed() {
   }, [page, load]);
 
   const eclair = useCallback(async (postId) => {
-    // TODO: POST /api/feed/posts/{postId}/eclair — debiter 1 KT
-    console.log('TODO: eclair', postId);
+    // POST /api/feed/posts/{postId}/eclair — debiter 1 KT (à implémenter iter.61)
   }, []);
 
   const commenter = useCallback(async (postId, content) => {
