@@ -1,124 +1,73 @@
-# PRD — Kiltikonet CC2026 / Espace Pro Omega (ITER.58)
+# PRD — Kiltikonet.fr / CC2026
 
-## Probleme original
-Plateforme evenementielle full-stack pour Culture Connect 2026. L'ITER.58 vise a rendre les 13 composants statiques de l'Espace Pro totalement fonctionnels ("zero bouton mort") en les connectant au backend.
+## Vision
+Plateforme culturelle souveraine pour la diaspora afro-caribéenne. Espace Pro Omega avec 8 modules interconnectés (Feed, Shop, DMs, Agenda, Accréditation, Builder, Cockpit, CVL Brain), système d'identité FREK-ID, jetons JCC/KT, et gouvernance communautaire.
 
 ## Architecture
-- **Frontend**: React 19, Framer Motion, Monaco Editor, Tailwind CSS
-- **Backend**: FastAPI, MongoDB
-- **Auth**: JWT + Magic Link bypass
-- **Integrations**: Stripe (paiements), Claude Sonnet (Brain IA), Brevo (emails — a cabler)
+- **Frontend**: React 19, Framer Motion (`motion/react`), Monaco Editor, Shadcn UI
+- **Backend**: FastAPI, MongoDB (`culture_connect_2026`)
+- **Auth**: Magic link + code OTP (bypass admin: `000000`)
+- **Paiements**: Stripe (test mode)
+- **IA**: CVL Brain via Claude Sonnet (Emergent LLM Key)
+- **Identité**: FREK-ID (système souverain)
 
-## Ce qui est implemente (8 avril 2026)
+## Itérations complétées
 
-### Phase 0 — Extraction server.py
-- Routes extraites vers `/app/backend/routes/omega.py` (1800+ lignes)
-- `server.py` allege
+### ITER.58 (Terminé)
+- Route `/pro` corrigée → OrbitalMenu Omega
+- Ancien Espace Pro déplacé → `/admin/core`
+- 8 modules câblés : Feed, Shop, DMs, Agenda, Accréditation, Builder, Cockpit, CVL Brain
+- Gouvernance (propositions + votes)
+- PWA `/scan` NFC
+- Tests 100% front, 89% back (iter_81)
 
-### Phase 1 — Infrastructure
-- Collections immuables `audit_logs`, `brain_training_data`
-- Plafond reglementaire 150EUR JCC
-- Index MongoDB sparse
+### ITER.59 (Terminé — 2026-04-08)
+- Webhook Stripe étendu pour accreditation omega + JCC packs
+- Baserow NFC sync après scan validé
+- Export CSV Twina (UTF-8 BOM, `;`)
+- 34 boutons câblés (13 inactifs → actifs, 21 mockés → fonctionnels)
+- Splash Screen (vidéo 2s WebM+MP4)
+- Son de notification (Web Audio API, toggle Paramètres)
+- FrekView Cultural Impact Score
+- Trade P2P (create/list/accept offers)
+- 15 nouveaux endpoints backend
+- Tests 93% back, 100% front (iter_82)
 
-### Phase 2-3 — Hooks cables
-- useAuth, useWallet, useBrain, useAdhesion cables
-- Brain IA teste 20/20 (Francais + Creole)
-- Tracking IA pour collecte de donnees d'entrainement
+## Backlog P0/P1/P2
 
-### Phase 4 — Feed Infini (DONE)
-- Seed de 20 posts avec images, auteurs, tags
-- Scroll snap vertical (IntersectionObserver)
-- Bouton Eclair (debit 1 KT)
-- Commentaires + Partage natif
-- Creation de posts
+### P0 — Bloquants CC2026
+- [x] Webhook Stripe Accréditation
+- [x] Baserow NFC /scan
+- [x] Export CSV Twina
+- [x] 13 boutons inactifs
 
-### Phase 5 — Shop + Packs JCC (DONE)
-- 4 packs JCC: Decouverte 10/10EUR, Culture 25/25EUR, Diaspora 50/50EUR, VIP 100/100EUR
-- Endpoint `/api/shop/packs` + `/api/shop/products`
-- Checkout Stripe (test mode)
-- Marketplace avec categories
+### P1 — Fonctionnalités importantes
+- [x] 21 boutons mockés
+- [x] FrekView Cultural Impact Score
+- [x] Trade P2P
+- [x] Splash Screen + Son notification
+- [ ] Brevo 4 templates transactionnels
+- [ ] Onboarding nouveau utilisateur complet
 
-### Phase 6 — DMs (DONE)
-- Conversations + Messages
-- Polling 5s temps reel
-- Nouvelle conversation modal
-- Read receipts
+### P2 — UX avancée
+- [ ] Swipe navigation OrbitalMenu
+- [ ] Double tap Brain → Feed
+- [ ] Animations orbitales distinctes par module
+- [ ] PWA Installation prompt
+- [ ] Kilti-Health Dashboard admin
+- [ ] Nettoyage production (console.log, rate limiter)
 
-### Phase 7.3 — Terminal Monaco (DONE)
-- CockpitView avec Monaco Editor
-- CVL Brain Agent integre (generation de code)
-- Deploy HTML sandbox via `/api/terminal/deploy`
-- Historique des deploiements
-
-### Phase 7 — Agenda CC2026 (DONE)
-- 4 jours (20-23 mai 2026)
-- 20 evenements (concerts, conferences, ateliers, hackathon)
-- Kathy-Liana Bravo confirmee 22h le 22 mai
-- Detail modal par evenement
-
-### Phase 8 — Accreditation CC2026 (DONE)
-- Flux 7 etapes (Identite → Type → Paiement → Soumission → Validation → Badge → Impression)
-- 6 types: PRO 300EUR, INSTITUTIONNEL 500EUR, VIP 800EUR, VISITEUR 50EUR, ARTISTE/PRESSE gratuit
-- Admin validation + generation badge automatique (CC26-XXX-XXXXX)
-- Badge NFC pour types premium
-
-### PWA NFC /scan (DONE)
-- Route `/scan` standalone
-- Auth agent (code CC2026agent)
-- 7 zones de scan
-- Saisie manuelle badge_id
-- Historique local des scans
-- Resultat ACCES AUTORISE / REFUSE
-
-### Gouvernance (DONE)
-- 4 propositions seedees
-- Votes ponderes par niveau d'adhesion (FREE=1, PRO=3, PREMIUM=5, INSTITUTIONNEL=10)
-- Creation de propositions
-
-### Parametres (DONE)
-- Edition profil (nom, bio)
-- Choix de langue (FR/CR/EN)
-- Notifications (email, push)
-- Confidentialite (profil public)
-- Suppression compte RGPD
-
-### Route /pro corrigee (DONE)
-- `/pro` → OrbitalMenu Omega (fullscreen immersif)
-- Ancien Espace Pro deplace vers `/admin/core` (SUPER_ADMIN only)
-- Badge CC2026 dans le header orbital
-
-## Backlog Restant
-
-### P0 — Bloquant CC2026 (J-42)
-- [ ] Accreditation: webhook Stripe pour confirmation auto du paiement
-- [ ] NFC /scan: integration Baserow table 865847
-
-### P1 — Important
-- [ ] FrekView: Cultural Impact Score + historique FREK-ID
-- [ ] Studio/BuilderView: Upload medias via Object Storage + certification FREK Genesis
-- [ ] Trade peer-to-peer: Order book, matching, historique
-- [ ] Brevo: 4 templates emails transactionnels (Accreditation, Bienvenue, Newsletter, Reset)
-
-### P2 — Ameliorations
-- [ ] Gouvernance frontend: composant GouvernanceView dans ProApp
-- [ ] Documents manquants: FREK_BLOCKCHAIN_GAP.md, TRACABILITY_SCHEMA.md, etc. (10 docs)
-- [ ] ITER58_SUMMARY.md final
-- [ ] Deploiement production
-
-### P3 — Futur
-- [ ] PWA offline sync
-- [ ] cultural_score NLP avance
-- [ ] Export PDF badges batch Twina
-
-## Donnees actives MongoDB
-- feed_posts: 20 docs
-- gouvernance_proposals: 4 docs
-- accreditations_cc2026: 2 docs
-- cc_badges: 6 docs
-- kn_wallets: 6 docs
-- shop_products: 19 docs
+## Collections MongoDB
+`users`, `cc_badges`, `feed_posts`, `shop_products`, `kn_wallets`, `gouvernance_proposals`, `audit_logs`, `brain_sessions`, `builder_projects`, `frek_certifications`, `user_follows`, `trade_offers`, `accreditations_cc2026`, `nfc_scans_backup`
 
 ## Credentials de test
-- Login: cultureconnectorg@gmail.com (Magic link bypass code: 000000)
-- NFC Agent: CC2026agent
-- Espace Coleen: Coleen2026
+- Bypass Admin: `cultureconnectorg@gmail.com` (Code: `000000`)
+- Espace Coleen: `Coleen2026`
+- NFC Agent: `CC2026agent`
+
+## Fichiers clés
+- `/app/backend/routes/omega.py` — Tous les endpoints Omega (~2200 lignes)
+- `/app/backend/server.py` — Monolithe principal (~9600 lignes)
+- `/app/frontend/src/components/omega/` — 17 composants React
+- `/app/ITER59_SUMMARY.md` — Rapport détaillé iter.59
+- `/app/test_reports/iteration_82.json` — Dernier rapport de test
