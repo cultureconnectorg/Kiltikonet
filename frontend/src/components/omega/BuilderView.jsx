@@ -8,6 +8,9 @@ export default function BuilderView({ onBack, onSelect, auth }) {
   const [subView, setSubView] = useState("projects");
   const [activeTool, setActiveTool] = useState(null);
   const [mediaLoaded, setMediaLoaded] = useState(false);
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaType, setMediaType] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [currentProject, setCurrentProject] = useState(null);
   const [title, setTitle] = useState("");
@@ -17,6 +20,14 @@ export default function BuilderView({ onBack, onSelect, auth }) {
   const [loading, setLoading] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  // Tool settings
+  const [toolSettings, setToolSettings] = useState({
+    audio: { volume: 80, trimStart: 0, trimEnd: 100, fadeIn: false, fadeOut: false },
+    captions: { text: "", timeStart: "00:00", timeEnd: "00:05" },
+    text: { overlay: "", position: "center", color: "#f2ca50" },
+    effects: { active: null },
+    crop: { ratio: "16:9" },
+  });
   const saveTimerRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -259,14 +270,48 @@ export default function BuilderView({ onBack, onSelect, auth }) {
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 </button>
               </div>
-              <input ref={fileInputRef} type="file" className="hidden" accept="video/*,audio/*,image/*" onChange={(e) => { if (e.target.files?.[0]) setMediaLoaded(true); }} />
+              <input ref={fileInputRef} type="file" className="hidden" accept="video/*,audio/*,image/*" onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                if (f.size > 50 * 1024 * 1024) { alert('Fichier trop volumineux (max 50MB)'); return; }
+                setUploading(true);
+                try {
+                  const fd = new FormData();
+                  fd.append('file', f);
+                  const r = await fetch(`${API}/api/builder/upload`, { method: 'POST', credentials: 'include', body: fd });
+                  if (r.ok) {
+                    const d = await r.json();
+                    setMediaLoaded(true);
+                    setMediaUrl(d.url);
+                    setMediaType(d.type || '');
+                    // Save media_url to project
+                    if (currentProject?.project_id) {
+                      await fetch(`${API}/api/builder/projects/${currentProject.project_id}`, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ media_url: d.url }),
+                      });
+                    }
+                  } else { const err = await r.json().catch(() => ({})); alert(err.detail || 'Erreur upload'); }
+                } catch { alert('Erreur réseau'); }
+                setUploading(false);
+                e.target.value = '';
+              }} />
               <div className={`aspect-video rounded-2xl flex flex-col items-center justify-center gap-4 cursor-pointer transition-all ${mediaLoaded ? 'bg-black' : 'bg-white/5 hover:bg-white/10'}`} style={{ border: mediaLoaded ? '2px solid rgba(255,255,255,0.1)' : '2px dashed rgba(255,255,255,0.1)' }} onClick={() => fileInputRef.current?.click()} data-testid="builder-media-zone">
-                {!mediaLoaded ? (<><Video className="w-12 h-12" style={{ color: 'rgba(242,202,80,0.4)' }} /><div className="text-center"><div className="text-[10px] tracking-widest text-gray-500 uppercase">Tapez pour importer</div><div className="text-[8px] text-gray-600 uppercase mt-1">MP4 · MOV · WAV · MP3</div></div></>) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-8">
-                    <div className="flex items-end gap-1 h-12 mb-4">
-                      {[0.4, 0.8, 0.5, 1, 0.7, 0.3, 0.9, 0.6].map((h, i) => (<motion.div key={i} animate={{ height: [`${h * 100}%`, `${(1 - h) * 100}%`, `${h * 100}%`] }} transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.1 }} className="w-1.5 rounded-full" style={{ background: '#f2ca50' }} />))}
-                    </div>
-                    <div className="font-mono text-[10px]" style={{ color: '#f2ca50' }}>Média chargé</div>
+                {uploading ? (
+                  <div className="flex flex-col items-center gap-2"><Loader2 className="w-10 h-10 animate-spin" style={{ color: '#f2ca50' }} /><div className="text-[10px] text-gray-400 uppercase tracking-widest">Upload en cours...</div></div>
+                ) : !mediaLoaded ? (<><Video className="w-12 h-12" style={{ color: 'rgba(242,202,80,0.4)' }} /><div className="text-center"><div className="text-[10px] tracking-widest text-gray-500 uppercase">Tapez pour importer</div><div className="text-[8px] text-gray-600 uppercase mt-1">MP4 · MOV · WAV · MP3 · JPG · PNG</div></div></>) : (
+                  <div className="w-full h-full relative overflow-hidden rounded-2xl">
+                    {mediaType.startsWith('image/') && <img src={`${API}${mediaUrl}`} alt="Preview" className="w-full h-full object-cover" />}
+                    {mediaType.startsWith('video/') && <video src={`${API}${mediaUrl}`} className="w-full h-full object-cover" controls />}
+                    {mediaType.startsWith('audio/') && (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-8">
+                        <div className="flex items-end gap-1 h-12 mb-4">
+                          {[0.4, 0.8, 0.5, 1, 0.7, 0.3, 0.9, 0.6].map((h, i) => (<motion.div key={i} animate={{ height: [`${h * 100}%`, `${(1 - h) * 100}%`, `${h * 100}%`] }} transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.1 }} className="w-1.5 rounded-full" style={{ background: '#f2ca50' }} />))}
+                        </div>
+                        <audio src={`${API}${mediaUrl}`} controls className="w-full max-w-xs" />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -284,36 +329,75 @@ export default function BuilderView({ onBack, onSelect, auth }) {
               {activeTool && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="bg-white/5 rounded-2xl p-4" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
                   <div className="text-[10px] uppercase tracking-widest mb-4" style={{ color: '#f2ca50' }}>{activeTool} Settings</div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-3">
                     {activeTool === 'audio' && <>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Volume</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Trim</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Fade In</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Fade Out</div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-400">Volume</span>
+                        <span className="text-[10px] font-mono" style={{ color: '#f2ca50' }}>{toolSettings.audio.volume}%</span>
+                      </div>
+                      <input type="range" min="0" max="100" value={toolSettings.audio.volume} onChange={(e) => setToolSettings(s => ({ ...s, audio: { ...s.audio, volume: parseInt(e.target.value) } }))} className="w-full accent-[#f2ca50] h-1" data-testid="tool-audio-volume" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div><span className="text-[9px] text-gray-500 block mb-1">Trim début</span><input type="number" min="0" value={toolSettings.audio.trimStart} onChange={(e) => setToolSettings(s => ({ ...s, audio: { ...s.audio, trimStart: parseInt(e.target.value) || 0 } }))} className="w-full bg-black/40 rounded-lg px-3 py-2 text-xs text-white outline-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="tool-audio-trim-start" /></div>
+                        <div><span className="text-[9px] text-gray-500 block mb-1">Trim fin</span><input type="number" min="0" value={toolSettings.audio.trimEnd} onChange={(e) => setToolSettings(s => ({ ...s, audio: { ...s.audio, trimEnd: parseInt(e.target.value) || 100 } }))} className="w-full bg-black/40 rounded-lg px-3 py-2 text-xs text-white outline-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="tool-audio-trim-end" /></div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => setToolSettings(s => ({ ...s, audio: { ...s.audio, fadeIn: !s.audio.fadeIn } }))} className={`flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest ${toolSettings.audio.fadeIn ? 'text-[#f2ca50]' : 'text-gray-500'}`} style={{ background: toolSettings.audio.fadeIn ? 'rgba(242,202,80,0.1)' : 'rgba(255,255,255,0.05)', border: toolSettings.audio.fadeIn ? '1px solid #f2ca50' : '1px solid rgba(255,255,255,0.05)' }} data-testid="tool-audio-fade-in">Fade In {toolSettings.audio.fadeIn ? 'ON' : 'OFF'}</button>
+                        <button onClick={() => setToolSettings(s => ({ ...s, audio: { ...s.audio, fadeOut: !s.audio.fadeOut } }))} className={`flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest ${toolSettings.audio.fadeOut ? 'text-[#f2ca50]' : 'text-gray-500'}`} style={{ background: toolSettings.audio.fadeOut ? 'rgba(242,202,80,0.1)' : 'rgba(255,255,255,0.05)', border: toolSettings.audio.fadeOut ? '1px solid #f2ca50' : '1px solid rgba(255,255,255,0.05)' }} data-testid="tool-audio-fade-out">Fade Out {toolSettings.audio.fadeOut ? 'ON' : 'OFF'}</button>
+                      </div>
                     </>}
                     {activeTool === 'captions' && <>
-                      <div className="col-span-2 h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Ajouter sous-titre horodaté</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Police</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Position</div>
+                      <div><span className="text-[9px] text-gray-500 block mb-1">Texte du sous-titre</span><input type="text" placeholder="Entrez le sous-titre..." value={toolSettings.captions.text} onChange={(e) => setToolSettings(s => ({ ...s, captions: { ...s.captions, text: e.target.value } }))} className="w-full bg-black/40 rounded-lg px-3 py-2 text-sm text-white outline-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="tool-captions-text" /></div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div><span className="text-[9px] text-gray-500 block mb-1">Timecode debut</span><input type="text" placeholder="00:00" value={toolSettings.captions.timeStart} onChange={(e) => setToolSettings(s => ({ ...s, captions: { ...s.captions, timeStart: e.target.value } }))} className="w-full bg-black/40 rounded-lg px-3 py-2 text-xs text-white outline-none font-mono" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="tool-captions-start" /></div>
+                        <div><span className="text-[9px] text-gray-500 block mb-1">Timecode fin</span><input type="text" placeholder="00:05" value={toolSettings.captions.timeEnd} onChange={(e) => setToolSettings(s => ({ ...s, captions: { ...s.captions, timeEnd: e.target.value } }))} className="w-full bg-black/40 rounded-lg px-3 py-2 text-xs text-white outline-none font-mono" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="tool-captions-end" /></div>
+                      </div>
+                      <button onClick={() => { if (toolSettings.captions.text) { autoSave('captions', JSON.stringify(toolSettings.captions)); setToolSettings(s => ({ ...s, captions: { ...s.captions, text: '' } })); } }} className="w-full py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold" style={{ background: '#f2ca50', color: 'black' }} data-testid="tool-captions-add">Ajouter sous-titre</button>
                     </>}
                     {activeTool === 'text' && <>
-                      <div className="col-span-2 h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Overlay texte</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Taille</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Couleur</div>
+                      <div><span className="text-[9px] text-gray-500 block mb-1">Texte overlay</span><input type="text" placeholder="Texte a afficher..." value={toolSettings.text.overlay} onChange={(e) => setToolSettings(s => ({ ...s, text: { ...s.text, overlay: e.target.value } }))} className="w-full bg-black/40 rounded-lg px-3 py-2 text-sm text-white outline-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="tool-text-overlay" /></div>
+                      <div><span className="text-[9px] text-gray-500 block mb-1">Position</span>
+                        <div className="flex gap-2">
+                          {['haut', 'centre', 'bas'].map(p => (
+                            <button key={p} onClick={() => setToolSettings(s => ({ ...s, text: { ...s.text, position: p } }))} className={`flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest ${toolSettings.text.position === p ? 'text-[#f2ca50]' : 'text-gray-500'}`} style={{ background: toolSettings.text.position === p ? 'rgba(242,202,80,0.1)' : 'rgba(255,255,255,0.05)', border: toolSettings.text.position === p ? '1px solid #f2ca50' : '1px solid rgba(255,255,255,0.05)' }} data-testid={`tool-text-pos-${p}`}>{p}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <div><span className="text-[9px] text-gray-500 block mb-1">Couleur</span>
+                        <div className="flex gap-2">
+                          {[{ id: '#f2ca50', label: 'Gold' }, { id: '#ffffff', label: 'Blanc' }].map(c => (
+                            <button key={c.id} onClick={() => setToolSettings(s => ({ ...s, text: { ...s.text, color: c.id } }))} className="flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest flex items-center justify-center gap-2" style={{ background: toolSettings.text.color === c.id ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)', border: toolSettings.text.color === c.id ? `1px solid ${c.id}` : '1px solid rgba(255,255,255,0.05)', color: c.id }} data-testid={`tool-text-color-${c.label.toLowerCase()}`}><div className="w-3 h-3 rounded-full" style={{ background: c.id }} />{c.label}</button>
+                          ))}
+                        </div>
+                      </div>
                     </>}
                     {activeTool === 'effects' && <>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Noir & Blanc</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Sépia</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Vintage</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>Grain</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[{ id: 'bw', label: 'Noir & Blanc' }, { id: 'sepia', label: 'Sepia' }, { id: 'contrast', label: 'Contraste+' }, { id: 'gold', label: 'Gold Glow' }].map(fx => (
+                          <button key={fx.id} onClick={() => setToolSettings(s => ({ ...s, effects: { active: s.effects.active === fx.id ? null : fx.id } }))} className={`py-3 rounded-lg text-[10px] uppercase tracking-widest font-bold ${toolSettings.effects.active === fx.id ? 'text-[#f2ca50]' : 'text-gray-500'}`} style={{ background: toolSettings.effects.active === fx.id ? 'rgba(242,202,80,0.15)' : 'rgba(255,255,255,0.05)', border: toolSettings.effects.active === fx.id ? '1px solid #f2ca50' : '1px solid rgba(255,255,255,0.05)' }} data-testid={`tool-effect-${fx.id}`}>{fx.label}</button>
+                        ))}
+                      </div>
                     </>}
                     {activeTool === 'crop' && <>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>16:9</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>9:16</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>1:1</div>
-                      <div className="h-10 bg-black/40 rounded-xl flex items-center px-4 text-[10px] text-gray-400" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>4:3</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['16:9', '9:16', '1:1', '4:3'].map(r => (
+                          <button key={r} onClick={() => setToolSettings(s => ({ ...s, crop: { ratio: r } }))} className={`py-3 rounded-lg text-[10px] uppercase tracking-widest font-bold ${toolSettings.crop.ratio === r ? 'text-[#f2ca50]' : 'text-gray-500'}`} style={{ background: toolSettings.crop.ratio === r ? 'rgba(242,202,80,0.15)' : 'rgba(255,255,255,0.05)', border: toolSettings.crop.ratio === r ? '1px solid #f2ca50' : '1px solid rgba(255,255,255,0.05)' }} data-testid={`tool-crop-${r.replace(':', 'x')}`}>{r}</button>
+                        ))}
+                      </div>
+                      <button onClick={() => { if (currentProject?.project_id) autoSave('crop', toolSettings.crop.ratio); }} className="w-full py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold" style={{ background: '#f2ca50', color: 'black' }} data-testid="tool-crop-apply">Recadrer</button>
                     </>}
                   </div>
+                  {/* Save tool settings to project */}
+                  {currentProject?.project_id && activeTool && (
+                    <button onClick={async () => {
+                      try {
+                        await fetch(`${API}/api/builder/projects/${currentProject.project_id}`, {
+                          method: 'PUT', credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ [`tool_${activeTool}`]: JSON.stringify(toolSettings[activeTool]) }),
+                        });
+                      } catch { /* silent */ }
+                    }} className="mt-3 w-full py-2 rounded-lg text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-[#f2ca50] hover:border-[#f2ca50] transition-all" data-testid="tool-save-settings">Appliquer les modifications</button>
+                  )}
                 </motion.div>
               )}
               <div className="space-y-4">

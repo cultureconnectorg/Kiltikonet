@@ -85,5 +85,20 @@ export function useBrain() {
     setError(null);
   }, []);
 
-  return { messages, isThinking, error, send, reset, sessionId: sessionIdRef.current };
+  const loadSession = useCallback(async (sid) => {
+    try {
+      const res = await fetch(`${API}/api/brain/sessions/${sid}/messages`, { credentials: 'include' });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.messages && data.messages.length > 0) {
+        sessionIdRef.current = sid;
+        setMessages(data.messages);
+        setError(null);
+        return true;
+      }
+    } catch { /* silent */ }
+    return false;
+  }, []);
+
+  return { messages, isThinking, error, send, reset, loadSession, sessionId: sessionIdRef.current };
 }

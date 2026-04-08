@@ -4,33 +4,54 @@ import { Bolt, MessageSquare, Share2, MoreVertical, Brain, Wallet, ShieldCheck, 
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-export default function ContentDisplay({ onBack, onSelectBrainChat, onNavigate }) {
+export default function ContentDisplay({ onBack, onSelectBrainChat, onNavigate, authorFrekId, postId }) {
   const [activeNav, setActiveNav] = useState("brain");
   const [isLiked, setIsLiked] = useState(false);
   const [isFollowed, setIsFollowed] = useState(false);
-  const [likesCount, setLikesCount] = useState(42800);
+  const [likesCount, setLikesCount] = useState(0);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   const handleLike = useCallback(async () => {
-    setIsLiked(!isLiked);
-    setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
-    // Wire to eclair API if a post_id exists
+    if (likeLoading) return;
+    if (!postId) { setIsLiked(!isLiked); setLikesCount(prev => isLiked ? prev - 1 : prev + 1); return; }
+    setLikeLoading(true);
     try {
-      // Eclair uses FeedView eclair endpoint pattern
+      const r = await fetch(`${API}/api/feed/posts/${postId}/eclair`, {
+        method: 'POST', credentials: 'include',
+      });
+      if (r.ok) {
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
+      } else {
+        const err = await r.json().catch(() => ({}));
+        if (err.detail?.includes('insuffisant') || err.detail?.includes('Solde')) {
+          alert('Solde KT insuffisant — recharge ton wallet');
+        }
+      }
     } catch { /* silent */ }
-  }, [isLiked]);
+    setLikeLoading(false);
+  }, [isLiked, postId, likeLoading]);
 
   const handleFollow = useCallback(async () => {
-    const newState = !isFollowed;
-    setIsFollowed(newState);
+    if (followLoading) return;
+    const targetFrek = authorFrekId || '';
+    if (!targetFrek) return;
+    setFollowLoading(true);
     try {
-      await fetch(`${API}/api/user/follow`, {
+      const r = await fetch(`${API}/api/user/follow`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target_frek_id: 'content-author-frek' }),
+        body: JSON.stringify({ target_frek_id: targetFrek }),
       });
+      if (r.ok) {
+        const d = await r.json();
+        setIsFollowed(d.following);
+      }
     } catch { /* silent */ }
-  }, [isFollowed]);
+    setFollowLoading(false);
+  }, [authorFrekId, followLoading]);
 
   const handleShare = () => {
     const shareData = { title: "Ben ARRIS - Kiltikonet", text: "Check out this content on Kiltikonet!", url: window.location.href };

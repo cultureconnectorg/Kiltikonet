@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe, Check } from "lucide-react";
+import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe, Check, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -10,7 +10,7 @@ import { useBrain } from "../../hooks/useBrain";
 const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function BrainChat({ onBack, onSelect, balance, auth }) {
-  const { messages: brainMessages, isThinking, error, send, reset, sessionId } = useBrain();
+  const { messages: brainMessages, isThinking, error, send, reset, loadSession, sessionId } = useBrain();
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [useWeb, setUseWeb] = useState(false);
@@ -18,6 +18,8 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
   const [sessions, setSessions] = useState([]);
   const [activity, setActivity] = useState([]);
   const [copiedId, setCopiedId] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -58,6 +60,7 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
     if (!input.trim() || isThinking) return;
     const text = input;
     setInput("");
+    setAttachedFile(null);
     await send(text, {
       useWeb,
       userName: auth?.userName || 'utilisateur',
@@ -87,7 +90,7 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
                   </div>
                 </button>
                 {sessions.map((s) => (
-                  <button key={s.session_id || s.id} onClick={() => { /* Load session via reset + reload */ }} className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-all text-left group" data-testid={`brain-session-${s.session_id || s.id}`}>
+                  <button key={s.session_id || s.id} onClick={async () => { const sid = s.session_id || s.id; await loadSession(sid); setSidebarOpen(false); }} className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-all text-left group" data-testid={`brain-session-${s.session_id || s.id}`}>
                     <MessageSquare className="w-4 h-4 text-gray-600 group-hover:text-[#f2ca50] transition-colors" />
                     <div className="flex-1 truncate">
                       <div className="text-xs text-gray-300 truncate">{s.title || s.session_id || 'Session'}</div>
@@ -153,8 +156,9 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
+        <main className="flex-1 overflow-hidden flex">
+          <div className={`${layoutMode === 'split' ? 'w-1/2 border-r border-white/5' : 'w-full'} overflow-y-auto transition-all duration-300`}>
+            <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
             {messages.map((msg) => (
               <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-6 ${msg.role === "assistant" ? "items-start" : "items-start flex-row-reverse"}`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 ${msg.role === "assistant" ? "text-[#f2ca50]" : "text-white"}`} style={{ background: msg.role === "assistant" ? 'rgba(242,202,80,0.1)' : 'rgba(255,255,255,0.1)', border: msg.role === "assistant" ? '1px solid rgba(242,202,80,0.2)' : '1px solid rgba(255,255,255,0.1)' }}>
@@ -209,6 +213,35 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
             )}
             <div ref={messagesEndRef} />
           </div>
+          </div>
+          {layoutMode === 'split' && (
+            <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: '50%' }} exit={{ opacity: 0, width: 0 }} className="h-full overflow-y-auto p-6" style={{ background: 'rgba(0,0,0,0.3)' }} data-testid="brain-split-panel">
+              <div className="text-[10px] uppercase tracking-widest mb-4" style={{ color: '#f2ca50' }}>Code Preview</div>
+              <div className="space-y-3">
+                {messages.filter(m => m.role === 'assistant' && m.content?.includes('```')).length > 0 ? (
+                  messages.filter(m => m.role === 'assistant' && m.content?.includes('```')).slice(-3).map((m, i) => (
+                    <div key={i} className="bg-black/40 rounded-xl p-4 text-xs overflow-x-auto" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({ inline, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || "");
+                            return !inline && match ? (
+                              <SyntaxHighlighter style={atomDark} language={match[1]} PreTag="div" className="rounded-xl !bg-transparent !p-0" {...props}>{String(children).replace(/\n$/, "")}</SyntaxHighlighter>
+                            ) : (<code className="bg-white/10 px-1 rounded text-xs" style={{ color: '#f2ca50' }} {...props}>{children}</code>);
+                          },
+                          p() { return null; },
+                          h1() { return null; }, h2() { return null; }, h3() { return null; },
+                          ul() { return null; }, ol() { return null; }, li() { return null; },
+                        }}
+                      >{m.content}</ReactMarkdown>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-600 text-xs text-center py-12">Les blocs de code apparaitront ici.</div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </main>
 
         <footer className="p-6 shrink-0">
@@ -217,8 +250,27 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
               <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())} placeholder="Posez une question au CVL Brain..." className="w-full bg-transparent border-none outline-none px-4 py-3 text-sm text-white placeholder-gray-600 resize-none min-h-[60px] max-h-48" />
               <div className="flex items-center justify-between px-2 pb-1">
                 <div className="flex items-center gap-1">
-                  <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) { setInput(prev => prev + `\n[Fichier: ${e.target.files[0].name}]`); } }} />
-                  <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-all" title="Joindre un fichier" data-testid="brain-attach-btn"><Paperclip className="w-4 h-4" /></button>
+                  <input ref={fileInputRef} type="file" className="hidden" accept="image/*,audio/*,video/*" onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    if (f.size > 50 * 1024 * 1024) { alert('Fichier trop volumineux (max 50MB)'); return; }
+                    setUploading(true);
+                    try {
+                      const fd = new FormData();
+                      fd.append('file', f);
+                      const r = await fetch(`${API}/api/brain/upload`, { method: 'POST', credentials: 'include', body: fd });
+                      if (r.ok) {
+                        const d = await r.json();
+                        setAttachedFile({ url: d.url, nom: d.nom, type: d.type });
+                        setInput(prev => prev + (prev ? '\n' : '') + `[Fichier joint: ${d.nom}]`);
+                      } else { const err = await r.json().catch(() => ({})); alert(err.detail || 'Erreur upload'); }
+                    } catch { alert('Erreur réseau lors de l\'upload'); }
+                    setUploading(false);
+                    e.target.value = '';
+                  }} />
+                  <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className={`p-2 rounded-lg transition-all ${attachedFile ? 'bg-[rgba(242,202,80,0.15)] text-[#f2ca50]' : 'hover:bg-white/5 text-gray-500'}`} title={attachedFile ? `Fichier: ${attachedFile.nom}` : 'Joindre un fichier'} data-testid="brain-attach-btn">
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
+                  </button>
                   <button onClick={() => setUseWeb(!useWeb)} className={`p-2 rounded-lg transition-all ${useWeb ? 'bg-[rgba(242,202,80,0.15)] text-[#f2ca50]' : 'hover:bg-white/5 text-gray-500'}`} title={useWeb ? 'Recherche web activée' : 'Activer recherche web'} data-testid="brain-web-toggle"><Globe className="w-4 h-4" /></button>
                   <button onClick={() => setLayoutMode(layoutMode === 'default' ? 'split' : 'default')} className={`p-2 rounded-lg transition-all ${layoutMode === 'split' ? 'bg-[rgba(242,202,80,0.15)] text-[#f2ca50]' : 'hover:bg-white/5 text-gray-500'}`} title="Changer le layout" data-testid="brain-layout-toggle"><Layout className="w-4 h-4" /></button>
                 </div>

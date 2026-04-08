@@ -11,7 +11,8 @@ import logging
 import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File
+from fastapi.responses import Response
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -2457,4 +2458,121 @@ async def accept_trade(offer_id: str, request: Request):
 
     await write_audit_log(frek_id, "TRADE_ORDER", offer_id, "trade", {"action": "accept"})
     return {"success": True, "offer_id": offer_id, "total_jcc": total_jcc}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.60 — OBJECT STORAGE UPLOADS (#20 Paperclip, #98 Builder)
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/api/brain/upload")
+async def brain_upload(request: Request, file: UploadFile = File(...)):
+    """Upload fichier pour BrainChat — retourne URL publique."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    from services.object_storage import validate_upload, put_object, generate_path, get_object
+
+    data = await file.read()
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "bin"
+    valid, err = validate_upload(file.content_type or "", ext, len(data))
+    if not valid:
+        raise HTTPException(400, err)
+
+    path = generate_path(frek_id, file.filename)
+    result = put_object(path, data, file.content_type or "application/octet-stream")
+
+    doc = {
+        "file_id": str(uuid.uuid4())[:8],
+        "storage_path": result["path"],
+        "original_filename": file.filename,
+        "content_type": file.content_type,
+        "size": result.get("size", len(data)),
+        "uploader_email": email,
+        "uploader_frek_id": frek_id,
+        "context": "brain",
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await _db.uploaded_files.insert_one(doc)
+    await write_audit_log(frek_id, "BRAIN_UPLOAD", doc["file_id"], "brain", {"filename": file.filename, "size": len(data)})
+
+    return {
+        "url": f"/api/files/{result['path']}",
+        "type": file.content_type,
+        "nom": file.filename,
+        "file_id": doc["file_id"],
+        "size": len(data),
+    }
+
+
+@router.post("/api/builder/upload")
+async def builder_upload(request: Request, file: UploadFile = File(...)):
+    """Upload média pour BuilderView — retourne URL publique + preview."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    from services.object_storage import validate_upload, put_object, generate_path
+
+    data = await file.read()
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "bin"
+    valid, err = validate_upload(file.content_type or "", ext, len(data))
+    if not valid:
+        raise HTTPException(400, err)
+
+    path = generate_path(frek_id, file.filename)
+    result = put_object(path, data, file.content_type or "application/octet-stream")
+
+    doc = {
+        "file_id": str(uuid.uuid4())[:8],
+        "storage_path": result["path"],
+        "original_filename": file.filename,
+        "content_type": file.content_type,
+        "size": result.get("size", len(data)),
+        "uploader_email": email,
+        "uploader_frek_id": frek_id,
+        "context": "builder",
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await _db.uploaded_files.insert_one(doc)
+    await write_audit_log(frek_id, "BUILDER_UPLOAD", doc["file_id"], "builder", {"filename": file.filename, "size": len(data)})
+
+    return {
+        "url": f"/api/files/{result['path']}",
+        "type": file.content_type,
+        "nom": file.filename,
+        "file_id": doc["file_id"],
+        "size": len(data),
+    }
+
+
+@router.get("/api/files/{path:path}")
+async def serve_file(path: str):
+    """Serve un fichier depuis Object Storage."""
+    record = await _db.uploaded_files.find_one({"storage_path": path, "is_deleted": False}, {"_id": 0})
+    if not record:
+        raise HTTPException(404, "Fichier introuvable")
+
+    from services.object_storage import get_object
+    data, ct = get_object(path)
+    return Response(content=data, media_type=record.get("content_type", ct))
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.60 — BRAIN SESSION MESSAGES (#13 Historique)
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/api/brain/sessions/{session_id}/messages")
+async def get_brain_session_messages(session_id: str, request: Request):
+    """Charger les messages d'une session Brain passée."""
+    email = _get_session_email(request)
+
+    session = await _db.brain_sessions.find_one(
+        {"session_id": session_id, "email": email}, {"_id": 0}
+    )
+    if not session:
+        raise HTTPException(404, "Session introuvable")
+
+    messages = session.get("messages", [])
+    return {"session_id": session_id, "messages": messages, "title": session.get("title", "")}
 

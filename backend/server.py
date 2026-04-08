@@ -5253,6 +5253,13 @@ async def create_indexes():
         if backfilled:
             logger.info("Doctrine backfill: %d users assigned actor_role", backfilled)
 
+        # Object Storage initialization
+        try:
+            from services.object_storage import init_storage
+            init_storage()
+        except Exception as storage_err:
+            logger.warning(f"Object Storage init deferred: {storage_err}")
+
     except Exception as e:
         logger.error(f"⚠️ Error creating indexes: {str(e)}")
 
