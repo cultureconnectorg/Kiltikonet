@@ -6,7 +6,10 @@ Endpoints:
   POST /api/pro/feed/seed     — Generate ghost posts for active profiles
   GET  /api/pro/feed/reels    — Short-form content (TikTok/Reels style)
 """
-import os, uuid, secrets, random
+import os
+import uuid
+import secrets
+import random
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from fastapi import APIRouter, Query, HTTPException, Depends
@@ -432,3 +435,88 @@ async def seed_feed_content(data: dict = None):
     r = await _generate_batch_reels(reels_count)
 
     return {"success": True, "posts_created": p, "reels_created": r}
+
+
+# ═══════════════════════════════════════════════════════════
+# POST /api/pro/feed/posts/{post_id}/eclair — Éclair (⚡) a post
+# Débit 1 KT du wallet de l'utilisateur, crédit 1 KT à l'auteur
+# ═══════════════════════════════════════════════════════════
+@router.post("/posts/{post_id}/eclair")
+async def eclair_post(post_id: str, data: dict):
+    """Eclair a post: debit 1 KT from caller, credit 1 KT to post author."""
+    user_frek_id = data.get("frek_id")
+    if not user_frek_id:
+        raise HTTPException(400, "frek_id requis")
+
+    # Find the post
+    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0, "author_id": 1, "author_frek_id": 1, "eclairs": 1, "eclairs_count": 1})
+    if not post:
+        raise HTTPException(404, "Post non trouve")
+
+    author_frek_id = post.get("author_frek_id") or post.get("author_id")
+    if not author_frek_id:
+        raise HTTPException(400, "Auteur du post introuvable")
+
+    # Prevent self-eclair
+    if user_frek_id == author_frek_id:
+        raise HTTPException(400, "Impossible d'eclairer son propre post")
+
+    # Check if already eclaired
+    eclairs = post.get("eclairs", [])
+    if user_frek_id in eclairs:
+        raise HTTPException(400, "Deja eclaire")
+
+    # Check caller wallet
+    caller_wallet = await _db.kn_wallets.find_one({"frek_id": user_frek_id}, {"_id": 0})
+    if not caller_wallet or (caller_wallet.get("balance_kt", 0) < 1):
+        raise HTTPException(402, "Solde KT insuffisant")
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Debit 1 KT from caller
+    await _db.kn_wallets.update_one(
+        {"frek_id": user_frek_id},
+        {"$inc": {"balance_kt": -1}, "$set": {"updated_at": now}}
+    )
+
+    # Credit 1 KT to author
+    await _db.kn_wallets.update_one(
+        {"frek_id": author_frek_id},
+        {"$inc": {"balance_kt": 1}, "$set": {"updated_at": now}},
+        upsert=True
+    )
+
+    # Update post eclairs
+    eclairs.append(user_frek_id)
+    await _db.pro_posts.update_one(
+        {"id": post_id},
+        {"$set": {"eclairs": eclairs, "eclairs_count": len(eclairs)}}
+    )
+
+    # Audit log
+    await _db.audit_logs.insert_one({
+        "action": "FEED_ECLAIR",
+        "actor_frek_id": user_frek_id,
+        "target_frek_id": author_frek_id,
+        "post_id": post_id,
+        "kt_amount": 1,
+        "timestamp": now,
+    })
+
+    # Push notification to post author
+    try:
+        from routes.push_notifications import send_event_push
+        caller_profile = await _db.kn_profiles.find_one({"frek_id": user_frek_id}, {"_id": 0, "name": 1, "full_name": 1})
+        caller_name = (caller_profile or {}).get("name") or (caller_profile or {}).get("full_name") or user_frek_id
+        await send_event_push("FEED_ECLAIR", author_frek_id, actor_name=caller_name)
+    except Exception:
+        pass
+
+    # Get new balances
+    new_wallet = await _db.kn_wallets.find_one({"frek_id": user_frek_id}, {"_id": 0, "balance_kt": 1})
+
+    return {
+        "success": True,
+        "eclairs_count": len(eclairs),
+        "new_balance_kt": new_wallet.get("balance_kt", 0) if new_wallet else 0,
+    }

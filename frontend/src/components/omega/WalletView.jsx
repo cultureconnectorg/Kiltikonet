@@ -104,7 +104,7 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
       </header>
 
       <main className="flex-1 overflow-y-auto p-3 pb-24">
-        <div className="max-w-md mx-auto space-y-4">
+        <div className="max-w-md mx-auto lg:max-w-4xl space-y-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative aspect-[2/1] w-full rounded-[1.5rem] p-4 overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(to bottom right, #111, #0a0a0a, black)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <div className="absolute inset-0 opacity-20 pointer-events-none">
               <div className="absolute top-0 right-0 w-full h-full" style={{ background: 'radial-gradient(circle at top right, rgba(242,202,80,0.3) 0%, transparent 60%)' }} />
@@ -164,7 +164,7 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
             })}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 lg:hidden">
             <div className="flex gap-4 px-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               {["assets", "activity"].map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-all relative ${activeTab === tab ? "text-[#f2ca50]" : "text-gray-500"}`}>
@@ -213,6 +213,47 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* Desktop: Assets + Activity side by side */}
+          <div className="hidden lg:grid lg:grid-cols-2 lg:gap-4">
+            <div className="space-y-2">
+              <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#f2ca50] px-2 pb-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Assets</div>
+              {assets.map((asset, i) => (
+                <div key={i} className="p-3 rounded-xl bg-white/5 flex items-center justify-between hover:bg-white/[0.08] transition-all" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <Coins className={`w-3.5 h-3.5 ${asset.color}`} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-white">{asset.name}</span>
+                      <span className="text-[7px] text-gray-500 uppercase tracking-widest">{asset.symbol}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[11px] font-bold text-white tabular-nums">{asset.balance}</div>
+                    <div className="text-[7px] text-gray-500 uppercase tracking-widest">{asset.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#f2ca50] px-2 pb-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Activite</div>
+              {transactions.length > 0 ? transactions.map((tx) => (
+                <div key={tx.id} className="p-3 rounded-xl bg-white/5 flex items-center gap-3 hover:bg-white/[0.08] transition-all" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${tx.type === 'receive' ? 'bg-green-500/10 text-green-500' : 'text-[#f2ca50]'}`} style={tx.type !== 'receive' ? { background: 'rgba(242,202,80,0.1)' } : {}}>
+                    {tx.type === 'receive' ? <ArrowDownLeft className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-bold text-white truncate">{tx.label}</div>
+                    <span className="text-[7px] text-gray-500 uppercase tracking-widest">{tx.date}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-[11px] font-mono font-bold ${tx.type === 'receive' ? 'text-green-400' : 'text-white'}`}>{tx.amount}</div>
+                  </div>
+                </div>
+              )) : <div className="py-10 text-center text-gray-600 text-[10px] uppercase tracking-widest">Aucune activite</div>}
+            </div>
           </div>
 
           <motion.div whileTap={{ scale: 0.98 }} onClick={() => onSelect("frek_id")} className="p-3 rounded-xl flex items-center justify-between group cursor-pointer" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.2)' }}>

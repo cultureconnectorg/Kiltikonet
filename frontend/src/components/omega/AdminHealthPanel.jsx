@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
-import { Activity, Database, Zap, Shield, Mail, CreditCard, Smartphone, Users, Clock, AlertTriangle, CheckCircle, Loader2, RefreshCw } from "lucide-react";
+import { Activity, Database, Zap, Shield, Mail, CreditCard, Smartphone, Users, Clock, AlertTriangle, CheckCircle, Loader2, RefreshCw, Bell } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -138,6 +138,48 @@ export default function AdminHealthPanel() {
           ))}
         </div>
       )}
+
+      {/* Broadcast CC2026 */}
+      <BroadcastPanel />
     </div>
   );
 }
+
+function BroadcastPanel() {
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const handleBroadcast = async () => {
+    if (!title.trim() || !body.trim()) return;
+    setSending(true);
+    try {
+      const r = await fetch(`${API}/api/notifications/push/send`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, body, frek_ids: [] }),
+      });
+      const d = await r.json();
+      setResult(d);
+      if (d.sent > 0) { setTitle(''); setBody(''); }
+    } catch {}
+    setSending(false);
+  };
+
+  return (
+    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }} data-testid="broadcast-panel">
+      <div className="flex items-center gap-2 mb-3">
+        <Bell className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />
+        <span className="text-[9px] text-gray-500 tracking-widest uppercase">Broadcast CC2026</span>
+      </div>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Titre" className="w-full bg-black/40 text-xs px-3 py-2 rounded-lg mb-2 outline-none text-white" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="broadcast-title" />
+      <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Message..." rows={2} className="w-full bg-black/40 text-xs px-3 py-2 rounded-lg mb-2 outline-none text-white resize-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="broadcast-body" />
+      <button onClick={handleBroadcast} disabled={sending || !title.trim() || !body.trim()} className="w-full py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold" style={{ background: sending ? '#333' : '#f2ca50', color: '#0a0a0b', opacity: !title.trim() || !body.trim() ? 0.5 : 1 }} data-testid="broadcast-send-btn">
+        {sending ? 'Envoi...' : 'Envoyer a tous'}
+      </button>
+      {result && <div className="text-[9px] mt-2 text-gray-500">Envoye: {result.sent}, Echec: {result.failed}</div>}
+    </div>
+  );
+}
+

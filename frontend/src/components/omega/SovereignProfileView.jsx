@@ -234,14 +234,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
             )}
 
             {activeSection === "notifications" && (
-              <div className="space-y-3">
-                <ToggleItem label="Notifications par email" value={editNotifEmail} onChange={setEditNotifEmail} testId="notif-email" />
-                <ToggleItem label="Notifications push" value={editNotifPush} onChange={setEditNotifPush} testId="notif-push" />
-                <ToggleItem label="Sons de notification" value={editNotifSound} onChange={(v) => { setEditNotifSound(v); localStorage.setItem('kk_notif_sound', v ? 'true' : 'false'); }} testId="notif-sound" />
-                <motion.button whileTap={{ scale: 0.95 }} onClick={savePreferences} disabled={saving} className="w-full py-3 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: saving ? '#333' : '#f2ca50', color: 'black' }} data-testid="save-notif-btn">
-                  {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-                </motion.button>
-              </div>
+              <NotificationPreferences editNotifEmail={editNotifEmail} setEditNotifEmail={setEditNotifEmail} editNotifPush={editNotifPush} setEditNotifPush={setEditNotifPush} editNotifSound={editNotifSound} setEditNotifSound={setEditNotifSound} savePreferences={savePreferences} saving={saving} />
             )}
 
             {activeSection === "privacy" && (
@@ -317,6 +310,59 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function NotificationPreferences({ editNotifEmail, setEditNotifEmail, editNotifPush, setEditNotifPush, editNotifSound, setEditNotifSound, savePreferences, saving }) {
+  const [pushPrefs, setPushPrefs] = useState({ feed_eclair: true, feed_comment: true, message_recu: true, badge_emit: true, wallet_credit: true, gouvernance_vote: true });
+  const [loadingPrefs, setLoadingPrefs] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API}/api/notifications/push/preferences`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setPushPrefs(d); })
+      .catch(() => {})
+      .finally(() => setLoadingPrefs(false));
+  }, []);
+
+  const savePushPrefs = async (key, val) => {
+    const updated = { ...pushPrefs, [key]: val };
+    setPushPrefs(updated);
+    fetch(`${API}/api/notifications/push/preferences`, {
+      method: 'PUT', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    }).catch(() => {});
+  };
+
+  const pushTypes = [
+    { key: 'feed_eclair', label: 'Eclairs sur mes posts' },
+    { key: 'feed_comment', label: 'Commentaires sur mes posts' },
+    { key: 'message_recu', label: 'Messages directs' },
+    { key: 'badge_emit', label: 'Badge CC2026 pret' },
+    { key: 'wallet_credit', label: 'Credits recus' },
+    { key: 'gouvernance_vote', label: 'Votes de gouvernance' },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <ToggleItem label="Notifications par email" value={editNotifEmail} onChange={setEditNotifEmail} testId="notif-email" />
+      <ToggleItem label="Notifications push" value={editNotifPush} onChange={(v) => { setEditNotifPush(v); savePushPrefs('push_enabled', v); }} testId="notif-push" />
+      <ToggleItem label="Sons de notification" value={editNotifSound} onChange={(v) => { setEditNotifSound(v); localStorage.setItem('kk_notif_sound', v ? 'true' : 'false'); }} testId="notif-sound" />
+
+      {editNotifPush && !loadingPrefs && (
+        <div className="mt-2 space-y-2 pl-2" style={{ borderLeft: '2px solid rgba(242,202,80,0.2)' }}>
+          <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Types de notifications</div>
+          {pushTypes.map(t => (
+            <ToggleItem key={t.key} label={t.label} value={pushPrefs[t.key] ?? true} onChange={(v) => savePushPrefs(t.key, v)} testId={`notif-${t.key}`} />
+          ))}
+        </div>
+      )}
+
+      <motion.button whileTap={{ scale: 0.95 }} onClick={savePreferences} disabled={saving} className="w-full py-3 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: saving ? '#333' : '#f2ca50', color: 'black' }} data-testid="save-notif-btn">
+        {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+      </motion.button>
     </div>
   );
 }

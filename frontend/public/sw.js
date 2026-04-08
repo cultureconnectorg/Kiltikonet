@@ -551,3 +551,47 @@ async function syncOfflineScans() {
 }
 
 console.log('[SW] Service Worker loaded - CC2026 PWA');
+
+// ═══════════════════════════════════════════════════════════
+// PUSH NOTIFICATIONS — Web Push API handler
+// ═══════════════════════════════════════════════════════════
+
+self.addEventListener('push', function(event) {
+  let data = { title: 'Kiltikonet', body: '', icon: '/logo-kiltikonet.png', url: '/pro' };
+  try {
+    if (event.data) {
+      const payload = event.data.json();
+      data = { ...data, ...payload };
+    }
+  } catch (e) {
+    if (event.data) data.body = event.data.text();
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/logo-kiltikonet.png',
+    badge: data.badge || '/logo-kiltikonet.png',
+    data: { url: data.url || '/pro' },
+    vibrate: [100, 50, 100],
+    tag: data.tag || 'kiltikonet-' + Date.now(),
+    renotify: true,
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  const url = event.notification.data?.url || '/pro';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (const client of clientList) {
+        if (client.url.includes(url) && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});
+

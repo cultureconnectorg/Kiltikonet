@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, useAnimation } from "motion/react";
-import { Wallet, Zap, Wrench, Gauge, ShoppingCart, MessageSquare, CalendarDays } from "lucide-react";
+import { Wallet, Zap, Wrench, Gauge, ShoppingCart, MessageSquare, CalendarDays, TrendingUp, Bell, Activity } from "lucide-react";
 
 const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function OrbitalMenu({ onSelect, balance, frekId }) {
   const menuItems = [
@@ -77,8 +78,23 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
     { angle: -135 }, { angle: -45 }, { angle: -180 }, { angle: 0 }, { angle: 135 }, { angle: 45 },
   ];
 
+  // Desktop panel — load frek profile for Cultural Impact Score
+  const [profileData, setProfileData] = useState(null);
+  const [recentActivity, setRecentActivity] = useState([]);
+  useEffect(() => {
+    if (!frekId) return;
+    fetch(`${API}/api/frek/profile/${frekId}`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setProfileData(d); })
+      .catch(() => {});
+    fetch(`${API}/api/pro/feed?page=1&limit=3`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.posts) setRecentActivity(d.posts.slice(0, 3)); })
+      .catch(() => {});
+  }, [frekId]);
+
   return (
-    <div className="relative h-screen w-full flex items-center justify-center z-10 p-4" data-testid="orbital-menu"
+    <div className="relative h-screen w-full flex items-center justify-center z-10 p-4 lg:justify-start lg:pl-[calc(50%-160px)]" data-testid="orbital-menu"
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Header — CC2026, JCC, FREK-ID only */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-end px-6 h-20" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)' }} data-testid="omega-header">
@@ -178,6 +194,65 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
         {/* Outer spinning ring */}
         <div className="absolute -inset-2 rounded-full" style={{ border: '1px solid rgba(242,202,80,0.15)', animation: prefersReducedMotion ? 'none' : 'spin 25s linear infinite' }} />
       </motion.div>
+
+      {/* Desktop Context Panel — lg: only */}
+      <div className="hidden lg:flex fixed right-0 top-0 bottom-0 w-[280px] flex-col z-40 overflow-y-auto" style={{ background: 'rgba(10,10,11,0.95)', borderLeft: '1px solid rgba(242,202,80,0.08)', scrollbarWidth: 'thin' }} data-testid="orbital-desktop-panel">
+        <div className="p-5 pt-24 space-y-5">
+          {/* Solde KT + CC */}
+          <div className="rounded-xl p-4" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}>
+            <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-3">Wallet</div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-400">KT</span>
+              <span className="text-lg font-bold font-mono" style={{ color: '#f2ca50' }}>{profileData?.balance_kt ?? 0}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">JCC</span>
+              <span className="text-lg font-bold font-mono" style={{ color: '#f2ca50' }}>{balance ?? 0}</span>
+            </div>
+          </div>
+
+          {/* Cultural Impact Score */}
+          <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />
+              <span className="text-[9px] text-gray-500 tracking-widest uppercase">Impact Culturel</span>
+            </div>
+            <div className="text-3xl font-bold font-mono" style={{ color: '#f2ca50' }}>{profileData?.cultural_impact_score ?? profileData?.impact_score ?? 0}</div>
+            <div className="w-full h-1 rounded-full mt-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="h-full rounded-full" style={{ width: `${Math.min(100, profileData?.cultural_impact_score ?? 0)}%`, background: '#f2ca50' }} />
+            </div>
+          </div>
+
+          {/* Dernière activité */}
+          <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />
+              <span className="text-[9px] text-gray-500 tracking-widest uppercase">Activite recente</span>
+            </div>
+            {recentActivity.length === 0 ? (
+              <p className="text-[10px] text-gray-600">Aucune activite</p>
+            ) : recentActivity.map((a, i) => (
+              <div key={i} className="py-2 border-b border-white/5 last:border-0">
+                <div className="text-[10px] text-gray-400 line-clamp-2">{a.content?.slice(0, 80) || a.title?.slice(0, 80)}</div>
+                <div className="text-[8px] text-gray-600 mt-0.5">{a.author_name || ''}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick actions */}
+          <div className="space-y-2">
+            <button onClick={() => onSelect("wallet")} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs text-gray-400 hover:text-[#f2ca50] transition-all" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }} data-testid="panel-wallet-btn">
+              <Wallet className="w-4 h-4" /> Mon wallet
+            </button>
+            <button onClick={() => onSelect("feed")} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs text-gray-400 hover:text-[#f2ca50] transition-all" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }} data-testid="panel-feed-btn">
+              <Zap className="w-4 h-4" /> Feed
+            </button>
+            <button onClick={() => onSelect("brain")} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs text-gray-400 hover:text-[#f2ca50] transition-all" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }} data-testid="panel-brain-btn">
+              <Bell className="w-4 h-4" /> CVL Brain
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Terminal as TermIcon, Rocket, ArrowLeft, Play, Save, History, Brain, ChevronRight, X, RotateCcw, Eye, Code, Send, Loader2, PanelRightOpen, PanelRightClose, Activity } from "lucide-react";
+import { Terminal as TermIcon, Rocket, ArrowLeft, Play, Save, History, Brain, ChevronRight, X, RotateCcw, Eye, Code, Send, Loader2, PanelRightOpen, PanelRightClose, Activity, ShieldCheck } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import AdminHealthPanel from "./AdminHealthPanel";
+import CC2026Dashboard from "./CC2026Dashboard";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -10,6 +11,7 @@ const TERMINAL_BRAIN_PROMPT = `Tu es un agent de developpement web complet. Tu c
 
 export default function CockpitView({ onBack, onSelect, auth }) {
   const [activeTab, setActiveTab] = useState("terminal");
+  const isAdmin = auth?.user?.role === 'admin' || auth?.user?.role === 'founder';
   const [code, setCode] = useState(`<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -146,6 +148,11 @@ export default function CockpitView({ onBack, onSelect, auth }) {
             <button onClick={() => setActiveTab("health")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'health' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'health' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-health">
               <Activity className="w-3.5 h-3.5" /> Sante
             </button>
+            {isAdmin && (
+              <button onClick={() => setActiveTab("cc2026")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'cc2026' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'cc2026' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-cc2026">
+                <ShieldCheck className="w-3.5 h-3.5" /> CC2026
+              </button>
+            )}
           </div>
           <span className="text-[9px] text-gray-600 font-mono">{frekShort}</span>
         </div>
@@ -167,6 +174,13 @@ export default function CockpitView({ onBack, onSelect, auth }) {
       {activeTab === "health" && (
         <div className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full" style={{ scrollbarWidth: 'thin' }}>
           <AdminHealthPanel />
+        </div>
+      )}
+
+      {/* CC2026 Admin Tab */}
+      {activeTab === "cc2026" && isAdmin && (
+        <div className="flex-1 overflow-hidden">
+          <CC2026Dashboard onBack={() => setActiveTab("terminal")} />
         </div>
       )}
 

@@ -1884,7 +1884,10 @@ export const ProSpaceLogin = () => {
   const [frekHint, setFrekHint] = useState('');
   const [frekName, setFrekName] = useState('');
   const [frekOtp, setFrekOtp] = useState('');
-
+  // WebAuthn modal state
+  const [webauthnModal, setWebauthnModal] = useState(false);
+  const [webauthnEmail, setWebauthnEmail] = useState('');
+  const [webauthnStep, setWebauthnStep] = useState('email'); // email | verify | error
   const finishLogin = (p) => {
     sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
       id: p.id, email: p.email, name: p.full_name, image: p.image,
@@ -2164,21 +2167,7 @@ export const ProSpaceLogin = () => {
               </button>
 
               {/* WebAuthn — Face ID / Touch ID */}
-              <button onClick={async () => {
-                try {
-                  setLoading(true);
-                  const { startAuthentication } = await import("@simplewebauthn/browser");
-                  const emailPrompt = prompt('Entrez votre email pour la connexion biometrique :');
-                  if (!emailPrompt) { setLoading(false); return; }
-                  const beginRes = await axios.post(`${API}/auth/webauthn/login/begin`, { email: emailPrompt });
-                  const authResp = await startAuthentication({ optionsJSON: beginRes.data });
-                  const completeRes = await axios.post(`${API}/auth/webauthn/login/complete`, { email: emailPrompt, credential: authResp }, { withCredentials: true });
-                  if (completeRes.data.success) finishLogin(completeRes.data.profile);
-                } catch (err) {
-                  if (err?.response?.status === 404) toast.error('Aucun appareil biometrique enregistre pour cet email');
-                  else if (err.name !== 'NotAllowedError') toast.error('Erreur biometrique');
-                } finally { setLoading(false); }
-              }}
+              <button onClick={() => { setWebauthnModal(true); setWebauthnStep('email'); setWebauthnEmail(''); }}
                 className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01] active:scale-[0.97] mb-3"
                 data-testid="webauthn-login-btn"
                 style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04))', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)', minHeight: 48 }}>
@@ -2332,6 +2321,81 @@ export const ProSpaceLogin = () => {
           )}
         </div>
       </div>
+
+      {/* WebAuthn Modal */}
+      {webauthnModal && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" onClick={() => setWebauthnModal(false)}>
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+          <div className="relative w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: '#0e0e0e', border: '1px solid rgba(242,202,80,0.2)', boxShadow: '0 0 80px rgba(242,202,80,0.08)' }} onClick={e => e.stopPropagation()} data-testid="webauthn-modal">
+            <div className="p-6 text-center">
+              {/* Logo */}
+              <div className="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center overflow-hidden" style={{ background: 'rgba(242,202,80,0.08)', border: '2px solid rgba(242,202,80,0.2)' }}>
+                <img src="/logo-kiltikonet.png" alt="Kiltikonet" className="w-14 h-14 object-contain" style={{ animation: 'pulse 2s ease-in-out infinite' }} />
+              </div>
+
+              {webauthnStep === 'email' && (
+                <>
+                  <h2 className="text-lg font-bold mb-1" style={{ color: '#f2ca50' }}>Confirme ton identite</h2>
+                  <p className="text-xs text-gray-500 mb-5">Utilise ton Face ID ou Touch ID</p>
+                  {/* Biometric icon animated */}
+                  <div className="w-12 h-12 rounded-full mx-auto mb-5 flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', animation: 'pulse 1.5s ease-in-out infinite' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 24, color: '#22c55e', fontVariationSettings: "'FILL' 1" }}>fingerprint</span>
+                  </div>
+                  <input type="email" placeholder="Ton email" value={webauthnEmail} onChange={e => setWebauthnEmail(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm mb-4 outline-none"
+                    style={{ background: '#0a0a0b', border: '1px solid rgba(242,202,80,0.15)', color: 'white' }}
+                    data-testid="webauthn-email-input" autoComplete="email" autoFocus />
+                  <button onClick={async () => {
+                    if (!webauthnEmail.trim()) return;
+                    setWebauthnStep('verify');
+                    try {
+                      setLoading(true);
+                      const { startAuthentication } = await import("@simplewebauthn/browser");
+                      const beginRes = await axios.post(`${API}/auth/webauthn/login/begin`, { email: webauthnEmail });
+                      const authResp = await startAuthentication({ optionsJSON: beginRes.data });
+                      const completeRes = await axios.post(`${API}/auth/webauthn/login/complete`, { email: webauthnEmail, credential: authResp }, { withCredentials: true });
+                      if (completeRes.data.success) { setWebauthnModal(false); finishLogin(completeRes.data.profile); }
+                    } catch (err) {
+                      setWebauthnStep('error');
+                      if (err?.response?.status === 404) toast.error('Aucun appareil biometrique enregistre pour cet email');
+                      else if (err.name !== 'NotAllowedError') toast.error('Erreur biometrique');
+                    } finally { setLoading(false); }
+                  }}
+                    disabled={!webauthnEmail.trim() || loading}
+                    className="w-full py-3 rounded-xl text-sm font-bold tracking-widest uppercase mb-3"
+                    style={{ background: loading ? '#333' : '#f2ca50', color: '#0a0a0b', opacity: !webauthnEmail.trim() ? 0.5 : 1 }}
+                    data-testid="webauthn-verify-btn">
+                    {loading ? 'Verification...' : 'Verifier'}
+                  </button>
+                </>
+              )}
+
+              {webauthnStep === 'verify' && (
+                <>
+                  <h2 className="text-lg font-bold mb-2" style={{ color: '#f2ca50' }}>Verification en cours</h2>
+                  <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(242,202,80,0.1)', animation: 'pulse 1s ease-in-out infinite' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#f2ca50', fontVariationSettings: "'FILL' 1" }}>fingerprint</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Presente ton visage ou ton doigt...</p>
+                </>
+              )}
+
+              {webauthnStep === 'error' && (
+                <>
+                  <h2 className="text-lg font-bold mb-2 text-red-400">Echec de verification</h2>
+                  <p className="text-xs text-gray-500 mb-4">Verifie ton email ou reessaie</p>
+                  <button onClick={() => setWebauthnStep('email')} className="w-full py-3 rounded-xl text-sm font-bold tracking-widest uppercase mb-3"
+                    style={{ background: 'rgba(242,202,80,0.1)', color: '#f2ca50', border: '1px solid rgba(242,202,80,0.2)' }}
+                    data-testid="webauthn-retry-btn">Reessayer</button>
+                </>
+              )}
+
+              <button onClick={() => setWebauthnModal(false)} className="w-full py-2 text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                data-testid="webauthn-cancel-btn">Annuler — retour mot de passe</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer Legal & Confiance */}
       <footer className="py-6 px-4" data-testid="legal-footer">

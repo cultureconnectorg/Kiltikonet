@@ -140,7 +140,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning") or path.startswith("/api/upload") or path.startswith("/api/builder")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning") or path.startswith("/api/upload") or path.startswith("/api/builder") or path.startswith("/api/notifications")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -3892,6 +3892,16 @@ app.include_router(omega_router)
 from routes.webauthn import router as webauthn_router, init_webauthn
 init_webauthn(db)
 app.include_router(webauthn_router)
+
+# Push Notifications — Web Push API
+from routes.push_notifications import router as push_router, init_push
+init_push(db)
+app.include_router(push_router)
+
+# Admin CC2026 — Dashboard, Users, Moderation
+from routes.admin_cc2026 import router as admin_cc2026_router, init_admin_cc2026
+init_admin_cc2026(db)
+app.include_router(admin_cc2026_router)
 
 app.include_router(cultural_identity_router)
 app.include_router(cultural_feed_router)

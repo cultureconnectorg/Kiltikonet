@@ -70,19 +70,24 @@ export default function FeedView({ onBack, onNavigate, auth }) {
   const handleEclair = async (postId) => {
     setEclairLoading(postId);
     try {
-      const res = await fetch(`${API}/api/feed/posts/${postId}/eclair`, {
+      const res = await fetch(`${API}/api/pro/feed/posts/${postId}/eclair`, {
         method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ frek_id: auth?.frekId || '' }),
       });
       if (res.ok) {
         const data = await res.json();
         setPosts(prev => prev.map(p =>
-          p.post_id === postId ? { ...p, nb_eclairs: data.nb_eclairs } : p
+          p.post_id === postId || p.id === postId ? { ...p, nb_eclairs: data.eclairs_count, eclairs_count: data.eclairs_count } : p
         ));
       } else {
-        const err = await res.json();
-        console.warn("Eclair error:", err.detail);
+        const err = await res.json().catch(() => ({}));
+        if (res.status === 402) {
+          // Toast insufficient KT
+          if (window.__KILTI_TOAST) window.__KILTI_TOAST('Solde KT insuffisant — recharge ton wallet');
+        }
       }
-    } catch (e) { console.error("Eclair error:", e); }
+    } catch {}
     finally { setEclairLoading(null); }
   };
 
@@ -173,10 +178,12 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         </motion.button>
       </header>
 
-      {/* Scroll-snap feed */}
-      <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto" style={{ scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' }}>
-        {posts.map((post, idx) => (
-          <div key={post.post_id || idx} className="relative w-full flex-shrink-0" style={{ height: 'calc(100vh - 56px)', scrollSnapAlign: 'start' }}>
+      {/* Feed container — snap scroll mobile, grid lg: */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main feed */}
+        <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto lg:grid lg:grid-cols-2 lg:gap-4 lg:p-4 lg:auto-rows-min lg:overflow-y-auto" style={{ scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' }}>
+          {posts.map((post, idx) => (
+            <div key={post.post_id || idx} className="relative w-full flex-shrink-0 lg:rounded-2xl lg:overflow-hidden lg:h-auto lg:min-h-[400px]" style={{ height: 'calc(100vh - 56px)', scrollSnapAlign: 'start' }}>
             {/* Background image */}
             {post.media_url && (
               <div className="absolute inset-0">
@@ -248,6 +255,27 @@ export default function FeedView({ onBack, onNavigate, auth }) {
             <span className="text-xs text-gray-600">Fin du feed</span>
           )}
         </div>
+      </div>
+
+        {/* Desktop sidebar — lg: only */}
+        <aside className="hidden lg:flex flex-col w-[280px] shrink-0 overflow-y-auto p-4 space-y-4" style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', scrollbarWidth: 'thin' }}>
+          <div className="rounded-xl p-4" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}>
+            <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Trending</div>
+            {['#CC2026', '#Kiltikonet', '#Martinique', '#Culture'].map(t => (
+              <div key={t} className="text-xs py-1.5" style={{ color: '#f2ca50' }}>{t}</div>
+            ))}
+          </div>
+          <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Filtres</div>
+            {['Tout', 'Posts', 'Reels', 'Audio'].map(f => (
+              <button key={f} className="block w-full text-left text-xs text-gray-400 hover:text-[#f2ca50] py-1.5 transition-colors">{f}</button>
+            ))}
+          </div>
+          <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Suggestions</div>
+            <p className="text-[10px] text-gray-600">Explore le feed pour decouvrir la communaute CC2026</p>
+          </div>
+        </aside>
       </div>
 
       {/* Scroll-to-top */}

@@ -37,6 +37,9 @@ export default function ProApp() {
   const adhesionLevel = adhesion?.level || 'FREE';
   const balance = solde;
 
+  // Expose frekId globally for hooks that need it
+  useEffect(() => { window.__KILTI_FREK_ID = frekId; }, [frekId]);
+
   const addTransaction = useCallback((tx) => {
     refreshWallet();
   }, [refreshWallet]);
@@ -103,6 +106,46 @@ export default function ProApp() {
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
+
+  // Push Notifications — subscribe on mount
+  useEffect(() => {
+    const subscribePush = async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (Notification.permission === 'denied') return;
+      if (localStorage.getItem('kk_push_asked')) return;
+
+      try {
+        const permission = await Notification.requestPermission();
+        localStorage.setItem('kk_push_asked', '1');
+        if (permission !== 'granted') return;
+
+        const registration = await navigator.serviceWorker.ready;
+        const vapidKey = process.env.REACT_APP_VAPID_PUBLIC_KEY;
+        if (!vapidKey) return;
+
+        // Convert VAPID key
+        const padding = '='.repeat((4 - (vapidKey.length % 4)) % 4);
+        const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: outputArray,
+        });
+
+        const API = process.env.REACT_APP_BACKEND_URL;
+        await fetch(`${API}/api/notifications/push/subscribe`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription: subscription.toJSON() }),
+        });
+      } catch {}
+    };
+    if (isAuthenticated) subscribePush();
+  }, [isAuthenticated]);
 
   const handleInstallPwa = async () => {
     const prompt = deferredPromptRef.current;

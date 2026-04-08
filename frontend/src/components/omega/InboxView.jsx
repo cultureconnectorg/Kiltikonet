@@ -131,9 +131,10 @@ export default function InboxView({ onBack, onSelect, auth }) {
         )}
       </header>
 
-      {!selectedConv ? (
-        /* Conversations list */
-        <div className="flex-1 overflow-y-auto">
+      {/* lg: Slack-style split layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Conversation list — full on mobile when no conv selected, fixed 320px on lg: */}
+        <div className={`${selectedConv ? 'hidden lg:flex' : 'flex'} flex-col flex-1 lg:flex-none lg:w-[320px] overflow-y-auto`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
           {loading ? (
             <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-[#f2ca50]" /></div>
           ) : conversations.length === 0 ? (
@@ -144,7 +145,7 @@ export default function InboxView({ onBack, onSelect, auth }) {
             </div>
           ) : (
             conversations.map((conv) => (
-              <motion.div key={conv.conversation_id} whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }} onClick={() => openConversation(conv.conversation_id)} className="flex items-center gap-3 px-5 py-4 cursor-pointer border-b" style={{ borderColor: 'rgba(255,255,255,0.04)' }} data-testid={`conv-${conv.conversation_id}`}>
+              <motion.div key={conv.conversation_id} whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }} onClick={() => openConversation(conv.conversation_id)} className={`flex items-center gap-3 px-5 py-4 cursor-pointer border-b ${selectedConv === conv.conversation_id ? 'bg-white/5' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }} data-testid={`conv-${conv.conversation_id}`}>
                 <div className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center text-sm font-bold" style={{ background: conv.other_avatar ? 'transparent' : 'linear-gradient(135deg, #f2ca50, #d4a84b)', color: 'black' }}>
                   {conv.other_avatar ? (
                     <img src={conv.other_avatar} alt="" className="w-full h-full rounded-full object-cover" />
@@ -166,37 +167,46 @@ export default function InboxView({ onBack, onSelect, auth }) {
             ))
           )}
         </div>
-      ) : (
-        /* Messages view */
-        <>
-          <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
-            {messages.map((msg) => {
-              const isMine = msg.sender === userEmail;
-              return (
-                <div key={msg.message_id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                  <div className="max-w-[75%] px-4 py-2.5 rounded-2xl" style={{
-                    background: isMine ? 'rgba(242,202,80,0.15)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${isMine ? 'rgba(242,202,80,0.25)' : 'rgba(255,255,255,0.08)'}`,
-                  }}>
-                    <p className="text-sm text-white">{msg.content}</p>
-                    <div className="flex items-center gap-1 mt-1 justify-end">
-                      <span className="text-[9px] text-gray-600">{new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                      {isMine && msg.read && <CheckCheck className="w-3 h-3 text-[#f2ca50]" />}
+
+        {/* Message panel — full on mobile, flex-1 on lg: */}
+        {selectedConv ? (
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
+              {messages.map((msg) => {
+                const isMine = msg.sender === userEmail;
+                return (
+                  <div key={msg.message_id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                    <div className="max-w-[75%] px-4 py-2.5 rounded-2xl" style={{
+                      background: isMine ? 'rgba(242,202,80,0.15)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${isMine ? 'rgba(242,202,80,0.25)' : 'rgba(255,255,255,0.08)'}`,
+                    }}>
+                      <p className="text-sm text-white">{msg.content}</p>
+                      <div className="flex items-center gap-1 mt-1 justify-end">
+                        <span className="text-[9px] text-gray-600">{new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                        {isMine && msg.read && <CheckCheck className="w-3 h-3 text-[#f2ca50]" />}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-            <div ref={msgEndRef} />
+                );
+              })}
+              <div ref={msgEndRef} />
+            </div>
+            <form onSubmit={e => { e.preventDefault(); handleSend(); }} className="px-5 py-3 border-t flex gap-2 shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <input value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Votre message..." className="flex-1 bg-white/5 text-sm px-4 py-2.5 rounded-xl outline-none text-white" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="dm-input" />
+              <motion.button whileTap={{ scale: 0.9 }} type="submit" disabled={sendingMessage} className="p-2.5 rounded-xl" style={{ background: '#f2ca50', color: 'black' }} data-testid="dm-send-btn">
+                {sendingMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </motion.button>
+            </form>
           </div>
-          <form onSubmit={e => { e.preventDefault(); handleSend(); }} className="px-5 py-3 border-t flex gap-2 shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-            <input value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Votre message..." className="flex-1 bg-white/5 text-sm px-4 py-2.5 rounded-xl outline-none text-white" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="dm-input" />
-            <motion.button whileTap={{ scale: 0.9 }} type="submit" disabled={sendingMessage} className="p-2.5 rounded-xl" style={{ background: '#f2ca50', color: 'black' }} data-testid="dm-send-btn">
-              {sendingMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </motion.button>
-          </form>
-        </>
-      )}
+        ) : (
+          <div className="hidden lg:flex flex-1 items-center justify-center">
+            <div className="text-center text-gray-600">
+              <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">Selectionne une conversation</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* New Conversation Modal */}
       <AnimatePresence>

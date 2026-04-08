@@ -43,7 +43,25 @@ export function useFeed() {
   }, [page, load]);
 
   const eclair = useCallback(async (postId) => {
-    // POST /api/feed/posts/{postId}/eclair — debiter 1 KT (à implémenter iter.61)
+    try {
+      const res = await fetch(`${API}/api/pro/feed/posts/${postId}/eclair`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ frek_id: window.__KILTI_FREK_ID || '' }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (res.status === 402) return { success: false, reason: 'insufficient_kt', message: err.detail || 'Solde KT insuffisant' };
+        return { success: false, reason: 'error', message: err.detail || 'Erreur' };
+      }
+      const data = await res.json();
+      // Update post locally
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, eclairs_count: data.eclairs_count, eclairs: [...(p.eclairs || []), window.__KILTI_FREK_ID] } : p));
+      return { success: true, eclairs_count: data.eclairs_count, new_balance_kt: data.new_balance_kt };
+    } catch {
+      return { success: false, reason: 'network', message: 'Erreur reseau' };
+    }
   }, []);
 
   const commenter = useCallback(async (postId, content) => {
