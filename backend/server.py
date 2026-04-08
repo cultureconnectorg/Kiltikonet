@@ -36,7 +36,7 @@ IS_PRODUCTION = ENVIRONMENT == 'production'
 # Session / Cookie auth
 SESSION_SECRET = os.environ.get('SESSION_SECRET', 'fallback-dev-secret')
 SESSION_COOKIE_NAME = 'kk_session'
-SESSION_MAX_AGE = 7 * 24 * 3600  # 7 days
+SESSION_MAX_AGE = 30 * 24 * 3600  # 30 days — persistent sessions
 
 
 def create_session_token(payload: dict) -> str:
@@ -65,7 +65,7 @@ def set_session_cookie(response, payload: dict):
         value=token,
         httponly=True,
         secure=True,
-        samesite="lax",
+        samesite="strict",
         max_age=SESSION_MAX_AGE,
         path="/",
     )
@@ -76,6 +76,14 @@ def clear_session_cookie(response):
     """Remove the session cookie."""
     response.delete_cookie(SESSION_COOKIE_NAME, path="/")
     return response
+
+def get_session_from_cookie(request) -> dict | None:
+    """Extract and decode session from request cookie."""
+    token = request.cookies.get(SESSION_COOKIE_NAME)
+    if not token:
+        return None
+    return decode_session_token(token)
+
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -1269,13 +1277,16 @@ async def stripe_webhook(request: Request):
                     except Exception as br_err:
                         logger.error(f"Baserow mirror on accreditation webhook: {br_err}")
 
-                    # Send Brevo confirmation email
+                    # Send Brevo badge_confirmation template
                     try:
-                        await _send_brevo_transactional(
-                            acc_doc.get("email", ""),
-                            f"Paiement confirme — Accreditation CC2026 ({acc_doc.get('type_label', '')})",
-                            f"Bonjour {acc_doc.get('prenom', '')},\n\nVotre paiement pour l'accreditation {acc_doc.get('type_label', '')} a ete confirme.\nVotre demande est en cours de validation par l'equipe.\n\nA bientot a CC2026 !\nkiltikonet.fr"
+                        from services.brevo_templates import badge_confirmation
+                        subj, html = badge_confirmation(
+                            acc_doc.get("prenom", ""),
+                            acc_doc.get("type_label", acc_doc.get("type_accreditation", "")),
+                            acc_doc.get("frek_id", ""),
+                            acc_id,
                         )
+                        await send_email_async(acc_doc.get("email", ""), subj, html)
                     except Exception as mail_err:
                         logger.error(f"Brevo email on accreditation webhook: {mail_err}")
 
@@ -1300,6 +1311,18 @@ async def stripe_webhook(request: Request):
                         upsert=True
                     )
                     logger.info(f"Wallet credited: {buyer_email} +{jetons} JCC (pack {pack_id})")
+
+                    # Send Brevo jeton_achat_confirmation template
+                    try:
+                        wallet = await db.kn_wallets.find_one({"email": buyer_email}, {"_id": 0})
+                        solde = wallet.get("balance_jcc", jetons) if wallet else jetons
+                        user = await db.registrations.find_one({"email": buyer_email}, {"_id": 0, "prenom": 1, "full_name": 1})
+                        prenom = user.get("prenom", buyer_email.split("@")[0]) if user else buyer_email.split("@")[0]
+                        from services.brevo_templates import jeton_achat_confirmation
+                        subj, html = jeton_achat_confirmation(prenom, jetons, solde)
+                        await send_email_async(buyer_email, subj, html)
+                    except Exception as mail_err:
+                        logger.warning(f"Jeton email failed: {mail_err}")
 
         elif webhook_response.event_type == "payment_intent.payment_failed":
             logger.warning(f"Payment failed: session={webhook_response.session_id}")
@@ -3864,6 +3887,12 @@ app.include_router(growth_engine_router)
 app.include_router(fintech_router)
 app.include_router(omega_skeleton_router)
 app.include_router(omega_router)
+
+# WebAuthn Face ID / Touch ID
+from routes.webauthn import router as webauthn_router, init_webauthn
+init_webauthn(db)
+app.include_router(webauthn_router)
+
 app.include_router(cultural_identity_router)
 app.include_router(cultural_feed_router)
 app.include_router(cultural_reactions_router)
@@ -6423,6 +6452,119 @@ def _check_otp_cooldown(email: str) -> int:
 
 # Store temporary access codes
 pro_access_codes = {}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.60 — ONBOARDING REGISTER ENDPOINT
+# ═══════════════════════════════════════════════════════════════
+
+class RegisterRequest(BaseModel):
+    prenom: str
+    nom: str
+    email: str
+
+@app.post("/api/auth/register")
+async def auth_register(request: RegisterRequest, req: Request):
+    """
+    Onboarding complet: crée compte, FREK-ID, wallet, session.
+    Retourne le profil avec first_login=True.
+    """
+    email = request.email.lower().strip()
+    if not email:
+        raise HTTPException(400, "Email requis")
+
+    # Check duplicate
+    existing = await db.registrations.find_one({"email": email}, {"_id": 0, "id": 1})
+    if existing:
+        raise HTTPException(409, "Un compte existe deja avec cet email")
+
+    # FREK-ID
+    frek_id = await generate_unique_frek_id()
+    full_name = f"{request.prenom.strip()} {request.nom.strip()}"
+    now = datetime.now(timezone.utc).isoformat()
+
+    profile = {
+        "id": f"pro_{str(uuid.uuid4())[:12]}",
+        "email": email,
+        "full_name": full_name,
+        "prenom": request.prenom.strip(),
+        "nom": request.nom.strip(),
+        "profile_type": "other",
+        "actor_role": "professional",
+        "status": "approved",
+        "frek_id": frek_id,
+        "jetons_solde": 0,
+        "is_new_user": True,
+        "first_login": True,
+        "language": "fr",
+        "created_at": now,
+        "registered_at": now,
+    }
+    await db.registrations.insert_one({**profile})
+    profile.pop("_id", None)
+
+    # Create wallet with welcome KT
+    welcome_kt = 10
+    await db.kn_wallets.insert_one({
+        "email": email,
+        "frek_id": frek_id,
+        "balance_kt": welcome_kt,
+        "balance_jcc": 0,
+        "created_at": now,
+        "updated_at": now,
+    })
+
+    # Audit log
+    await db.pro_access_logs.insert_one({
+        "email": email, "profile_id": profile["id"],
+        "action": "register", "frek_id": frek_id,
+        "timestamp": now,
+    })
+
+    # Send Brevo welcome email
+    try:
+        welcome_html = f"""
+        <div style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background: #0a0a0b; color: #e0e0e0;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #f2ca50; margin: 0;">Bienvenue sur Kiltikonet</h1>
+            </div>
+            <div style="background: #1a1a1c; padding: 30px; border-radius: 12px; text-align: center; border: 1px solid rgba(242,202,80,0.3);">
+                <p style="font-size: 18px; margin: 0 0 10px 0;">Bonjour {request.prenom},</p>
+                <p style="font-size: 14px; color: #aaa; margin: 0 0 20px 0;">Ton identite culturelle souveraine est prete.</p>
+                <div style="background: #0a0a0b; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid rgba(242,202,80,0.2);">
+                    <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.2em;">Ton FREK-ID</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #f2ca50; font-family: monospace; margin-top: 8px;">{frek_id}</div>
+                </div>
+                <p style="font-size: 14px; color: #aaa;">Tu as recu <strong style="color: #f2ca50;">{welcome_kt} KT</strong> pour commencer.</p>
+                <a href="https://kiltikonet.fr/pro" style="display: inline-block; background: #f2ca50; color: #0a0a0b; padding: 14px 36px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; margin-top: 20px; letter-spacing: 0.05em;">
+                    Explorer l'Espace Pro
+                </a>
+            </div>
+            <p style="text-align: center; font-size: 10px; color: #555; margin-top: 20px;">kiltikonet.fr — CC2026</p>
+        </div>
+        """
+        await send_email_async(email, "Bienvenue sur kiltikonet — ton FREK-ID est pret", welcome_html)
+    except Exception as mail_err:
+        logger.warning(f"Welcome email failed for {email}: {mail_err}")
+
+    # Set session cookie
+    response = JSONResponse(content={
+        "success": True,
+        "profile": profile,
+        "frek_id": frek_id,
+        "welcome_kt": welcome_kt,
+        "first_login": True,
+    })
+    set_session_cookie(response, {
+        "role": "pro",
+        "email": email,
+        "name": full_name,
+        "profile_id": profile["id"],
+        "profile_type": "other",
+        "is_admin": False,
+    })
+    return response
+
 
 class ProAccessRequest(BaseModel):
     email: str

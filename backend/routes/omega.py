@@ -1002,6 +1002,15 @@ async def delete_user_account(request: Request):
     # Delete sessions
     await _db.sessions.delete_many({"email": email})
 
+    # Send deletion confirmation email (Brevo Template 4)
+    try:
+        from services.brevo_templates import compte_suppression
+        subj, html = compte_suppression(email.split("@")[0])
+        from server import send_email_async
+        await send_email_async(email, subj, html)
+    except Exception as mail_err:
+        logging.getLogger(__name__).warning(f"Deletion email failed: {mail_err}")
+
     return {"message": "Compte supprime", "timestamp": now}
 
 

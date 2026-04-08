@@ -539,7 +539,7 @@ const ProSpaceDashboard = () => {
           {activeSection === 'messages' && <MessagesSection session={session} />}
           {activeSection === 'settings-detail' && <SettingsSection session={session} jetonsBalance={jetonsBalance} onLogout={handleLogout} />}
         </div>
-      )}}
+      )}
 
       {/* Studios Sidebar — slides from left */}
       <StudiosSidebar
@@ -1873,6 +1873,10 @@ export const ProSpaceLogin = () => {
   const [loading, setLoading] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
   const [legalModal, setLegalModal] = useState(null);
+  const [showRegister, setShowRegister] = useState(false);
+  const [regPrenom, setRegPrenom] = useState('');
+  const [regNom, setRegNom] = useState('');
+  const [regEmail, setRegEmail] = useState('');
   // FREK-ID login state
   const [frekMode, setFrekMode] = useState(false);
   const [frekId, setFrekId] = useState('');
@@ -1885,11 +1889,42 @@ export const ProSpaceLogin = () => {
     sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
       id: p.id, email: p.email, name: p.full_name, image: p.image,
       type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr',
-      verified: true, createdAt: Date.now()
+      verified: true, createdAt: Date.now(),
+      first_login: p.first_login || false,
+      welcome_kt: p.welcome_kt || 0,
     }));
     toast.success(`Bienvenue ${p.full_name || p.email} !`);
     window.location.hash = '';
     navigate('/pro', { replace: true });
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!regPrenom.trim() || !regNom.trim() || !regEmail.trim()) return;
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API}/auth/register`, {
+        prenom: regPrenom.trim(),
+        nom: regNom.trim(),
+        email: regEmail.trim(),
+      }, { withCredentials: true });
+      if (res.data.success) {
+        const p = res.data.profile;
+        sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
+          id: p.id, email: p.email, name: p.full_name,
+          type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr',
+          verified: true, createdAt: Date.now(),
+          first_login: true,
+          welcome_kt: res.data.welcome_kt || 10,
+        }));
+        sessionStorage.removeItem('kk_splash_done');
+        toast.success(`Bienvenue ${p.full_name} !`);
+        navigate('/pro', { replace: true });
+      }
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Erreur lors de l\'inscription';
+      toast.error(msg);
+    } finally { setLoading(false); }
   };
 
   // Check if returning from Google OAuth or GitHub OAuth
@@ -2058,7 +2093,47 @@ export const ProSpaceLogin = () => {
             </p>
           </div>
 
-          {/* Login Card */}
+          {/* Registration Form */}
+          {showRegister ? (
+            <div className="rounded-xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+              <div className="p-6">
+                <h2 className="text-lg font-black mb-4 text-center" style={{ color: C.text }}>Creer un compte</h2>
+                <form onSubmit={handleRegister} className="space-y-3">
+                  <div>
+                    <label className="block text-xs mb-1.5 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Prenom</label>
+                    <input type="text" placeholder="Prenom" value={regPrenom} onChange={e => setRegPrenom(e.target.value)}
+                      className="w-full px-4 rounded-xl text-sm transition-all focus:ring-1" autoFocus
+                      data-testid="register-prenom"
+                      style={{ background: '#0a0a0b', border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48 }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs mb-1.5 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Nom</label>
+                    <input type="text" placeholder="Nom" value={regNom} onChange={e => setRegNom(e.target.value)}
+                      className="w-full px-4 rounded-xl text-sm transition-all focus:ring-1"
+                      data-testid="register-nom"
+                      style={{ background: '#0a0a0b', border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48 }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs mb-1.5 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Email</label>
+                    <input type="email" placeholder="votre@email.com" value={regEmail} onChange={e => setRegEmail(e.target.value)}
+                      className="w-full px-4 rounded-xl text-sm transition-all focus:ring-1"
+                      data-testid="register-email"
+                      style={{ background: '#0a0a0b', border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48 }} />
+                  </div>
+                  <button type="submit" disabled={loading || !regPrenom.trim() || !regNom.trim() || !regEmail.trim()}
+                    className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    data-testid="register-submit-btn"
+                    style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading ? 0.5 : 1 }}>
+                    {loading ? 'Creation...' : "Creer mon compte + FREK-ID"}
+                  </button>
+                </form>
+                <button onClick={() => setShowRegister(false)} className="w-full text-center text-xs mt-4 underline transition-colors hover:text-white" style={{ color: C.dim }} data-testid="switch-to-login">
+                  Deja un compte ? Se connecter
+                </button>
+              </div>
+            </div>
+          ) : (
+          <>
           <div className="rounded-xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
             <div className="p-6">
               {/* Google OAuth Button */}
@@ -2225,8 +2300,13 @@ export const ProSpaceLogin = () => {
                   <span className="text-[10px] font-medium" style={{ color: C.dim }}>KT Ecosystem</span>
                 </div>
               </div>
+              <button onClick={() => setShowRegister(true)} className="w-full text-center text-xs mt-3 underline transition-colors hover:text-white" style={{ color: C.dim }} data-testid="switch-to-register">
+                Pas de compte ? S'inscrire
+              </button>
             </div>
           </div>
+          </>
+          )}
         </div>
       </div>
 
