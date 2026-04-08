@@ -81,6 +81,8 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
   // Desktop panel — load frek profile for Cultural Impact Score
   const [profileData, setProfileData] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [unreadInbox, setUnreadInbox] = useState(0);
+
   useEffect(() => {
     if (!frekId) return;
     fetch(`${API}/api/frek/profile/${frekId}`, { credentials: 'include' })
@@ -92,6 +94,22 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
       .then(d => { if (d?.posts) setRecentActivity(d.posts.slice(0, 3)); })
       .catch(() => {});
   }, [frekId]);
+
+  // Poll unread messages for inbox badge
+  useEffect(() => {
+    const checkUnread = () => {
+      fetch(`${API}/api/messages/conversations`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : { conversations: [] })
+        .then(d => {
+          const total = (d.conversations || []).reduce((acc, c) => acc + (c.unread || 0), 0);
+          setUnreadInbox(total);
+        })
+        .catch(() => {});
+    };
+    checkUnread();
+    const interval = setInterval(checkUnread, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="relative h-screen w-full flex items-center justify-center z-10 p-4 lg:justify-start lg:pl-[calc(50%-160px)]" data-testid="orbital-menu"
@@ -132,9 +150,12 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
               className={`absolute flex flex-col items-center gap-2 group cursor-pointer omega-animate-counter-orbit z-20 ${item.pos}`}
               onClick={() => onSelect(item.id)} data-testid={`orbital-item-${item.id}`}>
               <motion.div whileHover={{ scale: 1.1, borderColor: "rgba(242, 202, 80, 0.6)" }} whileTap={{ scale: 0.9 }}
-                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full omega-glass flex items-center justify-center shadow-lg transition-all"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full omega-glass flex items-center justify-center shadow-lg transition-all relative"
                 style={{ border: '1px solid rgba(242,202,80,0.2)' }}>
                 <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: '#f2ca50' }} />
+                {item.id === 'inbox' && unreadInbox > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-pulse" style={{ background: '#f2ca50', boxShadow: '0 0 8px rgba(242,202,80,0.6)' }} data-testid="inbox-unread-badge" />
+                )}
               </motion.div>
               <span className="text-[7px] sm:text-[8px] tracking-[0.2em] uppercase group-hover:text-[#f2ca50] transition-colors"
                 style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgb(156,163,175)' }}>{item.label}</span>

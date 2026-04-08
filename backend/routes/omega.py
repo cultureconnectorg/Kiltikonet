@@ -1034,7 +1034,8 @@ async def get_user_settings(request: Request):
         "profile": {
             "full_name": reg.get("full_name", ""),
             "bio": reg.get("bio", ""),
-            "photo_url": reg.get("photo_url", ""),
+            "photo_url": reg.get("photo_url", "") or reg.get("avatar_url", ""),
+            "avatar_url": reg.get("avatar_url", "") or reg.get("photo_url", ""),
             "email": email,
             "frek_id": frek_id,
             "actor_role": reg.get("actor_role", "consumer"),
@@ -1083,6 +1084,39 @@ async def update_user_settings(request: Request, body: SettingsUpdateRequest):
         await write_audit_log(frek_id, "SETTINGS_UPDATE", "", "settings", {"section": body.section})
 
     return {"success": True, "section": body.section}
+
+
+@router.post("/api/user/avatar")
+async def upload_avatar(request: Request, file: UploadFile = File(...)):
+    """Upload avatar — max 5MB, JPG/PNG/WebP only."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    valid_types = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in valid_types:
+        raise HTTPException(400, "Format non supporte. Utilisez JPG, PNG ou WebP")
+
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(400, "Fichier trop volumineux (max 5 MB)")
+
+    from services.object_storage import put_object, generate_path
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
+    path = generate_path(frek_id or email, f"avatar.{ext}")
+    result = put_object(path, data, file.content_type or "image/jpeg")
+
+    avatar_url = f"/api/files/{result['path']}"
+
+    # Update user record
+    await _db.registrations.update_one(
+        {"email": email},
+        {"$set": {"photo_url": avatar_url, "avatar_url": avatar_url}}
+    )
+
+    # Audit log
+    await write_audit_log(frek_id or email, "SETTINGS_UPDATE", "", "avatar", {"avatar_url": avatar_url, "size": len(data)})
+
+    return {"avatar_url": avatar_url}
 
 
 # ═══════════════════════════════════════════════════════════════

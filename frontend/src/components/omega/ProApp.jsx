@@ -16,7 +16,7 @@ import FeedView from "./FeedView";
 import InboxView from "./InboxView";
 import SovereignProfileView from "./SovereignProfileView";
 import BuilderView from "./BuilderView";
-import { SplashScreen } from "./SplashScreen";
+import { useNotificationSound } from "../../hooks/useNotificationSound";
 import { Download, X } from "lucide-react";
 
 /**
@@ -25,12 +25,10 @@ import { Download, X } from "lucide-react";
  */
 export default function ProApp() {
   const [currentView, setCurrentView] = useState("orbital");
-  const [splashDone, setSplashDone] = useState(() => {
-    return sessionStorage.getItem('kk_splash_done') === '1';
-  });
   const { user, doctrine, isAuthenticated, loading: authLoading, logout, refresh: refreshAuth } = useAuth();
   const { solde, transactions, refresh: refreshWallet, debit, credit } = useWallet('CC');
   const { adhesion, levels: adhesionLevels, subscribe, cancel: cancelAdhesion, refresh: refreshAdhesion } = useAdhesion();
+  const { play: playNotifSound } = useNotificationSound();
 
   const frekId = user?.frek_id || '';
   const userName = user?.name || user?.full_name || user?.email?.split('@')[0] || 'Souverain';
@@ -90,7 +88,7 @@ export default function ProApp() {
   };
 
   // Auth context passed to child components
-  const authCtx = { user, frekId, userName, adhesionLevel, isAuthenticated, doctrine, logout, refreshAuth };
+  const authCtx = { user, frekId, userName, adhesionLevel, isAuthenticated, doctrine, logout, refreshAuth, playNotifSound };
 
   // PWA Install prompt
   const deferredPromptRef = useRef(null);
@@ -173,11 +171,8 @@ export default function ProApp() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden text-white" style={{ background: '#0e0e0e' }} data-testid="pro-app">
-      {!splashDone && (
-        <SplashScreen onComplete={() => { setSplashDone(true); sessionStorage.setItem('kk_splash_done', '1'); }} />
-      )}
 
-      {splashDone && currentView === "orbital" && (
+      {currentView === "orbital" && (
         <>
           <Background />
           <OrbitalMenu onSelect={handleSelect} balance={balance} frekId={frekId} />
@@ -238,7 +233,7 @@ export default function ProApp() {
 
       {/* Welcome Modal for first login */}
       <AnimatePresence>
-        {showWelcome && splashDone && (
+        {showWelcome && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)' }}
@@ -275,7 +270,7 @@ export default function ProApp() {
 
       {/* PWA Install Prompt */}
       <AnimatePresence>
-        {showPwaPrompt && splashDone && !showWelcome && (
+        {showPwaPrompt && !showWelcome && (
           <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
             className="fixed bottom-6 left-4 right-4 z-[9998] max-w-md mx-auto"
             data-testid="pwa-install-prompt">

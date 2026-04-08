@@ -33,14 +33,29 @@ export default function InboxView({ onBack, onSelect, auth }) {
 
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
 
+  const prevMsgCountRef = useRef(0);
+
   // Polling 5s
   useEffect(() => {
-    pollingRef.current = setInterval(() => {
-      fetchConversations();
-      if (selectedConv) fetchMessages(selectedConv);
+    pollingRef.current = setInterval(async () => {
+      await fetchConversations();
+      if (selectedConv) {
+        try {
+          const res = await fetch(`${API}/api/messages/${selectedConv}`, { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            const newMsgs = data.messages || [];
+            if (newMsgs.length > prevMsgCountRef.current && prevMsgCountRef.current > 0) {
+              auth?.playNotifSound?.();
+            }
+            prevMsgCountRef.current = newMsgs.length;
+            setMessages(newMsgs);
+          }
+        } catch {}
+      }
     }, 5000);
     return () => clearInterval(pollingRef.current);
-  }, [fetchConversations, selectedConv]);
+  }, [fetchConversations, selectedConv, auth]);
 
   // Fetch messages
   const fetchMessages = async (convId) => {
@@ -172,18 +187,25 @@ export default function InboxView({ onBack, onSelect, auth }) {
         {selectedConv ? (
           <div className="flex-1 flex flex-col">
             <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
-              {messages.map((msg) => {
+              {messages.map((msg, idx) => {
                 const isMine = msg.sender === userEmail;
+                const isLastMine = isMine && idx === messages.length - 1;
                 return (
                   <div key={msg.message_id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                    <div className="max-w-[75%] px-4 py-2.5 rounded-2xl" style={{
-                      background: isMine ? 'rgba(242,202,80,0.15)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${isMine ? 'rgba(242,202,80,0.25)' : 'rgba(255,255,255,0.08)'}`,
+                    <div style={{
+                      maxWidth: '75%',
+                      padding: '12px 16px',
+                      background: isMine ? '#f2ca50' : 'rgba(255,255,255,0.05)',
+                      color: isMine ? '#000000' : '#ffffff',
+                      border: isMine ? 'none' : '0.5px solid rgba(255,255,255,0.1)',
+                      borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                     }}>
-                      <p className="text-sm text-white">{msg.content}</p>
-                      <div className="flex items-center gap-1 mt-1 justify-end">
-                        <span className="text-[9px] text-gray-600">{new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                        {isMine && msg.read && <CheckCheck className="w-3 h-3 text-[#f2ca50]" />}
+                      <p className="text-sm leading-relaxed">{msg.content}</p>
+                      <div className="flex items-center gap-1.5 mt-1 justify-end">
+                        <span style={{ fontSize: '10px', color: isMine ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                          {new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {isLastMine && msg.read && <CheckCheck className="w-3.5 h-3.5" style={{ color: isMine ? 'rgba(0,0,0,0.6)' : '#f2ca50' }} />}
                       </div>
                     </div>
                   </div>

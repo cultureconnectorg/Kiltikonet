@@ -80,6 +80,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         setPosts(prev => prev.map(p =>
           p.post_id === postId || p.id === postId ? { ...p, nb_eclairs: data.eclairs_count, eclairs_count: data.eclairs_count } : p
         ));
+        auth?.playNotifSound?.();
       } else {
         const err = await res.json().catch(() => ({}));
         if (res.status === 402) {

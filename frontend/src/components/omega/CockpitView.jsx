@@ -40,6 +40,7 @@ export default function CockpitView({ onBack, onSelect, auth }) {
   const [deploying, setDeploying] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
+  const [mobilePreview, setMobilePreview] = useState(false);
   const iframeRef = useRef(null);
   const brainEndRef = useRef(null);
 
@@ -97,7 +98,6 @@ export default function CockpitView({ onBack, onSelect, auth }) {
     setBrainThinking(true);
 
     try {
-      // Build context with current code
       const contextMsg = `[CODE ACTUEL DANS L'EDITEUR]\n\`\`\`html\n${code.slice(0, 3000)}\n\`\`\`\n\n[DEMANDE]\n${currentInput}`;
 
       const res = await fetch(`${API}/api/brain/chat-enriched`, {
@@ -117,7 +117,6 @@ export default function CockpitView({ onBack, onSelect, auth }) {
         const responseText = d.response || '';
         setBrainMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
 
-        // Auto-extract HTML if response contains a full page
         const htmlMatch = responseText.match(/```html\n([\s\S]*?)```/) || responseText.match(/(<!DOCTYPE html>[\s\S]*<\/html>)/i);
         if (htmlMatch) {
           const extractedHtml = htmlMatch[1].trim();
@@ -134,36 +133,88 @@ export default function CockpitView({ onBack, onSelect, auth }) {
 
   const insertCode = (html) => { setCode(html); };
 
+  // Brain panel content (shared between desktop sidebar and mobile overlay)
+  const BrainPanel = ({ onClose }) => (
+    <div className="flex flex-col h-full" style={{ background: '#0e0e0e' }}>
+      <div className="p-3 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="flex items-center gap-2">
+          <Brain className="w-4 h-4" style={{ color: '#f2ca50' }} />
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: '#f2ca50' }}>CVL BRAIN · TERMINAL</span>
+        </div>
+        {onClose && <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10"><X className="w-4 h-4 text-gray-400" /></button>}
+      </div>
+      <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ scrollbarWidth: 'thin' }}>
+        {brainMessages.length === 0 && (
+          <p className="text-[10px] text-gray-500 text-center py-8">Decris ce que tu veux construire.<br/>Le Brain generera le code.</p>
+        )}
+        {brainMessages.map((m, i) => (
+          <div key={i} className={`text-xs ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
+            {m.role === 'user' ? (
+              <span className="inline-block px-3 py-2 rounded-xl max-w-[90%] text-left" style={{ background: 'rgba(242,202,80,0.1)', color: '#f2ca50' }}>{m.content}</span>
+            ) : m.role === 'system' ? (
+              <div className="p-2 rounded-xl" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                <p className="text-green-400 text-[10px] mb-2">{m.content}</p>
+                {m.html && (
+                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => insertCode(m.html)} className="px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase" style={{ background: '#22c55e', color: 'black' }}>
+                    <Code className="w-3 h-3 inline mr-1" /> Inserer dans l'editeur
+                  </motion.button>
+                )}
+              </div>
+            ) : (
+              <div className="p-2 rounded-xl text-gray-300 whitespace-pre-wrap" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                {m.content.length > 500 ? m.content.slice(0, 500) + '...' : m.content}
+              </div>
+            )}
+          </div>
+        ))}
+        {brainThinking && (
+          <div className="flex items-center gap-2 text-[10px] text-gray-500"><Loader2 className="w-3 h-3 animate-spin" style={{ color: '#f2ca50' }} /> Brain reflechit...</div>
+        )}
+        <div ref={brainEndRef} />
+      </div>
+      <form onSubmit={e => { e.preventDefault(); handleBrainSend(); }} className="p-3 border-t flex gap-2" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <input value={brainInput} onChange={e => setBrainInput(e.target.value)} placeholder="Construis-moi une landing page..." className="flex-1 bg-black/40 text-xs px-3 py-2 rounded-xl outline-none" style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+        <motion.button whileTap={{ scale: 0.9 }} type="submit" disabled={brainThinking} className="p-2 rounded-xl" style={{ background: '#f2ca50', color: 'black' }}>
+          <Send className="w-3.5 h-3.5" />
+        </motion.button>
+      </form>
+    </div>
+  );
+
   return (
     <div className="h-screen w-full flex flex-col" style={{ background: '#0a0a0b' }} data-testid="terminal-view">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="flex items-center gap-2 md:gap-3">
           <button onClick={onBack} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors"><ArrowLeft className="w-4 h-4 text-gray-400" /></button>
           {/* Tab Switcher */}
-          <div className="flex items-center gap-1 rounded-lg p-0.5" style={{ background: 'rgba(255,255,255,0.03)' }}>
-            <button onClick={() => setActiveTab("terminal")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'terminal' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'terminal' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-terminal">
-              <TermIcon className="w-3.5 h-3.5" /> Terminal
+          <div className="flex items-center gap-0.5 md:gap-1 rounded-lg p-0.5" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <button onClick={() => setActiveTab("terminal")} className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-md text-[8px] md:text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'terminal' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'terminal' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-terminal">
+              <TermIcon className="w-3 h-3 md:w-3.5 md:h-3.5" /> <span className="hidden sm:inline">Terminal</span>
             </button>
-            <button onClick={() => setActiveTab("health")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'health' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'health' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-health">
-              <Activity className="w-3.5 h-3.5" /> Sante
+            <button onClick={() => setActiveTab("health")} className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-md text-[8px] md:text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'health' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'health' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-health">
+              <Activity className="w-3 h-3 md:w-3.5 md:h-3.5" /> <span className="hidden sm:inline">Sante</span>
             </button>
             {isAdmin && (
-              <button onClick={() => setActiveTab("cc2026")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'cc2026' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'cc2026' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-cc2026">
-                <ShieldCheck className="w-3.5 h-3.5" /> CC2026
+              <button onClick={() => setActiveTab("cc2026")} className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-md text-[8px] md:text-[9px] font-bold tracking-widest uppercase transition-all ${activeTab === 'cc2026' ? 'text-[#f2ca50]' : 'text-gray-500 hover:text-gray-300'}`} style={activeTab === 'cc2026' ? { background: 'rgba(242,202,80,0.1)' } : {}} data-testid="cockpit-tab-cc2026">
+                <ShieldCheck className="w-3 h-3 md:w-3.5 md:h-3.5" /> <span className="hidden sm:inline">CC2026</span>
               </button>
             )}
           </div>
-          <span className="text-[9px] text-gray-600 font-mono">{frekShort}</span>
+          <span className="text-[9px] text-gray-600 font-mono hidden md:inline">{frekShort}</span>
         </div>
         {activeTab === "terminal" && (
-          <div className="flex items-center gap-2">
-            <input value={slug} onChange={e => setSlug(e.target.value.replace(/[^a-z0-9-]/g, ''))} placeholder="slug" className="bg-black/40 text-[10px] font-mono px-2 py-1 rounded w-24 outline-none" style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#f2ca50' }} />
-            <motion.button whileTap={{ scale: 0.95 }} onClick={handleDeploy} disabled={deploying} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-widest uppercase" style={{ background: deploying ? '#333' : '#f2ca50', color: 'black' }}>
-              {deploying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Rocket className="w-3 h-3" />} {deploying ? 'DEPLOY...' : 'DEPLOY'}
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <input value={slug} onChange={e => setSlug(e.target.value.replace(/[^a-z0-9-]/g, ''))} placeholder="slug" className="bg-black/40 text-[10px] font-mono px-2 py-1 rounded w-16 md:w-24 outline-none hidden sm:block" style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#f2ca50' }} />
+            <motion.button whileTap={{ scale: 0.95 }} onClick={handleDeploy} disabled={deploying} className="flex items-center gap-1 px-2 md:px-3 py-1.5 rounded-lg text-[9px] md:text-[10px] font-bold tracking-widest uppercase" style={{ background: deploying ? '#333' : '#f2ca50', color: 'black' }}>
+              {deploying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Rocket className="w-3 h-3" />} <span className="hidden sm:inline">{deploying ? 'DEPLOY...' : 'DEPLOY'}</span>
             </motion.button>
-            <button onClick={() => setShowHistory(!showHistory)} className="p-1.5 rounded-lg hover:bg-white/5"><History className="w-4 h-4 text-gray-400" /></button>
-            <button onClick={() => setBrainOpen(!brainOpen)} className={`p-1.5 rounded-lg transition-colors ${brainOpen ? 'bg-[#f2ca50]/20' : 'hover:bg-white/5'}`}>
+            {/* Mobile: Preview toggle */}
+            <button onClick={() => setMobilePreview(!mobilePreview)} className={`p-1.5 rounded-lg md:hidden ${mobilePreview ? 'bg-[#f2ca50]/20' : 'hover:bg-white/5'}`}>
+              <Eye className="w-4 h-4" style={{ color: mobilePreview ? '#f2ca50' : '#9ca3af' }} />
+            </button>
+            <button onClick={() => setShowHistory(!showHistory)} className="p-1.5 rounded-lg hover:bg-white/5 hidden sm:block"><History className="w-4 h-4 text-gray-400" /></button>
+            <button onClick={() => setBrainOpen(!brainOpen)} className={`p-1.5 rounded-lg transition-colors ${brainOpen ? 'bg-[#f2ca50]/20' : 'hover:bg-white/5'}`} data-testid="terminal-brain-toggle">
               {brainOpen ? <PanelRightClose className="w-4 h-4" style={{ color: '#f2ca50' }} /> : <Brain className="w-4 h-4 text-gray-400" />}
             </button>
           </div>
@@ -186,17 +237,17 @@ export default function CockpitView({ onBack, onSelect, auth }) {
 
       {/* Terminal Tab */}
       {activeTab === "terminal" && (
-      <div className="flex-1 flex overflow-hidden">
-        {/* Editor */}
-        <div className={`flex-1 flex flex-col ${brainOpen ? 'w-1/2' : 'w-full'} transition-all`}>
-          <div className="flex-1 flex">
-            {/* Monaco Editor */}
-            <div className="flex-1">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Editor + Preview */}
+        <div className={`flex-1 flex flex-col ${brainOpen ? 'lg:w-1/2' : 'w-full'} transition-all`}>
+          <div className="flex-1 flex flex-col md:flex-row">
+            {/* Monaco Editor — full width on mobile, half on desktop */}
+            <div className={`flex-1 ${mobilePreview ? 'hidden md:block' : ''}`}>
               <Editor height="100%" language="html" theme="vs-dark" value={code} onChange={v => setCode(v || '')}
                 options={{ fontSize: 12, minimap: { enabled: false }, lineNumbers: 'on', wordWrap: 'on', automaticLayout: true, scrollBeyondLastLine: false, padding: { top: 8 }, fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }} />
             </div>
-            {/* Preview */}
-            <div className="flex-1 border-l flex flex-col" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            {/* Preview — hidden on mobile unless toggled, always visible on md+ */}
+            <div className={`${mobilePreview ? 'flex-1' : 'hidden'} md:flex md:flex-1 flex-col border-l`} style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
               <div className="flex items-center gap-2 px-3 py-1 text-[9px] text-gray-500 font-mono border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                 <Eye className="w-3 h-3" /> PREVIEW
                 <button onClick={() => setPreviewKey(k => k + 1)} className="ml-auto hover:text-white"><RotateCcw className="w-3 h-3" /></button>
@@ -206,49 +257,28 @@ export default function CockpitView({ onBack, onSelect, auth }) {
           </div>
         </div>
 
-        {/* Brain Panel */}
+        {/* Brain Panel — Desktop: sidebar, Mobile: fullscreen overlay */}
+        {/* Desktop Brain sidebar (hidden on mobile) */}
         <AnimatePresence>
           {brainOpen && (
-            <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 380, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="flex flex-col border-l overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.06)', background: '#0e0e0e' }}>
-              <div className="p-3 border-b flex items-center gap-2" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                <Brain className="w-4 h-4" style={{ color: '#f2ca50' }} />
-                <span className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: '#f2ca50' }}>CVL BRAIN · TERMINAL</span>
-              </div>
-              <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ scrollbarWidth: 'thin' }}>
-                {brainMessages.length === 0 && (
-                  <p className="text-[10px] text-gray-500 text-center py-8">Decris ce que tu veux construire.<br/>Le Brain generera le code.</p>
-                )}
-                {brainMessages.map((m, i) => (
-                  <div key={i} className={`text-xs ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    {m.role === 'user' ? (
-                      <span className="inline-block px-3 py-2 rounded-xl max-w-[90%] text-left" style={{ background: 'rgba(242,202,80,0.1)', color: '#f2ca50' }}>{m.content}</span>
-                    ) : m.role === 'system' ? (
-                      <div className="p-2 rounded-xl" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                        <p className="text-green-400 text-[10px] mb-2">{m.content}</p>
-                        {m.html && (
-                          <motion.button whileTap={{ scale: 0.95 }} onClick={() => insertCode(m.html)} className="px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase" style={{ background: '#22c55e', color: 'black' }}>
-                            <Code className="w-3 h-3 inline mr-1" /> Inserer dans l'editeur
-                          </motion.button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="p-2 rounded-xl text-gray-300 whitespace-pre-wrap" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        {m.content.length > 500 ? m.content.slice(0, 500) + '...' : m.content}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {brainThinking && (
-                  <div className="flex items-center gap-2 text-[10px] text-gray-500"><Loader2 className="w-3 h-3 animate-spin" style={{ color: '#f2ca50' }} /> Brain reflechit...</div>
-                )}
-                <div ref={brainEndRef} />
-              </div>
-              <form onSubmit={e => { e.preventDefault(); handleBrainSend(); }} className="p-3 border-t flex gap-2" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                <input value={brainInput} onChange={e => setBrainInput(e.target.value)} placeholder="Construis-moi une landing page..." className="flex-1 bg-black/40 text-xs px-3 py-2 rounded-xl outline-none" style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
-                <motion.button whileTap={{ scale: 0.9 }} type="submit" disabled={brainThinking} className="p-2 rounded-xl" style={{ background: '#f2ca50', color: 'black' }}>
-                  <Send className="w-3.5 h-3.5" />
-                </motion.button>
-              </form>
+            <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 380, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="hidden lg:flex flex-col border-l overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <BrainPanel />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Brain overlay */}
+        <AnimatePresence>
+          {brainOpen && (
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
+              className="lg:hidden fixed inset-0 z-50"
+              data-testid="terminal-brain-mobile"
+            >
+              <BrainPanel onClose={() => setBrainOpen(false)} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -256,7 +286,7 @@ export default function CockpitView({ onBack, onSelect, auth }) {
         {/* Deploy History Panel */}
         <AnimatePresence>
           {showHistory && (
-            <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 280, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="border-l overflow-y-auto" style={{ borderColor: 'rgba(255,255,255,0.06)', background: '#0e0e0e' }}>
+            <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 280, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="hidden md:block border-l overflow-y-auto" style={{ borderColor: 'rgba(255,255,255,0.06)', background: '#0e0e0e' }}>
               <div className="p-3 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                 <span className="text-[10px] font-bold tracking-widest uppercase text-gray-400">DEPLOYS</span>
                 <button onClick={() => setShowHistory(false)}><X className="w-3 h-3 text-gray-500" /></button>

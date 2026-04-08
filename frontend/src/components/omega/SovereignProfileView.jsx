@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ShieldCheck, ArrowLeft, Fingerprint, Globe, ChevronRight, User, Scale, Award, History, Settings, Shield, Bell, Eye, LogOut, Moon, Save, Loader2, Trash2, AlertTriangle, Languages, X, CheckCircle, Smartphone, Plus } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Fingerprint, Globe, ChevronRight, User, Scale, Award, History, Settings, Shield, Bell, Eye, LogOut, Moon, Save, Loader2, Trash2, AlertTriangle, Languages, X, CheckCircle, Smartphone, Plus, Camera } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -23,6 +23,14 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
   const [editNotifSound, setEditNotifSound] = useState(() => localStorage.getItem('kk_notif_sound') === 'true');
   const [editProfilePublic, setEditProfilePublic] = useState(true);
 
+  // Avatar
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [showAvatarConfirm, setShowAvatarConfirm] = useState(false);
+  const avatarInputRef = useRef(null);
+
   const userName = auth?.userName || 'Souverain';
   const frekId = auth?.frekId || '---';
   const email = auth?.user?.email || 'non connecte';
@@ -43,6 +51,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
         setEditNotifEmail(data.notifications?.email_enabled ?? true);
         setEditNotifPush(data.notifications?.push_enabled ?? false);
         setEditProfilePublic(data.privacy?.profile_public ?? true);
+        if (data.profile?.avatar_url) setAvatarUrl(data.profile.avatar_url);
       }
     } catch (e) { console.error("Settings fetch error:", e); }
     finally { setLoading(false); }
@@ -105,6 +114,49 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
     finally { setDeleteLoading(false); setShowDeleteConfirm(false); }
   };
 
+  // Avatar handlers
+  const handleAvatarSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      showToast("Format non supporte. Utilisez JPG, PNG ou WebP");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("Fichier trop volumineux (max 5 MB)");
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    setShowAvatarConfirm(true);
+    e.target.value = '';
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+    setAvatarUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', avatarFile);
+      const res = await fetch(`${API}/api/user/avatar`, {
+        method: 'POST', credentials: 'include', body: fd,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAvatarUrl(data.avatar_url);
+        setShowAvatarConfirm(false);
+        setAvatarFile(null);
+        setAvatarPreview(null);
+        showToast("Photo de profil mise a jour");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.detail || "Erreur lors de l'upload");
+      }
+    } catch { showToast("Erreur reseau"); }
+    finally { setAvatarUploading(false); }
+  };
+
   const securityLayers = [
     { label: "Signature Luciole", status: "Active", value: frekId ? frekId.slice(0, 12) : "---" },
     { label: "Empreinte Culturelle", status: "Verified", value: "2.47 KB" },
@@ -141,8 +193,18 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
             {/* Profile card */}
             <div className="p-5 rounded-2xl mb-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold" style={{ background: 'linear-gradient(135deg, #f2ca50, #d4a84b)', color: 'black' }}>
-                  {userName[0]}
+                <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()} data-testid="avatar-clickable">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold overflow-hidden" style={{ background: avatarUrl ? 'transparent' : 'rgba(242,202,80,0.1)', border: '1.5px solid #f2ca50' }}>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span style={{ color: '#f2ca50', fontSize: '28px', fontWeight: 700 }}>{userName[0]}</span>
+                    )}
+                  </div>
+                  <div className="absolute inset-0 rounded-full flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                  <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarSelect} />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">{userName}</h2>
@@ -296,6 +358,28 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
                 <motion.button whileTap={{ scale: 0.95 }} onClick={handleDeleteAccount} disabled={deleteLoading} className="flex-1 py-3 rounded-xl text-sm font-bold" style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }} data-testid="confirm-delete-btn">
                   {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Supprimer'}
                 </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast */}
+      {/* Avatar confirmation modal */}
+      <AnimatePresence>
+        {showAvatarConfirm && avatarPreview && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.8)' }}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="p-6 rounded-2xl max-w-xs w-full mx-4" style={{ background: '#0e0e0e', border: '1px solid rgba(255,255,255,0.08)' }} data-testid="avatar-confirm-modal">
+              <h3 className="text-sm font-bold text-white mb-4 text-center">Changer la photo ?</h3>
+              <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden" style={{ border: '2px solid #f2ca50' }}>
+                <img src={avatarPreview} alt="" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => { setShowAvatarConfirm(false); setAvatarPreview(null); setAvatarFile(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold" style={{ background: 'rgba(255,255,255,0.05)', color: 'white' }} data-testid="avatar-cancel-btn">Annuler</button>
+                <button onClick={handleAvatarUpload} disabled={avatarUploading} className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2" style={{ background: '#f2ca50', color: 'black' }} data-testid="avatar-confirm-btn">
+                  {avatarUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {avatarUploading ? 'Upload...' : 'Confirmer'}
+                </button>
               </div>
             </motion.div>
           </motion.div>

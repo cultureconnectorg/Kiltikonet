@@ -1,7 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 
-const NOTIF_SOUND_URL = '/media/notif.mp3';
-const NOTIF_SOUND_OGG = '/media/notif.ogg';
+const NOTIF_SOUND_URL = '/sounds/notif.mp3';
+const NOTIF_SOUND_OGG = '/sounds/notif.ogg';
 
 export function useNotificationSound() {
   const audioCtxRef = useRef(null);

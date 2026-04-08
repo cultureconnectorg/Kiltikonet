@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe, Check, Loader2, Mic, MicOff } from "lucide-react";
+import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe, Check, Loader2, Mic, MicOff, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -113,8 +113,8 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
     <div className="flex h-screen w-full overflow-hidden text-white" style={{ background: '#0a0a0b' }} data-testid="brain-chat">
       <AnimatePresence initial={false}>
         {sidebarOpen && (
-          <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 280, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="h-full flex flex-col z-40" style={{ background: '#0d0d0e', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
-            <div className="p-4 flex flex-col h-full">
+          <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 280, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="h-full flex flex-col z-40 shrink-0 hidden lg:flex" style={{ background: '#0d0d0e', borderRight: '1px solid rgba(255,255,255,0.05)', minWidth: 280, maxWidth: 280, overflow: 'hidden' }}>
+            <div className="p-4 flex flex-col h-full overflow-hidden">
               <button onClick={reset} className="flex items-center gap-3 w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all mb-6" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
                 <Plus className="w-4 h-4" style={{ color: '#f2ca50' }} />
                 <span className="text-xs font-bold tracking-widest uppercase">Nouveau Chat</span>
@@ -170,7 +170,42 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
         )}
       </AnimatePresence>
 
-      <div className="flex-1 flex flex-col relative h-full min-w-0">
+      {/* Mobile sidebar overlay */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'tween', duration: 0.25 }}
+            className="lg:hidden fixed inset-0 z-50 flex flex-col"
+            style={{ background: '#0d0d0e' }}
+          >
+            <div className="p-4 flex flex-col h-full overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-bold tracking-widest uppercase" style={{ color: '#f2ca50' }}>Sessions</span>
+                <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg hover:bg-white/10"><X className="w-4 h-4 text-gray-400" /></button>
+              </div>
+              <button onClick={reset} className="flex items-center gap-3 w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all mb-6" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                <Plus className="w-4 h-4" style={{ color: '#f2ca50' }} />
+                <span className="text-xs font-bold tracking-widest uppercase">Nouveau Chat</span>
+              </button>
+              <div className="flex-1 overflow-y-auto space-y-1">
+                {sessions.map((s) => (
+                  <button key={s.session_id || s.id} onClick={async () => { const sid = s.session_id || s.id; await loadSession(sid); setSidebarOpen(false); }} className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-all text-left">
+                    <MessageSquare className="w-4 h-4 text-gray-600" />
+                    <div className="flex-1 truncate">
+                      <div className="text-xs text-gray-300 truncate">{s.title || s.session_id || 'Session'}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 flex flex-col relative h-full min-w-0 overflow-hidden">
         <header className="h-16 flex items-center justify-between px-6 backdrop-blur-xl z-30 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-all">
@@ -195,9 +230,9 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-hidden flex">
+        <main className="flex-1 overflow-hidden flex min-h-0">
           <div className={`${layoutMode === 'split' ? 'w-1/2 border-r border-white/5' : 'w-full'} overflow-y-auto transition-all duration-300`}>
-            <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
+            <div className="max-w-3xl mx-auto px-4 lg:px-6 py-10 space-y-10">
             {messages.map((msg) => (
               <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-6 ${msg.role === "assistant" ? "items-start" : "items-start flex-row-reverse"}`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 ${msg.role === "assistant" ? "text-[#f2ca50]" : "text-white"}`} style={{ background: msg.role === "assistant" ? 'rgba(242,202,80,0.1)' : 'rgba(255,255,255,0.1)', border: msg.role === "assistant" ? '1px solid rgba(242,202,80,0.2)' : '1px solid rgba(255,255,255,0.1)' }}>
@@ -324,9 +359,9 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-center gap-4 text-[9px] text-gray-600 uppercase tracking-widest">
-              <div className="flex items-center gap-1.5"><ShieldCheck className="w-3 h-3 opacity-50" /><span>Souveraineté Active</span></div>
+              <div className="flex items-center gap-1.5"><ShieldCheck className="w-3 h-3 opacity-50" /><span>Souverainete Active</span></div>
               <div className="w-1 h-1 rounded-full bg-white/10" />
-              <span>1 JCC par requête</span>
+              <span style={{ color: 'rgba(242,202,80,0.6)' }}>1 JCC par requete</span>
               <div className="w-1 h-1 rounded-full bg-white/10" />
               <div className="flex items-center gap-1.5"><Terminal className="w-3 h-3 opacity-50" /><span>Core v2.4</span></div>
             </div>
