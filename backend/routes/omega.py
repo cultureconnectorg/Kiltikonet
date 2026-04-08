@@ -348,21 +348,21 @@ async def brain_chat_enriched(request: Request):
         if not frek_id and email:
             frek_id = await _get_user_frek_id(email)
 
-        # Write audit log
+        # Write brain training data (always, even without frek_id)
+        await write_brain_training(
+            frek_id=frek_id or email or "anonymous",
+            langue=langue,
+            input_text=message, output_text=response_text,
+            context_tags=[], session_id=brain_session_id,
+        )
+
+        # Write audit log (only if frek_id available)
         if frek_id:
             await write_audit_log(
                 user_frek_id=frek_id, action_type="BRAIN_QUERY",
                 object_id=brain_session_id, object_type="brain_session",
                 metadata={"langue": langue, "web_enriched": bool(web_context)},
                 session_id=brain_session_id,
-            )
-
-        # Write brain training data
-        if frek_id:
-            await write_brain_training(
-                frek_id=frek_id, langue=langue,
-                input_text=message, output_text=response_text,
-                context_tags=[], session_id=brain_session_id,
             )
 
         # Cultural score for response
@@ -991,3 +991,281 @@ async def create_omega_indexes():
         logger.info("Omega indexes created successfully")
     except Exception as e:
         logger.error(f"Error creating omega indexes: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# TERMINAL — Deploy, Versioning, Rollback
+# ═══════════════════════════════════════════════════════════════
+
+# Dangerous patterns in HTML
+_DANGEROUS_PATTERNS = [
+    '<script src="http://', 'document.cookie', 'localStorage.getItem',
+    'fetch(', 'XMLHttpRequest', 'eval(', 'Function(',
+    'window.location', 'top.location',
+]
+
+
+def _scan_html_security(html: str) -> dict:
+    """Basic HTML security scan."""
+    issues = []
+    for pattern in _DANGEROUS_PATTERNS:
+        if pattern.lower() in html.lower():
+            issues.append(f"Pattern suspect: {pattern}")
+    # Allow Tailwind CDN, Chart.js, etc. but flag unknown external scripts
+    import re
+    external_scripts = re.findall(r'<script[^>]+src=["\']([^"\']+)', html)
+    allowed_cdns = ['cdn.tailwindcss.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com',
+                    'unpkg.com', 'cdn.alpinejs.dev']
+    for src in external_scripts:
+        if not any(cdn in src for cdn in allowed_cdns):
+            issues.append(f"Script externe non autorise: {src}")
+    return {"safe": len(issues) == 0, "issues": issues}
+
+
+class TerminalDeployRequest(BaseModel):
+    slug: str
+    html: str
+    title: str = ""
+    frek_id: str = ""
+
+
+@router.post("/api/terminal/deploy")
+async def terminal_deploy(request: Request, body: TerminalDeployRequest):
+    """Deploy an HTML page — versioned, max 10 per slug."""
+    email = ""
+    try:
+        email = _get_session_email(request)
+    except Exception:
+        pass
+
+    frek_id = body.frek_id or (await _get_user_frek_id(email) if email else "anon")
+    frek_short = (frek_id or "anon")[:5]
+    full_slug = f"{frek_short}-{body.slug}"
+
+    # Security scan
+    scan = _scan_html_security(body.html)
+    if not scan["safe"]:
+        raise HTTPException(400, f"HTML refuse: {'; '.join(scan['issues'][:3])}")
+
+    deploy_id = str(uuid.uuid4())[:12]
+    now = datetime.now(timezone.utc).isoformat()
+
+    doc = {
+        "deploy_id": deploy_id,
+        "frek_id": frek_id,
+        "slug": full_slug,
+        "title": body.title or body.slug,
+        "html": body.html,
+        "timestamp": now,
+        "version": 1,
+    }
+
+    # Count existing versions for this slug
+    existing = await _db.terminal_deploys.count_documents({"slug": full_slug, "frek_id": frek_id})
+    doc["version"] = existing + 1
+
+    # Max 10 versions per slug — delete oldest if exceeded
+    if existing >= 10:
+        oldest = await _db.terminal_deploys.find(
+            {"slug": full_slug, "frek_id": frek_id}, {"_id": 1}
+        ).sort("timestamp", 1).limit(1).to_list(1)
+        if oldest:
+            await _db.terminal_deploys.delete_one({"_id": oldest[0]["_id"]})
+
+    await _db.terminal_deploys.insert_one(doc)
+
+    if frek_id and frek_id != "anon":
+        await write_audit_log(frek_id, "TERMINAL_DEPLOY", deploy_id, "terminal_deploy",
+                              {"slug": full_slug, "version": doc["version"]})
+
+    url = f"/pages/{full_slug}"
+    return {
+        "deploy_id": deploy_id, "slug": full_slug, "url": url,
+        "version": doc["version"], "timestamp": now, "title": doc["title"],
+    }
+
+
+@router.get("/api/terminal/deploys")
+async def list_terminal_deploys(frek_id: str = ""):
+    """List deploys for a user."""
+    query = {}
+    if frek_id:
+        query["frek_id"] = frek_id
+    deploys = await _db.terminal_deploys.find(query, {"_id": 0, "html": 0}).sort("timestamp", -1).limit(20).to_list(20)
+    return {"deploys": deploys}
+
+
+@router.post("/api/terminal/rollback/{deploy_id}")
+async def terminal_rollback(deploy_id: str):
+    """Rollback to a specific deploy version."""
+    doc = await _db.terminal_deploys.find_one({"deploy_id": deploy_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "Deploy non trouve")
+    return {"html": doc.get("html", ""), "slug": doc.get("slug"), "version": doc.get("version")}
+
+
+# Serve deployed pages
+@router.get("/pages/{slug:path}")
+async def serve_deployed_page(slug: str):
+    """Serve the latest deployed HTML page."""
+    from fastapi.responses import HTMLResponse
+    doc = await _db.terminal_deploys.find_one(
+        {"slug": slug}, {"_id": 0, "html": 1}
+    , sort=[("timestamp", -1)])
+    if not doc:
+        raise HTTPException(404, "Page non trouvee")
+    return HTMLResponse(content=doc["html"])
+
+
+# ═══════════════════════════════════════════════════════════════
+# MESSAGES / DMs
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/api/messages/conversations")
+async def list_conversations(request: Request):
+    """List DM conversations for current user."""
+    email = _get_session_email(request)
+    convos = await _db.dm_conversations.find(
+        {"participants": email}, {"_id": 0}
+    ).sort("updated_at", -1).limit(20).to_list(20)
+    return {"conversations": convos}
+
+
+@router.get("/api/messages/conversations/{convo_id}")
+async def get_conversation_messages(convo_id: str, limit: int = 20, skip: int = 0):
+    """Get messages in a conversation."""
+    msgs = await _db.dm_messages.find(
+        {"conversation_id": convo_id}, {"_id": 0}
+    ).sort("timestamp", -1).skip(skip).limit(limit).to_list(limit)
+    msgs.reverse()
+    return {"messages": msgs}
+
+
+class DmSendRequest(BaseModel):
+    destinataire_frek_id: str = ""
+    destinataire_email: str = ""
+    contenu: str
+
+
+@router.post("/api/messages/send")
+async def send_dm(request: Request, body: DmSendRequest):
+    """Send a DM."""
+    email = _get_session_email(request)
+    dest_email = body.destinataire_email
+    if not dest_email and body.destinataire_frek_id:
+        dest_reg = await _db.registrations.find_one({"frek_id": body.destinataire_frek_id}, {"_id": 0, "email": 1})
+        dest_email = (dest_reg or {}).get("email", "")
+    if not dest_email:
+        raise HTTPException(400, "Destinataire introuvable")
+
+    participants = sorted([email, dest_email])
+    convo = await _db.dm_conversations.find_one({"participants": participants}, {"_id": 0})
+    if not convo:
+        convo_id = str(uuid.uuid4())[:12]
+        await _db.dm_conversations.insert_one({
+            "conversation_id": convo_id, "participants": participants,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "last_message": body.contenu[:100],
+        })
+    else:
+        convo_id = convo["conversation_id"]
+
+    msg = {
+        "message_id": str(uuid.uuid4())[:12],
+        "conversation_id": convo_id,
+        "sender_email": email,
+        "contenu": body.contenu,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "read": False,
+    }
+    await _db.dm_messages.insert_one(msg)
+    await _db.dm_conversations.update_one(
+        {"conversation_id": convo_id},
+        {"$set": {"last_message": body.contenu[:100], "updated_at": msg["timestamp"]}}
+    )
+
+    return {"success": True, "message_id": msg["message_id"], "conversation_id": convo_id}
+
+
+# ═══════════════════════════════════════════════════════════════
+# AGENDA CC2026 — Seed + Read
+# ═══════════════════════════════════════════════════════════════
+
+CC2026_AGENDA = [
+    {"day": 1, "date": "2026-05-20", "label": "Jour 1 — Ouverture", "slots": [
+        {"heure": "18:00", "titre": "Ceremonie d'ouverture", "lieu": "Scene Principale", "artiste": "Kilti Konet", "confirme": True},
+        {"heure": "20:00", "titre": "DJ Set Ouverture", "lieu": "Scene Principale", "artiste": "TBA", "confirme": False},
+    ]},
+    {"day": 2, "date": "2026-05-21", "label": "Jour 2 — Culture", "slots": [
+        {"heure": "15:00", "titre": "Ateliers Creoles", "lieu": "Espace Workshops", "artiste": "Collectif Madinina", "confirme": True},
+        {"heure": "20:00", "titre": "Concert Zouk", "lieu": "Scene Principale", "artiste": "TBA", "confirme": False},
+    ]},
+    {"day": 3, "date": "2026-05-22", "label": "Jour 3 — Live", "slots": [
+        {"heure": "16:00", "titre": "Labo des Histoires", "lieu": "Scene Secondaire", "artiste": "Kathy-Liana Bravo", "confirme": True},
+        {"heure": "22:00", "titre": "Live Set", "lieu": "Scene Principale", "artiste": "Kathy-Liana Bravo", "confirme": True},
+    ]},
+    {"day": 4, "date": "2026-05-23", "label": "Jour 4 — Cloture", "slots": [
+        {"heure": "14:00", "titre": "Remise des prix FREK", "lieu": "Scene Principale", "artiste": "Jury CC2026", "confirme": True},
+        {"heure": "21:00", "titre": "Concert Cloture", "lieu": "Scene Principale", "artiste": "TBA", "confirme": False},
+    ]},
+]
+
+
+@router.get("/api/planning/cc2026")
+async def get_cc2026_agenda():
+    """Get CC2026 agenda (4 days)."""
+    return {"days": CC2026_AGENDA, "lieu": "La Savane, Fort-de-France", "dates": "20-23 mai 2026"}
+
+
+# ═══════════════════════════════════════════════════════════════
+# GOUVERNANCE — Proposals + Votes
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/api/gouvernance/proposals")
+async def list_gouvernance_proposals(request: Request):
+    """List active governance proposals."""
+    proposals = await _db.gouvernance_proposals.find({}, {"_id": 0}).sort("date_creation", -1).limit(20).to_list(20)
+    email = ""
+    try:
+        email = _get_session_email(request)
+    except Exception:
+        pass
+    for p in proposals:
+        p["user_a_vote"] = email in (p.get("voters", []))
+    return {"proposals": proposals}
+
+
+class GouvernanceVoteRequest(BaseModel):
+    proposal_id: str
+    vote: str  # POUR or CONTRE
+
+
+@router.post("/api/gouvernance/vote")
+async def vote_gouvernance(request: Request, body: GouvernanceVoteRequest):
+    """Vote on a governance proposal."""
+    email = _get_session_email(request)
+    proposal = await _db.gouvernance_proposals.find_one({"proposal_id": body.proposal_id}, {"_id": 0})
+    if not proposal:
+        raise HTTPException(404, "Proposition non trouvee")
+    if email in (proposal.get("voters") or []):
+        raise HTTPException(400, "Vous avez deja vote")
+
+    # Vote weight by adhesion level
+    adhesion = await _db.adhesions.find_one({"email": email, "actif": True}, {"_id": 0})
+    level = (adhesion or {}).get("level", "FREE")
+    weights = {"FREE": 1, "PRO": 3, "PREMIUM": 5, "INSTITUTIONNEL": 10}
+    weight = weights.get(level, 1)
+
+    field = "nb_votes_pour" if body.vote.upper() == "POUR" else "nb_votes_contre"
+    await _db.gouvernance_proposals.update_one(
+        {"proposal_id": body.proposal_id},
+        {"$inc": {field: weight}, "$push": {"voters": email}}
+    )
+
+    frek_id = await _get_user_frek_id(email)
+    if frek_id:
+        await write_audit_log(frek_id, "GOUVERNANCE_VOTE", body.proposal_id, "proposal",
+                              {"vote": body.vote.upper(), "weight": weight, "level": level})
+
+    return {"success": True, "vote": body.vote.upper(), "weight": weight, "level": level}
