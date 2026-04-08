@@ -4,50 +4,38 @@
 Plateforme événementielle culturelle souveraine pour Culture Connect 2026, Martinique. Full-stack React 19 + FastAPI + MongoDB.
 
 ## Architecture
-- `/pro` → SplashScreen (2s) → ProProtectedRoute → OrbitalMenu Omega (7 modules + logo central animé) — session cookie 30j
-- `/admin/core` → Ancien Espace Pro (admin/founder uniquement)
-- `/admin/*` → Admin dashboards
-- `/espace-pro/connexion` → ProSpaceLogin (5 méthodes auth : Google, GitHub, FREK-ID, Face ID/Touch ID, Magic Link)
+- `/pro` → ProSplashWrapper (vidéo splash → login/OrbitalMenu Omega)
+- `/admin/core` → Ancien Espace Pro (admin/founder)
+- Vitrine publique → IntroSequence → Landing Page
 
 ## Itérations complétées
 
 ### ITER.59 — Câblage et médias (100%)
-- 34 boutons câblés avec Object Storage et APIs réelles
-- Webhook Stripe, synchro NFC Baserow, export CSV Twina
-- Splash Screen vidéo, sons de notification
-
 ### ITER.60 — Finalisation (100%)
-- Onboarding complet, sessions persistantes 30j
-- WebAuthn (Face ID / Touch ID) backend + frontend
-- 4 templates transactionnels Brevo
-- Animation logo central, swipe navigation, micro dictée, caméra BuilderView, PWA prompt
-- Kilti-Health Dashboard, nettoyage production
-
 ### ITER.61 — Responsive + Admin + Push (100%)
-- P0 : Éclair KT (débit/crédit 1 KT + audit + push auto) + WebAuthn modal UI (remplace prompt())
-- P1 : Responsive 3 breakpoints (OrbitalMenu panel desktop, BrainChat split, FeedView grille+sidebar, InboxView Slack-style, WalletView côte à côte)
-- P2 : Notifications push Web Push API (pywebpush, VAPID, event-driven, preferences par type, broadcast admin)
-- P3 : Admin CC2026 (dashboard stats, gestion utilisateurs CRUD+RGPD, modération feed, broadcast email/push)
 
-### Correctifs Session Courante (En cours)
-- **CORRECTIF 1 (DONE)** : SplashScreen réécrit — logo animé (scale 1.0→1.03→1.0, glow gold), fond #0a0a0b, zéro texte, durée 2s. "OMEGA PROTOCOL..." supprimé. ProSplashWrapper intégré dans App.js avec reset splashDone sur chaque navigation /pro.
+### Session Courante — 6 Correctifs (100%)
+Date: 2026-04-08
 
-## Backlog — 5 Correctifs Restants
+1. **CORRECTIF 1 — Splash Screen** : Vidéo MOV convertie en MP4/WebM, placée dans `/public/videos/`. SplashScreen.jsx réécrit avec fallback logo animé (scale 1.0→1.03→1.0 + glow gold). "OMEGA PROTOCOL..." supprimé. ProSplashWrapper dans App.js.
+2. **CORRECTIF 2 — Terminal Mobile** : Brain sidebar hidden par défaut sur mobile (<768px). Toggle overlay plein écran AnimatePresence slide depuis la droite. Éditeur Monaco plein écran. Preview séparé par toggle.
+3. **CORRECTIF 3 — CVL Brain Desktop** : Sidebar gauche 280px fixe (min/max-width). "1 JCC PAR REQUETE" en gold. Conversation flex:1 min-w-0 overflow-hidden.
+4. **CORRECTIF 4 — Inbox/DMs** : Bulles reçues rgba(255,255,255,0.05) + border 0.5px, bulles envoyées #f2ca50 noir. Timestamps 10px visibles. Double tick gold "Lu". Badge notification gold pulsant sur icône INBOX (OrbitalMenu). Polling 5s avec son de notification.
+5. **CORRECTIF 5 — Photo de profil** : Avatar cliquable 80px (initiales gold ou photo). File picker image/*. Preview + confirmation modal. Upload POST /api/user/avatar (Object Storage). Propagation avatar_url en DB.
+6. **CORRECTIF 6 — Splash depuis vitrine** : ProSplashWrapper reset splashDone via useEffect sur location.pathname.
 
-### P0 (À faire immédiatement)
-- **CORRECTIF 2** : Terminal mobile — Brain sidebar cachée, toggle overlay AnimatePresence, Monaco plein écran
-- **CORRECTIF 3** : CVL Brain desktop — sidebar 280px fixe, texte tronqué 2 lignes, zone conversation flex:1
-- **CORRECTIF 4** : Inbox/DMs — bulles stylisées (reçu: blanc 5%, envoyé: gold), timestamps, indicateur "Lu", badge notification animé, polling 5s
-- **CORRECTIF 5** : Photo de profil — avatar cliquable 80px, file picker, preview, upload Object Storage POST /api/user/avatar, propagation partout
-- **CORRECTIF 6** : Splash depuis vitrine — déjà inclus dans CORRECTIF 1 (ProSplashWrapper + useEffect reset)
+**Son de notification** : WAV converti en MP3/OGG dans `/public/sounds/`. useNotificationSound.js pointé vers nouveaux fichiers. Intégré dans InboxView (nouveau DM) et FeedView (éclair).
+
+## Backlog
 
 ### P1
 - Tests responsive visuels 4 breakpoints
-- Refactoring server.py
+- Refactoring server.py (>9700 lignes)
 
 ### P2
 - Tests E2E 5 parcours
 - Rate limiter Redis
+- Fix yarn build (React 19 / CRA incompatibilité)
 
 ### P3
 - AWS SES sortie sandbox
@@ -56,12 +44,18 @@ Plateforme événementielle culturelle souveraine pour Culture Connect 2026, Mar
 - Export PDF badges Twina
 
 ## Intégrations tierces
-- Stripe (Paiements) — clé utilisateur (MODE LIVE)
-- Brevo (Emails) — clé utilisateur
-- Object Storage (Uploads) — Emergent LLM Key
-- Claude Sonnet (CVL Brain) — Emergent LLM Key
-- pywebpush (Push Notifications) — VAPID keys générées
+- Stripe (MODE LIVE)
+- Brevo (Emails)
+- Object Storage (Uploads)
+- Claude Sonnet (CVL Brain)
+- pywebpush (Push Notifications VAPID)
 
-## Credentials de test
+## Credentials
 - Bypass Admin : cultureconnectorg@gmail.com (code 000000)
-- Espace Coleen : password Coleen2026
+- Espace Coleen : Coleen2026
+
+## Test Reports
+- iteration_84.json → 100%
+- iteration_85.json → 100%
+- iteration_86.json → 100%
+- iteration_87.json → 100% (6 correctifs session courante)
