@@ -1,50 +1,71 @@
-// useWallet.js — Hook wallet KT ou CC
-// TODO: Implementer la logique reelle en iter.57
+// useWallet.js — Hook wallet KT/CC câblé sur les endpoints réels
 import { useState, useEffect, useCallback } from 'react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 /**
- * useWallet(type: 'KT' | 'CC') -> {
- *   solde: number,
- *   transactions: Transaction[],
- *   loading: boolean,
- *   debit: (amount, description) => Promise<void>,
- *   credit: (amount, description) => Promise<void>,
- *   refresh: () => void
- * }
+ * useWallet(type) — type = 'KT' ou 'CC'
+ * Returns: { solde, transactions, loading, error, debit, credit, refresh }
  */
-export function useWallet(type = 'KT') {
+export function useWallet(type = 'CC') {
   const [solde, setSolde] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${API}/api/my-wallet/me`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setSolde(data.balance || 0);
       }
-      const txRes = await fetch(`${API}/api/my-wallet/history`, { credentials: 'include' });
+      // Fetch transactions
+      const txRes = await fetch(`${API}/api/my-wallet/history?limit=20`, { credentials: 'include' });
       if (txRes.ok) {
         const txData = await txRes.json();
         setTransactions(txData.transactions || []);
       }
-    } catch { /* silent */ } finally { setLoading(false); }
-  }, [type]);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  // TODO: Implementer debit/credit via endpoints
-  const debit = useCallback(async (amount, description) => {
-    console.log('TODO: debit', amount, description);
-  }, []);
+  const debit = useCallback(async (amount, description = '', actionType = '') => {
+    const res = await fetch(`${API}/api/wallet/debit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, description, action_type: actionType }),
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || 'Debit failed');
+    }
+    await refresh();
+    return await res.json();
+  }, [refresh]);
 
-  const credit = useCallback(async (amount, description) => {
-    console.log('TODO: credit', amount, description);
-  }, []);
+  const credit = useCallback(async (amount, description = '') => {
+    const res = await fetch(`${API}/api/wallet/credit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, description }),
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || 'Credit failed');
+    }
+    await refresh();
+    return await res.json();
+  }, [refresh]);
 
-  return { solde, transactions, loading, debit, credit, refresh };
+  return { solde, transactions, loading, error, debit, credit, refresh };
 }

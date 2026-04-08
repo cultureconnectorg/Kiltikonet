@@ -1,66 +1,89 @@
-// useBrain.js — Hook CVL Brain chat
-// TODO: Implementer la logique reelle en iter.57
+// useBrain.js — Hook CVL Brain câblé sur /api/brain/chat-enriched
 import { useState, useCallback, useRef } from 'react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-/**
- * useBrain() -> {
- *   messages: BrainMessage[],
- *   isThinking: boolean,
- *   tools: BrainTool[],
- *   send: (query, tool?) => Promise<void>,
- *   reset: () => void,
- *   language: 'fr' | 'kw' | 'en'
- * }
- */
 export function useBrain() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      content: "**CVL BRAIN v1.0** — Moteur d'intelligence culturelle souverain.\n\nJe suis connecte a la base de connaissances kiltikonet. Comment puis-je t'aider ?",
+    },
+  ]);
   const [isThinking, setIsThinking] = useState(false);
-  const [language, setLanguage] = useState('fr');
-  const sessionId = useRef(crypto.randomUUID());
+  const [error, setError] = useState(null);
+  const sessionIdRef = useRef(crypto.randomUUID ? crypto.randomUUID() : Date.now().toString());
 
-  const tools = [
-    { id: 'terminal', label: 'Terminal', icon: 'terminal', endpoint: '/api/brain/chat' },
-    { id: 'analyse', label: 'Analyse', icon: 'analytics', endpoint: '/api/brain/analyse' },
-    { id: 'web-search', label: 'Recherche', icon: 'globe', endpoint: '/api/brain/web-search' },
-    { id: 'code', label: 'Code', icon: 'code', endpoint: '/api/brain/chat' },
-  ];
-
-  const send = useCallback(async (query, tool) => {
-    const userMsg = { role: 'user', content: query, timestamp: new Date().toISOString() };
-    setMessages(prev => [...prev, userMsg]);
+  const send = useCallback(async (text, options = {}) => {
+    const userMsg = { role: 'user', content: text };
+    setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
+    setError(null);
 
     try {
-      const endpoint = tool?.endpoint || `${API}/api/brain/chat`;
-      const res = await fetch(endpoint, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`${API}/api/brain/chat-enriched`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: query, session_id: sessionId.current,
-          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          message: text,
+          messages: [...messages, userMsg],
+          use_web_search: options.useWeb || false,
+          user_name: options.userName || 'utilisateur',
+          user_context: options.userContext || null,
+          langue_preference: options.langue || 'fr',
+          frek_id: options.frekId || '',
+          session_id: sessionIdRef.current,
         }),
         credentials: 'include',
       });
+
+      if (res.status === 429) {
+        const data = await res.json();
+        const errMsg = data.detail || 'Quota journalier atteint';
+        setMessages((prev) => [...prev, { role: 'assistant', content: `**Quota atteint.** ${errMsg}` }]);
+        setError(errMsg);
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Erreur Brain');
+      }
+
       const data = await res.json();
-      const assistantMsg = {
-        role: 'assistant',
-        content: data.reply || data.response || 'Erreur',
-        timestamp: new Date().toISOString(),
-        thinking: data.thinking,
-      };
-      setMessages(prev => [...prev, assistantMsg]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: data.response,
+          meta: {
+            web_enriched: data.web_enriched,
+            langue_detectee: data.langue_detectee,
+            cultural_score: data.cultural_score,
+          },
+        },
+      ]);
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: `Erreur: ${e.message}`, timestamp: new Date().toISOString() }]);
+      setError(e.message);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: `**Erreur:** ${e.message}` },
+      ]);
     } finally {
       setIsThinking(false);
     }
   }, [messages]);
 
   const reset = useCallback(() => {
-    setMessages([]);
-    sessionId.current = crypto.randomUUID();
+    sessionIdRef.current = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+    setMessages([
+      {
+        role: 'assistant',
+        content: "**CVL BRAIN v1.0** — Nouvelle session. Comment puis-je t'aider ?",
+      },
+    ]);
+    setError(null);
   }, []);
 
-  return { messages, isThinking, tools, send, reset, language };
+  return { messages, isThinking, error, send, reset, sessionId: sessionIdRef.current };
 }

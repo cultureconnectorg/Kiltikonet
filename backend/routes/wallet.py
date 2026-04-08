@@ -22,10 +22,10 @@ SESSION_SECRET = os.environ.get('SESSION_SECRET', 'fallback-dev-secret')
 SESSION_COOKIE_NAME = 'kk_session'
 
 PACKS = {
-    "decouverte": {"label": "Pack Decouverte", "price_eur": 10, "jetons": 6},
-    "culture": {"label": "Pack Culture", "price_eur": 25, "jetons": 16},
-    "diaspora": {"label": "Pack Diaspora", "price_eur": 50, "jetons": 33},
-    "vip": {"label": "Pack VIP", "price_eur": 100, "jetons": 66},
+    "decouverte": {"label": "Pack Decouverte", "price_eur": 10, "jetons": 10},
+    "culture": {"label": "Pack Culture", "price_eur": 25, "jetons": 25},
+    "diaspora": {"label": "Pack Diaspora", "price_eur": 50, "jetons": 50},
+    "vip": {"label": "Pack VIP", "price_eur": 100, "jetons": 100},
 }
 
 
@@ -141,6 +141,15 @@ async def wallet_buy_pack(request: Request, body: BuyPackRequest):
     pack = PACKS.get(body.pack_id)
     if not pack:
         raise HTTPException(status_code=400, detail="Pack invalide")
+
+    # Plafond 150EUR DSP2 check
+    reg_check = await _db.registrations.find_one({"email": email}, {"_id": 0, "jetons_solde": 1, "kyc_validated": 1})
+    badge_check = await _db.cc_badges.find_one({"email": email}, {"_id": 0, "jetons_solde": 1})
+    current_solde = (reg_check or {}).get("jetons_solde", 0) or (badge_check or {}).get("jetons_solde", 0)
+    kyc_validated = (reg_check or {}).get("kyc_validated", False)
+    total_after = (current_solde + pack["jetons"]) * JETON_VALEUR
+    if not kyc_validated and total_after > 150.0:
+        raise HTTPException(status_code=403, detail="Plafond reglementaire atteint (150EUR). Verification d'identite requise pour continuer.")
 
     tx_id = str(uuid.uuid4())[:12]
     now_iso = datetime.now(timezone.utc).isoformat()

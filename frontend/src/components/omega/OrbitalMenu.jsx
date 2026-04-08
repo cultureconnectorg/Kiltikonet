@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { Wallet, Zap, Wrench, Gauge, ShoppingCart, MessageSquare, Coins } from "lucide-react";
 
-export default function OrbitalMenu({ onSelect }) {
+export default function OrbitalMenu({ onSelect, balance, frekId }) {
   const menuItems = [
     { id: "wallet", label: "WALLET", icon: Wallet, pos: "top-0 left-0 translate-x-[40px] translate-y-[40px]" },
     { id: "shop", label: "SHOP", icon: ShoppingCart, pos: "top-0 right-0 -translate-x-[40px] translate-y-[40px]" },
@@ -28,7 +28,7 @@ export default function OrbitalMenu({ onSelect }) {
             data-testid="omega-jcc-badge"
           >
             <div className="w-1 h-1 rounded-full animate-pulse" style={{ background: '#f2ca50', boxShadow: '0 0 8px #f2ca50' }} />
-            <span className="font-mono text-[9px] tracking-widest font-bold" style={{ color: 'rgba(242,202,80,0.8)' }}>24 JCC</span>
+            <span className="font-mono text-[9px] tracking-widest font-bold" style={{ color: 'rgba(242,202,80,0.8)' }}>{balance ?? 0} JCC</span>
           </motion.div>
           <motion.div
             whileHover={{ scale: 1.05, borderColor: "rgba(242, 202, 80, 0.4)" }}
@@ -38,7 +38,7 @@ export default function OrbitalMenu({ onSelect }) {
             style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}
             data-testid="omega-frek-badge"
           >
-            <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>FREK-ID: 99421</span>
+            <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>FREK-ID: {frekId || '—'}</span>
           </motion.div>
         </div>
       </header>

@@ -1,4 +1,7 @@
 import { useState, useCallback } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { useWallet } from "../../hooks/useWallet";
+import { useAdhesion } from "../../hooks/useAdhesion";
 import Background from "./Background";
 import OrbitalMenu from "./OrbitalMenu";
 import ContentDisplay from "./ContentDisplay";
@@ -12,22 +15,23 @@ import SovereignProfileView from "./SovereignProfileView";
 import BuilderView from "./BuilderView";
 
 /**
- * ProApp — Espace Pro Omega (ITER.57 : coquille visuelle mockée)
+ * ProApp — Espace Pro Omega (ITER.58 : câblé données réelles)
  * Fullscreen immersif, aucun élément de la vitrine.
- * Toutes les données sont MOCKÉES (zéro API, réservé ITER.58).
  */
 export default function ProApp() {
   const [currentView, setCurrentView] = useState("orbital");
-  const [balance, setBalance] = useState(24);
-  const [transactions, setTransactions] = useState([
-    { id: "t1", type: "receive", label: "Bonus Inscription", amount: "+10 JCC", date: "Aujourd'hui", status: "confirmé" },
-    { id: "t2", type: "receive", label: "Récompense Brain", amount: "+5 JCC", date: "Hier", status: "confirmé" },
-    { id: "t3", type: "send", label: "Achat Shop", amount: "-3 JCC", date: "Hier", status: "confirmé" },
-  ]);
+  const { user, doctrine, isAuthenticated, loading: authLoading, logout, refresh: refreshAuth } = useAuth();
+  const { solde, transactions, refresh: refreshWallet, debit, credit } = useWallet('CC');
+  const { adhesion, levels: adhesionLevels, subscribe, cancel: cancelAdhesion, refresh: refreshAdhesion } = useAdhesion();
+
+  const frekId = user?.frek_id || '';
+  const userName = user?.name || user?.full_name || user?.email?.split('@')[0] || 'Souverain';
+  const adhesionLevel = adhesion?.level || 'FREE';
+  const balance = solde;
 
   const addTransaction = useCallback((tx) => {
-    setTransactions(prev => [{ ...tx, id: Date.now().toString(), date: "À l'instant", status: "confirmé" }, ...prev]);
-  }, []);
+    refreshWallet();
+  }, [refreshWallet]);
 
   const handleSelect = (id) => {
     switch (id) {
@@ -40,58 +44,60 @@ export default function ProApp() {
       case "cockpit": setCurrentView("cockpit"); break;
       case "frek_id": case "frek-id": setCurrentView("profile"); break;
       case "admin": setCurrentView("profile"); break;
-      default: console.log("[Omega] Section:", id);
+      default: break;
     }
   };
 
   const handleBack = () => setCurrentView("orbital");
+
+  // Auth context passed to child components
+  const authCtx = { user, frekId, userName, adhesionLevel, isAuthenticated, doctrine, logout, refreshAuth };
 
   return (
     <div className="relative w-full h-screen overflow-hidden text-white" style={{ background: '#0e0e0e' }} data-testid="pro-app">
       {currentView === "orbital" && (
         <>
           <Background />
-          <OrbitalMenu onSelect={handleSelect} />
+          <OrbitalMenu onSelect={handleSelect} balance={balance} frekId={frekId} />
         </>
       )}
 
       {currentView === "brain" && (
-        <BrainChat onBack={handleBack} onSelect={handleSelect} balance={balance} />
+        <BrainChat onBack={handleBack} onSelect={handleSelect} balance={balance} auth={authCtx} />
       )}
 
       {currentView === "wallet" && (
-        <WalletView onBack={handleBack} onSelect={handleSelect} balance={balance} setBalance={setBalance} transactions={transactions} addTransaction={addTransaction} />
+        <WalletView onBack={handleBack} onSelect={handleSelect} balance={balance} setBalance={() => refreshWallet()} transactions={transactions} addTransaction={addTransaction} auth={authCtx} adhesion={adhesion} />
       )}
 
       {currentView === "shop" && (
-        <ShopView onBack={handleBack} onSelect={handleSelect} balance={balance} />
+        <ShopView onBack={handleBack} onSelect={handleSelect} balance={balance} auth={authCtx} />
       )}
 
       {currentView === "feed" && (
-        <FeedView onBack={handleBack} onNavigate={handleSelect} />
+        <FeedView onBack={handleBack} onNavigate={handleSelect} auth={authCtx} />
       )}
 
       {currentView === "inbox" && (
-        <InboxView onBack={handleBack} onSelect={handleSelect} />
+        <InboxView onBack={handleBack} onSelect={handleSelect} auth={authCtx} />
       )}
 
       {currentView === "cockpit" && (
-        <CockpitView onBack={handleBack} onSelect={handleSelect} />
+        <CockpitView onBack={handleBack} onSelect={handleSelect} auth={authCtx} />
       )}
 
       {currentView === "builder" && (
-        <BuilderView onBack={handleBack} onSelect={handleSelect} />
+        <BuilderView onBack={handleBack} onSelect={handleSelect} auth={authCtx} />
       )}
 
       {currentView === "profile" && (
-        <SovereignProfileView onBack={handleBack} />
+        <SovereignProfileView onBack={handleBack} auth={authCtx} adhesion={adhesion} adhesionLevels={adhesionLevels} onSubscribe={subscribe} onCancelAdhesion={cancelAdhesion} />
       )}
 
       {currentView === "content" && (
         <ContentDisplay onBack={handleBack} onSelectBrainChat={() => setCurrentView("brain")} onNavigate={handleSelect} />
       )}
 
-      {/* Global Overlay Effects */}
       {currentView === "orbital" && (
         <>
           <div className="fixed inset-0 pointer-events-none z-[100] mix-blend-overlay" style={{ opacity: 0.03, backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }} />

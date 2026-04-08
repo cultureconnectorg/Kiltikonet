@@ -28,9 +28,9 @@ BASE_URL = os.environ.get("BASE_URL", "https://kiltikonet.fr")
 JETON_VALEUR = float(os.environ.get("JETON_VALEUR_EURO", "1.50"))
 
 JETON_PACKS = {
-    "decouverte": {"name": "Decouverte", "jetons": 10, "price": 13.50, "value": 15.00},
-    "culture": {"name": "Culture", "jetons": 25, "price": 30.00, "value": 37.50},
-    "diaspora": {"name": "Diaspora", "jetons": 50, "price": 55.00, "value": 75.00},
+    "decouverte": {"name": "Decouverte", "jetons": 10, "price": 10.00, "value": 15.00},
+    "culture": {"name": "Culture", "jetons": 25, "price": 25.00, "value": 37.50},
+    "diaspora": {"name": "Diaspora", "jetons": 50, "price": 50.00, "value": 75.00},
     "vip": {"name": "VIP", "jetons": 100, "price": 100.00, "value": 150.00},
 }
 

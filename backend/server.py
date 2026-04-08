@@ -3762,6 +3762,7 @@ from routes.ghost_profiles import router as ghost_router
 from routes.ghost_engine import router as growth_engine_router
 from routes.fintech import router as fintech_router
 from routes.skeleton_omega import router as omega_skeleton_router
+from routes.omega import router as omega_router, create_omega_indexes
 from routes.cultural_identity import router as cultural_identity_router, feed_router as cultural_feed_router, reactions_router as cultural_reactions_router
 from routes.cultural_search import router as cultural_search_router, analytics_router as cultural_analytics_router
 from routes.pro_feed import router as pro_feed_router, init_db as pro_feed_init_db
@@ -3784,6 +3785,7 @@ app.include_router(ghost_router)
 app.include_router(growth_engine_router)
 app.include_router(fintech_router)
 app.include_router(omega_skeleton_router)
+app.include_router(omega_router)
 app.include_router(cultural_identity_router)
 app.include_router(cultural_feed_router)
 app.include_router(cultural_reactions_router)
@@ -3849,17 +3851,7 @@ async def activer_badge(qr_token: str):
         "message": "Badge active avec succes !"
     }
 
-@app.get("/api/frek/stats")
-async def get_frek_cc2026_stats():
-    """Get FREK CC2026 stats for dashboard"""
-    stats = await _frek.get_cc2026_stats()
-    return stats
-
-@app.get("/api/frek/health")
-async def check_frek_health():
-    """Check FREK API health"""
-    is_healthy = await _frek.health()
-    return {"healthy": is_healthy, "fallback_mode": os.environ.get("FREK_FALLBACK_MODE", "true")}
+# FREK stats & health — extracted to /routes/omega.py
 
 # ================== CMS ROUTES ==================
 
@@ -5172,6 +5164,9 @@ async def create_indexes():
         await db.invitations.create_index("email")
         
         logger.info("MongoDB indexes created successfully")
+
+        # Omega indexes (audit_logs, brain_training, adhesions, feed, frek_id unique)
+        await create_omega_indexes()
 
         # Doctrine layer — seed permissions + backfill actor_roles
         await _doctrine_seed()
@@ -8078,34 +8073,7 @@ async def archive_frek_legacy():
     return {"status": "success", "archived": archived, "total_remis": len(badges)}
 
 
-@app.get("/api/badges/lifecycle/{badge_id}")
-async def get_badge_lifecycle(badge_id: str):
-    """Retourne le cycle de vie complet d'un badge (8 étapes)"""
-    badge = await db.cc_badges.find_one({"badge_id": badge_id}, {"_id": 0})
-    if not badge:
-        raise HTTPException(status_code=404, detail="Badge non trouvé")
-
-    statut = badge.get("statut", "INSCRIT")
-    lifecycle = [
-        {"step": 1, "name": "Inscription", "done": True, "date": badge.get("date_emission")},
-        {"step": 2, "name": "FREK-ID émis", "done": bool(badge.get("frek_id")), "frek_id": badge.get("frek_id")},
-        {"step": 3, "name": "Email envoyé", "done": True, "note": "Bienvenue + QR dynamique"},
-        {"step": 4, "name": "Activation", "done": statut in ("ACTIVE", "REMIS"), "date": badge.get("activated_at")},
-        {"step": 5, "name": "Impression", "done": badge.get("imprime", False), "date": badge.get("imprime_at")},
-        {"step": 6, "name": "Remise J-0", "done": statut == "REMIS" or badge.get("remis", False), "date": badge.get("remis_at")},
-        {"step": 7, "name": "NFC actif", "done": badge.get("nfc_enabled", False) and statut == "REMIS", "nfc_uid": badge.get("nfc_uid")},
-        {"step": 8, "name": "FREK Legacy", "done": False, "note": "Post-événement CVL BRAIN / OAPI"},
-    ]
-
-    return {
-        "badge_id": badge_id,
-        "statut": statut,
-        "type_badge": badge.get("type_badge"),
-        "prenom": badge.get("prenom"),
-        "nom": badge.get("nom"),
-        "lifecycle": lifecycle,
-        "current_step": next((s["step"] for s in reversed(lifecycle) if s["done"]), 1),
-    }
+# Badge lifecycle — extracted to /routes/omega.py
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -8431,117 +8399,7 @@ async def email_qr_generate(badge_id: str = ""):
     return {"badge_id": badge_id, "qr_url": qr_url, "qr_base64": qr_b64[:50] + "...", "full_length": len(qr_b64)}
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# NFC TAP — Paiement NFC dédié
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class NfcTapRequest(BaseModel):
-    nfc_uid: Optional[str] = None
-    badge_id: Optional[str] = None
-    montant: int
-    merchant_id: Optional[str] = None
-    zone: str = "ENTREE_GENERALE"
-
-@app.post("/api/frek/nfc/tap")
-async def nfc_tap(req: NfcTapRequest):
-    """NFC tap payment — find badge by NFC UID or badge_id, debit jetons"""
-    badge = None
-    if req.nfc_uid:
-        badge = await db.cc_badges.find_one({"nfc_uid": req.nfc_uid}, {"_id": 0})
-    elif req.badge_id:
-        badge = await db.cc_badges.find_one({"badge_id": req.badge_id}, {"_id": 0})
-    
-    if not badge:
-        return {"status": "error", "code": "NOT_FOUND", "message": "Badge NFC non trouvé", "color": "red"}
-    
-    if not badge.get("nfc_enabled"):
-        return {"status": "error", "code": "NFC_DISABLED", "message": "NFC non activé sur ce badge", "color": "red"}
-    
-    statut = badge.get("statut", "")
-    if statut not in ("ACTIVE", "REMIS"):
-        return {"status": "error", "code": "INACTIVE", "message": f"Badge non actif ({statut})", "color": "red"}
-    
-    badge_id = badge.get("badge_id", "")
-    current_solde = badge.get("jetons_solde", 0) or 0
-    
-    if req.montant > 0:
-        if current_solde < req.montant:
-            return {
-                "status": "insufficient", "code": "LOW_BALANCE", "color": "orange",
-                "message": f"Solde insuffisant ({current_solde}/{req.montant}J)",
-                "badge_id": badge_id, "jetons_solde": current_solde,
-            }
-        new_solde = current_solde - req.montant
-        await db.cc_badges.update_one({"badge_id": badge_id}, {"$set": {"jetons_solde": new_solde}})
-        
-        await db.cc_transactions.insert_one({
-            "badge_id": badge_id, "type": "nfc_tap", "jetons": -req.montant,
-            "merchant_id": req.merchant_id, "zone": req.zone,
-            "previous_solde": current_solde, "new_solde": new_solde,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
-        
-        frek_id = badge.get("frek_id", "")
-        if frek_id:
-            asyncio.create_task(_frek.record_stage(frek_id, "METAMORPHOSE"))
-        
-        return {
-            "status": "success", "code": "OK", "color": "green",
-            "message": f"Paiement NFC {req.montant}J OK",
-            "badge_id": badge_id,
-            "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge.get("type_badge")},
-            "jetons_debited": req.montant, "new_solde": new_solde,
-        }
-    
-    return {
-        "status": "success", "code": "OK", "color": "green",
-        "message": "Badge NFC vérifié",
-        "badge_id": badge_id,
-        "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge.get("type_badge")},
-        "jetons_solde": current_solde,
-    }
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# REMBOURSEMENT MARCHAND — Admin
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class RemboursementRequest(BaseModel):
-    merchant_id: str
-    montant_eur: float
-    description: Optional[str] = None
-
-@app.post("/api/jetons/remboursement")
-async def jetons_remboursement(req: RemboursementRequest):
-    """Admin: enregistrer un remboursement marchand SEPA J+3"""
-    jeton_rachat = float(os.environ.get("JETON_RACHAT_EURO", "1.35"))
-    jetons_equivalent = round(req.montant_eur / jeton_rachat)
-    
-    await db.cc_remboursements.insert_one({
-        "merchant_id": req.merchant_id,
-        "montant_eur": req.montant_eur,
-        "jetons_equivalent": jetons_equivalent,
-        "jeton_rachat_eur": jeton_rachat,
-        "description": req.description,
-        "statut": "ENREGISTRE",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-    })
-    
-    return {
-        "status": "success",
-        "merchant_id": req.merchant_id,
-        "montant_eur": req.montant_eur,
-        "jetons_equivalent": jetons_equivalent,
-        "jeton_rachat_eur": jeton_rachat,
-    }
-
-
-@app.get("/api/jetons/remboursements")
-async def list_remboursements():
-    """List all merchant refunds"""
-    rembs = await db.cc_remboursements.find({}, {"_id": 0}).sort("timestamp", -1).to_list(200)
-    total = sum(r.get("montant_eur", 0) for r in rembs)
-    return {"remboursements": rembs, "total_eur": round(total, 2), "count": len(rembs)}
+# NFC TAP + Remboursement — extracted to /routes/omega.py
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -9655,211 +9513,5 @@ async def smart_engine_cron_check(request: Request):
 # Enrichit les prompts CVL BRAIN avec des résultats web en temps réel
 # ═══════════════════════════════════════════════════════════════════════════════
 
-TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
-
-@app.post("/api/brain/web-search")
-async def brain_web_search(request: Request):
-    """Search the web for real-time information to enrich CVL BRAIN responses"""
-    if not TAVILY_API_KEY:
-        return {"results": [], "enriched": False, "reason": "TAVILY_API_KEY not configured"}
-
-    body = await request.json()
-    query = body.get("query", "")
-    if not query:
-        raise HTTPException(status_code=400, detail="query required")
-
-    try:
-        from tavily import TavilyClient
-        client = TavilyClient(api_key=TAVILY_API_KEY)
-        response = client.search(
-            query=query,
-            search_depth="basic",
-            max_results=5,
-            include_answer=True,
-        )
-
-        results = []
-        for r in response.get("results", []):
-            results.append({
-                "title": r.get("title", ""),
-                "url": r.get("url", ""),
-                "content": r.get("content", "")[:300],
-            })
-
-        return {
-            "results": results,
-            "answer": response.get("answer", ""),
-            "enriched": True,
-            "query": query,
-        }
-    except Exception as e:
-        return {"results": [], "enriched": False, "reason": str(e)}
-
-
-@app.post("/api/brain/chat-enriched", dependencies=[Depends(_require_perm("use_terminal_ia"))])
-async def brain_chat_enriched(request: Request):
-    """CVL BRAIN chat with multi-turn memory, user context, and web enrichment"""
-    body = await request.json()
-    message = body.get("message", "")
-    messages_history = body.get("messages", [])  # Full conversation history
-    use_web = body.get("use_web_search", False)
-    user_name = body.get("user_name", "un utilisateur")
-    user_context = body.get("user_context", None)  # Profile data
-
-    web_context = ""
-    if use_web and TAVILY_API_KEY:
-        try:
-            from tavily import TavilyClient
-            client = TavilyClient(api_key=TAVILY_API_KEY)
-            response = client.search(query=message, search_depth="basic", max_results=3, include_answer=True)
-            web_results = response.get("results", [])
-            if web_results:
-                web_context = "\n\n[CONTEXTE WEB RÉCENT]\n"
-                for r in web_results[:3]:
-                    web_context += f"- {r.get('title', '')}: {r.get('content', '')[:200]}\n"
-                web_context += f"\nRéponse synthétisée: {response.get('answer', '')}\n"
-        except Exception:
-            pass
-
-    # Enrich with user's Archives Cloud data if available
-    archive_context = ""
-    if user_context and user_context.get("email"):
-        try:
-            archives = await db.user_archives.find(
-                {"email": user_context["email"], "folder": "CVL Brain"},
-                {"_id": 0, "name": 1, "content_summary": 1, "type": 1}
-            ).to_list(10)
-            if archives:
-                archive_context = "\n\n[ARCHIVES PERSONNELLES DE L'UTILISATEUR — dossier CVL Brain]\n"
-                for a in archives:
-                    archive_context += f"- {a.get('name', 'Fichier')} ({a.get('type', '')})"
-                    if a.get('content_summary'):
-                        archive_context += f": {a['content_summary'][:150]}"
-                    archive_context += "\n"
-                archive_context += "Tu peux mentionner ces fichiers si le sujet est pertinent.\n"
-        except Exception:
-            pass
-
-    from services.cvl_brain_knowledge import build_cvl_brain_prompt
-    system_prompt = build_cvl_brain_prompt(user_name, user_context, web_context + archive_context)
-
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        emergent_key = os.environ.get("EMERGENT_LLM_KEY", "")
-        import uuid
-
-        # Build conversation context in the system prompt to avoid O(n) API calls
-        history_context = ""
-        if messages_history and len(messages_history) > 1:
-            # Include last 10 exchanges max to avoid token overflow
-            recent = messages_history[-20:-1] if len(messages_history) > 21 else messages_history[:-1]
-            history_context = "\n\n[HISTORIQUE DE CONVERSATION]\n"
-            for hist_msg in recent:
-                role_label = "Utilisateur" if hist_msg.get("role") == "user" else "CVL Brain"
-                content = hist_msg.get("content", "")[:500]
-                history_context += f"{role_label}: {content}\n"
-            history_context += "\n[FIN HISTORIQUE — réponds au dernier message ci-dessous]\n"
-
-        enriched_prompt = system_prompt + history_context
-
-        chat_obj = LlmChat(
-            api_key=emergent_key,
-            session_id=str(uuid.uuid4()),
-            system_message=enriched_prompt,
-        )
-        chat_obj.with_model("anthropic", "claude-sonnet-4-5-20250929")
-
-        # Single API call — no history replay
-        user_msg = UserMessage(text=message)
-        response = await chat_obj.send_message(user_msg)
-        return {"response": response, "web_enriched": bool(web_context)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur CVL BRAIN: {str(e)}")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# CVL BRAIN — MODULE 1: MÉMOIRE PERSISTANTE
-# Sauvegarde/récupération des conversations CVL BRAIN
-# ═══════════════════════════════════════════════════════════════════════════════
-
-@app.post("/api/brain/memory/save")
-async def brain_memory_save(request: Request):
-    """Save a CVL BRAIN conversation to persistent memory"""
-    body = await request.json()
-    session_id = body.get("session_id")
-    messages = body.get("messages", [])
-    title = body.get("title", "")
-    tags = body.get("tags", [])
-    user_id = body.get("user_id", "")
-
-    if not session_id or not messages:
-        raise HTTPException(status_code=400, detail="session_id and messages required")
-
-    # Auto-generate title from first user message if not provided
-    if not title:
-        user_msgs = [m for m in messages if m.get("role") == "user"]
-        title = user_msgs[0]["content"][:80] if user_msgs else "Conversation sans titre"
-
-    doc = {
-        "session_id": session_id,
-        "user_id": user_id,
-        "title": title,
-        "messages": messages,
-        "tags": tags,
-        "message_count": len(messages),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }
-
-    existing = await db.brain_memory.find_one({"session_id": session_id})
-    if existing:
-        await db.brain_memory.update_one(
-            {"session_id": session_id},
-            {"$set": {"messages": messages, "title": title, "tags": tags, "message_count": len(messages), "updated_at": datetime.now(timezone.utc).isoformat()}}
-        )
-    else:
-        await db.brain_memory.insert_one(doc)
-
-    return {"success": True, "session_id": session_id}
-
-
-@app.get("/api/brain/memory/history")
-async def brain_memory_history(user_id: str = "", limit: int = 20, skip: int = 0):
-    """Get conversation history for a user"""
-    query = {}
-    if user_id:
-        query["user_id"] = user_id
-
-    cursor = db.brain_memory.find(query, {"_id": 0}).sort("updated_at", -1).skip(skip).limit(limit)
-    conversations = []
-    async for doc in cursor:
-        conversations.append({
-            "session_id": doc.get("session_id"),
-            "title": doc.get("title"),
-            "message_count": doc.get("message_count", 0),
-            "tags": doc.get("tags", []),
-            "created_at": doc.get("created_at"),
-            "updated_at": doc.get("updated_at"),
-        })
-
-    total = await db.brain_memory.count_documents(query)
-    return {"conversations": conversations, "total": total}
-
-
-@app.get("/api/brain/memory/{session_id}")
-async def brain_memory_get(session_id: str):
-    """Get a specific conversation by session_id"""
-    doc = await db.brain_memory.find_one({"session_id": session_id}, {"_id": 0})
-    if not doc:
-        raise HTTPException(status_code=404, detail="Conversation non trouvée")
-    return doc
-
-
-@app.delete("/api/brain/memory/{session_id}")
-async def brain_memory_delete(session_id: str):
-    """Delete a conversation from memory"""
-    result = await db.brain_memory.delete_one({"session_id": session_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Conversation non trouvée")
-    return {"success": True}
+# Brain web-search, chat-enriched, memory — extracted to /routes/omega.py
 

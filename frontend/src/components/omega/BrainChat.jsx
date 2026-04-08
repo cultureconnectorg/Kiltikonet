@@ -1,60 +1,47 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useBrain } from "../../hooks/useBrain";
 
-export default function BrainChat({ onBack, onSelect, balance }) {
-  const [messages, setMessages] = useState([
-    { id: "1", role: "assistant", content: "Bonjour. Je suis **CVL BRAIN v1.0**, votre intelligence culturelle souveraine.\n\nJe peux vous aider sur :\n- L'analyse de vos projets **CC2026**\n- L'optimisation de votre économie **Jeton CC**\n- La certification de vos œuvres via **FREK-ID**\n\nComment puis-je vous assister aujourd'hui ?", timestamp: "Maintenant" },
-  ]);
+export default function BrainChat({ onBack, onSelect, balance, auth }) {
+  const { messages: brainMessages, isThinking, error, send, reset, sessionId } = useBrain();
   const [input, setInput] = useState("");
-  const [isThinking, setIsThinking] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [useWeb, setUseWeb] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Transform brain messages for display
+  const messages = brainMessages.map((m, i) => ({
+    id: i.toString(),
+    role: m.role,
+    content: m.content,
+    timestamp: i === 0 ? "Session" : "Maintenant",
+    meta: m.meta,
+  }));
+
   const history = [
-    { id: "h1", title: "Stratégie Ti' Punch 2026", date: "Aujourd'hui" },
-    { id: "h2", title: "Analyse Empreinte FREK", date: "Hier" },
-    { id: "h3", title: "Optimisation JCC Shop", date: "2 jours" },
+    { id: "h1", title: "Session actuelle", date: "Maintenant" },
   ];
 
   const scrollToBottom = () => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); };
   useEffect(() => { scrollToBottom(); }, [messages, isThinking]);
 
-  const simulateStreaming = async (text) => {
-    const id = Date.now().toString();
-    const newMessage = { id, role: "assistant", content: "", timestamp: "À l'instant", isStreaming: true };
-    setMessages(prev => [...prev, newMessage]);
-    const chunks = text.split(" ");
-    let currentText = "";
-    for (let i = 0; i < chunks.length; i++) {
-      currentText += chunks[i] + " ";
-      setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, content: currentText } : msg));
-      await new Promise(resolve => setTimeout(resolve, 40 + Math.random() * 40));
-    }
-    setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, isStreaming: false } : msg));
-    setIsThinking(false);
-  };
-
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || isThinking) return;
-    const userMsg = { id: Date.now().toString(), role: "user", content: input, timestamp: "À l'instant" };
-    setMessages(prev => [...prev, userMsg]);
-    const currentInput = input;
+    const text = input;
     setInput("");
-    setIsThinking(true);
-
-    let responseText = "Analyse en cours... Votre requête est traitée par le Core Engine.";
-    if (currentInput.toLowerCase().includes("code")) {
-      responseText = "Voici un exemple d'intégration de l'API FREK-ID pour signer une œuvre :\n\n```javascript\nimport { FrekCore } from '@kiltikonet/core';\n\nconst signer = new FrekCore({\n  apiKey: process.env.FREK_API_KEY,\n  identity: '99421-MQ'\n});\n\nasync function signWork(data) {\n  const signature = await signer.sign(data);\n  console.log('Empreinte générée:', signature.hash);\n  return signature;\n}\n```\n\nCette signature est atomique et immuable sur le Mainnet.";
-    } else if (currentInput.toLowerCase().includes("jcc")) {
-      responseText = "Le **Jeton CC** est le carburant de l'économie circulaire Kiltikonet. \n\n| Action | Coût/Gain |\n| :--- | :--- |\n| Requête Brain | -1 JCC |\n| Certification FREK | -3 JCC |\n| Vente Shop | +Prix JCC |\n| Parrainage | +5 JCC |\n\nVotre solde actuel est de **" + balance + " JCC**.";
-    }
-    setTimeout(() => { simulateStreaming(responseText); }, 800);
-  };
+    await send(text, {
+      useWeb,
+      userName: auth?.userName || 'utilisateur',
+      userContext: auth?.user ? { email: auth.user.email } : null,
+      langue: 'fr',
+      frekId: auth?.frekId || '',
+    });
+  }, [input, isThinking, send, useWeb, auth]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden text-white" style={{ background: '#0a0a0b' }} data-testid="brain-chat">
@@ -62,7 +49,7 @@ export default function BrainChat({ onBack, onSelect, balance }) {
         {sidebarOpen && (
           <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 280, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="h-full flex flex-col z-40" style={{ background: '#0d0d0e', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
             <div className="p-4 flex flex-col h-full">
-              <button className="flex items-center gap-3 w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all mb-6" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+              <button onClick={reset} className="flex items-center gap-3 w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all mb-6" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
                 <Plus className="w-4 h-4" style={{ color: '#f2ca50' }} />
                 <span className="text-xs font-bold tracking-widest uppercase">Nouveau Chat</span>
               </button>
