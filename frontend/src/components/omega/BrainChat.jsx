@@ -103,7 +103,7 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
               <span className="font-mono text-[9px] font-bold" style={{ color: 'rgba(242,202,80,0.8)' }}>{balance} JCC</span>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} onClick={() => onSelect("frek_id")} className="flex items-center gap-1.5 rounded-full px-3 py-1 cursor-pointer" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}>
-              <span className="font-mono text-[9px] font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>99421-MQ</span>
+              <span className="font-mono text-[9px] font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>{auth?.frekId || '---'}</span>
             </motion.div>
           </div>
         </header>

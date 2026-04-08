@@ -1,5 +1,4 @@
 # PRD — Kiltikonet.fr / CC2026
-# ==============================
 
 ## Objectif
 Plateforme culturelle caribéenne full-stack (React 19 + FastAPI + MongoDB).
@@ -7,64 +6,73 @@ Ecosystème "Stitch Sovereign Onyx" avec Espace Pro à 14 écrans, Wallet Stripe
 Feed/Reels dynamiques, gouvernance associative, certification FREK-ID.
 
 ## Architecture
-- Frontend: React 19 (CRA/Craco), TailwindCSS 3, shadcn/ui
+- Frontend: React 19 (CRA/Craco), TailwindCSS 3, shadcn/ui, motion (Framer)
 - Backend: FastAPI, MongoDB (culture_connect_2026)
 - Auth: FREK-ID, GitHub OAuth, Magic Links, OTP Email
 - LLM: Claude Sonnet via Emergent LLM Key
 - Paiements: Stripe Checkout
 
-## ITER.56 — Audit Systeme Complet (2026-04-07) TERMINE
+## Business Rules
+- 1 JCC = 1.50 EUR face value
+- Packs JCC: Decouverte 10/10EUR, Culture 25/25EUR, Diaspora 50/50EUR, VIP 100/100EUR
+- Rollover: JCC reportes indefiniment
+- Brain: 2 KT/requete, FREE=10/jour, PRO=50, PREMIUM=illimite, INSTIT=illimite
+- Adhesion: FREE 0EUR, PRO 10EUR/mois, PREMIUM 30EUR/mois, INSTIT 150EUR/mois
+- Plafond 150EUR DSP2 enforce (sauf kyc_validated=true)
 
-### Livrables Produits
-22 documents d'ingénierie (CORE_SNAPSHOT, ENDPOINT_MAP, MONGO_SCHEMA, AUTH_FLOW, etc.)
+## ITER.56 — Audit Systeme TERMINÉ
+- 22 documents d'ingenierie
 
-### Code Additif Créé
-- `src/types/omega.ts` : 350+ lignes d'interfaces TypeScript (référence)
-- `src/hooks/` : 12 hooks avec signatures complètes
-- `backend/routes/skeleton_omega.py` : 14 endpoints actifs avec mocks réalistes
+## ITER.57 — Fondation Omega TERMINÉ
+- 13 composants JSX convertis TSX→JSX
+- Route /pro isolée du layout vitrine
+- 14/14 tests passes
 
-## ITER.57 — Fondation Omega (2026-04-07) TERMINE
+## ITER.58 — Câblage Espace Pro PARTIEL (Phases 0-4 sur 10)
 
-### Livrables
-- 13 composants JSX convertis depuis TSX dans `/app/frontend/src/components/omega/`
-- Route `/pro` isolée du layout vitrine (fullscreen immersif, pas de Header/Footer)
-- CSS Omega dans `index.css` + `tailwind.config.js` (mapping Tailwind v4 → v3)
-- Dépendances ajoutées : `motion`, `react-markdown`, `remark-gfm`, `react-syntax-highlighter`
-- Document de passation : `/app/ITER57_SUMMARY.md` (cartographie server.py, ordre câblage, risques)
+### Phase 0 — Extraction server.py TERMINÉ
+- omega.py cree (550 lignes), server.py allege ~340 lignes
 
-### Tests
-- testing_agent_v3_fork : 14/14 tests passés (iteration_79.json)
-- Fix SVG console error (attribut `d` undefined → `initial={{ d: "..." }}`)
+### Phase 1 — Infrastructure TERMINÉ
+- Index unique FREK-ID, audit_logs SHA256, brain_training_data, plafond 150EUR, RGPD DELETE, prix JCC corriges
 
-### Données MOCKÉES (toutes)
-- Wallet balance (24 JCC), transactions, assets
-- Brain chat (streaming simulé, pas d'appel API)
-- Shop (4 produits), Feed (3 posts), Inbox (4 conversations)
-- Builder (3 projets), Cockpit (logs mockés), Profile (identité fictive)
+### Phase 2 — Auth + Wallet TERMINÉ
+- useAuth/useWallet/useAdhesion cables dans ProApp/OrbitalMenu/WalletView
+- Packs JCC (10/25/50/100EUR) avec plafond 150EUR
 
-## Backlog Post-ITER.57
+### Phase 3 — CVL Brain TERMINÉ
+- BrainChat cable sur /api/brain/chat-enriched (Claude Sonnet reel)
+- Quota par adhesion, audit_logs, brain_training_data
 
-### iter.58 (P0) : Câblage réel des données
-- Câbler useAuth → /api/auth/frek + /api/auth/me
-- Câbler useWallet → solde réel + Stripe top up
-- Câbler useBrain → /api/brain/chat-enriched (budget LLM à recharger)
-- Câbler useFeed, useShop → créer endpoints /api/omega/*
-- Plafond 150€ wallet (compliance)
-- Ordre de câblage détaillé dans ITER57_SUMMARY.md section 3
+### Phase 4 — Feed TERMINÉ
+- FeedView cable avec eclair (debit 1 KT), commentaire, fetch reel
 
-### iter.59 (P1) : Intégration UI + Tests
-- Connecter composants Omega aux endpoints
-- Tests E2E complets
-- PWA /scan terrain
+### Tests ITER.58
+- Backend: 88% (15/17 — 2 rate limited)
+- Frontend: 100%
 
-### iter.60 (P1) : Production
+## Backlog Post-ITER.58
+
+### ITER.59 (P0) — Modules restants
+- Shop cable (produits reels, checkout JCC)
+- Terminal (Monaco Editor + CVL Brain agent + deploy /pages)
+- Parametres cables (SovereignProfileView ↔ /api/user/settings)
+- DMs / Inbox cables (WebSocket)
+- Agenda CC2026 (4 jours: 20-23 mai)
+- Trade peer-to-peer
+- Gouvernance (votes, poids adhesion)
+- Brevo 4 templates transactionnels
+- Accreditation CC2026 flux 7 etapes
+- NFC /scan mini-app PWA
+
+### ITER.60 (P1) — Production
 - Performance (lazy loading, code splitting)
-- Déploiement production
-- Migration DNS kiltikonet.fr
+- Deploiement production + DNS
+- Tests E2E complets
 
-### Backlog Technique
-- (P2) Refactoring server.py (>9865 lignes)
-- (P2) DNS IONOS
-- (P3) AWS SES sortie sandbox
-- (P3) RGPD : endpoint suppression de compte
-- (P3) Rate limiter agressif (429 fréquents)
+### Backlog technique
+- (P2) Refactoring server.py (>9500 lignes)
+- (P2) Stripe Subscriptions reelles pour adhesion
+- (P3) AWS SES sortie sandbox (remplace par Brevo)
+- (P3) Object storage pour upload media
+- (P3) cultural_score NLP avance
