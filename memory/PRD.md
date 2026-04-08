@@ -6,8 +6,8 @@ Plateforme événementielle culturelle souveraine pour Culture Connect 2026, Mar
 ## Architecture
 - `/pro` → OrbitalMenu Omega (7 modules + logo central animé) — session cookie 30j
 - `/admin/core` → Ancien Espace Pro (admin/founder uniquement)
-- `/admin/*` → Admin dashboards (accreditation, finance, CMS, analytics)
-- `/espace-pro/connexion` → ProSpaceLogin (5 méthodes : Google, GitHub, FREK-ID, Face ID/Touch ID, Magic Link)
+- `/admin/*` → Admin dashboards
+- `/espace-pro/connexion` → ProSpaceLogin (5 méthodes auth : Google, GitHub, FREK-ID, Face ID/Touch ID, Magic Link)
 
 ## Itérations complétées
 
@@ -15,41 +15,43 @@ Plateforme événementielle culturelle souveraine pour Culture Connect 2026, Mar
 - 34 boutons câblés avec Object Storage et APIs réelles
 - Webhook Stripe, synchro NFC Baserow, export CSV Twina
 - Splash Screen vidéo, sons de notification
-- Tests : iteration_82, iteration_83
 
 ### ITER.60 — Finalisation (100%)
-- Phase 0 : Onboarding complet, sessions persistantes 30j (httpOnly, Secure, SameSite=strict)
-- Phase 1 : WebAuthn (Face ID / Touch ID) — backend + frontend
-- Phase 2 : 4 templates transactionnels Brevo
-- Phase 3 : Animation logo central, swipe navigation, micro dictée, caméra BuilderView, PWA prompt, manifest
-- Phase 4 : Kilti-Health Dashboard, nettoyage console.log, rate limiter, ENVIRONMENT=production
-- Phase 5 : Test global (iteration_85 : 100%), ITER60_SUMMARY.md
-- Tests : iteration_84, iteration_85
+- Onboarding complet, sessions persistantes 30j
+- WebAuthn (Face ID / Touch ID) backend + frontend
+- 4 templates transactionnels Brevo
+- Animation logo central, swipe navigation, micro dictée, caméra BuilderView, PWA prompt
+- Kilti-Health Dashboard, nettoyage production
 
-## Backlog — ITER.61
+### ITER.61 — Responsive + Admin + Push (100%)
+- P0 : Éclair KT (débit/crédit 1 KT + audit + push auto) + WebAuthn modal UI (remplace prompt())
+- P1 : Responsive 3 breakpoints (OrbitalMenu panel desktop, BrainChat split, FeedView grille+sidebar, InboxView Slack-style, WalletView côte à côte)
+- P2 : Notifications push Web Push API (pywebpush, VAPID, event-driven, preferences par type, broadcast admin)
+- P3 : Admin CC2026 (dashboard stats, gestion utilisateurs CRUD+RGPD, modération feed, broadcast email/push)
 
-### P0
-- Endpoint eclair dans useFeed.js (débiter 1 KT)
+## Backlog — ITER.62
 
 ### P1
-- WebAuthn login : remplacer prompt() par modal UI
-- Affiner transition double-tap → FeedView
+- Tests responsive visuels 4 breakpoints
+- Refactoring server.py
 
 ### P2
-- Refactoring server.py (9766 lignes → routeurs séparés)
-- Rate limiter distribué (Redis)
-- AWS SES sortie sandbox
+- Stripe mode production
+- Tests E2E 5 parcours
+- Rate limiter Redis
 
 ### P3
-- PWA tests terrain (scan staff)
-- Export PDF badges batch Twina
-- Tests WebAuthn sur appareils physiques
+- AWS SES sortie sandbox
+- Tests WebAuthn appareils physiques
+- PWA tests terrain
+- Export PDF badges Twina
 
 ## Intégrations tierces
 - Stripe (Paiements) — clé utilisateur
 - Brevo (Emails) — clé utilisateur
 - Object Storage (Uploads) — Emergent LLM Key
 - Claude Sonnet (CVL Brain) — Emergent LLM Key
+- pywebpush (Push Notifications) — VAPID keys générées
 
 ## Credentials de test
 - Bypass Admin : cultureconnectorg@gmail.com (code 000000)
