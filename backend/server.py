@@ -596,6 +596,11 @@ async def send_email_async(to_email: str, subject: str, html_content: str):
         })
         return None
 
+async def _send_brevo_transactional(to_email: str, subject: str, text_content: str):
+    """Alias for simple text-based transactional email via Brevo"""
+    html = f"<div style='font-family:sans-serif;color:#e0e0e0;background:#0a0a0b;padding:32px;border-radius:12px;'><pre style='white-space:pre-wrap;color:#e0e0e0;'>{text_content}</pre><hr style='border-color:#f2ca50;'/><p style='color:#888;font-size:12px;'>kiltikonet.fr — CC2026</p></div>"
+    return await send_email_async(to_email, subject, html)
+
 async def send_email_with_attachment(to_email: str, subject: str, html_content: str, pdf_content: bytes, filename: str):
     """Send email with PDF attachment via Brevo HTTP API"""
     try:
@@ -1232,7 +1237,79 @@ async def stripe_webhook(request: Request):
                 }
                 await db.admin_notifications.insert_one({**notif})
                 await broadcast_event("admin_notification", notif, channels=["admin_notifications"])
-        
+
+            # --- OMEGA ACCREDITATION FLOW (from omega.py accreditation_pay) ---
+            elif metadata.get("accreditation_id"):
+                acc_id = metadata["accreditation_id"]
+                acc_doc = await db.accreditations_cc2026.find_one({"accreditation_id": acc_id}, {"_id": 0})
+                if acc_doc and acc_doc.get("statut") == "PAIEMENT_EN_COURS":
+                    await db.accreditations_cc2026.update_one(
+                        {"accreditation_id": acc_id},
+                        {"$set": {
+                            "statut": "SOUMISE",
+                            "etape": 4,
+                            "paiement_date": datetime.now(timezone.utc).isoformat(),
+                            "paiement_stripe_id": session_id,
+                        }}
+                    )
+                    logger.info(f"Omega accreditation payment confirmed: {acc_id}")
+
+                    # Mirror to Baserow
+                    try:
+                        from services.baserow_service import mirror_badge
+                        await mirror_badge({
+                            "prenom": acc_doc.get("prenom", ""),
+                            "nom": acc_doc.get("nom", ""),
+                            "badge_id": acc_id,
+                            "type_badge": acc_doc.get("type_accreditation", ""),
+                            "statut": "SOUMISE",
+                            "email": acc_doc.get("email", ""),
+                            "organisation": acc_doc.get("organisation", ""),
+                        })
+                    except Exception as br_err:
+                        logger.error(f"Baserow mirror on accreditation webhook: {br_err}")
+
+                    # Send Brevo confirmation email
+                    try:
+                        await _send_brevo_transactional(
+                            acc_doc.get("email", ""),
+                            f"Paiement confirme — Accreditation CC2026 ({acc_doc.get('type_label', '')})",
+                            f"Bonjour {acc_doc.get('prenom', '')},\n\nVotre paiement pour l'accreditation {acc_doc.get('type_label', '')} a ete confirme.\nVotre demande est en cours de validation par l'equipe.\n\nA bientot a CC2026 !\nkiltikonet.fr"
+                        )
+                    except Exception as mail_err:
+                        logger.error(f"Brevo email on accreditation webhook: {mail_err}")
+
+                    notif = {
+                        "category": "payment",
+                        "title": "Paiement accreditation CC2026",
+                        "message": f"{acc_doc.get('prenom', '')} {acc_doc.get('nom', '')} — {acc_doc.get('type_label', '')}",
+                        "session_id": session_id,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                    await db.admin_notifications.insert_one({**notif})
+
+            # --- JCC WALLET PACK (from omega.py shop checkout) ---
+            elif metadata.get("pack_id"):
+                pack_id = metadata["pack_id"]
+                buyer_email = metadata.get("email", "")
+                jetons = int(metadata.get("jetons", "0"))
+                if buyer_email and jetons > 0:
+                    await db.kn_wallets.update_one(
+                        {"email": buyer_email},
+                        {"$inc": {"balance_jcc": jetons}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}},
+                        upsert=True
+                    )
+                    logger.info(f"Wallet credited: {buyer_email} +{jetons} JCC (pack {pack_id})")
+
+        elif webhook_response.event_type == "payment_intent.payment_failed":
+            logger.warning(f"Payment failed: session={webhook_response.session_id}")
+            await db.audit_logs.insert_one({
+                "action_type": "PAYMENT_FAILED",
+                "session_id": webhook_response.session_id or "",
+                "metadata": webhook_response.metadata or {},
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+
         return {"status": "success", "event": webhook_response.event_type}
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")

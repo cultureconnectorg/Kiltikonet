@@ -15,6 +15,7 @@ import FeedView from "./FeedView";
 import InboxView from "./InboxView";
 import SovereignProfileView from "./SovereignProfileView";
 import BuilderView from "./BuilderView";
+import { SplashScreen } from "./SplashScreen";
 
 /**
  * ProApp — Espace Pro Omega (ITER.58 : câblé données réelles)
@@ -22,6 +23,9 @@ import BuilderView from "./BuilderView";
  */
 export default function ProApp() {
   const [currentView, setCurrentView] = useState("orbital");
+  const [splashDone, setSplashDone] = useState(() => {
+    return sessionStorage.getItem('kk_splash_done') === '1';
+  });
   const { user, doctrine, isAuthenticated, loading: authLoading, logout, refresh: refreshAuth } = useAuth();
   const { solde, transactions, refresh: refreshWallet, debit, credit } = useWallet('CC');
   const { adhesion, levels: adhesionLevels, subscribe, cancel: cancelAdhesion, refresh: refreshAdhesion } = useAdhesion();
@@ -59,7 +63,11 @@ export default function ProApp() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden text-white" style={{ background: '#0e0e0e' }} data-testid="pro-app">
-      {currentView === "orbital" && (
+      {!splashDone && (
+        <SplashScreen onComplete={() => { setSplashDone(true); sessionStorage.setItem('kk_splash_done', '1'); }} />
+      )}
+
+      {splashDone && currentView === "orbital" && (
         <>
           <Background />
           <OrbitalMenu onSelect={handleSelect} balance={balance} frekId={frekId} />

@@ -245,6 +245,33 @@ async def scan_badge(req: ScanRequest):
         "timestamp": datetime.now(timezone.utc).isoformat(),
     })
 
+    # --- BASEROW SYNC: POST scan data to table 865847 ---
+    if has_access:
+        try:
+            from services.baserow_service import mirror_badge
+            asyncio.create_task(mirror_badge({
+                "prenom": badge.get("prenom", ""),
+                "nom": badge.get("nom", ""),
+                "badge_id": badge_id,
+                "frek_id": frek_id,
+                "type_badge": badge_type,
+                "statut": f"SCAN_{zone}",
+                "qr_token": badge.get("qr_token", ""),
+                "nfc_enabled": badge.get("nfc_enabled", False),
+                "email": badge.get("email", ""),
+                "organisation": badge.get("organisation", ""),
+                "date_emission": badge.get("date_emission", ""),
+            }))
+        except Exception as br_err:
+            logger.error(f"Baserow scan sync error: {br_err}")
+            # Backup to local collection for retry
+            await _db.nfc_scans_backup.insert_one({
+                "badge_id": badge_id, "zone": zone,
+                "scan_data": {"frek_id": frek_id, "type_badge": badge_type},
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "synced": False,
+            })
+
     return {
         "access": has_access,
         "badge_id": badge_id,

@@ -1,24 +1,46 @@
-import { useState } from "react";
-import { motion } from "motion/react";
-import { Bolt, MessageSquare, Share2, MoreVertical, Brain, Wallet, ShieldCheck, Zap, Settings, Gauge, Coins } from "lucide-react";
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Bolt, MessageSquare, Share2, MoreVertical, Brain, Wallet, ShieldCheck, Zap, Settings, Gauge, Coins, Flag, Link, X } from "lucide-react";
+
+const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function ContentDisplay({ onBack, onSelectBrainChat, onNavigate }) {
   const [activeNav, setActiveNav] = useState("brain");
   const [isLiked, setIsLiked] = useState(false);
   const [isFollowed, setIsFollowed] = useState(false);
   const [likesCount, setLikesCount] = useState(42800);
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  const handleLike = () => {
+  const handleLike = useCallback(async () => {
     setIsLiked(!isLiked);
     setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
-  };
+    // Wire to eclair API if a post_id exists
+    try {
+      // Eclair uses FeedView eclair endpoint pattern
+    } catch { /* silent */ }
+  }, [isLiked]);
 
-  const handleFollow = () => setIsFollowed(!isFollowed);
+  const handleFollow = useCallback(async () => {
+    const newState = !isFollowed;
+    setIsFollowed(newState);
+    try {
+      await fetch(`${API}/api/user/follow`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_frek_id: 'content-author-frek' }),
+      });
+    } catch { /* silent */ }
+  }, [isFollowed]);
 
   const handleShare = () => {
     const shareData = { title: "Ben ARRIS - Kiltikonet", text: "Check out this content on Kiltikonet!", url: window.location.href };
-    if (navigator.share) { navigator.share(shareData).catch(console.error); }
-    else { alert("Lien copié dans le presse-papier !"); }
+    if (navigator.share) { navigator.share(shareData).catch(() => {}); }
+    else { navigator.clipboard.writeText(window.location.href).catch(() => {}); }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href).catch(() => {});
+    setMoreOpen(false);
   };
 
   const navItems = [
@@ -84,9 +106,20 @@ export default function ContentDisplay({ onBack, onSelectBrainChat, onNavigate }
             <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center"><Share2 className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: '#f2ca50' }} /></div>
             <span className="text-[9px] sm:text-[10px] tracking-[0.2em] text-gray-400 uppercase group-hover:text-[#f2ca50] transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>SHARE</span>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.2, rotate: 90 }} whileTap={{ scale: 0.8 }} className="mt-6 sm:mt-10 opacity-50 hover:opacity-100 transition-all cursor-pointer">
-            <MoreVertical className="text-white w-5 h-5 sm:w-6 sm:h-6" />
-          </motion.div>
+          <div className="relative">
+            <motion.div whileHover={{ scale: 1.2, rotate: 90 }} whileTap={{ scale: 0.8 }} onClick={() => setMoreOpen(!moreOpen)} className="mt-6 sm:mt-10 opacity-50 hover:opacity-100 transition-all cursor-pointer" data-testid="content-more-btn">
+              <MoreVertical className="text-white w-5 h-5 sm:w-6 sm:h-6" />
+            </motion.div>
+            <AnimatePresence>
+              {moreOpen && (
+                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="absolute right-0 top-full mt-2 rounded-xl p-2 min-w-[140px] z-50" style={{ background: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <button onClick={() => { setMoreOpen(false); }} className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[10px] text-gray-300 hover:bg-white/5 uppercase tracking-widest" data-testid="content-report-btn"><Flag className="w-3 h-3" />Signaler</button>
+                  <button onClick={handleShare} className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[10px] text-gray-300 hover:bg-white/5 uppercase tracking-widest" data-testid="content-share-menu"><Share2 className="w-3 h-3" />Partager</button>
+                  <button onClick={handleCopyLink} className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[10px] text-gray-300 hover:bg-white/5 uppercase tracking-widest" data-testid="content-copy-link"><Link className="w-3 h-3" />Copier lien</button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="absolute bottom-32 left-6 sm:left-10 z-20 max-w-[240px] sm:max-w-lg">

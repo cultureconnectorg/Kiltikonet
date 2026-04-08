@@ -42,19 +42,43 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
     } catch (e) {} finally { setIsTopUpLoading(false); }
   };
 
-  const handleSend = () => {
-    const amount = parseFloat(sendAmount);
+  const handleSend = async () => {
+    const amount = parseInt(sendAmount);
     if (amount > 0 && amount <= balance && sendAddress) {
-      addTransaction({ type: "send", label: `Envoi vers ${sendAddress.slice(0, 6)}...`, amount: `-${amount} JCC` });
-      setActiveModal(null); setSendAmount(""); setSendAddress("");
+      try {
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wallet/transfer`, {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ destinataire_frek_id: sendAddress, montant: amount, type_jeton: 'JCC' }),
+        });
+        if (r.ok) {
+          addTransaction({ type: "send", label: `Envoi vers ${sendAddress.slice(0, 8)}...`, amount: `-${amount} JCC` });
+          setActiveModal(null); setSendAmount(""); setSendAddress("");
+        } else {
+          const err = await r.json().catch(() => ({}));
+          alert(err.detail || 'Erreur lors du transfert');
+        }
+      } catch { alert('Erreur réseau'); }
     }
   };
 
-  const handleSwap = () => {
-    const amount = parseFloat(swapAmount);
+  const handleSwap = async () => {
+    const amount = parseInt(swapAmount);
     if (amount > 0 && amount <= balance) {
-      addTransaction({ type: "send", label: "Swap JCC -> EUR", amount: `-${amount} JCC` });
-      setActiveModal(null); setSwapAmount("");
+      try {
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wallet/swap`, {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ montant: amount, direction: 'JCC_TO_KT' }),
+        });
+        if (r.ok) {
+          addTransaction({ type: "send", label: `Swap ${amount} JCC -> KT`, amount: `-${amount} JCC` });
+          setActiveModal(null); setSwapAmount("");
+        } else {
+          const err = await r.json().catch(() => ({}));
+          alert(err.detail || 'Erreur lors du swap');
+        }
+      } catch { alert('Erreur réseau'); }
     }
   };
 

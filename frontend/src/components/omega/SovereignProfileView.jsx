@@ -20,6 +20,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
   const [editLang, setEditLang] = useState("fr");
   const [editNotifEmail, setEditNotifEmail] = useState(true);
   const [editNotifPush, setEditNotifPush] = useState(false);
+  const [editNotifSound, setEditNotifSound] = useState(() => localStorage.getItem('kk_notif_sound') === 'true');
   const [editProfilePublic, setEditProfilePublic] = useState(true);
 
   const userName = auth?.userName || 'Souverain';
@@ -236,6 +237,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
               <div className="space-y-3">
                 <ToggleItem label="Notifications par email" value={editNotifEmail} onChange={setEditNotifEmail} testId="notif-email" />
                 <ToggleItem label="Notifications push" value={editNotifPush} onChange={setEditNotifPush} testId="notif-push" />
+                <ToggleItem label="Sons de notification" value={editNotifSound} onChange={(v) => { setEditNotifSound(v); localStorage.setItem('kk_notif_sound', v ? 'true' : 'false'); }} testId="notif-sound" />
                 <motion.button whileTap={{ scale: 0.95 }} onClick={savePreferences} disabled={saving} className="w-full py-3 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: saving ? '#333' : '#f2ca50', color: 'black' }} data-testid="save-notif-btn">
                   {saving ? 'Sauvegarde...' : 'Sauvegarder'}
                 </motion.button>

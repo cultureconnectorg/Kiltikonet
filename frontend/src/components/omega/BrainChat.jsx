@@ -1,18 +1,25 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe } from "lucide-react";
+import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useBrain } from "../../hooks/useBrain";
 
+const API = process.env.REACT_APP_BACKEND_URL;
+
 export default function BrainChat({ onBack, onSelect, balance, auth }) {
   const { messages: brainMessages, isThinking, error, send, reset, sessionId } = useBrain();
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [useWeb, setUseWeb] = useState(false);
+  const [layoutMode, setLayoutMode] = useState("default"); // default | split
+  const [sessions, setSessions] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [copiedId, setCopiedId] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Transform brain messages for display
   const messages = brainMessages.map((m, i) => ({
@@ -23,12 +30,29 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
     meta: m.meta,
   }));
 
-  const history = [
-    { id: "h1", title: "Session actuelle", date: "Maintenant" },
-  ];
+  // Load brain sessions & activity
+  useEffect(() => {
+    fetch(`${API}/api/brain/sessions`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : { sessions: [] })
+      .then(d => setSessions(d.sessions || []))
+      .catch(() => {});
+    fetch(`${API}/api/brain/activity`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : { activity: [] })
+      .then(d => setActivity(d.activity || []))
+      .catch(() => {});
+  }, []);
 
   const scrollToBottom = () => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); };
   useEffect(() => { scrollToBottom(); }, [messages, isThinking]);
+
+  // Copy code to clipboard (#19)
+  const copyCode = useCallback(async (text, blockId) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(blockId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch { /* silent */ }
+  }, []);
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || isThinking) return;
@@ -55,21 +79,42 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
               </button>
               <div className="flex-1 overflow-y-auto space-y-1">
                 <div className="text-[10px] text-gray-500 uppercase tracking-widest px-3 mb-2">Historique</div>
-                {history.map((item) => (
-                  <button key={item.id} className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-all text-left group">
+                <button key="current" className="flex items-center gap-3 w-full p-3 rounded-lg bg-white/5 text-left group" data-testid="brain-session-current">
+                  <MessageSquare className="w-4 h-4 text-[#f2ca50] transition-colors" />
+                  <div className="flex-1 truncate">
+                    <div className="text-xs text-gray-300 truncate">Session actuelle</div>
+                    <div className="text-[8px] text-gray-600 uppercase mt-0.5">Maintenant</div>
+                  </div>
+                </button>
+                {sessions.map((s) => (
+                  <button key={s.session_id || s.id} onClick={() => { /* Load session via reset + reload */ }} className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-all text-left group" data-testid={`brain-session-${s.session_id || s.id}`}>
                     <MessageSquare className="w-4 h-4 text-gray-600 group-hover:text-[#f2ca50] transition-colors" />
                     <div className="flex-1 truncate">
-                      <div className="text-xs text-gray-300 truncate">{item.title}</div>
-                      <div className="text-[8px] text-gray-600 uppercase mt-0.5">{item.date}</div>
+                      <div className="text-xs text-gray-300 truncate">{s.title || s.session_id || 'Session'}</div>
+                      <div className="text-[8px] text-gray-600 uppercase mt-0.5">{s.updated_at ? new Date(s.updated_at).toLocaleDateString('fr') : ''}</div>
                     </div>
                   </button>
                 ))}
               </div>
               <div className="mt-auto pt-4 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-all text-left">
+                <button onClick={() => {
+                  fetch(`${API}/api/brain/activity`, { credentials: 'include' })
+                    .then(r => r.ok ? r.json() : { activity: [] })
+                    .then(d => setActivity(d.activity || []))
+                    .catch(() => {});
+                }} className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-all text-left" data-testid="brain-activity-btn">
                   <History className="w-4 h-4 text-gray-500" />
-                  <span className="text-xs text-gray-400">Activité Récente</span>
+                  <span className="text-xs text-gray-400">Activité Récente {activity.length > 0 ? `(${activity.length})` : ''}</span>
                 </button>
+                {activity.length > 0 && (
+                  <div className="space-y-1 pl-2 max-h-32 overflow-y-auto">
+                    {activity.slice(0, 5).map((a, i) => (
+                      <div key={i} className="text-[9px] text-gray-600 truncate px-3 py-1">
+                        {a.metadata?.query?.slice(0, 40) || a.action_type || 'Requête'} — {a.timestamp ? new Date(a.timestamp).toLocaleTimeString('fr') : ''}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="p-3 rounded-xl" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[8px] uppercase tracking-widest" style={{ color: '#f2ca50' }}>Plan Pro</span>
@@ -125,7 +170,9 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
                             return !inline && match ? (
                               <div className="relative group my-4">
                                 <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button className="p-1.5 bg-white/10 hover:bg-white/20 rounded-md text-gray-400"><Copy className="w-3 h-3" /></button>
+                                  <button onClick={() => copyCode(String(children).replace(/\n$/, ""), `code-${props.key || Math.random()}`)} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-md text-gray-400" data-testid="brain-copy-code">
+                                    {copiedId === `code-${props.key || ''}` ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                  </button>
                                 </div>
                                 <SyntaxHighlighter style={atomDark} language={match[1]} PreTag="div" className="rounded-xl !bg-black/40 !border !border-white/10 !p-4" {...props}>
                                   {String(children).replace(/\n$/, "")}
@@ -170,9 +217,10 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
               <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())} placeholder="Posez une question au CVL Brain..." className="w-full bg-transparent border-none outline-none px-4 py-3 text-sm text-white placeholder-gray-600 resize-none min-h-[60px] max-h-48" />
               <div className="flex items-center justify-between px-2 pb-1">
                 <div className="flex items-center gap-1">
-                  <button className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-all"><Paperclip className="w-4 h-4" /></button>
-                  <button className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-all"><Globe className="w-4 h-4" /></button>
-                  <button className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-all"><Layout className="w-4 h-4" /></button>
+                  <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) { setInput(prev => prev + `\n[Fichier: ${e.target.files[0].name}]`); } }} />
+                  <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 transition-all" title="Joindre un fichier" data-testid="brain-attach-btn"><Paperclip className="w-4 h-4" /></button>
+                  <button onClick={() => setUseWeb(!useWeb)} className={`p-2 rounded-lg transition-all ${useWeb ? 'bg-[rgba(242,202,80,0.15)] text-[#f2ca50]' : 'hover:bg-white/5 text-gray-500'}`} title={useWeb ? 'Recherche web activée' : 'Activer recherche web'} data-testid="brain-web-toggle"><Globe className="w-4 h-4" /></button>
+                  <button onClick={() => setLayoutMode(layoutMode === 'default' ? 'split' : 'default')} className={`p-2 rounded-lg transition-all ${layoutMode === 'split' ? 'bg-[rgba(242,202,80,0.15)] text-[#f2ca50]' : 'hover:bg-white/5 text-gray-500'}`} title="Changer le layout" data-testid="brain-layout-toggle"><Layout className="w-4 h-4" /></button>
                 </div>
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleSend} disabled={!input.trim() || isThinking}
                   className="p-2.5 rounded-xl transition-all"

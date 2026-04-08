@@ -43,6 +43,9 @@ VALID_ACTION_TYPES = [
     "SHOP_PURCHASE", "ADHESION_SUBSCRIBE", "GOUVERNANCE_VOTE",
     "TERMINAL_DEPLOY", "NFC_SCAN", "BADGE_EMIT", "BADGE_SCAN",
     "SETTINGS_UPDATE", "AUTH_LOGIN", "AUTH_LOGOUT",
+    "WALLET_TRANSFER", "WALLET_SWAP", "USER_FOLLOW", "USER_UNFOLLOW",
+    "BUILDER_SAVE", "BUILDER_PUBLISH", "FREK_WORKSHOP_SUBMIT",
+    "ACCREDITATION_PAYMENT", "PAYMENT_FAILED",
 ]
 
 
@@ -982,7 +985,7 @@ async def delete_user_account(request: Request):
     # Anonymise badges
     await _db.cc_badges.update_many(
         {"email": email},
-        {"$set": {"prenom": "SUPPRIME", "nom": "SUPPRIME", "email": f"deleted@supprime.local"}}
+        {"$set": {"prenom": "SUPPRIME", "nom": "SUPPRIME", "email": "deleted@supprime.local"}}
     )
 
     # Mark FREK-ID as deleted (keep in audit_logs)
@@ -1915,3 +1918,543 @@ async def mark_badge_printed(accreditation_id: str):
         {"$set": {"badge_imprime": True, "etape": 7, "statut": "IMPRIMEE"}}
     )
     return {"success": True, "etape": 7}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — EXPORT CSV TWINA (P0.3)
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/api/admin/badges/export-csv")
+async def export_badges_csv(statut: str = None, type_badge: str = None):
+    """Export badges CSV UTF-8 BOM pour Twina. Admin uniquement."""
+    import csv as _csv
+    import io as _io
+
+    query = {}
+    if statut:
+        query["statut"] = statut
+    if type_badge:
+        query["type_badge"] = type_badge
+
+    badges = await _db.cc_badges.find(query, {"_id": 0}).sort("date_emission", -1).to_list(5000)
+
+    buf = _io.StringIO()
+    buf.write("\ufeff")  # BOM for Excel
+    writer = _csv.writer(buf, delimiter=";")
+    writer.writerow(["badge_id", "frek_id", "prenom", "nom", "organisation",
+                      "type_badge", "statut", "qr_token", "nfc_enabled",
+                      "date_emission", "email"])
+    for b in badges:
+        writer.writerow([
+            b.get("badge_id", ""), b.get("frek_id", ""),
+            b.get("prenom", ""), b.get("nom", ""),
+            b.get("organisation", ""), b.get("type_badge", ""),
+            b.get("statut", ""), b.get("qr_token", ""),
+            str(b.get("nfc_enabled", False)), b.get("date_emission", ""),
+            b.get("email", ""),
+        ])
+
+    from fastapi.responses import StreamingResponse as _SR
+    return _SR(
+        _io.BytesIO(buf.getvalue().encode("utf-8")),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": "attachment; filename=badges_cc2026_twina.csv"},
+    )
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — WALLET TRANSFER & SWAP (Boutons #38 #39)
+# ═══════════════════════════════════════════════════════════════
+
+class WalletTransferRequest(BaseModel):
+    destinataire_frek_id: str
+    montant: int
+    type_jeton: str = "KT"
+
+@router.post("/api/wallet/transfer")
+async def wallet_transfer(request: Request, body: WalletTransferRequest):
+    """Transfert JCC/KT entre wallets. Debit envoyeur, credit destinataire."""
+    email = _get_session_email(request)
+    sender_frek_id = await _get_user_frek_id(email)
+
+    if body.montant <= 0:
+        raise HTTPException(400, "Montant invalide")
+
+    field = "balance_kt" if body.type_jeton == "KT" else "balance_jcc"
+
+    sender_wallet = await _db.kn_wallets.find_one({"email": email}, {"_id": 0})
+    if not sender_wallet or sender_wallet.get(field, 0) < body.montant:
+        raise HTTPException(400, f"Solde {body.type_jeton} insuffisant")
+
+    # Find recipient by frek_id
+    recipient = await _db.users.find_one({"frek_id": body.destinataire_frek_id}, {"_id": 0, "email": 1})
+    if not recipient:
+        raise HTTPException(404, "Destinataire introuvable")
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Debit sender
+    await _db.kn_wallets.update_one(
+        {"email": email},
+        {"$inc": {field: -body.montant}, "$set": {"updated_at": now}}
+    )
+    # Credit recipient
+    await _db.kn_wallets.update_one(
+        {"email": recipient["email"]},
+        {"$inc": {field: body.montant}, "$set": {"updated_at": now}},
+        upsert=True
+    )
+
+    # Log both sides
+    tx_id = str(uuid.uuid4())[:8]
+    for side, frek, action in [
+        ("debit", sender_frek_id, "WALLET_DEBIT"),
+        ("credit", body.destinataire_frek_id, "WALLET_CREDIT"),
+    ]:
+        await write_audit_log(frek, action, tx_id, "wallet", {
+            "montant": body.montant, "type_jeton": body.type_jeton,
+            "from": sender_frek_id, "to": body.destinataire_frek_id,
+        })
+
+    return {"success": True, "tx_id": tx_id, "montant": body.montant, "type": body.type_jeton}
+
+
+class WalletSwapRequest(BaseModel):
+    montant: int
+    direction: str = "KT_TO_JCC"  # or "JCC_TO_KT"
+
+@router.post("/api/wallet/swap")
+async def wallet_swap(request: Request, body: WalletSwapRequest):
+    """Conversion KT <-> JCC. Taux 1:1."""
+    email = _get_session_email(request)
+
+    if body.montant <= 0:
+        raise HTTPException(400, "Montant invalide")
+
+    if body.direction == "KT_TO_JCC":
+        from_field, to_field = "balance_kt", "balance_jcc"
+    else:
+        from_field, to_field = "balance_jcc", "balance_kt"
+
+    wallet = await _db.kn_wallets.find_one({"email": email}, {"_id": 0})
+    if not wallet or wallet.get(from_field, 0) < body.montant:
+        raise HTTPException(400, "Solde insuffisant pour le swap")
+
+    now = datetime.now(timezone.utc).isoformat()
+    await _db.kn_wallets.update_one(
+        {"email": email},
+        {"$inc": {from_field: -body.montant, to_field: body.montant}, "$set": {"updated_at": now}}
+    )
+
+    frek_id = await _get_user_frek_id(email)
+    await write_audit_log(frek_id, "WALLET_SWAP", "", "wallet", {
+        "montant": body.montant, "direction": body.direction,
+    })
+
+    return {"success": True, "montant": body.montant, "direction": body.direction}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — BUILDER CRUD (Boutons #92-#112)
+# ═══════════════════════════════════════════════════════════════
+
+class BuilderProjectCreate(BaseModel):
+    titre: str = "Sans titre"
+    description: str = ""
+
+class BuilderProjectUpdate(BaseModel):
+    titre: str = ""
+    description: str = ""
+    media_url: str = ""
+
+class BuilderPublishRequest(BaseModel):
+    project_id: str
+    canal: str = "feed"  # feed | pro | shop
+
+@router.get("/api/builder/projects")
+async def list_builder_projects(request: Request):
+    """Liste les projets du builder."""
+    email = _get_session_email(request)
+    projects = await _db.builder_projects.find({"email": email}, {"_id": 0}).sort("updated_at", -1).to_list(50)
+    return {"projects": projects}
+
+@router.post("/api/builder/projects")
+async def create_builder_project(request: Request, body: BuilderProjectCreate):
+    """Creer un nouveau projet builder."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+    project_id = f"PRJ-{str(uuid.uuid4())[:8].upper()}"
+    now = datetime.now(timezone.utc).isoformat()
+
+    doc = {
+        "project_id": project_id,
+        "email": email,
+        "frek_id": frek_id,
+        "titre": body.titre,
+        "description": body.description,
+        "media_url": "",
+        "status": "draft",
+        "canal": None,
+        "published": False,
+        "frek_certified": False,
+        "created_at": now,
+        "updated_at": now,
+    }
+    await _db.builder_projects.insert_one(doc)
+    await write_audit_log(frek_id, "BUILDER_SAVE", project_id, "builder")
+
+    return {k: v for k, v in doc.items() if k != "_id"}
+
+@router.put("/api/builder/projects/{project_id}")
+async def update_builder_project(project_id: str, request: Request, body: BuilderProjectUpdate):
+    """Sauvegarder un projet builder."""
+    email = _get_session_email(request)
+    update = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    if body.titre:
+        update["titre"] = body.titre
+    if body.description:
+        update["description"] = body.description
+    if body.media_url:
+        update["media_url"] = body.media_url
+
+    result = await _db.builder_projects.update_one(
+        {"project_id": project_id, "email": email},
+        {"$set": update}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "Projet introuvable")
+    return {"success": True, "project_id": project_id}
+
+@router.post("/api/builder/publish")
+async def publish_builder_project(request: Request, body: BuilderPublishRequest):
+    """Publier un projet sur un canal (feed, pro, shop)."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    project = await _db.builder_projects.find_one(
+        {"project_id": body.project_id, "email": email}, {"_id": 0}
+    )
+    if not project:
+        raise HTTPException(404, "Projet introuvable")
+
+    now = datetime.now(timezone.utc).isoformat()
+    await _db.builder_projects.update_one(
+        {"project_id": body.project_id},
+        {"$set": {"published": True, "canal": body.canal, "published_at": now, "updated_at": now}}
+    )
+
+    # If canal == feed, create a feed post
+    if body.canal == "feed":
+        post_id = f"post-{str(uuid.uuid4())[:8]}"
+        user = await _db.users.find_one({"email": email}, {"_id": 0})
+        display = user.get("full_name", email.split("@")[0]) if user else email.split("@")[0]
+        await _db.feed_posts.insert_one({
+            "post_id": post_id,
+            "auteur_frek_id": frek_id,
+            "auteur_display": display,
+            "contenu": f"{project.get('titre', '')}\n\n{project.get('description', '')}",
+            "media_url": project.get("media_url", ""),
+            "tags": ["builder", "creation"],
+            "eclairs": 0,
+            "commentaires_count": 0,
+            "created_at": now,
+        })
+
+    await write_audit_log(frek_id, "BUILDER_PUBLISH", body.project_id, "builder", {"canal": body.canal})
+    return {"success": True, "canal": body.canal, "project_id": body.project_id}
+
+@router.get("/api/builder/analytics")
+async def builder_analytics(request: Request):
+    """Stats du builder basees sur audit_logs."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    projects = await _db.builder_projects.count_documents({"email": email})
+    published = await _db.builder_projects.count_documents({"email": email, "published": True})
+    posts = await _db.feed_posts.count_documents({"auteur_frek_id": frek_id})
+
+    # Count eclairs received
+    pipeline = [
+        {"$match": {"auteur_frek_id": frek_id}},
+        {"$group": {"_id": None, "total_eclairs": {"$sum": "$eclairs"}}},
+    ]
+    eclair_result = await _db.feed_posts.aggregate(pipeline).to_list(1)
+    total_eclairs = eclair_result[0]["total_eclairs"] if eclair_result else 0
+
+    return {
+        "projects": projects,
+        "published": published,
+        "posts": posts,
+        "eclairs_recus": total_eclairs,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — FREK WORKSHOP SUBMIT (Bouton #107)
+# ═══════════════════════════════════════════════════════════════
+
+class FrekCertifyRequest(BaseModel):
+    project_id: str
+
+@router.post("/api/frek/certify")
+async def frek_certify_project(request: Request, body: FrekCertifyRequest):
+    """Soumettre un projet au Workshop FREK pour certification Genesis."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    project = await _db.builder_projects.find_one(
+        {"project_id": body.project_id, "email": email}, {"_id": 0}
+    )
+    if not project:
+        raise HTTPException(404, "Projet introuvable")
+
+    now = datetime.now(timezone.utc).isoformat()
+    cert_id = f"FREK-{str(uuid.uuid4())[:8].upper()}"
+
+    await _db.frek_certifications.insert_one({
+        "cert_id": cert_id,
+        "project_id": body.project_id,
+        "frek_id": frek_id,
+        "email": email,
+        "titre": project.get("titre", ""),
+        "status": "GENESIS",
+        "submitted_at": now,
+    })
+
+    await _db.builder_projects.update_one(
+        {"project_id": body.project_id},
+        {"$set": {"frek_certified": True, "frek_cert_id": cert_id, "updated_at": now}}
+    )
+
+    await write_audit_log(frek_id, "FREK_WORKSHOP_SUBMIT", cert_id, "frek", {"project_id": body.project_id})
+    return {"success": True, "cert_id": cert_id, "status": "GENESIS"}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — USER FOLLOW (Bouton #142)
+# ═══════════════════════════════════════════════════════════════
+
+class FollowRequest(BaseModel):
+    target_frek_id: str
+
+@router.post("/api/user/follow")
+async def toggle_follow(request: Request, body: FollowRequest):
+    """Toggle follow/unfollow un utilisateur."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    if frek_id == body.target_frek_id:
+        raise HTTPException(400, "Cannot follow yourself")
+
+    existing = await _db.user_follows.find_one(
+        {"follower": frek_id, "following": body.target_frek_id}
+    )
+
+    if existing:
+        await _db.user_follows.delete_one({"follower": frek_id, "following": body.target_frek_id})
+        action = "USER_UNFOLLOW"
+        following = False
+    else:
+        await _db.user_follows.insert_one({
+            "follower": frek_id,
+            "following": body.target_frek_id,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        action = "USER_FOLLOW"
+        following = True
+
+    await write_audit_log(frek_id, action, body.target_frek_id, "social")
+    return {"success": True, "following": following}
+
+@router.get("/api/user/following")
+async def get_following(request: Request):
+    """Liste des frek_id suivis."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+    docs = await _db.user_follows.find({"follower": frek_id}, {"_id": 0, "following": 1}).to_list(500)
+    return {"following": [d["following"] for d in docs]}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — BRAIN SESSIONS (Boutons #13 #14)
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/api/brain/sessions")
+async def list_brain_sessions(request: Request):
+    """Liste les sessions Brain de l'utilisateur."""
+    email = _get_session_email(request)
+    sessions = await _db.brain_sessions.find(
+        {"email": email}, {"_id": 0}
+    ).sort("updated_at", -1).to_list(50)
+    return {"sessions": sessions}
+
+@router.get("/api/brain/activity")
+async def brain_recent_activity(request: Request):
+    """Activite recente du Brain (dernieres requetes)."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+    logs = await _db.audit_logs.find(
+        {"user_frek_id": frek_id, "action_type": "BRAIN_QUERY"},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(10)
+    return {"activity": logs}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — FREKVIEW / CULTURAL IMPACT SCORE
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/api/frek/profile/{frek_id}")
+async def get_frek_profile(frek_id: str):
+    """Profil FREK avec Cultural Impact Score."""
+    user = await _db.users.find_one({"frek_id": frek_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(404, "Utilisateur introuvable")
+
+    # Compute score
+    eclairs_pipeline = [
+        {"$match": {"auteur_frek_id": frek_id}},
+        {"$group": {"_id": None, "total": {"$sum": "$eclairs"}}},
+    ]
+    eclair_res = await _db.feed_posts.aggregate(eclairs_pipeline).to_list(1)
+    eclairs = eclair_res[0]["total"] if eclair_res else 0
+
+    posts = await _db.feed_posts.count_documents({"auteur_frek_id": frek_id})
+    certifications = await _db.frek_certifications.count_documents({"frek_id": frek_id})
+
+    # Days since creation
+    created = user.get("created_at", "")
+    days = 0
+    if created:
+        try:
+            dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+            days = (datetime.now(timezone.utc) - dt).days
+        except Exception:
+            days = 0
+
+    score = (eclairs * 2) + (posts * 5) + (certifications * 20) + int(days * 0.1)
+
+    if score >= 600:
+        niveau = "PILIER"
+    elif score >= 300:
+        niveau = "INFLUENT"
+    elif score >= 100:
+        niveau = "ACTIF"
+    else:
+        niveau = "EMERGENT"
+
+    # Badge CC2026 linked
+    badge = await _db.cc_badges.find_one({"email": user.get("email", "")}, {"_id": 0})
+
+    return {
+        "frek_id": frek_id,
+        "display_name": user.get("full_name", ""),
+        "email": user.get("email", ""),
+        "score": score,
+        "niveau": niveau,
+        "eclairs_recus": eclairs,
+        "posts": posts,
+        "certifications": certifications,
+        "jours_actifs": days,
+        "badge_cc2026": badge.get("badge_id") if badge else None,
+        "created_at": created,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITER.59 — TRADE PEER-TO-PEER
+# ═══════════════════════════════════════════════════════════════
+
+class TradeOfferRequest(BaseModel):
+    type_jeton: str = "KT"
+    montant: int
+    prix_unitaire_jcc: float = 1.0
+    description: str = ""
+
+@router.post("/api/trade/offer")
+async def create_trade_offer(request: Request, body: TradeOfferRequest):
+    """Creer une offre de trade P2P."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    if body.montant <= 0:
+        raise HTTPException(400, "Montant invalide")
+
+    wallet = await _db.kn_wallets.find_one({"email": email}, {"_id": 0})
+    field = "balance_kt" if body.type_jeton == "KT" else "balance_jcc"
+    if not wallet or wallet.get(field, 0) < body.montant:
+        raise HTTPException(400, "Solde insuffisant")
+
+    offer_id = f"TRD-{str(uuid.uuid4())[:8].upper()}"
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Lock funds
+    await _db.kn_wallets.update_one({"email": email}, {"$inc": {field: -body.montant}})
+
+    doc = {
+        "offer_id": offer_id,
+        "seller_frek_id": frek_id,
+        "seller_email": email,
+        "type_jeton": body.type_jeton,
+        "montant": body.montant,
+        "prix_unitaire_jcc": body.prix_unitaire_jcc,
+        "description": body.description,
+        "status": "open",
+        "created_at": now,
+    }
+    await _db.trade_offers.insert_one(doc)
+    await write_audit_log(frek_id, "TRADE_ORDER", offer_id, "trade", {"action": "create"})
+
+    return {k: v for k, v in doc.items() if k != "_id"}
+
+@router.get("/api/trade/offers")
+async def list_trade_offers():
+    """Liste les offres de trade ouvertes."""
+    offers = await _db.trade_offers.find({"status": "open"}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"offers": offers}
+
+@router.post("/api/trade/accept/{offer_id}")
+async def accept_trade(offer_id: str, request: Request):
+    """Accepter une offre de trade. Debit acheteur JCC, credit vendeur JCC, transfert jetons."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+
+    offer = await _db.trade_offers.find_one({"offer_id": offer_id, "status": "open"}, {"_id": 0})
+    if not offer:
+        raise HTTPException(404, "Offre introuvable ou deja acceptee")
+
+    if offer["seller_email"] == email:
+        raise HTTPException(400, "Impossible d'accepter sa propre offre")
+
+    total_jcc = int(offer["montant"] * offer["prix_unitaire_jcc"])
+    buyer_wallet = await _db.kn_wallets.find_one({"email": email}, {"_id": 0})
+    if not buyer_wallet or buyer_wallet.get("balance_jcc", 0) < total_jcc:
+        raise HTTPException(400, f"Solde JCC insuffisant ({total_jcc} requis)")
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Debit buyer JCC
+    await _db.kn_wallets.update_one({"email": email}, {"$inc": {"balance_jcc": -total_jcc}})
+    # Credit seller JCC
+    await _db.kn_wallets.update_one(
+        {"email": offer["seller_email"]},
+        {"$inc": {"balance_jcc": total_jcc}},
+        upsert=True
+    )
+    # Credit buyer with traded tokens
+    field = "balance_kt" if offer["type_jeton"] == "KT" else "balance_jcc"
+    await _db.kn_wallets.update_one(
+        {"email": email},
+        {"$inc": {field: offer["montant"]}},
+        upsert=True
+    )
+
+    # Mark offer as completed
+    await _db.trade_offers.update_one(
+        {"offer_id": offer_id},
+        {"$set": {"status": "completed", "buyer_frek_id": frek_id, "completed_at": now}}
+    )
+
+    await write_audit_log(frek_id, "TRADE_ORDER", offer_id, "trade", {"action": "accept"})
+    return {"success": True, "offer_id": offer_id, "total_jcc": total_jcc}
+
