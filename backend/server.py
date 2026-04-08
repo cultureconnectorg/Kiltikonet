@@ -9743,3 +9743,24 @@ async def smart_engine_cron_check(request: Request):
 
 # Brain web-search, chat-enriched, memory — extracted to /routes/omega.py
 
+
+
+# ═══════════════════════════════════════════════════════════════
+# ANALYTICS TRACKING
+# ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/analytics/track")
+async def track_analytics_event(request: Request, data: dict):
+    """Track frontend analytics events (PWA install, etc.)."""
+    event_type = data.get("event_type", "unknown")
+    now = datetime.now(timezone.utc).isoformat()
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "")
+    await db.analytics_events.insert_one({
+        "event_type": event_type,
+        "timestamp": now,
+        "ip": ip,
+        "user_agent": ua,
+        "metadata": {k: v for k, v in data.items() if k != "event_type"},
+    })
+    return {"tracked": True}

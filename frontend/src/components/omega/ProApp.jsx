@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useWallet } from "../../hooks/useWallet";
 import { useAdhesion } from "../../hooks/useAdhesion";
@@ -17,6 +17,7 @@ import InboxView from "./InboxView";
 import SovereignProfileView from "./SovereignProfileView";
 import BuilderView from "./BuilderView";
 import { SplashScreen } from "./SplashScreen";
+import { Download, X } from "lucide-react";
 
 /**
  * ProApp — Espace Pro Omega (ITER.58 : câblé données réelles)
@@ -87,6 +88,39 @@ export default function ProApp() {
 
   // Auth context passed to child components
   const authCtx = { user, frekId, userName, adhesionLevel, isAuthenticated, doctrine, logout, refreshAuth };
+
+  // PWA Install prompt
+  const deferredPromptRef = useRef(null);
+  const [showPwaPrompt, setShowPwaPrompt] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      deferredPromptRef.current = e;
+      const dismissed = localStorage.getItem('kk_pwa_dismissed');
+      if (!dismissed) setShowPwaPrompt(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallPwa = async () => {
+    const prompt = deferredPromptRef.current;
+    if (!prompt) return;
+    prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    if (outcome === 'accepted') {
+      const API = process.env.REACT_APP_BACKEND_URL;
+      fetch(`${API}/api/analytics/track`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event_type: 'pwa_install' }) }).catch(() => {});
+    }
+    deferredPromptRef.current = null;
+    setShowPwaPrompt(false);
+  };
+
+  const dismissPwaPrompt = () => {
+    setShowPwaPrompt(false);
+    localStorage.setItem('kk_pwa_dismissed', '1');
+  };
 
   // Get welcome data from session
   const sessionData = (() => {
@@ -192,6 +226,35 @@ export default function ProApp() {
                 Explorer l'Espace Pro
               </motion.button>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PWA Install Prompt */}
+      <AnimatePresence>
+        {showPwaPrompt && splashDone && !showWelcome && (
+          <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-4 right-4 z-[9998] max-w-md mx-auto"
+            data-testid="pwa-install-prompt">
+            <div className="rounded-2xl p-5 flex items-center gap-4" style={{ background: '#1a1a1c', border: '1px solid rgba(242,202,80,0.3)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ background: 'rgba(242,202,80,0.1)', border: '1px solid rgba(242,202,80,0.2)' }}>
+                <img src="/logo-kiltikonet.png" alt="" className="w-8 h-8 object-contain" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold text-white">Installer Kiltikonet</div>
+                <div className="text-[10px] text-gray-500 mt-0.5">Acces rapide depuis ton ecran d'accueil</div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <motion.button whileTap={{ scale: 0.9 }} onClick={handleInstallPwa}
+                  className="px-4 py-2 rounded-xl text-[10px] font-bold tracking-widest uppercase"
+                  style={{ background: '#f2ca50', color: '#0a0a0b' }} data-testid="pwa-install-btn">
+                  <Download className="w-3.5 h-3.5" />
+                </motion.button>
+                <button onClick={dismissPwaPrompt} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500" data-testid="pwa-dismiss-btn">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

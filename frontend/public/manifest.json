@@ -1,19 +1,21 @@
 {
-  "short_name": "CultureConnect",
-  "name": "Culture Connect Pro",
-  "description": "Espace professionnel - Culture Connect 2026 Martinique",
+  "short_name": "Kiltikonet",
+  "name": "Kiltikonet - Espace Pro CC2026",
+  "description": "Plateforme culturelle souveraine - Culture Connect 2026 Martinique",
   "icons": [
     {
-      "src": "/icon-512.png",
+      "src": "/logo-kiltikonet.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/espace-pro",
+  "start_url": "/pro",
   "background_color": "#0a0a0b",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",
-  "theme_color": "#214F4B"
+  "theme_color": "#f2ca50",
+  "categories": ["entertainment", "social"],
+  "lang": "fr"
 }
