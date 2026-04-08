@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Wallet, Zap, Wrench, Gauge, ShoppingCart, MessageSquare, Coins } from "lucide-react";
+import { Wallet, Zap, Wrench, Gauge, ShoppingCart, MessageSquare, Coins, CalendarDays } from "lucide-react";
 
 export default function OrbitalMenu({ onSelect, balance, frekId }) {
   const menuItems = [
@@ -9,6 +9,7 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
     { id: "inbox", label: "INBOX", icon: MessageSquare, pos: "top-1/2 right-0 translate-x-[20px] -translate-y-1/2" },
     { id: "build", label: "BUILD", icon: Wrench, pos: "bottom-0 left-0 translate-x-[40px] -translate-y-[40px]" },
     { id: "cockpit", label: "COCKPIT", icon: Gauge, pos: "bottom-0 right-0 -translate-x-[40px] -translate-y-[40px]" },
+    { id: "agenda", label: "AGENDA", icon: CalendarDays, pos: "top-0 left-1/2 -translate-x-1/2 -translate-y-[10px]" },
   ];
 
   return (
@@ -19,6 +20,16 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
           Kiltikonet
         </div>
         <div className="flex items-center gap-2">
+          <motion.div
+            whileHover={{ scale: 1.05, borderColor: "rgba(242, 202, 80, 0.4)" }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onSelect("accreditation")}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1 cursor-pointer transition-all"
+            style={{ background: 'rgba(242,202,80,0.1)', border: '1px solid rgba(242,202,80,0.2)' }}
+            data-testid="omega-cc2026-badge"
+          >
+            <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: '#f2ca50' }}>CC2026</span>
+          </motion.div>
           <motion.div
             whileHover={{ scale: 1.05, borderColor: "rgba(242, 202, 80, 0.4)" }}
             whileTap={{ scale: 0.95 }}

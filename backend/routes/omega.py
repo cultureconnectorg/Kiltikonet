@@ -726,12 +726,115 @@ async def cancel_adhesion(request: Request):
 # FEED — Posts, Eclair, Commentaires
 # ═══════════════════════════════════════════════════════════════
 
+
+import random as _random
+
+_FEED_IMAGES = [
+    "https://images.pexels.com/photos/2531728/pexels-photo-2531728.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1916818/pexels-photo-1916818.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/2747446/pexels-photo-2747446.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1540406/pexels-photo-1540406.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/3171837/pexels-photo-3171837.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/2263410/pexels-photo-2263410.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1749822/pexels-photo-1749822.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1547592/pexels-photo-1547592.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1598488/pexels-photo-1598488.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1618005/pexels-photo-1618005.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/1514525/pexels-photo-1514525.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/5752729/pexels-photo-5752729.jpeg?auto=compress&cs=tinysrgb&w=800",
+]
+
+_FEED_AVATARS = [
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100",
+    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100",
+    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=100",
+    "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?auto=format&fit=crop&q=80&w=100",
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100",
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100",
+]
+
+_FEED_AUTHORS = [
+    {"nom": "Ben ARRIS", "avatar": 0, "frek": True},
+    {"nom": "Kilti Maker", "avatar": 1, "frek": True},
+    {"nom": "Core Engine", "avatar": 2, "frek": False},
+    {"nom": "Global Sound", "avatar": 3, "frek": True},
+    {"nom": "Malaika", "avatar": 4, "frek": True},
+    {"nom": "Djaz Fusion", "avatar": 5, "frek": True},
+]
+
+_FEED_CONTENTS = [
+    "Synchronizing the alchemy of digital gestures with institutional precision. CC2026 is the proof of concept.",
+    "New session studio — Beat Zouk available now in the shop. 3 mois de travail, des nuits en studio, cette emotion pure.",
+    "Protocol Omega update successful. Security layers optimized. FREK-ID traçabilite renforcee.",
+    "Proposition de collaboration pour Diaspora Rhythms. La culture caribeeenne rayonne au-dela des oceans.",
+    "Le gwoka rencontre l'electro — fusion unique nee en Martinique. Ecoutez le premier extrait.",
+    "DEBAT : La tokenisation de la culture est-elle une opportunite ou une menace ? Les Jetons CC montrent une voie.",
+    "5 conseils pour les createurs culturels : construisez votre communaute AVANT de monetiser.",
+    "Retour d'experience : comment nous avons multiplie par 3x l'engagement en 6 mois. La cle ? L'authenticite.",
+    "COMMUNIQUE — Le Conseil Regional valide un budget pour le developpement culturel numerique.",
+    "Il y a 10 ans, ma grand-mere me racontait des contes creoles au clair de lune. Aujourd'hui, je les digitalise.",
+    "INTERVIEW EXCLUSIVE — La culture caribeeenne est la prochaine frontiere de l'innovation.",
+    "Fier d'annoncer notre participation a Culture Connect 2026 ! Rendez-vous en Martinique.",
+    "De Fort-de-France a Montreal : mon parcours d'artiste caribeen dans le monde.",
+    "EXTRAIT SONORE — Preview de mon prochain album. Premieres notes ici. L'album complet arrive pour CC2026.",
+    "Nouveau milestone : 2000 createurs ont rejoint notre plateforme ce mois-ci. Annou kontinie !",
+    "La diaspora n'est pas un exil. C'est un reseau. Chaque ile est un noeud qui pulse au rythme du ka.",
+    "Session live au marche de Fort-de-France — gwoka spontane avec les passants. Magie pure.",
+    "Architecture Luciole v2 : quand le code devient art. Chaque pixel est un acte de souverainete.",
+    "Ti' Punch & Identite Creole — un voyage gustatif a travers les traditions. Disponible au shop.",
+    "DOCUMENTAIRE — Voix de la diaspora. Des histoires qui meritent d'etre racontees.",
+]
+
+_FEED_TAGS = [
+    ["BRUT", "GHANA"], ["MUSIC", "MARTINIQUE"], ["TECH", "CORE"], ["DIASPORA", "ZOUK"],
+    ["ART", "GWOKA"], ["DEBAT", "FINTECH"], ["CONSEIL", "CREATEUR"], ["GROWTH", "CC2026"],
+    ["INSTITUTION", "POLITIQUE"], ["PATRIMOINE", "CREOLE"], ["INTERVIEW", "INNOVATION"],
+    ["CC2026", "KILTIKONET"], ["ARTISTE", "PARCOURS"], ["ALBUM", "PREVIEW"],
+    ["COMMUNAUTE", "MILESTONE"], ["LITTERATURE", "DIASPORA"], ["LIVE", "SESSION"],
+    ["CODE", "ART"], ["GASTRONOMIE", "TRADITION"], ["DOCUMENTAIRE", "CULTURE"],
+]
+
+
+async def _seed_feed_posts():
+    """Auto-seed feed_posts with curated content."""
+    now = datetime.now(timezone.utc)
+    posts = []
+    for i, content in enumerate(_FEED_CONTENTS):
+        author = _FEED_AUTHORS[i % len(_FEED_AUTHORS)]
+        post_time = now - timedelta(hours=_random.randint(1, 96), minutes=_random.randint(0, 59))
+        posts.append({
+            "post_id": str(uuid.uuid4()),
+            "frek_id_auteur": f"FREK-{str(uuid.uuid4())[:8]}" if author["frek"] else "",
+            "email_auteur": f"{author['nom'].lower().replace(' ', '.')}@kiltikonet.fr",
+            "prenom_auteur": author["nom"],
+            "photo_auteur": _FEED_AVATARS[author["avatar"]],
+            "badge_frek": author["frek"],
+            "contenu": content,
+            "media_url": _FEED_IMAGES[i % len(_FEED_IMAGES)],
+            "media_type": "image",
+            "tags": _FEED_TAGS[i % len(_FEED_TAGS)],
+            "nb_eclairs": _random.randint(50, 50000),
+            "nb_commentaires": _random.randint(5, 1500),
+            "eclairs_by": [],
+            "commentaires": [],
+            "timestamp": post_time.isoformat(),
+        })
+    await _db.feed_posts.insert_many(posts)
+    logger.info(f"Feed seeded with {len(posts)} posts")
+
+
 @router.get("/api/feed/posts")
 async def get_feed_posts(page: int = 1, limit: int = 10):
-    """Get feed posts with pagination."""
+    """Get feed posts with pagination. Auto-seed if empty."""
+    total = await _db.feed_posts.count_documents({})
+    if total < 5:
+        await _seed_feed_posts()
+        total = await _db.feed_posts.count_documents({})
     skip = (page - 1) * limit
     posts = await _db.feed_posts.find({}, {"_id": 0}).sort("timestamp", -1).skip(skip).limit(limit).to_list(limit)
-    total = await _db.feed_posts.count_documents({})
     return {"posts": posts, "total": total, "page": page, "has_more": skip + limit < total}
 
 
@@ -967,6 +1070,188 @@ async def update_user_settings(request: Request, body: SettingsUpdateRequest):
         await write_audit_log(frek_id, "SETTINGS_UPDATE", "", "settings", {"section": body.section})
 
     return {"success": True, "section": body.section}
+
+
+# ═══════════════════════════════════════════════════════════════
+# DMs — Messages Prives (polling 5s)
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/api/messages/conversations")
+async def get_conversations(request: Request):
+    """Liste des conversations de l'utilisateur."""
+    email = _get_session_email(request)
+
+    # Get all conversations involving this user
+    convs = await _db.dm_conversations.find(
+        {"participants": email}, {"_id": 0}
+    ).sort("last_message_at", -1).to_list(50)
+
+    # Enrich with last message and unread count
+    result = []
+    for conv in convs:
+        other_email = next((p for p in conv["participants"] if p != email), "")
+        other_user = await _db.registrations.find_one(
+            {"email": other_email}, {"_id": 0, "full_name": 1, "photo_url": 1, "frek_id": 1}
+        ) or {"full_name": other_email, "photo_url": "", "frek_id": ""}
+
+        unread = await _db.dm_messages.count_documents({
+            "conversation_id": conv["conversation_id"], "recipient": email, "read": False
+        })
+
+        result.append({
+            "conversation_id": conv["conversation_id"],
+            "other_email": other_email,
+            "other_name": other_user.get("full_name", other_email),
+            "other_avatar": other_user.get("photo_url", ""),
+            "other_frek_id": other_user.get("frek_id", ""),
+            "last_message": conv.get("last_message", ""),
+            "last_message_at": conv.get("last_message_at", ""),
+            "unread": unread,
+        })
+
+    return {"conversations": result}
+
+
+@router.get("/api/messages/{conversation_id}")
+async def get_messages(conversation_id: str, request: Request, limit: int = 50):
+    """Recupere les messages d'une conversation."""
+    email = _get_session_email(request)
+
+    # Verify user belongs to conversation
+    conv = await _db.dm_conversations.find_one(
+        {"conversation_id": conversation_id, "participants": email}, {"_id": 0}
+    )
+    if not conv:
+        raise HTTPException(403, "Acces refuse a cette conversation")
+
+    msgs = await _db.dm_messages.find(
+        {"conversation_id": conversation_id}, {"_id": 0}
+    ).sort("timestamp", 1).limit(limit).to_list(limit)
+
+    # Mark as read
+    await _db.dm_messages.update_many(
+        {"conversation_id": conversation_id, "recipient": email, "read": False},
+        {"$set": {"read": True}}
+    )
+
+    return {"messages": msgs, "conversation_id": conversation_id}
+
+
+class SendMessageRequest(BaseModel):
+    recipient_email: str
+    content: str
+
+
+@router.post("/api/messages/send")
+async def send_message(request: Request, body: SendMessageRequest):
+    """Envoyer un message prive."""
+    email = _get_session_email(request)
+    frek_id = await _get_user_frek_id(email)
+    reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "full_name": 1})
+
+    if email == body.recipient_email:
+        raise HTTPException(400, "Impossible de s'envoyer un message a soi-meme")
+
+    # Find or create conversation
+    participants = sorted([email, body.recipient_email])
+    conv = await _db.dm_conversations.find_one(
+        {"participants": {"$all": participants}}, {"_id": 0}
+    )
+
+    if not conv:
+        conv_id = str(uuid.uuid4())
+        conv = {
+            "conversation_id": conv_id,
+            "participants": participants,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_message": body.content[:100],
+            "last_message_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await _db.dm_conversations.insert_one(conv)
+    else:
+        conv_id = conv["conversation_id"]
+
+    msg = {
+        "message_id": str(uuid.uuid4()),
+        "conversation_id": conv_id,
+        "sender": email,
+        "sender_name": (reg or {}).get("full_name", email),
+        "recipient": body.recipient_email,
+        "content": body.content,
+        "read": False,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    await _db.dm_messages.insert_one(msg)
+
+    # Update last message
+    await _db.dm_conversations.update_one(
+        {"conversation_id": conv_id},
+        {"$set": {"last_message": body.content[:100], "last_message_at": msg["timestamp"]}}
+    )
+
+    if frek_id:
+        await write_audit_log(frek_id, "FEED_POST", msg["message_id"], "dm")
+
+    return {"success": True, "message_id": msg["message_id"], "conversation_id": conv_id}
+
+
+# ═══════════════════════════════════════════════════════════════
+# AGENDA CC2026 — 20-23 mai 2026
+# ═══════════════════════════════════════════════════════════════
+
+_AGENDA_CC2026 = [
+    {
+        "jour": "2026-05-20", "label": "Jour 1 — Ouverture", "events": [
+            {"heure": "09:00", "titre": "Ouverture Officielle CC2026", "lieu": "TOM — Teyat Otonom Mawon", "artiste": "Comite CC2026", "confirme": True, "type": "ceremonie"},
+            {"heure": "10:30", "titre": "Keynote : Souverainete Culturelle Numerique", "lieu": "TOM — Grande Salle", "artiste": "Laurent MUSIC", "confirme": True, "type": "conference"},
+            {"heure": "14:00", "titre": "Panel : FREK-ID et Tracabilite des Oeuvres", "lieu": "TOM — Salle Innovation", "artiste": "Panel FREK", "confirme": True, "type": "conference"},
+            {"heure": "16:00", "titre": "Ateliers Creoles — Langue & Tech", "lieu": "Espace Workshops", "artiste": "Collectif Madinina", "confirme": True, "type": "atelier"},
+            {"heure": "20:00", "titre": "Concert Ouverture — Gwoka Fusion", "lieu": "Scene Principale", "artiste": "Admiral T", "confirme": True, "type": "concert"},
+        ]
+    },
+    {
+        "jour": "2026-05-21", "label": "Jour 2 — Innovation", "events": [
+            {"heure": "09:30", "titre": "Hackathon Culturel — Kick-off", "lieu": "Hub Tech", "artiste": "Equipes participantes", "confirme": True, "type": "hackathon"},
+            {"heure": "11:00", "titre": "Masterclass : Monetisation des Oeuvres", "lieu": "TOM — Salle Innovation", "artiste": "Ben ARRIS", "confirme": True, "type": "masterclass"},
+            {"heure": "14:00", "titre": "Demo Day : Startups Culturelles Caribeeennes", "lieu": "TOM — Grande Salle", "artiste": "10 startups selectionnees", "confirme": True, "type": "pitch"},
+            {"heure": "17:00", "titre": "Table Ronde : Fintech & Culture", "lieu": "TOM — Salle Innovation", "artiste": "Panel Fintech", "confirme": True, "type": "conference"},
+            {"heure": "21:00", "titre": "Concert — Zouk & Kompa Night", "lieu": "Scene Principale", "artiste": "Kassav'", "confirme": True, "type": "concert"},
+        ]
+    },
+    {
+        "jour": "2026-05-22", "label": "Jour 3 — Diaspora", "events": [
+            {"heure": "09:00", "titre": "Rencontres Diaspora — Networking", "lieu": "Hub Connexions", "artiste": "Communaute", "confirme": True, "type": "networking"},
+            {"heure": "11:00", "titre": "Panel : Patrimoine Immateriel UNESCO", "lieu": "TOM — Grande Salle", "artiste": "Experts UNESCO", "confirme": True, "type": "conference"},
+            {"heure": "14:00", "titre": "Ateliers Gastronomie Creole", "lieu": "Espace Culinaire", "artiste": "Chef invites", "confirme": True, "type": "atelier"},
+            {"heure": "16:00", "titre": "Expo : Art Contemporain Caribeen", "lieu": "Galerie TOM", "artiste": "12 artistes", "confirme": True, "type": "exposition"},
+            {"heure": "22:00", "titre": "Concert — Kathy-Liana Bravo", "lieu": "Scene Principale", "artiste": "Kathy-Liana Bravo", "confirme": True, "type": "concert"},
+        ]
+    },
+    {
+        "jour": "2026-05-23", "label": "Jour 4 — Legacy", "events": [
+            {"heure": "09:00", "titre": "Hackathon Culturel — Presentations Finales", "lieu": "Hub Tech", "artiste": "Equipes finalistes", "confirme": True, "type": "hackathon"},
+            {"heure": "11:00", "titre": "Remise des Prix CC2026", "lieu": "TOM — Grande Salle", "artiste": "Jury CC2026", "confirme": True, "type": "ceremonie"},
+            {"heure": "14:00", "titre": "Bilan & Perspectives CC2027", "lieu": "TOM — Grande Salle", "artiste": "Comite CC2026", "confirme": True, "type": "conference"},
+            {"heure": "16:00", "titre": "Ceremonie de Cloture", "lieu": "TOM — Grande Salle", "artiste": "Tous les participants", "confirme": True, "type": "ceremonie"},
+            {"heure": "21:00", "titre": "Grand Concert de Cloture", "lieu": "Scene Principale", "artiste": "Surprise", "confirme": False, "type": "concert"},
+        ]
+    },
+]
+
+
+@router.get("/api/planning/cc2026")
+async def get_cc2026_planning():
+    """Agenda complet CC2026 — 4 jours."""
+    return {"days": _AGENDA_CC2026, "total_events": sum(len(d["events"]) for d in _AGENDA_CC2026)}
+
+
+@router.get("/api/planning/cc2026/{jour}")
+async def get_cc2026_day(jour: str):
+    """Agenda d'un jour specifique."""
+    for d in _AGENDA_CC2026:
+        if d["jour"] == jour:
+            return d
+    raise HTTPException(404, "Jour non trouve")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1236,6 +1521,106 @@ async def list_gouvernance_proposals(request: Request):
     return {"proposals": proposals}
 
 
+@router.get("/api/gouvernance/seed")
+async def seed_gouvernance_proposals():
+    """Auto-seed governance proposals if empty."""
+    count = await _db.gouvernance_proposals.count_documents({})
+    if count > 0:
+        return {"message": "Proposals already exist", "count": count}
+
+    proposals = [
+        {
+            "proposal_id": str(uuid.uuid4()),
+            "titre": "Allocation budget 2026 pour le developpement numerique",
+            "description": "Proposition d'allouer 30% du budget CC2026 au developpement d'outils numeriques pour les createurs culturels caribeeens.",
+            "auteur": "Comite CC2026",
+            "categorie": "BUDGET",
+            "statut": "ACTIVE",
+            "nb_votes_pour": 24,
+            "nb_votes_contre": 3,
+            "voters": [],
+            "date_creation": datetime.now(timezone.utc).isoformat(),
+            "date_fin": "2026-05-15T23:59:59Z",
+        },
+        {
+            "proposal_id": str(uuid.uuid4()),
+            "titre": "Creation d'un fonds de soutien pour artistes emergents",
+            "description": "Mise en place d'un fonds de 50 000EUR pour financer les projets d'artistes emergents via le systeme FREK-ID.",
+            "auteur": "Collectif Madinina",
+            "categorie": "FONDS",
+            "statut": "ACTIVE",
+            "nb_votes_pour": 45,
+            "nb_votes_contre": 8,
+            "voters": [],
+            "date_creation": datetime.now(timezone.utc).isoformat(),
+            "date_fin": "2026-05-20T23:59:59Z",
+        },
+        {
+            "proposal_id": str(uuid.uuid4()),
+            "titre": "Partenariat avec l'UNESCO pour la preservation du patrimoine immateriel",
+            "description": "Etablir un accord formel avec l'UNESCO pour integrer les oeuvres certifiees FREK dans le registre du patrimoine immateriel.",
+            "auteur": "Panel FREK",
+            "categorie": "PARTENARIAT",
+            "statut": "ACTIVE",
+            "nb_votes_pour": 67,
+            "nb_votes_contre": 2,
+            "voters": [],
+            "date_creation": datetime.now(timezone.utc).isoformat(),
+            "date_fin": "2026-06-01T23:59:59Z",
+        },
+        {
+            "proposal_id": str(uuid.uuid4()),
+            "titre": "Extension du Jeton CC aux festivals partenaires",
+            "description": "Permettre l'utilisation du Jeton CC dans 5 festivals caribeeens partenaires en 2027.",
+            "auteur": "FMS Comite",
+            "categorie": "FINTECH",
+            "statut": "ACTIVE",
+            "nb_votes_pour": 33,
+            "nb_votes_contre": 12,
+            "voters": [],
+            "date_creation": datetime.now(timezone.utc).isoformat(),
+            "date_fin": "2026-05-25T23:59:59Z",
+        },
+    ]
+    await _db.gouvernance_proposals.insert_many(proposals)
+    return {"message": "Proposals seeded", "count": len(proposals)}
+
+
+class GouvernanceCreateRequest(BaseModel):
+    titre: str
+    description: str
+    categorie: str = "GENERAL"
+
+
+@router.post("/api/gouvernance/create")
+async def create_gouvernance_proposal(request: Request, body: GouvernanceCreateRequest):
+    """Creer une nouvelle proposition."""
+    email = _get_session_email(request)
+    reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "full_name": 1})
+
+    proposal = {
+        "proposal_id": str(uuid.uuid4()),
+        "titre": body.titre,
+        "description": body.description,
+        "auteur": (reg or {}).get("full_name", email),
+        "auteur_email": email,
+        "categorie": body.categorie,
+        "statut": "ACTIVE",
+        "nb_votes_pour": 0,
+        "nb_votes_contre": 0,
+        "voters": [],
+        "date_creation": datetime.now(timezone.utc).isoformat(),
+        "date_fin": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
+    }
+    await _db.gouvernance_proposals.insert_one(proposal)
+
+    frek_id = await _get_user_frek_id(email)
+    if frek_id:
+        await write_audit_log(frek_id, "GOUVERNANCE_CREATE", proposal["proposal_id"], "proposal")
+
+    return {"success": True, "proposal_id": proposal["proposal_id"]}
+
+
 class GouvernanceVoteRequest(BaseModel):
     proposal_id: str
     vote: str  # POUR or CONTRE
@@ -1269,3 +1654,264 @@ async def vote_gouvernance(request: Request, body: GouvernanceVoteRequest):
                               {"vote": body.vote.upper(), "weight": weight, "level": level})
 
     return {"success": True, "vote": body.vote.upper(), "weight": weight, "level": level}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ACCREDITATION CC2026 — Flux 7 etapes (formulaire → impression)
+# ═══════════════════════════════════════════════════════════════
+
+ACCREDITATION_TYPES = {
+    "PRO": {"label": "Professionnel", "price": 300, "nfc": False},
+    "INSTITUTIONNEL": {"label": "Institutionnel", "price": 500, "nfc": True},
+    "ARTISTE": {"label": "Artiste", "price": 0, "nfc": False},
+    "VIP": {"label": "VIP", "price": 800, "nfc": True},
+    "PRESSE": {"label": "Presse", "price": 0, "nfc": False},
+    "VISITEUR": {"label": "Visiteur", "price": 50, "nfc": False},
+}
+
+
+class AccreditationApplyRequest(BaseModel):
+    prenom: str
+    nom: str
+    email: str
+    telephone: str = ""
+    organisation: str = ""
+    type_accreditation: str
+    bio: str = ""
+    photo_url: str = ""
+    jours_selectionnes: list = []
+
+
+@router.post("/api/accreditation/apply")
+async def accreditation_apply(body: AccreditationApplyRequest):
+    """Etape 1-2 : Soumission de la demande d'accreditation."""
+    if body.type_accreditation not in ACCREDITATION_TYPES:
+        raise HTTPException(400, f"Type invalide. Types: {list(ACCREDITATION_TYPES.keys())}")
+
+    existing = await _db.accreditations_cc2026.find_one({"email": body.email}, {"_id": 0})
+    if existing:
+        raise HTTPException(409, "Demande deja soumise pour cet email")
+
+    acc_type = ACCREDITATION_TYPES[body.type_accreditation]
+    acc_id = f"ACC-{str(uuid.uuid4())[:8].upper()}"
+
+    doc = {
+        "accreditation_id": acc_id,
+        "prenom": body.prenom,
+        "nom": body.nom,
+        "email": body.email,
+        "telephone": body.telephone,
+        "organisation": body.organisation,
+        "type_accreditation": body.type_accreditation,
+        "type_label": acc_type["label"],
+        "bio": body.bio,
+        "photo_url": body.photo_url,
+        "jours_selectionnes": body.jours_selectionnes or ["2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23"],
+        "prix": acc_type["price"],
+        "nfc_enabled": acc_type["nfc"],
+        "statut": "SOUMISE" if acc_type["price"] == 0 else "EN_ATTENTE_PAIEMENT",
+        "etape": 3 if acc_type["price"] > 0 else 4,
+        "badge_id": None,
+        "qr_token": None,
+        "frek_id": None,
+        "paiement_stripe_id": None,
+        "paiement_date": None,
+        "validation_admin": None,
+        "validation_date": None,
+        "badge_genere": False,
+        "badge_imprime": False,
+        "badge_remis": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await _db.accreditations_cc2026.insert_one(doc)
+
+    return {
+        "accreditation_id": acc_id,
+        "type": body.type_accreditation,
+        "type_label": acc_type["label"],
+        "prix": acc_type["price"],
+        "statut": doc["statut"],
+        "etape": doc["etape"],
+        "requires_payment": acc_type["price"] > 0,
+    }
+
+
+@router.get("/api/accreditation/status/{accreditation_id}")
+async def accreditation_status(accreditation_id: str):
+    """Verifie le statut d'une accreditation."""
+    doc = await _db.accreditations_cc2026.find_one({"accreditation_id": accreditation_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "Accreditation non trouvee")
+    return doc
+
+
+@router.get("/api/accreditation/my")
+async def my_accreditation(request: Request):
+    """Recupere l'accreditation de l'utilisateur connecte."""
+    email = _get_session_email(request)
+    doc = await _db.accreditations_cc2026.find_one({"email": email}, {"_id": 0})
+    if not doc:
+        return {"exists": False}
+    return {**doc, "exists": True}
+
+
+@router.get("/api/accreditation/types")
+async def get_accreditation_types():
+    """Liste les types d'accreditation disponibles."""
+    return {"types": {k: {**v, "id": k} for k, v in ACCREDITATION_TYPES.items()}}
+
+
+@router.post("/api/accreditation/pay/{accreditation_id}")
+async def accreditation_pay(accreditation_id: str, request: Request):
+    """Etape 3 : Creer un checkout Stripe pour le paiement."""
+    doc = await _db.accreditations_cc2026.find_one({"accreditation_id": accreditation_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "Accreditation non trouvee")
+    if doc["prix"] == 0:
+        return {"already_free": True}
+
+    import stripe
+    stripe.api_key = os.environ.get("STRIPE_API_KEY", "")
+
+    body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+    origin_url = body.get("origin_url", os.environ.get("FRONTEND_URL", ""))
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "eur",
+                    "unit_amount": int(doc["prix"] * 100),
+                    "product_data": {"name": f"Accreditation CC2026 — {doc['type_label']}"},
+                },
+                "quantity": 1,
+            }],
+            mode="payment",
+            success_url=f"{origin_url}/pro?accreditation=success&id={accreditation_id}",
+            cancel_url=f"{origin_url}/pro?accreditation=cancelled",
+            metadata={"accreditation_id": accreditation_id, "email": doc["email"]},
+        )
+
+        await _db.accreditations_cc2026.update_one(
+            {"accreditation_id": accreditation_id},
+            {"$set": {"paiement_stripe_id": session.id, "statut": "PAIEMENT_EN_COURS"}}
+        )
+
+        return {"checkout_url": session.url, "session_id": session.id}
+    except Exception as e:
+        logger.error(f"Stripe checkout error for accreditation: {e}")
+        raise HTTPException(500, f"Erreur Stripe: {str(e)}")
+
+
+@router.post("/api/accreditation/confirm-payment/{accreditation_id}")
+async def accreditation_confirm_payment(accreditation_id: str):
+    """Etape 3b : Confirmer le paiement (appele apres webhook Stripe ou manuellement)."""
+    doc = await _db.accreditations_cc2026.find_one({"accreditation_id": accreditation_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "Accreditation non trouvee")
+
+    await _db.accreditations_cc2026.update_one(
+        {"accreditation_id": accreditation_id},
+        {"$set": {
+            "statut": "SOUMISE",
+            "etape": 4,
+            "paiement_date": datetime.now(timezone.utc).isoformat(),
+        }}
+    )
+    return {"success": True, "statut": "SOUMISE", "etape": 4}
+
+
+@router.get("/api/accreditation/admin/list")
+async def admin_list_accreditations(statut: str = None):
+    """Admin : lister les accreditations."""
+    query = {}
+    if statut:
+        query["statut"] = statut
+    docs = await _db.accreditations_cc2026.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return {"accreditations": docs, "total": len(docs)}
+
+
+class AdminValidateRequest(BaseModel):
+    accreditation_id: str
+    decision: str  # "APPROUVE" ou "REFUSE"
+    motif: str = ""
+
+
+@router.post("/api/accreditation/admin/validate")
+async def admin_validate_accreditation(body: AdminValidateRequest, request: Request):
+    """Etape 5 : Validation admin — genere le badge si approuve."""
+    email = _get_session_email(request)
+
+    doc = await _db.accreditations_cc2026.find_one({"accreditation_id": body.accreditation_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "Accreditation non trouvee")
+
+    if body.decision == "APPROUVE":
+        import secrets as _sec
+        import string as _str
+        code5 = "".join(_sec.choice(_str.ascii_uppercase + _str.digits) for _ in range(5))
+        type_map = {"PRO": "VIS", "INSTITUTIONNEL": "OFF", "ARTISTE": "ART", "VIP": "VIP", "PRESSE": "PRS", "VISITEUR": "VIS"}
+        badge_type = type_map.get(doc["type_accreditation"], "VIS")
+        badge_id = f"CC26-{badge_type}-{code5}"
+        qr_token = uuid.uuid4().hex
+
+        # Create badge in cc_badges
+        await _db.cc_badges.insert_one({
+            "badge_id": badge_id,
+            "prenom": doc["prenom"],
+            "nom": doc["nom"],
+            "email": doc["email"],
+            "type_badge": badge_type,
+            "statut": "ACTIVE",
+            "qr_token": qr_token,
+            "nfc_enabled": doc.get("nfc_enabled", False),
+            "nfc_uid": "",
+            "jetons_solde": 0,
+            "organisation": doc.get("organisation", ""),
+            "date_emission": datetime.now(timezone.utc).isoformat(),
+            "imprime": False,
+            "remis": False,
+            "accreditation_id": body.accreditation_id,
+        })
+
+        await _db.accreditations_cc2026.update_one(
+            {"accreditation_id": body.accreditation_id},
+            {"$set": {
+                "statut": "APPROUVEE",
+                "etape": 6,
+                "badge_id": badge_id,
+                "qr_token": qr_token,
+                "validation_admin": email,
+                "validation_date": datetime.now(timezone.utc).isoformat(),
+                "badge_genere": True,
+            }}
+        )
+
+        frek_id = await _get_user_frek_id(doc["email"])
+        if frek_id:
+            await write_audit_log(frek_id, "ACCREDITATION_APPROVED", body.accreditation_id, "accreditation")
+
+        return {"success": True, "decision": "APPROUVE", "badge_id": badge_id, "qr_token": qr_token}
+    else:
+        await _db.accreditations_cc2026.update_one(
+            {"accreditation_id": body.accreditation_id},
+            {"$set": {
+                "statut": "REFUSEE",
+                "etape": 5,
+                "validation_admin": email,
+                "validation_date": datetime.now(timezone.utc).isoformat(),
+                "motif_refus": body.motif,
+            }}
+        )
+        return {"success": True, "decision": "REFUSE", "motif": body.motif}
+
+
+@router.post("/api/accreditation/admin/mark-printed/{accreditation_id}")
+async def mark_badge_printed(accreditation_id: str):
+    """Etape 7 : Marquer le badge comme imprime."""
+    await _db.accreditations_cc2026.update_one(
+        {"accreditation_id": accreditation_id},
+        {"$set": {"badge_imprime": True, "etape": 7, "statut": "IMPRIMEE"}}
+    )
+    return {"success": True, "etape": 7}

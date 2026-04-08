@@ -132,7 +132,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -3768,6 +3768,7 @@ from routes.cultural_search import router as cultural_search_router, analytics_r
 from routes.pro_feed import router as pro_feed_router, init_db as pro_feed_init_db
 pro_feed_init_db(db)
 from routes.wallet import router as wallet_router
+from routes.shop_payments import router as shop_payments_router
 from routes.site_analytics import router as site_analytics_router
 app.include_router(badges_router)
 app.include_router(jetons_router)
@@ -3793,6 +3794,7 @@ app.include_router(cultural_search_router)
 app.include_router(cultural_analytics_router)
 app.include_router(pro_feed_router)
 app.include_router(wallet_router)
+app.include_router(shop_payments_router)
 app.include_router(site_analytics_router)
 from routes.doctrine import router as doctrine_router, seed_doctrine as _doctrine_seed, backfill_actor_roles as _doctrine_backfill, require_permission as _require_perm
 app.include_router(doctrine_router)

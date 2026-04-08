@@ -35,6 +35,7 @@ import IntroSequence, { ReturnWelcome } from "./components/IntroSequence";
 // Accreditation System
 import { AccreditationSystem } from "./components/AccreditationSystem";
 import BadgeScan from "./components/BadgeScan";
+import ScanApp from "./components/omega/ScanApp";
 // CC2026 Badge & Jetons
 import BadgeActivation from "./components/BadgeActivation";
 import BadgeInscription from "./components/BadgeInscription";
@@ -212,6 +213,9 @@ function App() {
             {/* Omega Espace Pro — HORS AppLayout (fullscreen immersif) */}
             <Route path="/pro" element={<ProProtectedRoute><ProApp /></ProProtectedRoute>} />
 
+            {/* PWA NFC Scan — Agent Terrain (fullscreen, HORS AppLayout) */}
+            <Route path="/scan" element={<ScanApp />} />
+
             {/* Toutes les routes vitrine — DANS AppLayout */}
             <Route path="/*" element={
               <AppLayout>
@@ -280,11 +284,12 @@ function App() {
               <Route path="/smart-engine-3d" element={<Suspense fallback={<Loading3D />}><SmartEngine3D /></Suspense>} />
               {/* AI Agents Dashboard */}
               <Route path="/admin/ai-agents" element={<AIAgentsDashboard />} />
-              {/* Espace Pro CC2026 - LinkedIn Culturel */}
-              <Route path="/espace-pro" element={<ProSpaceDashboard />} />
+              {/* Login gate pour /pro (Omega) */}
               <Route path="/espace-pro/connexion" element={<ProSpaceLogin />} />
-              <Route path="/espace-pro/messages" element={<MessagesPage />} />
-              <Route path="/espace-pro/reseau" element={<NetworkStandalonePage />} />
+              {/* Ancien Espace Pro — SUPER_ADMIN only sur /admin/core */}
+              <Route path="/admin/core" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><ProSpaceDashboard /></ProtectedRoute>} />
+              <Route path="/admin/core/messages" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><MessagesPage /></ProtectedRoute>} />
+              <Route path="/admin/core/reseau" element={<ProtectedRoute allowedRoles={['admin', 'founder']}><NetworkStandalonePage /></ProtectedRoute>} />
               {/* Auth routes */}
               <Route path="/auth/magic/:token" element={<MagicLinkPage />} />
               <Route path="/invite/:token" element={<InvitePage />} />

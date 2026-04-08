@@ -32,10 +32,28 @@ STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
 # FIXED PACKAGES — Server-side only (never trust frontend amounts)
 # ═══════════════════════════════════════════════════════════
 KILTI_TOKEN_PACKAGES = {
-    "kt-10":  {"name": "10 Kilti-Tokens",  "tokens": 10,  "price": 15.00,  "currency": "eur", "badge": "Populaire"},
-    "kt-50":  {"name": "50 Kilti-Tokens",  "tokens": 50,  "price": 67.50,  "currency": "eur", "badge": "Meilleur rapport"},
-    "kt-100": {"name": "100 Kilti-Tokens", "tokens": 100, "price": 120.00, "currency": "eur", "badge": "Premium"},
+    "pack-decouverte": {"name": "Pack Decouverte — 10 JCC", "tokens": 10, "price": 10.00, "currency": "eur", "badge": "Decouverte"},
+    "pack-culture":    {"name": "Pack Culture — 25 JCC",    "tokens": 25, "price": 25.00, "currency": "eur", "badge": "Populaire"},
+    "pack-diaspora":   {"name": "Pack Diaspora — 50 JCC",   "tokens": 50, "price": 50.00, "currency": "eur", "badge": "Meilleur rapport"},
+    "pack-vip":        {"name": "Pack VIP — 100 JCC",       "tokens": 100,"price": 100.00,"currency": "eur", "badge": "Premium"},
 }
+
+
+@router.get("/packs")
+async def get_jcc_packs():
+    """Liste les packs JCC disponibles a l'achat."""
+    packs = []
+    for pid, pkg in KILTI_TOKEN_PACKAGES.items():
+        packs.append({
+            "id": pid,
+            "name": pkg["name"],
+            "tokens": pkg["tokens"],
+            "price": pkg["price"],
+            "currency": pkg["currency"],
+            "badge": pkg.get("badge", ""),
+            "price_per_token": round(pkg["price"] / pkg["tokens"], 2),
+        })
+    return {"packs": packs}
 
 
 # ═══════════════════════════════════════════════════════════
@@ -177,8 +195,8 @@ async def create_checkout(data: dict, request: Request):
         package = {"name": product["name"], "tokens": 0, "price": product["price"], "currency": product.get("currency", "EUR").lower()}
 
     # Dynamic URLs
-    success_url = f"{origin_url}/espace-pro?section=shop&payment=success&session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{origin_url}/espace-pro?section=shop&payment=cancelled"
+    success_url = f"{origin_url}/pro?payment=success&session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin_url}/pro?payment=cancelled"
 
     # Create Stripe session
     api_key = STRIPE_API_KEY

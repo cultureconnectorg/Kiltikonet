@@ -9,6 +9,8 @@ import BrainChat from "./BrainChat";
 import WalletView from "./WalletView";
 import ShopView from "./ShopView";
 import CockpitView from "./CockpitView";
+import AgendaView from "./AgendaView";
+import AccreditationView from "./AccreditationView";
 import FeedView from "./FeedView";
 import InboxView from "./InboxView";
 import SovereignProfileView from "./SovereignProfileView";
@@ -42,6 +44,8 @@ export default function ProApp() {
       case "inbox": setCurrentView("inbox"); break;
       case "build": case "builder": setCurrentView("builder"); break;
       case "cockpit": setCurrentView("cockpit"); break;
+      case "agenda": setCurrentView("agenda"); break;
+      case "accreditation": setCurrentView("accreditation"); break;
       case "frek_id": case "frek-id": setCurrentView("profile"); break;
       case "admin": setCurrentView("profile"); break;
       default: break;
@@ -84,6 +88,14 @@ export default function ProApp() {
 
       {currentView === "cockpit" && (
         <CockpitView onBack={handleBack} onSelect={handleSelect} auth={authCtx} />
+      )}
+
+      {currentView === "agenda" && (
+        <AgendaView onBack={handleBack} auth={authCtx} />
+      )}
+
+      {currentView === "accreditation" && (
+        <AccreditationView onBack={handleBack} auth={authCtx} />
       )}
 
       {currentView === "builder" && (
