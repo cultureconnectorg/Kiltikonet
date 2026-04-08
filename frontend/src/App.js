@@ -77,7 +77,7 @@ const ProProtectedRoute = ({ children }) => {
     };
     checkAuth();
   }, []);
-  if (state === 'checking') return <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}><div className="animate-pulse text-sm text-[#f2ca50] font-mono tracking-widest">OMEGA PROTOCOL...</div></div>;
+  if (state === 'checking') return <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0b' }} />;
   if (state === 'denied') return <Navigate to="/espace-pro/connexion" state={{ returnTo: '/pro' }} replace />;
   return children;
 };
@@ -95,6 +95,7 @@ import PerformanceDashboard from "./components/admin/PerformanceDashboard";
 import AdminFinanceDashboard from "./components/admin/AdminFinanceDashboard";
 // Omega Espace Pro (ITER.57)
 import ProApp from "./components/omega/ProApp";
+import { SplashScreen } from "./components/omega/SplashScreen";
 // Standalone Pro Pages
 import MessagesPage from "./components/pro/MessagesPage";
 import NetworkStandalonePage from "./components/pro/NetworkPage";
@@ -117,6 +118,27 @@ const Loading3D = () => (
     </div>
   </div>
 );
+
+// Pro Splash Wrapper — shows SplashScreen before ProApp on every /pro visit
+const ProSplashWrapper = () => {
+  const [splashDone, setSplashDone] = React.useState(false);
+  const location = useLocation();
+
+  // Reset splashDone to false every time user navigates to /pro
+  React.useEffect(() => {
+    setSplashDone(false);
+  }, [location.pathname]);
+
+  if (!splashDone) {
+    return <SplashScreen onComplete={() => setSplashDone(true)} />;
+  }
+
+  return (
+    <ProProtectedRoute>
+      <ProApp />
+    </ProProtectedRoute>
+  );
+};
 
 // Page tracker component - must be inside BrowserRouter
 const PageTracker = () => {
@@ -211,7 +233,7 @@ function App() {
           
           <Routes>
             {/* Omega Espace Pro — HORS AppLayout (fullscreen immersif) */}
-            <Route path="/pro" element={<ProProtectedRoute><ProApp /></ProProtectedRoute>} />
+            <Route path="/pro" element={<ProSplashWrapper />} />
 
             {/* PWA NFC Scan — Agent Terrain (fullscreen, HORS AppLayout) */}
             <Route path="/scan" element={<ScanApp />} />

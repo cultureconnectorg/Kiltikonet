@@ -1,40 +1,17 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function SplashScreen({ onComplete }) {
-  const [ended, setEnded] = useState(false);
-  const [fallback, setFallback] = useState(false);
-  const videoRef = useRef(null);
-  const timerRef = useRef(null);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Fallback: if video doesn't start within 3s, skip
-    timerRef.current = setTimeout(() => {
-      if (!ended) {
-        setFallback(true);
-        setEnded(true);
-        onComplete();
-      }
-    }, 4000);
-    return () => clearTimeout(timerRef.current);
-  }, [ended, onComplete]);
-
-  const handleEnded = () => {
-    clearTimeout(timerRef.current);
-    setEnded(true);
-    onComplete();
-  };
-
-  const handleCanPlay = () => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        setFallback(true);
-        setEnded(true);
-        onComplete();
-      });
-    }
-  };
-
-  if (ended) return null;
+    // Start fade out at 1.7s, call onComplete at 2s
+    const fadeTimer = setTimeout(() => setFadeOut(true), 1700);
+    const completeTimer = setTimeout(() => onComplete(), 2000);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(completeTimer);
+    };
+  }, [onComplete]);
 
   return (
     <div
@@ -43,32 +20,37 @@ export function SplashScreen({ onComplete }) {
         position: 'fixed',
         inset: 0,
         zIndex: 99999,
-        background: '#000',
+        background: '#0a0a0b',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        opacity: fadeOut ? 0 : 1,
+        transition: 'opacity 0.3s ease-out',
       }}
     >
-      {!fallback ? (
-        <video
-          ref={videoRef}
-          onEnded={handleEnded}
-          onCanPlay={handleCanPlay}
-          playsInline
-          muted
-          preload="auto"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        >
-          <source src="/media/splash.webm" type="video/webm" />
-          <source src="/media/splash.mp4" type="video/mp4" />
-        </video>
-      ) : (
-        <img
-          src="/logo.png"
-          alt="Kiltikonet"
-          style={{ maxWidth: 200, opacity: 0.8 }}
-        />
-      )}
+      <style>{`
+        @keyframes kilti-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.03); }
+        }
+        @keyframes kilti-glow {
+          0%, 100% { filter: drop-shadow(0 0 18px rgba(242, 202, 80, 0.25)); }
+          50% { filter: drop-shadow(0 0 38px rgba(242, 202, 80, 0.55)); }
+        }
+      `}</style>
+      <img
+        src="/logo-kiltikonet.png"
+        alt=""
+        draggable={false}
+        style={{
+          width: 120,
+          height: 120,
+          objectFit: 'contain',
+          animation: 'kilti-breathe 2s ease-in-out infinite, kilti-glow 2s ease-in-out infinite',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      />
     </div>
   );
 }
