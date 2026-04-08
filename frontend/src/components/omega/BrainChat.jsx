@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe, Check, Loader2 } from "lucide-react";
+import { Send, ArrowLeft, ShieldCheck, Sparkles, Paperclip, Plus, MessageSquare, History, Copy, RotateCcw, ThumbsUp, ThumbsDown, PanelLeftClose, PanelLeftOpen, Terminal, Layout, Globe, Check, Loader2, Mic, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -20,8 +20,39 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
   const [copiedId, setCopiedId] = useState(null);
   const [attachedFile, setAttachedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Web Speech API — Micro dictée
+  const toggleDictation = useCallback(() => {
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert('La reconnaissance vocale n\'est pas supportee par ce navigateur'); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'fr-FR';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      if (event.results[event.results.length - 1].isFinal) {
+        setInput(prev => prev + (prev ? ' ' : '') + transcript);
+      }
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, [isListening]);
 
   // Transform brain messages for display
   const messages = brainMessages.map((m, i) => ({
@@ -273,6 +304,9 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
                   </button>
                   <button onClick={() => setUseWeb(!useWeb)} className={`p-2 rounded-lg transition-all ${useWeb ? 'bg-[rgba(242,202,80,0.15)] text-[#f2ca50]' : 'hover:bg-white/5 text-gray-500'}`} title={useWeb ? 'Recherche web activée' : 'Activer recherche web'} data-testid="brain-web-toggle"><Globe className="w-4 h-4" /></button>
                   <button onClick={() => setLayoutMode(layoutMode === 'default' ? 'split' : 'default')} className={`p-2 rounded-lg transition-all ${layoutMode === 'split' ? 'bg-[rgba(242,202,80,0.15)] text-[#f2ca50]' : 'hover:bg-white/5 text-gray-500'}`} title="Changer le layout" data-testid="brain-layout-toggle"><Layout className="w-4 h-4" /></button>
+                  <button onClick={toggleDictation} className={`p-2 rounded-lg transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-white/5 text-gray-500'}`} title={isListening ? 'Arreter la dictee' : 'Dictee vocale'} data-testid="brain-dictation-toggle">
+                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </button>
                 </div>
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleSend} disabled={!input.trim() || isThinking}
                   className="p-2.5 rounded-xl transition-all"

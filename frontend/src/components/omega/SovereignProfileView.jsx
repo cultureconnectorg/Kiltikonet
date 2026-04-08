@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ShieldCheck, ArrowLeft, Fingerprint, Globe, ChevronRight, User, Scale, Award, History, Settings, Shield, Bell, Eye, LogOut, Moon, Save, Loader2, Trash2, AlertTriangle, Languages, X, CheckCircle } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Fingerprint, Globe, ChevronRight, User, Scale, Award, History, Settings, Shield, Bell, Eye, LogOut, Moon, Save, Loader2, Trash2, AlertTriangle, Languages, X, CheckCircle, Smartphone, Plus } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -269,14 +269,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
             )}
 
             {activeSection === "security" && (
-              <div className="space-y-3">
-                {securityLayers.map((l, i) => (
-                  <div key={i} className="p-4 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <span className="text-xs text-gray-400">{l.label}</span>
-                    <span className="text-xs font-mono" style={{ color: '#f2ca50' }}>{l.value}</span>
-                  </div>
-                ))}
-              </div>
+              <SecuritySection securityLayers={securityLayers} showToast={showToast} />
             )}
 
             {activeSection === "danger" && (
@@ -324,6 +317,111 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function SecuritySection({ securityLayers, showToast }) {
+  const [devices, setDevices] = useState([]);
+  const [loadingDevices, setLoadingDevices] = useState(true);
+  const [registering, setRegistering] = useState(false);
+  const [revoking, setRevoking] = useState(null);
+
+  const loadDevices = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/api/auth/webauthn/devices`, { credentials: 'include' });
+      if (r.ok) { const d = await r.json(); setDevices(d.devices || []); }
+    } catch {}
+    setLoadingDevices(false);
+  }, []);
+
+  useEffect(() => { loadDevices(); }, [loadDevices]);
+
+  const handleRegister = async () => {
+    setRegistering(true);
+    try {
+      const { startRegistration } = await import("@simplewebauthn/browser");
+      const beginRes = await fetch(`${API}/api/auth/webauthn/register/begin`, { method: 'POST', credentials: 'include' });
+      if (!beginRes.ok) { showToast("Erreur lors de l'initiation"); setRegistering(false); return; }
+      const options = await beginRes.json();
+      const attResp = await startRegistration({ optionsJSON: options });
+      const completeRes = await fetch(`${API}/api/auth/webauthn/register/complete`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: attResp }),
+      });
+      if (completeRes.ok) { showToast("Appareil biometrique enregistre"); loadDevices(); }
+      else { const e = await completeRes.json().catch(() => ({})); showToast(e.detail || "Echec de l'enregistrement"); }
+    } catch (err) {
+      if (err.name !== 'NotAllowedError') showToast("Erreur: " + (err.message || "Appareil non supporte"));
+    }
+    setRegistering(false);
+  };
+
+  const handleRevoke = async (credId) => {
+    setRevoking(credId);
+    try {
+      const r = await fetch(`${API}/api/auth/webauthn/revoke/${encodeURIComponent(credId)}`, { method: 'POST', credentials: 'include' });
+      if (r.ok) { showToast("Appareil supprime"); loadDevices(); }
+    } catch {}
+    setRevoking(null);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Security layers */}
+      <div className="space-y-2">
+        {securityLayers.map((l, i) => (
+          <div key={i} className="p-4 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <span className="text-xs text-gray-400">{l.label}</span>
+            <span className="text-xs font-mono" style={{ color: '#f2ca50' }}>{l.value}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* WebAuthn Devices */}
+      <div className="mt-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Fingerprint className="w-4 h-4" style={{ color: '#f2ca50' }} />
+          <span className="text-[10px] text-gray-500 tracking-widest uppercase">Face ID / Touch ID</span>
+        </div>
+
+        {loadingDevices ? (
+          <div className="flex items-center justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-gray-500" /></div>
+        ) : devices.length === 0 ? (
+          <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <Smartphone className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+            <p className="text-xs text-gray-500">Aucun appareil biometrique enregistre</p>
+            <p className="text-[10px] text-gray-600 mt-1">Ajoutez Face ID ou Touch ID pour vous connecter sans mot de passe</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {devices.map((d) => (
+              <div key={d.credential_id} className="p-3 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }} data-testid={`webauthn-device-${d.credential_id?.slice(0, 8)}`}>
+                <div className="flex items-center gap-3">
+                  <Fingerprint className="w-4 h-4" style={{ color: '#22c55e' }} />
+                  <div>
+                    <div className="text-xs text-white">{d.device_name || 'Appareil'}</div>
+                    <div className="text-[9px] text-gray-600">{d.created_at ? new Date(d.created_at).toLocaleDateString('fr') : ''}</div>
+                  </div>
+                </div>
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleRevoke(d.credential_id)} disabled={revoking === d.credential_id}
+                  className="p-2 rounded-lg hover:bg-red-500/10 transition-all" data-testid={`webauthn-revoke-${d.credential_id?.slice(0, 8)}`}>
+                  {revoking === d.credential_id ? <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-500" /> : <Trash2 className="w-3.5 h-3.5 text-red-400" />}
+                </motion.button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <motion.button whileTap={{ scale: 0.95 }} onClick={handleRegister} disabled={registering}
+          className="w-full mt-3 py-3 rounded-xl text-sm font-bold tracking-widest uppercase flex items-center justify-center gap-2"
+          style={{ background: registering ? '#333' : 'rgba(242,202,80,0.1)', color: '#f2ca50', border: '1px solid rgba(242,202,80,0.2)' }}
+          data-testid="webauthn-register-btn">
+          {registering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          {registering ? 'Enregistrement...' : 'Ajouter Face ID / Touch ID'}
+        </motion.button>
+      </div>
     </div>
   );
 }

@@ -2163,6 +2163,29 @@ export const ProSpaceLogin = () => {
                 Continuer avec FREK ID
               </button>
 
+              {/* WebAuthn — Face ID / Touch ID */}
+              <button onClick={async () => {
+                try {
+                  setLoading(true);
+                  const { startAuthentication } = await import("@simplewebauthn/browser");
+                  const emailPrompt = prompt('Entrez votre email pour la connexion biometrique :');
+                  if (!emailPrompt) { setLoading(false); return; }
+                  const beginRes = await axios.post(`${API}/auth/webauthn/login/begin`, { email: emailPrompt });
+                  const authResp = await startAuthentication({ optionsJSON: beginRes.data });
+                  const completeRes = await axios.post(`${API}/auth/webauthn/login/complete`, { email: emailPrompt, credential: authResp }, { withCredentials: true });
+                  if (completeRes.data.success) finishLogin(completeRes.data.profile);
+                } catch (err) {
+                  if (err?.response?.status === 404) toast.error('Aucun appareil biometrique enregistre pour cet email');
+                  else if (err.name !== 'NotAllowedError') toast.error('Erreur biometrique');
+                } finally { setLoading(false); }
+              }}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01] active:scale-[0.97] mb-3"
+                data-testid="webauthn-login-btn"
+                style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04))', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)', minHeight: 48 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#22c55e', fontVariationSettings: "'FILL' 1" }}>face</span>
+                Face ID / Touch ID
+              </button>
+
               {/* FREK ID Login Modal */}
               {frekMode && (
                 <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setFrekMode(false)}>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Layers, Zap, Send, Sparkles, Code, Rocket, FolderOpen, SquarePen, ShieldCheck, BarChart3, PlusCircle, Utensils, Music, FileText, Save, Video, Wand2, Crop, Languages, Keyboard, Briefcase, Store, CheckCircle, ChevronRight, Clapperboard, Filter, Loader2 } from "lucide-react";
+import { ArrowLeft, Layers, Zap, Send, Sparkles, Code, Rocket, FolderOpen, SquarePen, ShieldCheck, BarChart3, PlusCircle, Utensils, Music, FileText, Save, Video, Wand2, Crop, Languages, Keyboard, Briefcase, Store, CheckCircle, ChevronRight, Clapperboard, Filter, Loader2, Camera, Square } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -30,6 +30,69 @@ export default function BuilderView({ onBack, onSelect, auth }) {
   });
   const saveTimerRef = useRef(null);
   const fileInputRef = useRef(null);
+  // Camera state
+  const [cameraActive, setCameraActive] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [cameraPreviewUrl, setCameraPreviewUrl] = useState(null);
+  const videoPreviewRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true });
+      mediaStreamRef.current = stream;
+      setCameraActive(true);
+      setTimeout(() => { if (videoPreviewRef.current) videoPreviewRef.current.srcObject = stream; }, 100);
+    } catch (err) { alert('Impossible d\'acceder a la camera: ' + err.message); }
+  };
+
+  const stopCamera = () => {
+    mediaStreamRef.current?.getTracks().forEach(t => t.stop());
+    mediaStreamRef.current = null;
+    setCameraActive(false);
+    setRecording(false);
+  };
+
+  const startRecording = () => {
+    if (!mediaStreamRef.current) return;
+    recordedChunksRef.current = [];
+    const mr = new MediaRecorder(mediaStreamRef.current, { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' });
+    mr.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
+    mr.onstop = async () => {
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const previewUrl = URL.createObjectURL(blob);
+      setCameraPreviewUrl(previewUrl);
+      stopCamera();
+      // Upload
+      setUploading(true);
+      try {
+        const fd = new FormData();
+        fd.append('file', new File([blob], `camera_${Date.now()}.webm`, { type: 'video/webm' }));
+        const r = await fetch(`${API}/api/builder/upload`, { method: 'POST', credentials: 'include', body: fd });
+        if (r.ok) {
+          const d = await r.json();
+          setMediaLoaded(true); setMediaUrl(d.url); setMediaType(d.type || 'video/webm');
+          if (currentProject?.project_id) {
+            await fetch(`${API}/api/builder/projects/${currentProject.project_id}`, {
+              method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ media_url: d.url }),
+            });
+          }
+        }
+      } catch { alert('Erreur upload video'); }
+      setUploading(false);
+    };
+    mediaRecorderRef.current = mr;
+    mr.start();
+    setRecording(true);
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  };
 
   const navItems = [
     { id: "projects", label: "Projets", icon: FolderOpen },
@@ -315,8 +378,8 @@ export default function BuilderView({ onBack, onSelect, auth }) {
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-5 gap-2">
-                {[{ id: "audio", label: "Audio", icon: Music }, { id: "captions", label: "Subtitles", icon: Languages }, { id: "text", label: "Text", icon: Keyboard }, { id: "effects", label: "Effects", icon: Wand2 }, { id: "crop", label: "Format", icon: Crop }].map((tool) => {
+              <div className="grid grid-cols-6 gap-2">
+                {[{ id: "audio", label: "Audio", icon: Music }, { id: "captions", label: "Subtitles", icon: Languages }, { id: "text", label: "Text", icon: Keyboard }, { id: "effects", label: "Effects", icon: Wand2 }, { id: "crop", label: "Format", icon: Crop }, { id: "camera", label: "Filmer", icon: Camera }].map((tool) => {
                   const Icon = tool.icon;
                   return (
                     <button key={tool.id} onClick={() => setActiveTool(activeTool === tool.id ? null : tool.id)} className="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all" data-testid={`builder-tool-${tool.id}`}
@@ -384,6 +447,42 @@ export default function BuilderView({ onBack, onSelect, auth }) {
                         ))}
                       </div>
                       <button onClick={() => { if (currentProject?.project_id) autoSave('crop', toolSettings.crop.ratio); }} className="w-full py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold" style={{ background: '#f2ca50', color: 'black' }} data-testid="tool-crop-apply">Recadrer</button>
+                    </>}
+                    {activeTool === 'camera' && <>
+                      {!cameraActive && !cameraPreviewUrl && (
+                        <div className="text-center py-4">
+                          <Camera className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(242,202,80,0.4)' }} />
+                          <p className="text-xs text-gray-500 mb-4">Enregistrez directement depuis votre camera</p>
+                          <button onClick={startCamera} className="w-full py-3 rounded-lg text-[10px] uppercase tracking-widest font-bold" style={{ background: '#f2ca50', color: 'black' }} data-testid="tool-camera-start">Ouvrir la camera</button>
+                        </div>
+                      )}
+                      {cameraActive && (
+                        <div className="space-y-3">
+                          <div className="aspect-video rounded-xl overflow-hidden bg-black relative">
+                            <video ref={videoPreviewRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                            {recording && <div className="absolute top-3 right-3 flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /><span className="text-[9px] text-red-400 font-bold uppercase tracking-widest">REC</span></div>}
+                          </div>
+                          <div className="flex gap-2">
+                            {!recording ? (
+                              <button onClick={startRecording} className="flex-1 py-3 rounded-lg text-[10px] uppercase tracking-widest font-bold flex items-center justify-center gap-2" style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }} data-testid="tool-camera-record"><div className="w-3 h-3 rounded-full bg-red-500" />Enregistrer</button>
+                            ) : (
+                              <button onClick={stopRecording} className="flex-1 py-3 rounded-lg text-[10px] uppercase tracking-widest font-bold flex items-center justify-center gap-2" style={{ background: 'rgba(239,68,68,0.3)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)' }} data-testid="tool-camera-stop"><Square className="w-3 h-3" />Arreter</button>
+                            )}
+                            <button onClick={stopCamera} className="px-4 py-3 rounded-lg text-[10px] uppercase tracking-widest text-gray-400 border border-white/10" data-testid="tool-camera-close">Fermer</button>
+                          </div>
+                        </div>
+                      )}
+                      {cameraPreviewUrl && !cameraActive && (
+                        <div className="space-y-3">
+                          <div className="aspect-video rounded-xl overflow-hidden bg-black">
+                            <video src={cameraPreviewUrl} className="w-full h-full object-cover" controls />
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => { setCameraPreviewUrl(null); startCamera(); }} className="flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest text-gray-400 border border-white/10" data-testid="tool-camera-retake">Reprendre</button>
+                            <button onClick={() => setCameraPreviewUrl(null)} className="flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold" style={{ background: '#f2ca50', color: 'black' }} data-testid="tool-camera-accept">Utiliser</button>
+                          </div>
+                        </div>
+                      )}
                     </>}
                   </div>
                   {/* Save tool settings to project */}
