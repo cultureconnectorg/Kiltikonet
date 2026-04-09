@@ -60,7 +60,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import DashboardCC2026 from "./components/DashboardCC2026";
 // Pro Space (LinkedIn Culturel)
 import ProSpaceDashboard, { ProSpaceLogin } from "./components/ProSpaceDashboard";
-// ProProtectedRoute — redirige vers /espace-pro/connexion au lieu de /admin
+// ProProtectedRoute — affiche ProSpaceLogin inline si non connecté
 const ProProtectedRoute = ({ children }) => {
   const [state, setState] = React.useState('checking');
   React.useEffect(() => {
@@ -78,7 +78,7 @@ const ProProtectedRoute = ({ children }) => {
     checkAuth();
   }, []);
   if (state === 'checking') return <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0b' }} />;
-  if (state === 'denied') return <Navigate to="/espace-pro/connexion" state={{ returnTo: '/pro' }} replace />;
+  if (state === 'denied') return <ProSpaceLogin onLogin={() => setState('ok')} />;
   return children;
 };
 // Auth Pages

@@ -20,6 +20,7 @@ export default function BuilderView({ onBack, onSelect, auth }) {
   const [loading, setLoading] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [publishToast, setPublishToast] = useState(null);
   // Tool settings
   const [toolSettings, setToolSettings] = useState({
     audio: { volume: 80, trimStart: 0, trimEnd: 100, fadeIn: false, fadeOut: false },
@@ -198,6 +199,12 @@ export default function BuilderView({ onBack, onSelect, auth }) {
       if (r.ok) {
         setCurrentProject(prev => ({ ...prev, published: true, canal: publishCanal }));
         loadProjects();
+        setPublishToast(publishCanal === 'feed' ? 'Post publie dans le feed' : 'Publie sur ' + publishCanal);
+        setTimeout(() => setPublishToast(null), 3000);
+        // Redirect to feed after 1.5s
+        if (publishCanal === 'feed' && onSelect) {
+          setTimeout(() => onSelect('feed'), 1500);
+        }
       }
     } catch { /* silent */ }
     setLoading(false);

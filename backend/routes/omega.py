@@ -2188,21 +2188,32 @@ async def publish_builder_project(request: Request, body: BuilderPublishRequest)
     )
 
     # If canal == feed, create a feed post
-    if body.canal == "feed":
+    if body.canal in ("feed", "shop"):
         post_id = f"post-{str(uuid.uuid4())[:8]}"
-        user = await _db.users.find_one({"email": email}, {"_id": 0})
-        display = user.get("full_name", email.split("@")[0]) if user else email.split("@")[0]
-        await _db.feed_posts.insert_one({
+        reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "full_name": 1, "photo_url": 1, "avatar_url": 1})
+        display = (reg or {}).get("full_name", email.split("@")[0])
+        photo = (reg or {}).get("avatar_url", "") or (reg or {}).get("photo_url", "")
+        contenu = f"{project.get('titre', '')}"
+        if project.get('description'):
+            contenu += f"\n\n{project['description']}"
+        feed_post = {
             "post_id": post_id,
-            "auteur_frek_id": frek_id,
-            "auteur_display": display,
-            "contenu": f"{project.get('titre', '')}\n\n{project.get('description', '')}",
+            "frek_id_auteur": frek_id or "",
+            "email_auteur": email,
+            "prenom_auteur": display.split(" ")[0] if display else "Anonyme",
+            "photo_auteur": photo,
+            "badge_frek": bool(frek_id),
+            "contenu": contenu,
             "media_url": project.get("media_url", ""),
+            "media_type": project.get("media_type", ""),
             "tags": ["builder", "creation"],
-            "eclairs": 0,
-            "commentaires_count": 0,
-            "created_at": now,
-        })
+            "nb_eclairs": 0,
+            "nb_commentaires": 0,
+            "eclairs_by": [],
+            "commentaires": [],
+            "timestamp": now,
+        }
+        await _db.feed_posts.insert_one(feed_post)
 
     await write_audit_log(frek_id, "BUILDER_PUBLISH", body.project_id, "builder", {"canal": body.canal})
     return {"success": True, "canal": body.canal, "project_id": body.project_id}

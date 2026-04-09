@@ -1867,7 +1867,7 @@ const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
   );
 };
 
-export const ProSpaceLogin = () => {
+export const ProSpaceLogin = ({ onLogin } = {}) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1898,7 +1898,7 @@ export const ProSpaceLogin = () => {
     }));
     toast.success(`Bienvenue ${p.full_name || p.email} !`);
     window.location.hash = '';
-    navigate('/pro', { replace: true });
+    if (onLogin) { onLogin(); } else { navigate('/pro', { replace: true }); }
   };
 
   const handleRegister = async (e) => {
