@@ -2271,33 +2271,42 @@ async def publish_builder_project(request: Request, body: BuilderPublishRequest)
         {"$set": {"published": True, "canal": body.canal, "published_at": now, "updated_at": now}}
     )
 
-    # If canal == feed, create a feed post
+    # If canal == feed or shop, create a post in pro_posts (used by FeedView)
     if body.canal in ("feed", "shop"):
-        post_id = f"post-{str(uuid.uuid4())[:8]}"
-        reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "full_name": 1, "photo_url": 1, "avatar_url": 1})
+        post_id = f"post_{str(uuid.uuid4())[:12]}"
+        reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "full_name": 1, "photo_url": 1, "avatar_url": 1, "profile_type": 1, "image": 1})
         display = (reg or {}).get("full_name", email.split("@")[0])
-        photo = (reg or {}).get("avatar_url", "") or (reg or {}).get("photo_url", "")
-        contenu = f"{project.get('titre', '')}"
+        photo = (reg or {}).get("avatar_url", "") or (reg or {}).get("photo_url", "") or (reg or {}).get("image", "")
+        content = f"{project.get('titre', '')}"
         if project.get('description'):
-            contenu += f"\n\n{project['description']}"
+            content += f"\n\n{project['description']}"
         feed_post = {
-            "post_id": post_id,
-            "frek_id_auteur": frek_id or "",
-            "email_auteur": email,
-            "prenom_auteur": display.split(" ")[0] if display else "Anonyme",
-            "photo_auteur": photo,
-            "badge_frek": bool(frek_id),
-            "contenu": contenu,
+            "id": post_id,
+            "author_id": frek_id or email,
+            "author_name": display,
+            "author_title": (reg or {}).get("profile_type", "Createur"),
+            "author_image": photo,
+            "author_email": email,
+            "author_frek_id": frek_id or "",
+            "content": content,
+            "post_type": "creation",
+            "dimension": "Culture",
             "media_url": project.get("media_url", ""),
             "media_type": project.get("media_type", ""),
-            "tags": ["builder", "creation"],
-            "nb_eclairs": 0,
-            "nb_commentaires": 0,
-            "eclairs_by": [],
-            "commentaires": [],
-            "timestamp": now,
+            "likes": [],
+            "likes_count": 0,
+            "eclairs": [],
+            "eclairs_count": 0,
+            "comments": [],
+            "comments_count": 0,
+            "shares_count": 0,
+            "views_count": 0,
+            "is_ghost": False,
+            "is_reel": False,
+            "created_at": now,
+            "updated_at": now,
         }
-        await _db.feed_posts.insert_one(feed_post)
+        await _db.pro_posts.insert_one(feed_post)
 
     await write_audit_log(frek_id, "BUILDER_PUBLISH", body.project_id, "builder", {"canal": body.canal})
     return {"success": True, "canal": body.canal, "project_id": body.project_id}
