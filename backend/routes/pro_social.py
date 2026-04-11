@@ -6,17 +6,21 @@ import os
 import uuid
 import logging
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional
 from motor.motor_asyncio import AsyncIOMotorClient
+from routes.doctrine import require_permission, _decode_session
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/pro/social", tags=["pro-social"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-_db = _client[os.environ["DB_NAME"]]
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
+_db = _client[os.environ.get("DB_NAME", "kiltikonet")]
+
+# URL interne du backend pour les appels service-à-service (configurable via env)
+_BACKEND_INTERNAL_URL = os.environ.get("BACKEND_INTERNAL_URL", os.environ.get("BASE_URL", "http://localhost:8001"))
 
 
 class PostCreate(BaseModel):
@@ -76,19 +80,43 @@ async def get_feed(profile_id: Optional[str] = None, limit: int = 30, skip: int 
     return {"posts": posts, "total": total}
 
 
-@router.post("/posts")
-async def create_post(data: PostCreate):
+@router.post("/posts", dependencies=[Depends(require_permission("publish_content"))])
+async def create_post(data: PostCreate, request: Request):
     """Créer un post dans le fil d'actualité"""
-    if not data.content.strip():
+    # --- Auth : vérifier que l'auteur correspond à l'utilisateur connecté ---
+    session = _decode_session(request)
+    if not session:
+        raise HTTPException(status_code=401, detail="Authentification requise")
+
+    authenticated_profile_id = session.get("profile_id", "")
+    is_admin = session.get("is_admin", False)
+
+    # Les admins peuvent poster pour n'importe quel auteur (ghost posts, etc.)
+    if not is_admin and authenticated_profile_id != data.author_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Impossible de publier au nom d'un autre utilisateur"
+        )
+
+    # --- Validation du contenu ---
+    content = data.content.strip()
+    if not content:
         raise HTTPException(status_code=400, detail="Contenu vide")
+    if len(content) > 5000:
+        raise HTTPException(status_code=400, detail="Contenu trop long (max 5000 caractères)")
+
+    # --- Validation du nom d'auteur ---
+    author_name = (data.author_name or "").strip()
+    if not author_name:
+        raise HTTPException(status_code=400, detail="Nom d'auteur requis")
 
     post = {
         "id": str(uuid.uuid4()),
         "author_id": data.author_id,
-        "author_name": data.author_name,
+        "author_name": author_name[:100],  # limite de sécurité
         "author_image": data.author_image,
         "author_type": data.author_type,
-        "content": data.content,
+        "content": content,
         "tags": data.tags or [],
         "likes": [],
         "comments": [],
@@ -96,8 +124,12 @@ async def create_post(data: PostCreate):
         "comments_count": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    await _db.pro_posts.insert_one(post)
-    del post["_id"]
+    try:
+        await _db.pro_posts.insert_one(post)
+    except Exception as db_err:
+        logger.error(f"Erreur insertion post pour {data.author_id}: {db_err}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la publication. Réessayez.")
+    post.pop("_id", None)
 
     # Trigger ghost auto-comment for real user posts (non-ghost)
     if not data.author_id.startswith("ghost_") and not data.author_id.startswith("gv2_"):
@@ -120,7 +152,7 @@ async def _trigger_ghost_comment(post_id: str):
         import httpx
         async with httpx.AsyncClient() as client:
             await client.post(
-                "http://localhost:8001/api/ghost/engine/auto-comment",
+                f"{_BACKEND_INTERNAL_URL}/api/ghost/engine/auto-comment",
                 json={"post_id": post_id},
                 timeout=30
             )
@@ -134,7 +166,7 @@ async def _trigger_reward(user_id: str, event: str):
         import httpx
         async with httpx.AsyncClient() as client:
             await client.post(
-                "http://localhost:8001/api/ghost/rewards/trigger",
+                f"{_BACKEND_INTERNAL_URL}/api/ghost/rewards/trigger",
                 json={"user_id": user_id, "event": event},
                 timeout=10
             )
@@ -150,7 +182,7 @@ async def _trigger_social_validation(post_id: str, author_id: str):
         import httpx
         async with httpx.AsyncClient() as client:
             await client.post(
-                "http://localhost:8001/api/growth/engine/social-validation",
+                f"{_BACKEND_INTERNAL_URL}/api/growth/engine/social-validation",
                 json={"post_id": post_id, "author_id": author_id},
                 timeout=30
             )

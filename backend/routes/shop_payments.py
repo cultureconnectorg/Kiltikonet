@@ -22,8 +22,8 @@ from routes.doctrine import require_permission
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/shop", tags=["shop"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-_db = _client[os.environ["DB_NAME"]]
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
+_db = _client[os.environ.get("DB_NAME", "kiltikonet")]
 
 # Stripe setup
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")

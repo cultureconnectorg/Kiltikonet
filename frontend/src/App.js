@@ -56,6 +56,7 @@ import WorkspaceAnalyst from "./components/workspaces/WorkspaceAnalyst";
 import ColeenWorkspace from "./components/workspaces/ColeenWorkspace";
 // Protected Route with session expiration
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { BACKEND_URL } from "./config/api";
 // Dashboard CC2026 Collaboratif
 import DashboardCC2026 from "./components/DashboardCC2026";
 // Pro Space (LinkedIn Culturel)
@@ -70,7 +71,7 @@ const ProProtectedRoute = ({ children }) => {
       if (proSession) { setState('ok'); return; }
       // Check cookie auth
       try {
-        const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/me`, { credentials: 'include' });
+        const res = await fetch(`${BACKEND_URL}/api/auth/me`, { credentials: 'include' });
         if (res.ok) { const d = await res.json(); if (d.authenticated) { setState('ok'); return; } }
       } catch {}
       setState('denied');
