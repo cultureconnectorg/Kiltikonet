@@ -46,6 +46,7 @@ export default function ScanApp() {
       const res = await fetch(`${API}/api/badges/scan`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ badge_id: badgeId, zone: selectedZone }),
+        credentials: 'include',
       });
       const data = await res.json();
       if (res.ok) {
