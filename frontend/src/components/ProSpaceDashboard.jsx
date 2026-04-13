@@ -313,6 +313,7 @@ const ProSpaceDashboard = () => {
   const [studiosOpen, setStudiosOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [doctrine, setDoctrine] = useState(null);
+  const [deletingPostId, setDeletingPostId] = useState(null);
 
   // Helper: check if connected user has a doctrine permission
   const hasPerm = (action) => {
@@ -835,7 +836,12 @@ const FeedSection = ({ session }) => {
       setCommentInputs({ ...commentInputs, [postId]: '' }); loadFeed();
     } catch {}
   };
-  const deletePost = async (postId) => { try { await axios.delete(`${API}/pro/social/posts/${postId}?author_id=${session.id}`); loadFeed(); } catch {} };
+  const deletePost = async (postId) => {
+    if (deletingPostId) return;
+    setDeletingPostId(postId);
+    try { await axios.delete(`${API}/pro/social/posts/${postId}?author_id=${session.id}`); loadFeed(); }
+    catch {} finally { setDeletingPostId(null); }
+  };
 
   const timeAgo = (iso) => {
     const s = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -910,8 +916,16 @@ const FeedSection = ({ session }) => {
                         <span className="material-symbols-outlined" style={{ fontSize: 12 }}>schedule</span>{timeAgo(post.created_at)}
                       </span>
                       {post.author_id === session.id && (
-                        <button onClick={() => deletePost(post.id)} aria-label="Supprimer" className="ml-auto p-1.5 rounded-lg hover:bg-white/5" style={{ color: '#555', minHeight: 32, minWidth: 32 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                        <button
+                          onClick={() => deletePost(post.id)}
+                          aria-label="Supprimer"
+                          disabled={deletingPostId === post.id}
+                          className="ml-auto p-1.5 rounded-lg hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                          style={{ color: '#555', minHeight: 32, minWidth: 32 }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                            {deletingPostId === post.id ? 'hourglass_empty' : 'close'}
+                          </span>
                         </button>
                       )}
                     </div>

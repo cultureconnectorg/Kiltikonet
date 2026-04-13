@@ -141,7 +141,8 @@ export const ParticipantProfile = () => {
           <div className="p-8 text-center border-b border-lightborder">
             <div className="w-32 h-32 mx-auto mb-6 border-2 border-lightborder overflow-hidden">
               <img
-                src={participant.logo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'}
+                src={participant.logo_url || undefined}
+                onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
                 alt={participant.full_name}
                 className="w-full h-full object-cover"
               />

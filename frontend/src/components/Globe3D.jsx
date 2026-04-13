@@ -69,7 +69,7 @@ export const Globe3D = () => {
     const updateDimensions = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        const isMobile = window.innerWidth < 640;
+        const isMobile = window.innerWidth < 768; // aligne sur Tailwind md + useDeviceDetect
         const width = Math.min(containerWidth, 900);
         const heightRatio = isMobile ? 1.0 : 0.72;
         const maxHeight = isMobile ? 480 : 630;

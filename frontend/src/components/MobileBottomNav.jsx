@@ -8,11 +8,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Users, Calendar, Briefcase, User, QrCode, Settings } from 'lucide-react';
 import useDeviceDetect from '../hooks/useDeviceDetect';
+import { usePermissions } from '../lib/usePermissions';
 
 const MobileBottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isMobile } = useDeviceDetect();
+  const { isAdmin: isAdminPerm } = usePermissions();
   const [forceUpdate, setForceUpdate] = useState(0);
 
   // Force re-render when path changes or storage changes
@@ -52,7 +54,7 @@ const MobileBottomNav = () => {
   const proSession = getProSession();
 
   // Determine user role
-  const isAdmin = adminSession.role === 'admin' || adminSession.role === 'founder' || adminSession.workspace;
+  const isAdmin = isAdminPerm || adminSession.role === 'admin' || adminSession.role === 'founder' || !!adminSession.workspace;
   const isPro = proSession.verified || proSession.id;
 
   // Don't show on desktop (> 768px)

@@ -499,15 +499,15 @@ button, a, [role="button"] {
   }
 }
 
-/* Tablet adjustments */
-@media (min-width: 641px) and (max-width: 1024px) {
+/* Tablet adjustments — aligne sur Tailwind sm (≥640px) / md (≥768px) */
+@media (min-width: 640px) and (max-width: 1023px) {
   .tablet-cols-2 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Desktop only */
-@media (min-width: 1025px) {
+/* Desktop only — aligne sur Tailwind lg (≥1024px) */
+@media (min-width: 1024px) {
   .desktop-only {
     display: block;
   }

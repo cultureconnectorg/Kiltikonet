@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { AdminLogin } from './AdminLogin';
 import { getSession } from './ProtectedRoute';
+import { usePermissions } from '../lib/usePermissions';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -39,16 +40,12 @@ const profileIcons = {
   'institution': Users, 'press': Users, 'other': MoreHorizontal
 };
 
-const placeholderImages = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop'
-];
+// Pas de placeholderImages — les participants sans photo affichent leurs initiales
 
 export const AdminDashboard = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const { isAdmin: isAdminPerm, canDeleteRegistrations } = usePermissions();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [registrations, setRegistrations] = useState([]);
   const [counts, setCounts] = useState({ total: 0, by_status: { pending: 0, approved: 0, rejected: 0 }, in_catalog: 0 });
@@ -64,6 +61,7 @@ export const AdminDashboard = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [showBatchActions, setShowBatchActions] = useState(false);
   const [batchProgress, setBatchProgress] = useState(null);
   const [showEmailLogs, setShowEmailLogs] = useState(false);
@@ -85,7 +83,7 @@ export const AdminDashboard = () => {
   // Check for existing session on mount
   useEffect(() => {
     const { session } = getSession();
-    if (session && session.role === 'admin') {
+    if (session && (session.role === 'admin' || isAdminPerm)) {
       setIsAuthenticated(true);
       return;
     }
@@ -116,7 +114,7 @@ export const AdminDashboard = () => {
       const response = await axios.get(`${API}/registrations?${params.toString()}`);
       const regs = response.data.registrations.map((r, i) => ({
         ...r,
-        image: r.logo_url || placeholderImages[i % placeholderImages.length],
+        image: r.logo_url || null,
         show_in_catalog: r.show_in_catalog || false
       }));
       setRegistrations(regs);
@@ -208,8 +206,9 @@ export const AdminDashboard = () => {
   };
 
   const handleDelete = async (id) => {
+    if (deletingId) return;
     if (!window.confirm(language === 'fr' ? 'Supprimer cette inscription ?' : 'Delete this registration?')) return;
-    
+    setDeletingId(id);
     try {
       await axios.delete(`${API}/registrations/${id}`);
       toast.success(language === 'fr' ? '✓ Inscription supprimée avec succès' : '✓ Registration deleted successfully');
@@ -217,10 +216,12 @@ export const AdminDashboard = () => {
       fetchRegistrations();
     } catch (error) {
       toast.error(
-        language === 'fr' 
-          ? '✗ Impossible de supprimer l\'inscription. Veuillez réessayer.' 
+        language === 'fr'
+          ? '✗ Impossible de supprimer l\'inscription. Veuillez réessayer.'
           : '✗ Failed to delete registration. Please try again.'
       );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -986,7 +987,10 @@ export const AdminDashboard = () => {
                         </td>
                         <td className="py-4 px-3">
                           <div className="flex items-center gap-3">
-                            <img src={reg.image} alt={`Photo de ${reg.full_name}`} className="w-10 h-10 object-cover" />
+                            {reg.image
+                              ? <img src={reg.image} alt={`Photo de ${reg.full_name}`} className="w-10 h-10 object-cover flex-shrink-0" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+                              : <div className="w-10 h-10 flex-shrink-0 bg-charcoal/10 flex items-center justify-center text-charcoal/40 font-serif text-sm">{(reg.full_name || '?')[0].toUpperCase()}</div>
+                            }
                             <div>
                               <p className="font-medium text-charcoal">{reg.full_name}</p>
                               <p className="text-xs text-charcoal/50">{reg.email}</p>
@@ -1022,11 +1026,14 @@ export const AdminDashboard = () => {
                               className={`p-2 border transition-colors ${reg.status === 'rejected' ? 'border-terracotta bg-terracotta/10 text-terracotta' : 'border-lightborder text-charcoal/40 hover:border-terracotta hover:text-terracotta'}`}>
                               <XCircle className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDelete(reg.id)}
-                              className="p-2 border border-lightborder text-charcoal/40 hover:border-[#C94040] hover:text-[#C94040] hover:bg-[#C94040]/10 transition-colors"
-                              data-testid={`delete-btn-${reg.id}`}>
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {canDeleteRegistrations && (
+                              <button onClick={() => handleDelete(reg.id)}
+                                disabled={deletingId === reg.id}
+                                className="p-2 border border-lightborder text-charcoal/40 hover:border-[#C94040] hover:text-[#C94040] hover:bg-[#C94040]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                data-testid={`delete-btn-${reg.id}`}>
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
