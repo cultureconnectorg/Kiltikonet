@@ -24,14 +24,7 @@ const profileIcons = {
   'institution': Building2, 'press': Newspaper, 'other': MoreHorizontal
 };
 
-const placeholderImages = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop'
-];
+// Pas de placeholderImages — les participants sans photo utilisent le fallback initiales/KKAvatar
 
 // Animated Participant Card
 const ParticipantCard = ({ participant, language, filters, onBadgeClick, onSmartClick, viewMode }) => {
@@ -73,7 +66,10 @@ const ParticipantCard = ({ participant, language, filters, onBadgeClick, onSmart
           transition: prefersReducedMotion ? 'opacity 0.3s' : 'opacity 0.4s ease-out, transform 0.4s ease-out',
         }}
       >
-        <img src={participant.image} alt={participant.full_name} className="w-16 h-16 object-cover" />
+        {participant.image
+          ? <img src={participant.image} alt={participant.full_name} className="w-16 h-16 object-cover flex-shrink-0" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+          : <div className="w-16 h-16 flex-shrink-0 bg-charcoal/5 flex items-center justify-center"><span className="font-serif text-2xl text-charcoal/30">{(participant.full_name || '?')[0].toUpperCase()}</span></div>
+        }
         <div className="flex-1 min-w-0">
           <h3 className="font-serif text-charcoal truncate">{participant.full_name}</h3>
           <p className="text-sm text-charcoal/60 truncate">{participant.organization_name}</p>
@@ -125,7 +121,10 @@ const ParticipantCard = ({ participant, language, filters, onBadgeClick, onSmart
       data-testid={`participant-card-${participant.id}`}
     >
       <div className="relative h-48 overflow-hidden">
-        <img src={participant.image} alt={participant.full_name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        {participant.image
+          ? <img src={participant.image} alt={participant.full_name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+          : <div className="w-full h-full bg-charcoal/5 flex items-center justify-center"><span className="font-serif text-6xl text-charcoal/15">{(participant.full_name || '?')[0].toUpperCase()}</span></div>
+        }
         <div className="absolute top-3 right-3 px-3 py-1 text-xs font-syne" style={{ backgroundColor: tier.color, color: '#F4F1EA' }}>
           {language === 'fr' ? tier.name : tier.nameEn}
         </div>
@@ -232,7 +231,7 @@ export const CatalogPage = () => {
         .map((p, i) => ({
           ...p,
           // Use the photo uploaded by the participant (logo_url from Cloudinary)
-          image: p.logo_url || placeholderImages[i % placeholderImages.length],
+          image: p.logo_url || null,
           tier: p.tier || 'professional'
         }));
       
@@ -287,7 +286,7 @@ export const CatalogPage = () => {
       const mappedResults = results.map((r, i) => ({
         ...r,
         full_name: r.name,
-        image: r.image_url || placeholderImages[i % placeholderImages.length]
+        image: r.image_url || null
       }));
       setFilteredParticipants(mappedResults);
     } catch (error) {

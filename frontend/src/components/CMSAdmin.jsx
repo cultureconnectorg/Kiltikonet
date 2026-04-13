@@ -1654,7 +1654,7 @@ const PreviewSection = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6">
           {['Médias', 'Exposants', 'Intervenants', 'Partenaires'].map((label, idx) => (
             <div key={idx} className="text-center p-4 rounded-lg" style={{ backgroundColor: `${theme?.primary_color || '#A65D47'}20` }}>
               <div className="text-2xl font-bold" style={{ color: theme?.secondary_color || '#C8922A' }}>
