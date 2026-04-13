@@ -316,7 +316,7 @@ const ProSpaceDashboard = () => {
 
   // Helper: check if connected user has a doctrine permission
   const hasPerm = (action) => {
-    if (!doctrine) return true; // loading — show everything by default
+    if (!doctrine) return false; // loading — masquer jusqu'à confirmation des droits
     if (doctrine.is_admin) return true;
     return (doctrine.can || []).includes(action);
   };

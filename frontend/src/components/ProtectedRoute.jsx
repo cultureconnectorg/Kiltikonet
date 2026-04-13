@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { BACKEND_URL } from '../config/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = BACKEND_URL;
 
 // Session expiration times (for display cache only — real auth is httpOnly cookie)
 const SESSION_EXPIRY_MS = 8 * 60 * 60 * 1000; // 8 hours

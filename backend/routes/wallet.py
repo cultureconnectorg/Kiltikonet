@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/my-wallet", tags=["wallet"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-_db = _client[os.environ["DB_NAME"]]
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
+_db = _client[os.environ.get("DB_NAME", "kiltikonet")]
 JETON_VALEUR = float(os.environ.get("JETON_VALEUR_EURO", "1.50"))
 SESSION_SECRET = os.environ.get('SESSION_SECRET', 'fallback-dev-secret')
 SESSION_COOKIE_NAME = 'kk_session'

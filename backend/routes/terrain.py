@@ -11,7 +11,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 router = APIRouter(prefix="/api/terrain", tags=["terrain"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
 _db = _client[os.environ.get("DB_NAME", "culture_connect_2026")]
 
 

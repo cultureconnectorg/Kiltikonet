@@ -26,8 +26,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/growth", tags=["growth-engine"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-_db = _client[os.environ["DB_NAME"]]
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
+_db = _client[os.environ.get("DB_NAME", "kiltikonet")]
 
 # ═══════════════════════════════════════════════════════════
 # NAME POOLS — 40% Afrique · 40% Amérique Latine · 20% Diaspora

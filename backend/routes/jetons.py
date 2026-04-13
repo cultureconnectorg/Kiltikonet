@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/jetons", tags=["jetons"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-_db = _client[os.environ["DB_NAME"]]
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
+_db = _client[os.environ.get("DB_NAME", "kiltikonet")]
 
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
 BASE_URL = os.environ.get("BASE_URL", "https://kiltikonet.fr")

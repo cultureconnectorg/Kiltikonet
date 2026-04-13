@@ -175,16 +175,20 @@ const ReelsFeed = ({ session, onOpenInbox }) => {
               {/* Bottom Content */}
               <div className="relative z-10 px-5 pb-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0"
-                    style={{ border: '2px solid rgba(232,213,160,0.4)', padding: 2 }}>
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+                    style={{ border: '2px solid rgba(232,213,160,0.4)', padding: 2, background: `linear-gradient(135deg, ${dimColor}20, ${dimColor}08)` }}>
                     {reel.author_image ? (
-                      <img src={reel.author_image} alt="" className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full rounded-full flex items-center justify-center"
-                        style={{ background: `linear-gradient(135deg, ${dimColor}20, ${dimColor}08)` }}>
-                        <span className="material-symbols-outlined" style={{ color: dimColor, fontSize: 14 }}>person</span>
-                      </div>
-                    )}
+                      <img
+                        src={reel.author_image}
+                        alt=""
+                        className="w-full h-full rounded-full object-cover"
+                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }}
+                      />
+                    ) : null}
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ color: dimColor, fontSize: 14, display: reel.author_image ? 'none' : 'flex' }}
+                    >person</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">

@@ -32,8 +32,8 @@ from routes.doctrine import require_permission
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["fintech"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-_db = _client[os.environ["DB_NAME"]]
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
+_db = _client[os.environ.get("DB_NAME", "kiltikonet")]
 
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
 
@@ -457,27 +457,32 @@ async def check_checkout_status(session_id: str, request: Request):
     stripe = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
     status = await stripe.get_checkout_status(session_id)
 
-    # Check if already processed
+    # Lookup session data
     cs = await _db.kn_checkout_sessions.find_one({"session_id": session_id}, {"_id": 0})
-    if cs and cs.get("status") != "paid" and status.payment_status == "paid":
-        tokens = cs.get("tokens", 0)
-        user_id = cs.get("user_id")
-        channel = cs.get("channel", "app")
 
-        if tokens > 0 and user_id:
-            await credit_wallet(user_id, tokens, "purchase",
-                                f"Achat {cs.get('product_name', 'KT')} via Stripe",
-                                channel, {"session_id": session_id, "amount_eur": cs.get("amount_eur"),
-                                          "validity_extension": True})
-
-            # Ghost Bridge — preuve de vie globale (VIP/Diaspora/Standard)
-            asyncio.create_task(_ghost_bridge_feedback(
-                user_id, cs.get("product_name", ""), channel, cs.get("package_id", "")))
-
-        await _db.kn_checkout_sessions.update_one(
-            {"session_id": session_id},
+    if cs and status.payment_status == "paid":
+        # Mise à jour atomique : ne réussit que si le statut N'EST PAS déjà "paid"
+        # Cela évite la race condition de double-crédit si plusieurs requêtes arrivent simultanément
+        atomic_result = await _db.kn_checkout_sessions.update_one(
+            {"session_id": session_id, "status": {"$ne": "paid"}},
             {"$set": {"status": "paid", "paid_at": datetime.now(timezone.utc).isoformat()}}
         )
+
+        if atomic_result.modified_count == 1:
+            # Exactement UNE requête passe ici — les autres voient modified_count=0 et sautent
+            tokens = cs.get("tokens", 0)
+            user_id = cs.get("user_id")
+            channel = cs.get("channel", "app")
+
+            if tokens > 0 and user_id:
+                await credit_wallet(user_id, tokens, "purchase",
+                                    f"Achat {cs.get('product_name', 'KT')} via Stripe",
+                                    channel, {"session_id": session_id, "amount_eur": cs.get("amount_eur"),
+                                              "validity_extension": True})
+
+                # Ghost Bridge — preuve de vie globale (VIP/Diaspora/Standard)
+                asyncio.create_task(_ghost_bridge_feedback(
+                    user_id, cs.get("product_name", ""), channel, cs.get("package_id", "")))
 
     return {
         "status": status.status,

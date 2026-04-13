@@ -15,9 +15,15 @@ import { HelpButton } from './UserGuides';
 
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION BASEROW
+// ─────────────────────────────────────────────────────────────
+// ATTENTION SÉCURITÉ : Ce token ne doit JAMAIS être hardcodé ici.
+// Il est lu depuis la variable d'environnement REACT_APP_BASEROW_TOKEN.
+// Note : même en variable d'env React, ce token est visible dans le
+// bundle JS final. La solution définitive est de proxifier ces appels
+// via /api/accreditation/* sur le backend (qui détient le token côté serveur).
 // ═══════════════════════════════════════════════════════════════
-const BASEROW_TOKEN = 'BjKPCSpcpif72OtZtsmMFUbZysqlNGiK';
-const BASEROW_TABLE = '865847';
+const BASEROW_TOKEN = process.env.REACT_APP_BASEROW_TOKEN || '';
+const BASEROW_TABLE = process.env.REACT_APP_BASEROW_TABLE_ID || '865847';
 const BASEROW_API = 'https://api.baserow.io/api';
 const BADGE_BASE_URL = 'https://kiltikonet.fr/badge/';
 

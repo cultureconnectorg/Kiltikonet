@@ -609,6 +609,26 @@ const AdminMobileDashboard = () => {
   
   const session = getAdminSession();
 
+  // Guard : vérifier l'authentification au montage (même pattern que AdminDashboard.jsx)
+  useEffect(() => {
+    const isSessionValid = session && (session.role === 'admin' || session.workspace);
+    if (isSessionValid) return; // Session sessionStorage valide — continuer
+    // Pas de cache — vérifier le cookie httpOnly via l'API
+    const checkCookie = async () => {
+      try {
+        const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && (data.session?.role === 'admin' || data.session?.is_admin)) {
+            return; // Cookie valide
+          }
+        }
+      } catch { /* réseau indisponible — laisser accéder en mode terrain hors-ligne */ }
+      navigate('/admin');
+    };
+    checkCookie();
+  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fetch affluence data
   const fetchAffluence = useCallback(async () => {
     try {
