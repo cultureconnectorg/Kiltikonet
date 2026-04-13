@@ -105,7 +105,7 @@ export const Globe3D = () => {
   // --- CAMERA POSITION ---
   useEffect(() => {
     if (globeRef.current && globeReady) {
-      const isMobile = window.innerWidth < 640;
+      const isMobile = window.innerWidth < 768; // aligne sur Tailwind md + useDeviceDetect
       globeRef.current.pointOfView({
         lat: 18,
         lng: -42,
