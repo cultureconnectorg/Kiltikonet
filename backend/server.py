@@ -25,6 +25,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
 import requests
 import jwt as pyjwt
+import re as _re
+import pymongo.errors as _pymongo_errors
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -33,8 +35,52 @@ load_dotenv(ROOT_DIR / '.env')
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 IS_PRODUCTION = ENVIRONMENT == 'production'
 
+# ---------------------------------------------------------------------------
+# Validation des variables d'environnement critiques au démarrage
+# ---------------------------------------------------------------------------
+_REQUIRED_ENV_VARS = ["MONGO_URL", "DB_NAME", "SESSION_SECRET"]
+_PLACEHOLDER_MARKERS = ("<", ">", "your-", "fallback-")
+
+def _validate_env() -> None:
+    """Vérifie que les variables critiques sont définies et ne sont pas des placeholders."""
+    missing = []
+    placeholders = []
+    for var in _REQUIRED_ENV_VARS:
+        val = os.environ.get(var, "")
+        if not val:
+            missing.append(var)
+        elif any(m in val for m in _PLACEHOLDER_MARKERS):
+            placeholders.append(var)
+    if missing:
+        raise RuntimeError(
+            f"Variables d'environnement manquantes : {missing}. "
+            "Copiez backend/.env.example en backend/.env et renseignez les vraies valeurs."
+        )
+    if IS_PRODUCTION and placeholders:
+        raise RuntimeError(
+            f"Variables d'environnement non configurées (valeurs placeholder détectées) : {placeholders}. "
+            "Remplacez les placeholders par les vraies valeurs avant de lancer en production."
+        )
+    if not IS_PRODUCTION and placeholders:
+        logging.warning(
+            "Variables d'environnement avec valeurs placeholder : %s — "
+            "certaines fonctionnalités seront inopérantes.",
+            placeholders,
+        )
+
+_validate_env()
+
 # Session / Cookie auth
-SESSION_SECRET = os.environ.get('SESSION_SECRET', 'fallback-dev-secret')
+SESSION_SECRET = os.environ.get('SESSION_SECRET', '')
+if not SESSION_SECRET or 'fallback' in SESSION_SECRET or 'your-' in SESSION_SECRET:
+    if IS_PRODUCTION:
+        raise RuntimeError(
+            "SESSION_SECRET doit être défini avec une valeur forte en production. "
+            "Générez-en une avec : openssl rand -hex 64"
+        )
+    # Dev uniquement : fallback prévisible mais avec avertissement
+    SESSION_SECRET = 'fallback-dev-secret-DO-NOT-USE-IN-PRODUCTION'
+    logging.warning("SESSION_SECRET non configuré — utilisation du fallback de développement UNIQUEMENT.")
 SESSION_COOKIE_NAME = 'kk_session'
 SESSION_MAX_AGE = 30 * 24 * 3600  # 30 days — persistent sessions
 
@@ -60,11 +106,13 @@ def decode_session_token(token: str) -> dict | None:
 def set_session_cookie(response, payload: dict):
     """Attach an httpOnly session cookie to a response."""
     token = create_session_token(payload)
+    # secure=True uniquement en production (HTTPS) — en dev HTTP, False pour éviter les cookies rejetés
+    _cookie_secure = IS_PRODUCTION
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=True,
+        secure=_cookie_secure,
         samesite="strict",
         max_age=SESSION_MAX_AGE,
         path="/",
@@ -108,12 +156,46 @@ STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 BASE_URL = os.environ.get("BASE_URL", "https://kiltikonet.fr")
 
+# Validation Stripe au démarrage — avertit tôt plutôt qu'à l'achat
+def _validate_stripe_config() -> None:
+    _stripe_placeholders = ("<", ">", "your-", "sk_test_REPLACE", "pk_test_REPLACE")
+    missing = []
+    bad = []
+    for name, val in [("STRIPE_API_KEY", STRIPE_API_KEY), ("STRIPE_PUBLIC_KEY", STRIPE_PUBLIC_KEY), ("STRIPE_WEBHOOK_SECRET", STRIPE_WEBHOOK_SECRET)]:
+        if not val:
+            missing.append(name)
+        elif any(m in val for m in _stripe_placeholders):
+            bad.append(name)
+    if missing:
+        logging.warning("Stripe non configuré — variables manquantes: %s. Les achats JCC seront inopérants.", missing)
+    elif bad:
+        logging.warning("Stripe — valeurs placeholder détectées: %s. Les achats JCC seront inopérants.", bad)
+    elif IS_PRODUCTION and not STRIPE_API_KEY.startswith("sk_live_"):
+        logging.warning("ATTENTION : STRIPE_API_KEY ne semble pas être une clé live (doit commencer par 'sk_live_'). Vérifiez la configuration en production.")
+
+_validate_stripe_config()
+
 # Create the main app
 app = FastAPI()
 
 # CORS middleware — explicit origins required for httpOnly cookies
 _cors_raw = os.environ.get('CORS_ORIGINS', '')
 _cors_origins = [o.strip().strip('"') for o in _cors_raw.split(',') if o.strip()]
+
+if not _cors_origins:
+    if IS_PRODUCTION:
+        raise RuntimeError(
+            "CORS_ORIGINS environment variable is required in production. "
+            "Set it to a comma-separated list of allowed origins, e.g.: "
+            "https://kiltikonet.fr,https://www.kiltikonet.fr"
+        )
+    # En développement, autoriser localhost par défaut avec un avertissement
+    _cors_origins = ["http://localhost:3000", "http://localhost:3001"]
+    logging.warning(
+        "CORS_ORIGINS non défini — origines de développement autorisées par défaut: %s",
+        _cors_origins,
+    )
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -3763,7 +3845,7 @@ async def get_partner_suggestions(participant_id: str):
 from emergentintegrations.llm.chat import LlmChat, UserMessage, get_integration_proxy_url
 import hashlib
 
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "sk-emergent-042E081B3D24541Dd4")
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 class EmbeddingRequest(BaseModel):
@@ -5675,7 +5757,7 @@ async def dynamic_sitemap():
 # 4 sources d'entrée: achat billet, inscription site, admin manuel, scan QR
 # Synchronisation Baserow ↔ MongoDB ↔ Catalogue public
 
-BASEROW_TOKEN = os.environ.get("BASEROW_TOKEN", "BjKPCSpcpif72OtZtsmMFUbZysqlNGiK")
+BASEROW_TOKEN = os.environ.get("BASEROW_TOKEN", "")
 BASEROW_TABLE_ID = os.environ.get("BASEROW_TABLE_ID", "865847")
 BASEROW_API_URL = "https://api.baserow.io/api"
 
@@ -6437,10 +6519,14 @@ def is_disposable_email(email: str) -> bool:
 # ─── Rate Limiting — In-memory with IP tracking ─────────
 _rate_limit_store = {}  # ip -> [timestamps]
 _otp_cooldown_store = {}  # email -> last_sent_timestamp
+# OTP verify brute-force protection: email -> {fails: int, blocked_until: float}
+_otp_verify_fails: Dict[str, dict] = {}
 
 RATE_LIMIT_MAX = 5        # max requests per window
 RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
 OTP_COOLDOWN_SECONDS = 60 # 60s between OTP sends for same email
+OTP_MAX_FAILS = 5         # max failed attempts before block
+OTP_BLOCK_SECONDS = 300   # 5 minutes block after too many fails
 
 def _check_rate_limit(ip: str) -> bool:
     """Returns True if rate limited (should block)."""
@@ -6452,6 +6538,27 @@ def _check_rate_limit(ip: str) -> bool:
         return True
     _rate_limit_store[ip].append(now)
     return False
+
+def _check_otp_brute_force(key: str) -> bool:
+    """Returns True if the key (email or frek_id) is blocked due to too many failed OTP attempts."""
+    now = datetime.now(timezone.utc).timestamp()
+    entry = _otp_verify_fails.get(key)
+    if entry and entry.get("blocked_until", 0) > now:
+        return True
+    return False
+
+def _record_otp_fail(key: str) -> None:
+    """Record a failed OTP attempt. Blocks the key after OTP_MAX_FAILS failures."""
+    now = datetime.now(timezone.utc).timestamp()
+    entry = _otp_verify_fails.get(key, {"fails": 0, "blocked_until": 0})
+    entry["fails"] = entry.get("fails", 0) + 1
+    if entry["fails"] >= OTP_MAX_FAILS:
+        entry["blocked_until"] = now + OTP_BLOCK_SECONDS
+    _otp_verify_fails[key] = entry
+
+def _reset_otp_fails(key: str) -> None:
+    """Clear failed OTP attempts on successful verification."""
+    _otp_verify_fails.pop(key, None)
 
 def _check_otp_cooldown(email: str) -> int:
     """Returns seconds remaining in cooldown, or 0 if clear."""
@@ -6479,26 +6586,38 @@ async def auth_register(request: RegisterRequest, req: Request):
     Onboarding complet: crée compte, FREK-ID, wallet, session.
     Retourne le profil avec first_login=True.
     """
+    # --- Validation email ---
     email = request.email.lower().strip()
     if not email:
         raise HTTPException(400, "Email requis")
+    _EMAIL_RE = _re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
+    if not _EMAIL_RE.match(email) or len(email) > 254:
+        raise HTTPException(400, "Adresse email invalide")
 
-    # Check duplicate
+    # --- Validation prenom / nom ---
+    prenom = request.prenom.strip()
+    nom = request.nom.strip()
+    if not prenom or not nom:
+        raise HTTPException(400, "Prénom et nom requis")
+    if len(prenom) > 50 or len(nom) > 50:
+        raise HTTPException(400, "Prénom et nom limités à 50 caractères")
+
+    # --- Check duplicate (pré-check, complété par le catch DuplicateKeyError) ---
     existing = await db.registrations.find_one({"email": email}, {"_id": 0, "id": 1})
     if existing:
         raise HTTPException(409, "Un compte existe deja avec cet email")
 
     # FREK-ID
     frek_id = await generate_unique_frek_id()
-    full_name = f"{request.prenom.strip()} {request.nom.strip()}"
+    full_name = f"{prenom} {nom}"
     now = datetime.now(timezone.utc).isoformat()
 
     profile = {
         "id": f"pro_{str(uuid.uuid4())[:12]}",
         "email": email,
         "full_name": full_name,
-        "prenom": request.prenom.strip(),
-        "nom": request.nom.strip(),
+        "prenom": prenom,
+        "nom": nom,
         "profile_type": "other",
         "actor_role": "professional",
         "status": "approved",
@@ -6510,7 +6629,11 @@ async def auth_register(request: RegisterRequest, req: Request):
         "created_at": now,
         "registered_at": now,
     }
-    await db.registrations.insert_one({**profile})
+    # Utiliser try/except pour attraper la race condition de doublon email
+    try:
+        await db.registrations.insert_one({**profile})
+    except _pymongo_errors.DuplicateKeyError:
+        raise HTTPException(409, "Un compte existe deja avec cet email")
     profile.pop("_id", None)
 
     # Create wallet with welcome KT
@@ -6571,6 +6694,7 @@ async def auth_register(request: RegisterRequest, req: Request):
         "name": full_name,
         "profile_id": profile["id"],
         "profile_type": "other",
+        "frek_id": frek_id,
         "is_admin": False,
     })
     return response
@@ -6748,16 +6872,25 @@ async def pro_request_access(request: ProAccessRequest, req: Request):
 async def pro_verify_code(request: ProVerifyCode):
     """Verify access code and return profile"""
     email = request.email.lower()
+
+    # Brute-force protection
+    if _check_otp_brute_force(email):
+        raise HTTPException(
+            status_code=429,
+            detail="Trop de tentatives. Réessayez dans 5 minutes."
+        )
+
     stored = pro_access_codes.get(email)
-    
+
     if not stored:
         raise HTTPException(status_code=400, detail="Aucun code en attente pour cet email")
-    
+
     if datetime.now(timezone.utc) > stored["expires"]:
         del pro_access_codes[email]
         raise HTTPException(status_code=400, detail="Code expiré")
-    
+
     if stored["code"] != request.code:
+        _record_otp_fail(email)
         raise HTTPException(status_code=400, detail="Code invalide")
     
     # Code valid - get full profile from registrations OR cc_badges
@@ -6793,9 +6926,10 @@ async def pro_verify_code(request: ProVerifyCode):
     if not registration:
         raise HTTPException(status_code=404, detail="Profil non trouvé")
     
-    # Clean up used code
+    # Clean up used code + reset brute-force counter
     del pro_access_codes[email]
-    
+    _reset_otp_fails(email)
+
     # Log the access
     await db.pro_access_logs.insert_one({
         "email": email,
@@ -6803,7 +6937,7 @@ async def pro_verify_code(request: ProVerifyCode):
         "action": "login",
         "timestamp": datetime.now(timezone.utc).isoformat()
     })
-    
+
     response = JSONResponse(content={"success": True, "profile": registration})
     set_session_cookie(response, {
         "role": "pro",
@@ -6811,6 +6945,7 @@ async def pro_verify_code(request: ProVerifyCode):
         "name": registration.get("full_name", ""),
         "profile_id": registration.get("id", ""),
         "profile_type": registration.get("profile_type", ""),
+        "frek_id": registration.get("frek_id", ""),
         "is_admin": registration.get("is_admin", False),
     })
     return response
@@ -6879,6 +7014,7 @@ async def validate_magic_link(token: str):
         "name": registration.get("full_name", ""),
         "profile_id": registration.get("id", ""),
         "profile_type": registration.get("profile_type", ""),
+        "frek_id": registration.get("frek_id", ""),
         "is_admin": registration.get("is_admin", False),
     })
     return response
@@ -6965,6 +7101,7 @@ async def google_auth_session(request: Request):
         "name": profile.get("full_name", google_name),
         "profile_id": profile.get("id", ""),
         "profile_type": profile.get("profile_type", ""),
+        "frek_id": profile.get("frek_id", ""),
         "is_admin": profile.get("is_admin", False),
     })
     return response
@@ -7073,6 +7210,13 @@ async def auth_frek_verify(request: FrekVerifyRequest, req: Request):
     frek_id = request.frek_id.strip().upper()
     code = request.code.strip()
 
+    # Brute-force protection
+    if _check_otp_brute_force(frek_id):
+        raise HTTPException(
+            status_code=429,
+            detail="Trop de tentatives. Réessayez dans 5 minutes."
+        )
+
     stored = _frek_auth_codes.get(frek_id)
     if not stored:
         raise HTTPException(status_code=400, detail="Aucune demande de connexion pour ce FREK-ID. Recommencez.")
@@ -7082,10 +7226,12 @@ async def auth_frek_verify(request: FrekVerifyRequest, req: Request):
         raise HTTPException(status_code=410, detail="Code expire. Recommencez la procedure.")
 
     if stored["code"] != code:
+        _record_otp_fail(frek_id)
         raise HTTPException(status_code=401, detail="Code incorrect.")
 
-    # Code valid — clean up
+    # Code valid — clean up + reset brute-force counter
     _frek_auth_codes.pop(frek_id, None)
+    _reset_otp_fails(frek_id)
 
     email = stored["email"]
     # Find full profile
@@ -7133,6 +7279,7 @@ async def auth_frek_verify(request: FrekVerifyRequest, req: Request):
         "name": profile.get("full_name", ""),
         "profile_id": profile.get("id", ""),
         "profile_type": profile.get("profile_type", ""),
+        "frek_id": frek_id,
         "is_admin": profile.get("is_admin", False),
     })
     return response
@@ -7277,6 +7424,7 @@ async def auth_github_callback(code: str = "", state: str = ""):
         "name": profile.get("full_name", github_name),
         "profile_id": profile.get("id", ""),
         "profile_type": profile.get("profile_type", ""),
+        "frek_id": profile.get("frek_id", ""),
         "is_admin": profile.get("is_admin", False),
     })
     return response

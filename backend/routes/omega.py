@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["omega"])
 
-_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-_db = _client[os.environ["DB_NAME"]]
+_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
+_db = _client[os.environ.get("DB_NAME", "kiltikonet")]
 
 TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
 JETON_VALEUR = float(os.environ.get("JETON_VALEUR_EURO", "1.50"))
@@ -959,90 +959,6 @@ async def get_post_comments(post_id: str):
     if not post:
         raise HTTPException(404, "Post non trouve")
     return {"commentaires": post.get("commentaires", [])}
-
-
-
-@router.put("/api/feed/posts/{post_id}")
-async def update_feed_post(post_id: str, request: Request):
-    """Update a feed post. Only the author or admin can edit."""
-    email = _get_session_email(request)
-    frek_id = await _get_user_frek_id(email)
-    body = await request.json()
-    contenu = body.get("contenu", "").strip()
-    if not contenu:
-        raise HTTPException(400, "Contenu requis")
-
-    # Try pro_posts first (main feed), then feed_posts (legacy)
-    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0})
-    collection = _db.pro_posts
-    id_field = "id"
-    author_field = "author_id"
-    content_field = "content"
-    if not post:
-        post = await _db.feed_posts.find_one({"post_id": post_id}, {"_id": 0})
-        collection = _db.feed_posts
-        id_field = "post_id"
-        author_field = "frek_id_auteur"
-        content_field = "contenu"
-    if not post:
-        raise HTTPException(404, "Post non trouve")
-
-    reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "role": 1})
-    is_admin = (reg or {}).get("role") in ("admin", "founder")
-    is_author = post.get(author_field) == frek_id or post.get("email_auteur") == email or post.get("author_email") == email
-    if not is_author and not is_admin:
-        raise HTTPException(403, "Non autorise")
-
-    now = datetime.now(timezone.utc).isoformat()
-    await collection.update_one(
-        {id_field: post_id},
-        {"$set": {content_field: contenu, "modified": True, "modified_at": now, "updated_at": now}}
-    )
-    await write_audit_log(frek_id or email, "FEED_POST", "", "edit", {"post_id": post_id})
-    return {"success": True, "post_id": post_id}
-
-
-@router.delete("/api/feed/posts/{post_id}")
-async def delete_feed_post(post_id: str, request: Request):
-    """Delete a feed post. Only the author or admin can delete."""
-    email = _get_session_email(request)
-    frek_id = await _get_user_frek_id(email)
-
-    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0})
-    collection = _db.pro_posts
-    id_field = "id"
-    author_field = "author_id"
-    if not post:
-        post = await _db.feed_posts.find_one({"post_id": post_id}, {"_id": 0})
-        collection = _db.feed_posts
-        id_field = "post_id"
-        author_field = "frek_id_auteur"
-    if not post:
-        raise HTTPException(404, "Post non trouve")
-
-    reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "role": 1})
-    is_admin = (reg or {}).get("role") in ("admin", "founder")
-    is_author = post.get(author_field) == frek_id or post.get("email_auteur") == email or post.get("author_email") == email
-    if not is_author and not is_admin:
-        raise HTTPException(403, "Non autorise")
-
-    await collection.delete_one({id_field: post_id})
-    await write_audit_log(frek_id or email, "FEED_POST", "", "delete", {"post_id": post_id})
-    return {"success": True, "post_id": post_id}
-
-
-@router.post("/api/feed/posts/{post_id}/report")
-async def report_feed_post(post_id: str, request: Request):
-    """Report a feed post."""
-    email = _get_session_email(request)
-    frek_id = await _get_user_frek_id(email)
-    now = datetime.now(timezone.utc).isoformat()
-    await _db.feed_reports.insert_one({
-        "post_id": post_id, "reporter_frek_id": frek_id or email,
-        "timestamp": now, "status": "pending"
-    })
-    await write_audit_log(frek_id or email, "FEED_REPORT", "", "report", {"post_id": post_id})
-    return {"success": True}
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -2319,14 +2235,14 @@ async def builder_analytics(request: Request):
 
     projects = await _db.builder_projects.count_documents({"email": email})
     published = await _db.builder_projects.count_documents({"email": email, "published": True})
-    posts = await _db.feed_posts.count_documents({"auteur_frek_id": frek_id})
+    posts = await _db.pro_posts.count_documents({"author_id": frek_id})
 
     # Count eclairs received
     pipeline = [
-        {"$match": {"auteur_frek_id": frek_id}},
-        {"$group": {"_id": None, "total_eclairs": {"$sum": "$eclairs"}}},
+        {"$match": {"author_id": frek_id}},
+        {"$group": {"_id": None, "total_eclairs": {"$sum": "$eclairs_count"}}},
     ]
-    eclair_result = await _db.feed_posts.aggregate(pipeline).to_list(1)
+    eclair_result = await _db.pro_posts.aggregate(pipeline).to_list(1)
     total_eclairs = eclair_result[0]["total_eclairs"] if eclair_result else 0
 
     return {

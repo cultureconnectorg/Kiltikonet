@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePermissions } from '../lib/usePermissions';
 import { 
   QrCode, Camera, X, Users, Bell, Activity, 
   ChevronRight, Clock, CheckCircle, AlertCircle,
@@ -430,11 +431,10 @@ const QuickSearch = ({ onCheckin }) => {
               style={{ background: COLORS.background }}
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <img
-                  src={p.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.full_name)}&background=D4A84B&color=fff&size=40`}
-                  alt={p.full_name}
-                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                />
+                {p.image
+                  ? <img src={p.image} alt={p.full_name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.insertAdjacentHTML('afterend', `<div style="width:40px;height:40px;border-radius:50%;background:${COLORS.accent};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;">${(p.full_name||'?')[0].toUpperCase()}</div>`); }} />
+                  : <div style={{ width: 40, height: 40, borderRadius: '50%', background: COLORS.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0 }}>{(p.full_name || '?')[0].toUpperCase()}</div>
+                }
                 <div className="min-w-0">
                   <p className="font-medium truncate" style={{ color: COLORS.text }}>{p.full_name}</p>
                   <p className="text-xs truncate" style={{ color: COLORS.textMuted }}>{p.organization_name}</p>
@@ -513,6 +513,7 @@ const LastScans = ({ scans }) => {
 // ═══════════════════════════════════════════════════════════════
 const AdminMobileDashboard = () => {
   const navigate = useNavigate();
+  const { isAdmin: isAdminPerm } = usePermissions();
   const [showScanner, setShowScanner] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [affluence, setAffluence] = useState(null);
@@ -608,6 +609,26 @@ const AdminMobileDashboard = () => {
   };
   
   const session = getAdminSession();
+
+  // Guard : vérifier l'authentification au montage (même pattern que AdminDashboard.jsx)
+  useEffect(() => {
+    const isSessionValid = session && (session.role === 'admin' || isAdminPerm || !!session.workspace);
+    if (isSessionValid) return; // Session sessionStorage valide — continuer
+    // Pas de cache — vérifier le cookie httpOnly via l'API
+    const checkCookie = async () => {
+      try {
+        const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && (data.session?.role === 'admin' || data.session?.is_admin)) {
+            return; // Cookie valide
+          }
+        }
+      } catch { /* réseau indisponible — laisser accéder en mode terrain hors-ligne */ }
+      navigate('/admin');
+    };
+    checkCookie();
+  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch affluence data
   const fetchAffluence = useCallback(async () => {

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, MessageSquare, Search, Send, CheckCheck, Bell, X, Loader2, Plus } from "lucide-react";
-import UserAvatar from "./UserAvatar";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -162,7 +161,11 @@ export default function InboxView({ onBack, onSelect, auth }) {
           ) : (
             conversations.map((conv) => (
               <motion.div key={conv.conversation_id} whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }} onClick={() => openConversation(conv.conversation_id)} className={`flex items-center gap-3 px-5 py-4 cursor-pointer border-b ${selectedConv === conv.conversation_id ? 'bg-white/5' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }} data-testid={`conv-${conv.conversation_id}`}>
-                <UserAvatar src={conv.other_avatar} name={conv.other_name || '?'} size={44} />
+                <div className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center text-sm font-bold" style={{ background: conv.other_avatar ? 'transparent' : 'linear-gradient(135deg, #f2ca50, #d4a84b)', color: 'black' }}>
+                  {conv.other_avatar ? (
+                    <img src={conv.other_avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                  ) : (conv.other_name || '?')[0]}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-white truncate">{conv.other_name}</span>

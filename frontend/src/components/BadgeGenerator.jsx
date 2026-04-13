@@ -68,7 +68,8 @@ export const BadgeGenerator = ({ participant, onClose }) => {
             <div className="flex-1 flex flex-col items-center justify-center p-6">
               <div className="w-28 h-28 border-2 border-lightborder overflow-hidden mb-4">
                 <img
-                  src={participant.logo_url || participant.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'}
+                  src={participant.logo_url || participant.image || undefined}
+                  onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
                   alt={participant.full_name}
                   className="w-full h-full object-cover"
                 />

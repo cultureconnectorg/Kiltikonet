@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Zap, MessageSquare, Share2, ShieldCheck, ArrowLeft, Send, X, Plus, Loader2, ChevronUp, MoreVertical, Pencil, Trash2, Flag, Link2 } from "lucide-react";
-import UserAvatar from "./UserAvatar";
+import { Zap, MessageSquare, Share2, ShieldCheck, ArrowLeft, Send, X, Plus, Loader2, ChevronUp } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -13,98 +12,103 @@ export default function FeedView({ onBack, onNavigate, auth }) {
   const [commentsList, setCommentsList] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
-  const [skip, setSkip] = useState(0);
+  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPostContent, setNewPostContent] = useState("");
   const [postingNew, setPostingNew] = useState(false);
-  const [moreMenuPost, setMoreMenuPost] = useState(null);
-  const [editModal, setEditModal] = useState(null);
-  const [editContent, setEditContent] = useState("");
-  const [editLoading, setEditLoading] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [toast, setToast] = useState(null);
-
   const containerRef = useRef(null);
+  const observerRef = useRef(null);
   const sentinelRef = useRef(null);
 
-  const myFrekId = auth?.frekId || '';
-  const myEmail = auth?.user?.email || '';
-
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
-
-  // Fetch posts from /api/pro/feed
-  const fetchPosts = useCallback(async (s = 0, append = false) => {
+  // Fetch posts
+  const fetchPosts = useCallback(async (p = 1, append = false) => {
+    if (p > 1) setLoadingMore(true);
     try {
-      const res = await fetch(`${API}/api/pro/feed?skip=${s}&limit=20`, { credentials: 'include' });
+      const res = await fetch(`${API}/api/feed/posts?page=${p}&limit=10`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         const newPosts = data.posts || [];
-        if (append) setPosts(prev => [...prev, ...newPosts]);
-        else setPosts(newPosts);
+        setPosts(prev => append ? [...prev, ...newPosts] : newPosts);
         setHasMore(data.has_more || false);
       }
-    } catch {}
+    } catch (e) { console.error("Feed fetch error:", e); }
+    finally { setLoadingMore(false); }
   }, []);
 
-  useEffect(() => { fetchPosts(0); }, [fetchPosts]);
+  useEffect(() => { fetchPosts(1); }, [fetchPosts]);
 
-  // Infinite scroll
+  // IntersectionObserver for infinite scroll
   useEffect(() => {
     if (!sentinelRef.current) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && hasMore && !loadingMore) {
-        setLoadingMore(true);
-        const nextSkip = skip + 20;
-        setSkip(nextSkip);
-        fetchPosts(nextSkip, true).finally(() => setLoadingMore(false));
-      }
-    }, { threshold: 0.1 });
-    obs.observe(sentinelRef.current);
-    return () => obs.disconnect();
-  }, [hasMore, loadingMore, skip, fetchPosts]);
+    observerRef.current = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasMore && !loadingMore) {
+          setPage(prev => {
+            const next = prev + 1;
+            fetchPosts(next, true);
+            return next;
+          });
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observerRef.current.observe(sentinelRef.current);
+    return () => observerRef.current?.disconnect();
+  }, [hasMore, loadingMore, fetchPosts]);
 
-  // Scroll tracking
-  const handleScroll = () => {
+  // Scroll snap detection
+  const handleScroll = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
-    const idx = Math.round(el.scrollTop / (el.clientHeight || 1));
+    const idx = Math.round(el.scrollTop / el.clientHeight);
     setActiveIndex(idx);
-  };
+  }, []);
 
-  // Eclair — POST /api/pro/feed/posts/{id}/eclair
+  // Eclair — debit 1 KT
   const handleEclair = async (postId) => {
-    if (!myFrekId) { showToast("FREK-ID requis"); return; }
     setEclairLoading(postId);
     try {
       const res = await fetch(`${API}/api/pro/feed/posts/${postId}/eclair`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ frek_id: myFrekId }), credentials: 'include',
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ frek_id: auth?.frekId || '' }),
       });
       if (res.ok) {
         const data = await res.json();
         setPosts(prev => prev.map(p =>
-          p.id === postId ? { ...p, eclairs_count: data.eclairs_count } : p
+          p.post_id === postId || p.id === postId ? { ...p, nb_eclairs: data.eclairs_count, eclairs_count: data.eclairs_count } : p
         ));
         auth?.playNotifSound?.();
       } else {
         const err = await res.json().catch(() => ({}));
-        showToast(err.detail || "Erreur eclair");
+        if (res.status === 402) {
+          // Toast insufficient KT
+          if (window.__KILTI_TOAST) window.__KILTI_TOAST('Solde KT insuffisant — recharge ton wallet');
+        }
       }
     } catch {}
     finally { setEclairLoading(null); }
   };
 
-  // Comments
+  // Load comments
   const loadComments = async (postId) => {
     try {
       const res = await fetch(`${API}/api/feed/posts/${postId}/commentaires`, { credentials: 'include' });
-      if (res.ok) { const d = await res.json(); setCommentsList(d.commentaires || []); }
-    } catch { setCommentsList([]); }
+      if (res.ok) {
+        const data = await res.json();
+        setCommentsList(data.commentaires || []);
+      }
+    } catch {}
   };
-  const openComments = (postId) => { setShowComments(postId); loadComments(postId); };
+
+  const openComments = (postId) => {
+    setShowComments(postId);
+    loadComments(postId);
+  };
+
+  // Submit comment
   const handleComment = async () => {
     if (!newComment.trim() || !showComments) return;
     setCommentLoading(true);
@@ -114,114 +118,49 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         body: JSON.stringify({ contenu: newComment }), credentials: 'include',
       });
       if (res.ok) {
-        const d = await res.json();
-        setCommentsList(prev => [...prev, d.comment || { contenu: newComment, prenom: 'Moi' }]);
+        const data = await res.json();
+        setCommentsList(prev => [...prev, data.comment]);
         setNewComment("");
         setPosts(prev => prev.map(p =>
-          p.id === showComments ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p
+          p.post_id === showComments ? { ...p, nb_commentaires: (p.nb_commentaires || 0) + 1 } : p
         ));
       }
     } catch {}
     finally { setCommentLoading(false); }
   };
 
+  // Native share
   const handleShare = (post) => {
-    const text = `${post.author_name}: ${(post.content || '').slice(0, 100)}`;
-    if (navigator.share) navigator.share({ title: "Kiltikonet Feed", text, url: window.location.href });
-    else { navigator.clipboard?.writeText(text); showToast("Lien copie"); }
+    const text = `${post.prenom_auteur}: ${post.contenu?.slice(0, 100)}...`;
+    if (navigator.share) {
+      navigator.share({ title: "Kiltikonet Feed", text, url: window.location.href });
+    } else {
+      navigator.clipboard?.writeText(text);
+    }
   };
 
-  // New post — POST /api/pro/feed/post
+  // Create new post
   const handleNewPost = async () => {
     if (!newPostContent.trim()) return;
     setPostingNew(true);
     try {
-      const authorId = auth?.user?.id || myFrekId || 'anon';
-      const res = await fetch(`${API}/api/pro/feed/post`, {
+      const res = await fetch(`${API}/api/feed/posts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author_id: authorId, content: newPostContent, post_type: "insight", dimension: "Culture" }),
-        credentials: 'include',
+        body: JSON.stringify({ contenu: newPostContent }), credentials: 'include',
       });
-      if (res.ok) { setNewPostContent(""); setShowNewPost(false); setSkip(0); fetchPosts(0); showToast("Post publie"); }
-      else { const e = await res.json().catch(() => ({})); showToast(e.detail || "Erreur publication"); }
+      if (res.ok) {
+        setNewPostContent("");
+        setShowNewPost(false);
+        fetchPosts(1);
+      }
     } catch {}
     finally { setPostingNew(false); }
   };
-
-  // Edit — PUT /api/feed/posts/:id
-  const openEditModal = (post) => { setEditModal(post); setEditContent(post.content || ""); setMoreMenuPost(null); };
-  const handleEdit = async () => {
-    if (!editContent.trim() || !editModal) return;
-    setEditLoading(true);
-    try {
-      const res = await fetch(`${API}/api/feed/posts/${editModal.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contenu: editContent }), credentials: 'include',
-      });
-      if (res.ok) {
-        setPosts(prev => prev.map(p =>
-          p.id === editModal.id ? { ...p, content: editContent, modified: true } : p
-        ));
-        setEditModal(null); showToast("Post modifie");
-      }
-    } catch {}
-    finally { setEditLoading(false); }
-  };
-
-  // Delete — DELETE /api/feed/posts/:id
-  const openDeleteModal = (post) => { setDeleteModal(post); setMoreMenuPost(null); };
-  const handleDelete = async () => {
-    if (!deleteModal) return;
-    setDeleteLoading(true);
-    try {
-      const res = await fetch(`${API}/api/feed/posts/${deleteModal.id}`, {
-        method: 'DELETE', credentials: 'include',
-      });
-      if (res.ok) {
-        setPosts(prev => prev.filter(p => p.id !== deleteModal.id));
-        setDeleteModal(null); showToast("Post supprime");
-      }
-    } catch {}
-    finally { setDeleteLoading(false); }
-  };
-
-  // Report — POST /api/feed/posts/:id/report
-  const handleReport = async (post) => {
-    setMoreMenuPost(null);
-    try {
-      await fetch(`${API}/api/feed/posts/${post.id}/report`, { method: 'POST', credentials: 'include' });
-      showToast("Post signale — merci");
-    } catch {}
-  };
-
-  const handleCopyLink = (post) => {
-    setMoreMenuPost(null);
-    navigator.clipboard?.writeText(`${window.location.origin}/pro#feed-${post.id}`);
-    showToast("Lien copie");
-  };
-
-  const isAuthor = (post) => {
-    if (myFrekId && (post.author_id === myFrekId || post.author_frek_id === myFrekId)) return true;
-    if (myEmail && post.author_email === myEmail) return true;
-    return false;
-  };
-  const isAdmin = auth?.user?.role === 'admin' || auth?.user?.role === 'founder';
 
   const formatCount = (n) => {
     if (!n) return "0";
     if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
     return String(n);
-  };
-
-  const timeAgo = (ts) => {
-    if (!ts) return "";
-    const diff = Date.now() - new Date(ts).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `${days}j`;
   };
 
   return (
@@ -240,109 +179,86 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         </motion.button>
       </header>
 
-      {/* Feed container */}
+      {/* Feed container — snap scroll mobile, grid lg: */}
       <div className="flex-1 flex overflow-hidden">
-        <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto lg:grid lg:grid-cols-2 lg:gap-4 lg:p-4 lg:auto-rows-min" style={{ scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' }}>
+        {/* Main feed */}
+        <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto lg:grid lg:grid-cols-2 lg:gap-4 lg:p-4 lg:auto-rows-min lg:overflow-y-auto" style={{ scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' }}>
           {posts.map((post, idx) => (
-            <div key={post.id || idx} className="relative w-full flex-shrink-0 lg:rounded-2xl lg:overflow-hidden lg:h-auto lg:min-h-[400px]" style={{ height: 'calc(100vh - 56px)', scrollSnapAlign: 'start' }}>
-              {/* BG */}
-              <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, hsl(${(idx * 47) % 360}, 15%, 8%) 0%, #0a0a0b 100%)` }} />
+            <div key={post.post_id || idx} className="relative w-full flex-shrink-0 lg:rounded-2xl lg:overflow-hidden lg:h-auto lg:min-h-[400px]" style={{ height: 'calc(100vh - 56px)', scrollSnapAlign: 'start' }}>
+            {/* Background image */}
+            {post.media_url && (
+              <div className="absolute inset-0">
+                <img src={post.media_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.4) 100%)' }} />
+              </div>
+            )}
 
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-16 p-5 pb-8 z-10">
-                <div className="flex items-center gap-3 mb-3">
-                  <UserAvatar src={post.author_image} name={post.author_name || "?"} size={40} />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-white">{post.author_name || "Anonyme"}</span>
-                      {!post.is_ghost && <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-white/40">{post.author_title}</span>
-                      {post.author_country && <span className="text-[10px] text-white/40">{post.author_country}</span>}
-                      <span className="text-[10px] text-white/30">{timeAgo(post.created_at)}</span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm text-white/90 leading-relaxed mb-2 line-clamp-5 whitespace-pre-line">{post.content}</p>
-                {post.modified && <span className="text-[8px] text-gray-500 italic">Modifie</span>}
-                {post.dimension && (
-                  <span className="inline-block mt-2 text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider" style={{ background: 'rgba(242,202,80,0.15)', color: '#f2ca50' }}>
-                    {post.dimension}
-                  </span>
+            {/* Content overlay */}
+            <div className="absolute bottom-0 left-0 right-16 p-5 pb-8 z-10">
+              {/* Author */}
+              <div className="flex items-center gap-3 mb-3">
+                {post.photo_auteur && (
+                  <img src={post.photo_auteur} alt="" className="w-10 h-10 rounded-full object-cover" style={{ border: '2px solid rgba(242,202,80,0.4)' }} />
                 )}
-              </div>
-
-              {/* Right actions */}
-              <div className="absolute right-3 bottom-20 flex flex-col items-center gap-4 z-20">
-                {/* More */}
-                <div className="relative">
-                  <motion.button whileTap={{ scale: 0.8 }} onClick={() => setMoreMenuPost(moreMenuPost === post.id ? null : post.id)} data-testid={`more-btn-${idx}`}>
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                      <MoreVertical className="w-5 h-5 text-white/80" />
-                    </div>
-                  </motion.button>
-                  <AnimatePresence>
-                    {moreMenuPost === post.id && (
-                      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute right-12 bottom-0 w-48 rounded-xl py-1 z-50" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }} data-testid={`more-menu-${idx}`}>
-                        {(isAuthor(post) || isAdmin) ? (
-                          <>
-                            <button onClick={() => openEditModal(post)} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-white/5" data-testid="edit-post-btn">
-                              <Pencil className="w-3.5 h-3.5 text-gray-400" /> Modifier ce post
-                            </button>
-                            <button onClick={() => openDeleteModal(post)} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10" data-testid="delete-post-btn">
-                              <Trash2 className="w-3.5 h-3.5" /> Supprimer ce post
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => handleReport(post)} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-white/5" data-testid="report-post-btn">
-                              <Flag className="w-3.5 h-3.5 text-gray-400" /> Signaler ce post
-                            </button>
-                            <button onClick={() => handleCopyLink(post)} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-white/5" data-testid="copy-link-btn">
-                              <Link2 className="w-3.5 h-3.5 text-gray-400" /> Copier le lien
-                            </button>
-                          </>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-white">{post.prenom_auteur}</span>
+                    {post.badge_frek && <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />}
+                  </div>
                 </div>
-
-                {/* Eclair */}
-                <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleEclair(post.id)} disabled={eclairLoading === post.id} className="flex flex-col items-center gap-1" data-testid={`eclair-btn-${idx}`}>
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(242,202,80,0.3)' }}>
-                    {eclairLoading === post.id ? <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" /> : <Zap className="w-5 h-5" style={{ color: '#f2ca50' }} />}
-                  </div>
-                  <span className="text-[10px] text-white/70 font-bold">{formatCount(post.eclairs_count || post.likes_count)}</span>
-                </motion.button>
-
-                {/* Comment */}
-                <motion.button whileTap={{ scale: 0.8 }} onClick={() => openComments(post.id)} className="flex flex-col items-center gap-1" data-testid={`comment-btn-${idx}`}>
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                    <MessageSquare className="w-5 h-5 text-white/80" />
-                  </div>
-                  <span className="text-[10px] text-white/70 font-bold">{formatCount(post.comments_count)}</span>
-                </motion.button>
-
-                {/* Share */}
-                <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleShare(post)} className="flex flex-col items-center gap-1" data-testid={`share-btn-${idx}`}>
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                    <Share2 className="w-5 h-5 text-white/80" />
-                  </div>
-                </motion.button>
               </div>
+
+              {/* Text */}
+              <p className="text-sm text-white/90 leading-relaxed mb-3 line-clamp-4">{post.contenu}</p>
+
+              {/* Tags */}
+              {post.tags?.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap">
+                  {post.tags.map((t, i) => (
+                    <span key={i} className="text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider" style={{ background: 'rgba(242,202,80,0.15)', color: '#f2ca50' }}>#{t}</span>
+                  ))}
+                </div>
+              )}
             </div>
-          ))}
 
-          {/* Sentinel */}
-          <div ref={sentinelRef} className="h-20 flex items-center justify-center lg:col-span-2">
-            {loadingMore && <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" />}
-            {!hasMore && posts.length > 0 && <span className="text-xs text-gray-600">Fin du feed</span>}
+            {/* Right actions */}
+            <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-20">
+              {/* Eclair */}
+              <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleEclair(post.post_id)} disabled={eclairLoading === post.post_id} className="flex flex-col items-center gap-1" data-testid={`eclair-btn-${idx}`}>
+                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(242,202,80,0.3)' }}>
+                  {eclairLoading === post.post_id ? <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" /> : <Zap className="w-5 h-5" style={{ color: '#f2ca50' }} />}
+                </div>
+                <span className="text-[10px] text-white/70 font-bold">{formatCount(post.nb_eclairs)}</span>
+              </motion.button>
+
+              {/* Comment */}
+              <motion.button whileTap={{ scale: 0.8 }} onClick={() => openComments(post.post_id)} className="flex flex-col items-center gap-1" data-testid={`comment-btn-${idx}`}>
+                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                  <MessageSquare className="w-5 h-5 text-white/80" />
+                </div>
+                <span className="text-[10px] text-white/70 font-bold">{formatCount(post.nb_commentaires)}</span>
+              </motion.button>
+
+              {/* Share */}
+              <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleShare(post)} className="flex flex-col items-center gap-1" data-testid={`share-btn-${idx}`}>
+                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                  <Share2 className="w-5 h-5 text-white/80" />
+                </div>
+              </motion.button>
+            </div>
           </div>
-        </div>
+        ))}
 
-        {/* Desktop sidebar */}
+        {/* Sentinel for infinite scroll */}
+        <div ref={sentinelRef} className="h-20 flex items-center justify-center">
+          {loadingMore && <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" />}
+          {!hasMore && posts.length > 0 && (
+            <span className="text-xs text-gray-600">Fin du feed</span>
+          )}
+        </div>
+      </div>
+
+        {/* Desktop sidebar — lg: only */}
         <aside className="hidden lg:flex flex-col w-[280px] shrink-0 overflow-y-auto p-4 space-y-4" style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', scrollbarWidth: 'thin' }}>
           <div className="rounded-xl p-4" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}>
             <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Trending</div>
@@ -350,12 +266,22 @@ export default function FeedView({ onBack, onNavigate, auth }) {
               <div key={t} className="text-xs py-1.5" style={{ color: '#f2ca50' }}>{t}</div>
             ))}
           </div>
+          <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Filtres</div>
+            {['Tout', 'Posts', 'Reels', 'Audio'].map(f => (
+              <button key={f} className="block w-full text-left text-xs text-gray-400 hover:text-[#f2ca50] py-1.5 transition-colors">{f}</button>
+            ))}
+          </div>
+          <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Suggestions</div>
+            <p className="text-[10px] text-gray-600">Explore le feed pour decouvrir la communaute CC2026</p>
+          </div>
         </aside>
       </div>
 
       {/* Scroll-to-top */}
       {activeIndex > 2 && (
-        <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={() => containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold" style={{ background: 'rgba(242,202,80,0.9)', color: 'black' }}>
+        <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={() => { containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold" style={{ background: 'rgba(242,202,80,0.9)', color: 'black' }}>
           <ChevronUp className="w-3 h-3" /> Haut
         </motion.button>
       )}
@@ -369,13 +295,13 @@ export default function FeedView({ onBack, onNavigate, auth }) {
               <button onClick={() => setShowComments(null)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
-              {commentsList.length === 0 && <p className="text-xs text-gray-600 text-center py-8">Aucun commentaire</p>}
+              {commentsList.length === 0 && <p className="text-xs text-gray-600 text-center py-8">Aucun commentaire. Soyez le premier !</p>}
               {commentsList.map((c, i) => (
                 <div key={i} className="flex gap-3">
-                  <UserAvatar src={null} name={c.prenom || c.author_name || "?"} size={28} border={false} />
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: 'rgba(242,202,80,0.15)', color: '#f2ca50' }}>{(c.prenom || '?')[0]}</div>
                   <div>
-                    <span className="text-xs font-bold text-white">{c.prenom || c.author_name || 'Anonyme'}</span>
-                    <p className="text-xs text-gray-400 mt-0.5">{c.contenu || c.content}</p>
+                    <span className="text-xs font-bold text-white">{c.prenom || 'Anonyme'}</span>
+                    <p className="text-xs text-gray-400 mt-0.5">{c.contenu}</p>
                   </div>
                 </div>
               ))}
@@ -400,58 +326,10 @@ export default function FeedView({ onBack, onNavigate, auth }) {
                 <button onClick={() => setShowNewPost(false)}><X className="w-5 h-5 text-gray-500" /></button>
               </div>
               <textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder="Partagez avec la communaute..." rows={4} className="w-full bg-white/5 text-sm px-4 py-3 rounded-xl outline-none text-white resize-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="new-post-textarea" />
-              <motion.button whileTap={{ scale: 0.95 }} onClick={handleNewPost} disabled={postingNew || !newPostContent.trim()} className="w-full mt-3 py-3 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: postingNew || !newPostContent.trim() ? '#333' : '#f2ca50', color: postingNew ? '#999' : 'black' }} data-testid="new-post-submit-btn">
+              <motion.button whileTap={{ scale: 0.95 }} onClick={handleNewPost} disabled={postingNew || !newPostContent.trim()} className="w-full mt-3 py-3 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: postingNew ? '#333' : '#f2ca50', color: 'black' }} data-testid="new-post-submit-btn">
                 {postingNew ? 'Publication...' : 'Publier'}
               </motion.button>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Edit Modal */}
-      <AnimatePresence>
-        {editModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.8)' }}>
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="w-full max-w-md rounded-2xl p-5" style={{ background: '#0e0e0e', border: '1px solid rgba(255,255,255,0.08)' }} data-testid="edit-post-modal">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-bold tracking-wider uppercase" style={{ color: '#f2ca50' }}>Modifier ce post</span>
-                <button onClick={() => setEditModal(null)}><X className="w-5 h-5 text-gray-500" /></button>
-              </div>
-              <textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={5} className="w-full bg-white/5 text-sm px-4 py-3 rounded-xl outline-none text-white resize-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="edit-post-textarea" />
-              <div className="flex gap-3 mt-4">
-                <button onClick={() => setEditModal(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold" style={{ background: 'rgba(255,255,255,0.05)', color: 'white' }}>Annuler</button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={handleEdit} disabled={editLoading || !editContent.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2" style={{ background: '#f2ca50', color: 'black' }} data-testid="edit-post-save-btn">
-                  {editLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Enregistrer
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Modal */}
-      <AnimatePresence>
-        {deleteModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.8)' }}>
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="w-full max-w-sm rounded-2xl p-5" style={{ background: '#0e0e0e', border: '1px solid rgba(255,255,255,0.08)' }} data-testid="delete-post-modal">
-              <h3 className="text-sm font-bold text-white text-center mb-2">Supprimer ce post ?</h3>
-              <p className="text-xs text-gray-500 text-center mb-5">Cette action est irreversible.</p>
-              <div className="flex gap-3">
-                <button onClick={() => setDeleteModal(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold" style={{ background: 'rgba(255,255,255,0.05)', color: 'white' }}>Annuler</button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={handleDelete} disabled={deleteLoading} className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2" style={{ background: '#ef4444', color: 'white' }} data-testid="delete-post-confirm-btn">
-                  {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Supprimer
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-2.5 rounded-full text-sm font-bold" style={{ background: '#f2ca50', color: 'black' }}>
-            {toast}
           </motion.div>
         )}
       </AnimatePresence>
