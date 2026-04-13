@@ -168,8 +168,8 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
       {/* Floating button */}
       {!open && (
         <button onClick={handleOpen} data-testid="cvl-brain-float-btn"
-          className="fixed bottom-24 md:bottom-6 right-4 z-[90] w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
-          style={{ background: 'rgba(232,213,160,0.12)', boxShadow: '0 0 32px rgba(232,213,160,0.15), 0 8px 32px rgba(0,0,0,0.5)', backdropFilter: 'blur(16px)' }}
+          className="fixed right-4 z-[80] w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+          style={{ bottom: 'var(--kk-fab-bottom-mobile)', background: 'rgba(232,213,160,0.12)', boxShadow: '0 0 32px rgba(232,213,160,0.15), 0 8px 32px rgba(0,0,0,0.5)', backdropFilter: 'blur(16px)' }}
           aria-label="Parle à CVL BRAIN">
           <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 26, fontVariationSettings: "'FILL' 0, 'wght' 300" }}>psychology</span>
         </button>
@@ -177,8 +177,8 @@ const CvlBrainFloat = ({ session, externalOpen, onExternalClose }) => {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 md:bottom-6 right-4 z-[95] w-[340px] sm:w-96 rounded-xl overflow-hidden flex flex-col"
-          style={{ background: '#131314', boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(232,213,160,0.05)', maxHeight: '520px', border: '1px solid rgba(75,70,59,0.1)' }}
+        <div className="fixed right-4 z-[95] rounded-xl overflow-hidden flex flex-col"
+          style={{ bottom: 'var(--kk-fab-bottom-mobile)', width: 'min(340px, calc(100vw - 2rem))', background: '#131314', boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(232,213,160,0.05)', maxHeight: '520px', border: '1px solid rgba(75,70,59,0.1)' }}
           data-testid="cvl-brain-chat">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3" style={{ background: 'rgba(232,213,160,0.03)' }}>

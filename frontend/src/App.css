@@ -1,5 +1,31 @@
 /* Culture Connect 2026 - Custom Styles */
 
+/* ═══════════ DESIGN TOKENS KILTIKONET ═══════════ */
+:root {
+  /* Navigation mobile — MobileNavigation.jsx mesure calc(76px + safe-area-inset-bottom) */
+  --kk-mobile-nav-height: 76px;
+
+  /* FAB (ex: CvlBrainFloat) — positionné au-dessus de la nav */
+  --kk-fab-bottom-mobile: calc(var(--kk-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
+  --kk-fab-bottom-desktop: 24px;
+
+  /* Padding bas des contenus scrollables pour laisser place à la nav */
+  --kk-content-pb: calc(var(--kk-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 8px);
+
+  /* Z-index scale centralisée */
+  --z-base: 0;
+  --z-dropdown: 20;
+  --z-sticky: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-toast: 70;
+  --z-fab: 80;
+  --z-nav: 90;
+  --z-chat: 95;
+  --z-critical: 100;
+}
+
 .App {
   min-height: 100vh;
   background-color: #0C0B09;

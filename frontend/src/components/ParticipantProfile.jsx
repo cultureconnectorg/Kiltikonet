@@ -64,7 +64,7 @@ export const ParticipantProfile = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-paper pt-24 flex items-center justify-center">
-        <div className="text-charcoal/50">Loading...</div>
+        <div className="text-charcoal/50">Chargement...</div>
       </div>
     );
   }

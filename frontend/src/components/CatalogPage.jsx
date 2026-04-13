@@ -538,7 +538,7 @@ export const CatalogPage = () => {
 
         {/* Grid/List */}
         {isLoading ? (
-          <div className="text-center py-20 text-charcoal/50">Loading...</div>
+          <div className="text-center py-20 text-charcoal/50">Chargement...</div>
         ) : filteredParticipants.length === 0 ? (
           <Reveal>
             <div className="text-center py-20">

@@ -138,7 +138,7 @@ export const PartnerManagement = () => {
   );
 
   if (isLoading) {
-    return <div className="p-8 text-center text-charcoal/50">Loading...</div>;
+    return <div className="p-8 text-center text-charcoal/50">Chargement...</div>;
   }
 
   return (

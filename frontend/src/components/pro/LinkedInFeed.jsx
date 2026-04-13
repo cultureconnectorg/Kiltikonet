@@ -156,13 +156,20 @@ const LinkedInFeed = ({ session, onOpenInbox }) => {
               <div className="px-5 pt-4 pb-3">
                 {/* Author */}
                 <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center"
+                  <div className="w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden"
                     style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.12), rgba(200,168,75,0.08))', border: '1px solid rgba(232,213,160,0.15)' }}>
                     {post.author_image ? (
-                      <img src={post.author_image} alt="" className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined" style={{ color: '#E8D5A0', fontSize: 18 }}>person</span>
-                    )}
+                      <img
+                        src={post.author_image}
+                        alt=""
+                        className="w-full h-full rounded-full object-cover"
+                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }}
+                      />
+                    ) : null}
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ color: '#E8D5A0', fontSize: 18, display: post.author_image ? 'none' : 'flex' }}
+                    >person</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -216,7 +223,13 @@ const LinkedInFeed = ({ session, onOpenInbox }) => {
                   {/* Thumbnail for video/interview/extrait posts */}
                   {post.thumbnail_url && (
                     <div className="mt-3 rounded-xl overflow-hidden relative cursor-pointer group" data-testid={`post-thumbnail-${post.id}`}>
-                      <img src={post.thumbnail_url} alt="" className="w-full h-48 object-cover transition-transform group-hover:scale-105" style={{ filter: 'brightness(0.8)' }} />
+                      <img
+                        src={post.thumbnail_url}
+                        alt=""
+                        className="w-full h-48 object-cover transition-transform group-hover:scale-105"
+                        style={{ filter: 'brightness(0.8)' }}
+                        onError={(e) => { e.target.onerror = null; e.target.closest('[data-testid]')?.style.setProperty('display', 'none'); }}
+                      />
                       {post.video_url && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
