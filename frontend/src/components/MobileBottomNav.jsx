@@ -172,9 +172,9 @@ const MobileBottomNav = () => {
 
   // Lien vers Espace Pro pour les utilisateurs (pas de lien admin public)
   if (isPro) {
-    publicNav.push({ id: 'pro', icon: Briefcase, label: 'Espace Pro', path: '/pro' });
+    publicNav.push({ id: 'pro', icon: Briefcase, label: 'Espace Pro', path: '/espace-pro' });
   } else {
-    publicNav.push({ id: 'pro', icon: Briefcase, label: 'Espace Pro', path: '/pro' });
+    publicNav.push({ id: 'pro', icon: Briefcase, label: 'Espace Pro', path: '/espace-pro/connexion' });
   }
 
   const isActive = (item) => {
