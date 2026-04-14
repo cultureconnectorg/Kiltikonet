@@ -153,10 +153,45 @@ export default function InboxView({ onBack, onSelect, auth }) {
           {loading ? (
             <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-[#f2ca50]" /></div>
           ) : conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-600">
-              <MessageSquare className="w-10 h-10 mb-3 opacity-40" />
-              <p className="text-sm">Aucune conversation</p>
-              <p className="text-xs text-gray-700 mt-1">Commencez une discussion !</p>
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", damping: 20 }}
+                className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
+                style={{ background: 'rgba(242,202,80,0.08)', border: '1px solid rgba(242,202,80,0.15)' }}
+              >
+                <MessageSquare className="w-8 h-8" style={{ color: 'rgba(242,202,80,0.5)' }} />
+              </motion.div>
+              <motion.h3
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-base font-bold text-white mb-2"
+              >
+                Votre Inbox est vide
+              </motion.h3>
+              <motion.p
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="text-xs text-gray-500 leading-relaxed mb-6 max-w-[220px]"
+              >
+                Envoyez un premier message pour démarrer une conversation avec la communauté.
+              </motion.p>
+              <motion.button
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowNewConv(true)}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase flex items-center gap-2"
+                style={{ background: '#f2ca50', color: '#0a0a0b' }}
+                data-testid="inbox-start-conv-btn"
+              >
+                <Plus className="w-3.5 h-3.5" /> Nouvelle conversation
+              </motion.button>
             </div>
           ) : (
             conversations.map((conv) => (

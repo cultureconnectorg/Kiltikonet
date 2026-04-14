@@ -6,48 +6,48 @@ Plateforme evenementielle culturelle souveraine pour Culture Connect 2026, Marti
 ## Implemented (2026-04-14)
 
 ### Stripe Fix — Double /api/api/
-- Root cause: Frontend files with `const API = '${BACKEND_URL}/api'` using `${API}/api/xxx` → 404
 - Fixed 8 files, tested 16/16 PASS
 
 ### UX Clarifications
 - PricingPage: Visiteur = "Pre-inscription gratuite — Marche Culturel uniquement" + exclusions en rouge
-- FREK masque sur toutes pages publiques ET Espace Pro (autorite silencieuse)
-- Email remplace: contact@kiltikonet.fr partout (ancien: cultureconnectorg@gmail.com)
+- FREK masque partout (pages publiques + Espace Pro + OrbitalMenu header) — autorite silencieuse
+- Email: contact@kiltikonet.fr partout
 
-### FAQ System (NEW)
-- Backend: GET /api/faq (public), POST/PUT/DELETE /api/admin/faq (admin)
-- Frontend: /faq page avec recherche, filtres par categorie, accordeon
-- 7 FAQ par defaut seedees au demarrage
-- Categories: general, jetons, technique, evenement
+### FAQ System
+- Backend: GET /api/faq, POST/PUT/DELETE /api/admin/faq
+- Frontend: /faq page avec recherche, filtres, accordeon. 7 FAQ seedees.
 
-### Support Tickets (NEW)
-- Backend: POST /api/support/tickets (public), GET /api/admin/support/tickets (admin)
-- Frontend: /support page avec formulaire (nom, email, categorie, sujet, message)
-- Categories: general, complaint, technical, billing
-- Ecran de confirmation avec reference ticket TK-XXXX
+### Support Tickets
+- Backend: POST /api/support/tickets, GET /api/admin/support/tickets
+- Frontend: /support page formulaire complet, confirmation avec ref TK-XXXX
 
-### Tutoriel Premiere Connexion (NEW)
-- ProTutorial.jsx: 8 etapes tooltips animees (Welcome, Feed, Builder, Wallet, Shop, Brain, Profile, Ready)
-- Affiche 1 seule fois (localStorage kk_tutorial_done)
-- Integre dans ProApp.jsx, remplace l'ancien welcome modal
+### Tutoriel Premiere Connexion
+- ProTutorial.jsx: 8 etapes tooltips animes. Affiche 1 seule fois (localStorage).
 
 ### Builder → Feed Fix
-- Fallback: publie le post meme si pas de registration (utilise email comme auteur)
+- Fallback: publie le post meme si pas de registration
+
+### OrbitalMenu Fix
+- Logo centre sur Desktop (lg:pr-[280px] au lieu de justify-start)
+- Header: "Profil" au lieu de "FREK-ID: XXX"
+
+### InboxView Empty State
+- Animation elegante avec icone, texte explicatif et bouton "Nouvelle conversation"
+
+### Photo de Profil
+- Code complet: preview locale (URL.createObjectURL) + upload POST /api/user/avatar
+- Endpoint protege par auth, sauvegarde dans registrations
 
 ## Key Endpoints
-- POST /api/create-checkout-session (accreditation, partnership, ticket)
+- POST /api/create-checkout-session
 - GET /api/faq, POST /api/admin/faq
 - POST /api/support/tickets, GET /api/admin/support/tickets
-- GET /api/pro/feed, POST /api/pro/feed/post
+- POST /api/user/avatar
 - POST /api/builder/publish
 
-## Architecture Note
-- FREK = autorite silencieuse. Jamais affiche cote utilisateur.
-- Convention URL: `const API = '${BACKEND_URL}/api'` (appels: `${API}/xxx`) vs `const API = BACKEND_URL` (appels: `${API}/api/xxx`)
-
 ## Backlog
-- P1: Logo OrbitalMenu centre, InboxView empty state, Profile photo preview test e2e
-- P2: ShopView/AgendaView responsives, Shop visuels packs
+- P1: Admin panel FAQ + Tickets (valide par user, a faire apres)
+- P2: Shop visuels packs, ShopView/AgendaView responsives
 - P3: Geolocalisation (Leaflet.js)
 - P4: i18n 8 langues, Smart Engine & Analytics
 

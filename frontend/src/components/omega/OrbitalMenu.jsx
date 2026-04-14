@@ -112,9 +112,9 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
   }, []);
 
   return (
-    <div className="relative h-screen w-full flex items-center justify-center z-10 p-4 lg:justify-start lg:pl-[calc(50%-160px)]" data-testid="orbital-menu"
+    <div className="relative h-screen w-full flex items-center justify-center z-10 p-4 lg:pr-[280px]" data-testid="orbital-menu"
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      {/* Header — CC2026, JCC, FREK-ID only */}
+      {/* Header — CC2026, JCC, Profil */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-end px-6 h-20" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)' }} data-testid="omega-header">
         <div className="flex items-center gap-2">
           <motion.div whileHover={{ scale: 1.05, borderColor: "rgba(242, 202, 80, 0.4)" }} whileTap={{ scale: 0.95 }}
@@ -131,7 +131,7 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
           <motion.div whileHover={{ scale: 1.05, borderColor: "rgba(242, 202, 80, 0.4)" }} whileTap={{ scale: 0.95 }}
             onClick={() => onSelect("frek_id")} className="flex items-center gap-1.5 rounded-full px-3 py-1 cursor-pointer transition-all"
             style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }} data-testid="omega-frek-badge">
-            <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>FREK-ID: {frekId || '\u2014'}</span>
+            <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>Profil</span>
           </motion.div>
         </div>
       </header>
