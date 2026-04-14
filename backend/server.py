@@ -452,6 +452,14 @@ PARTNERSHIP_TIERS = {
     "gold": {"name": "Partenaire Gold", "price": 10000.00, "currency": "eur", "vip_count": 10}
 }
 
+# Billets entrée — culture Connect 2026 (20-23 Mai, Fort-de-France)
+TICKET_TIERS = {
+    "general": {"name": "Billet Général",  "price": 45.00,  "currency": "eur",
+                "access": "Entrée générale 4 jours — concerts, marchés, ateliers ouverts"},
+    "vip":     {"name": "Billet VIP",       "price": 150.00, "currency": "eur",
+                "access": "Accès VIP 4 jours — Lounge, conférences, backstage, networking"},
+}
+
 # ================== EMAIL TEMPLATES ==================
 def get_confirmation_email(name: str, tier: str, email: str) -> str:
     tier_data = ACCREDITATION_TIERS.get(tier, ACCREDITATION_TIERS["professional"])
@@ -933,8 +941,8 @@ class ManualRegistration(BaseModel):
     expertise_tags: Optional[List[str]] = None  # NEW: Support expertise tags
 
 class CheckoutRequest(BaseModel):
-    type: str  # "accreditation" or "partnership"
-    tier: str  # "emerging", "professional", "institutional" OR "bronze", "silver", "gold"
+    type: str  # "accreditation", "partnership", or "ticket"
+    tier: str  # tier key within the chosen type
     origin_url: str
     # For accreditation
     full_name: Optional[str] = None
@@ -961,6 +969,9 @@ class CheckoutRequest(BaseModel):
     contact_phone: Optional[str] = None
     website: Optional[str] = None
     logo_url: Optional[str] = None
+    # For ticket purchase (vitrine)
+    buyer_name: Optional[str] = None
+    buyer_email: Optional[str] = None
     # hCaptcha
     captcha_token: Optional[str] = None
 
@@ -1151,6 +1162,14 @@ async def create_checkout_session(request: Request, checkout_data: CheckoutReque
         tier_data = PARTNERSHIP_TIERS[checkout_data.tier]
         success_url = f"{origin_url}/partenaire/confirmation?session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{origin_url}/partenaires"
+
+    elif checkout_data.type == "ticket":
+        if checkout_data.tier not in TICKET_TIERS:
+            raise HTTPException(status_code=400, detail=f"Billet invalide. Choix: {list(TICKET_TIERS.keys())}")
+        tier_data = TICKET_TIERS[checkout_data.tier]
+        success_url = f"{origin_url}/tarifs?ticket=success&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{origin_url}/tarifs"
+
     else:
         raise HTTPException(status_code=400, detail="Invalid checkout type")
     
@@ -1175,15 +1194,20 @@ async def create_checkout_session(request: Request, checkout_data: CheckoutReque
             "profile_type": checkout_data.profile_type or "",
             "stand_request": str(checkout_data.stand_request),
             "stand_category": checkout_data.stand_category or "",
-            "bio": (checkout_data.bio or "")[:500],  # Stripe metadata limit
+            "bio": (checkout_data.bio or "")[:500],
             "language_preference": checkout_data.language_preference or "fr",
             "how_heard": checkout_data.how_heard or "",
-            # Additional data fields
             "profile_image_url": checkout_data.profile_image_url or "",
             "siret_number": checkout_data.siret_number or "",
             "website_url": checkout_data.website_url or "",
-            "expertise_tags": checkout_data.expertise_tags or "",  # Comma-separated
+            "expertise_tags": checkout_data.expertise_tags or "",
             "show_in_catalog": str(checkout_data.show_in_catalog or False)
+        })
+    elif checkout_data.type == "ticket":
+        metadata.update({
+            "buyer_name": checkout_data.buyer_name or "",
+            "buyer_email": checkout_data.buyer_email or "",
+            "ticket_access": tier_data.get("access", ""),
         })
     else:
         metadata.update({
@@ -1574,6 +1598,35 @@ async def process_successful_payment(transaction: dict, metadata: dict):
                 {"session_id": session_id}, {"$set": {"processed": True}}
             )
             logger.info(f"Adhesion {level} activated for {email} via Stripe session {session_id}")
+
+    elif payment_type == "ticket":
+        buyer_name = metadata.get("buyer_name", "")
+        buyer_email = metadata.get("buyer_email", "")
+        tier = metadata.get("tier", "general")
+        tier_data = TICKET_TIERS.get(tier, TICKET_TIERS["general"])
+        if buyer_email:
+            ticket_id = f"TK26-{tier.upper()[:3]}-{str(uuid.uuid4())[:8].upper()}"
+            await db.tickets.insert_one({
+                "ticket_id": ticket_id,
+                "buyer_name": buyer_name,
+                "buyer_email": buyer_email,
+                "tier": tier,
+                "tier_name": tier_data["name"],
+                "access": tier_data["access"],
+                "amount_eur": tier_data["price"],
+                "stripe_session_id": session_id,
+                "status": "confirmed",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+            from services import ses_service as _ses
+            asyncio.create_task(_ses.send_ticket_confirmation(
+                to_email=buyer_email,
+                name=buyer_name,
+                ticket_id=ticket_id,
+                tier_name=tier_data["name"],
+                access=tier_data["access"],
+            ))
+            logger.info(f"Ticket {ticket_id} confirmed for {buyer_email}")
 
 @api_router.get("/stripe-public-key")
 async def get_stripe_public_key():
