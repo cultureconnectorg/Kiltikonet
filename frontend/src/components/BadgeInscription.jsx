@@ -92,8 +92,10 @@ export default function BadgeInscription() {
   };
 
   const selectExposant = (badge) => {
-    // All exposant tiers require payment → redirect to registration
-    navigate('/register-pro', { state: { selectedTier: 'institutional' } });
+    // Exposant = partnership, not accreditation — correct prices: 2 500 / 5 000 / 10 000€
+    const tierMap = { 'EXP-B': 'bronze', 'EXP-S': 'silver', 'EXP-G': 'gold' };
+    const tier = tierMap[badge] || 'bronze';
+    navigate('/partenaires', { state: { preSelectedTier: tier } });
   };
 
   const handleSubmit = async (e) => {
