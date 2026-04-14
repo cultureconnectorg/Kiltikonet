@@ -432,9 +432,9 @@ async def toggle_like(data: dict):
 # ═══════════════════════════════════════════════════════════
 # POST /api/pro/feed/seed — Manual ghost content generation
 # ═══════════════════════════════════════════════════════════
-@router.post("/seed")
+@router.post("/seed", dependencies=[Depends(require_permission("manage_content"))])
 async def seed_feed_content(data: dict = None):
-    """Generate ghost LinkedIn posts + reels."""
+    """Generate ghost LinkedIn posts + reels. Requires manage_content permission (admin)."""
     if data is None:
         data = {}
     posts_count = data.get("posts", 60)
@@ -552,9 +552,9 @@ async def get_post_comments(post_id: str):
     return {"commentaires": (post.get("comments") or []) if post else []}
 
 
-@router.post("/posts/{post_id}/comment")
+@router.post("/posts/{post_id}/comment", dependencies=[Depends(require_permission("consume_content"))])
 async def add_post_comment(post_id: str, data: dict):
-    """Append a comment to a feed post."""
+    """Append a comment to a feed post. Requires authenticated session."""
     contenu = (data.get("contenu") or "").strip()
     if not contenu:
         raise HTTPException(400, "contenu requis")

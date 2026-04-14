@@ -1182,9 +1182,9 @@ async def create_checkout_session(request: Request, checkout_data: CheckoutReque
             "bio": (checkout_data.bio or "")[:500],
             "language_preference": checkout_data.language_preference or "fr",
             "how_heard": checkout_data.how_heard or "",
-            "profile_image_url": checkout_data.profile_image_url or "",
+            "profile_image_url": (checkout_data.profile_image_url or "")[:500],
             "siret_number": checkout_data.siret_number or "",
-            "website_url": checkout_data.website_url or "",
+            "website_url": (checkout_data.website_url or "")[:500],
             "expertise_tags": checkout_data.expertise_tags or "",
             "show_in_catalog": str(checkout_data.show_in_catalog or False)
         })
@@ -1194,8 +1194,8 @@ async def create_checkout_session(request: Request, checkout_data: CheckoutReque
             "contact_name": checkout_data.contact_name or "",
             "contact_email": checkout_data.contact_email or "",
             "contact_phone": checkout_data.contact_phone or "",
-            "website": checkout_data.website or "",
-            "logo_url": checkout_data.logo_url or ""
+            "website": (checkout_data.website or "")[:500],
+            "logo_url": (checkout_data.logo_url or "")[:500]
         })
     
     # Create checkout session

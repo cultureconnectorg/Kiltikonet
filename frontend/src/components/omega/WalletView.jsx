@@ -28,7 +28,7 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
   const handleTopUp = async (packId) => {
     setIsTopUpLoading(true);
     try {
-      const userId = auth?.user?.id || auth?.user?.email || 'anon';
+      const userId = auth?.user?.id || auth?.userId || auth?.user?.email || auth?.frekId || 'anon';
       const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/checkout/create`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ package_id: packId, user_id: userId, origin_url: window.location.origin }),
