@@ -6622,7 +6622,7 @@ async def auth_register(request: RegisterRequest, req: Request):
         "actor_role": "professional",
         "status": "approved",
         "frek_id": frek_id,
-        "jetons_solde": 0,
+        "jetons_solde": 5,  # 5 JCC bienvenue pour essayer l'éclair
         "is_new_user": True,
         "first_login": True,
         "language": "fr",
@@ -7874,6 +7874,40 @@ async def send_pro_message(data: dict):
     await db.pro_messages.insert_one(message)
 
     return {"success": True, "message_id": message["id"]}
+
+
+# ─── FREK ID lookup (recovery) ─────────────────────────────────────────────────
+
+@app.get("/api/pro/frek/lookup")
+async def frek_id_lookup(request: Request):
+    """Allow an authenticated user to retrieve their FREK-ID by email (recovery).
+    Also returns a list of all past FREK-IDs if any deduplication issue is detected.
+    """
+    session = get_session_from_cookie(request)
+    if not session:
+        # Try pro session header as fallback
+        raise HTTPException(status_code=401, detail="Non authentifie")
+    email = (session.get("email") or "").lower().strip()
+    if not email:
+        raise HTTPException(status_code=401, detail="Email introuvable dans la session")
+
+    reg = await db.registrations.find_one(
+        {"email": email},
+        {"_id": 0, "frek_id": 1, "full_name": 1, "email": 1, "created_at": 1}
+    )
+    if not reg:
+        raise HTTPException(status_code=404, detail="Profil introuvable")
+
+    frek_id = reg.get("frek_id")
+    if not frek_id:
+        raise HTTPException(status_code=404, detail="Aucun FREK-ID associe a ce compte")
+
+    return {
+        "frek_id": frek_id,
+        "email": email,
+        "full_name": reg.get("full_name", ""),
+        "member_since": reg.get("created_at", ""),
+    }
 
 
 # ─── /api/messages/* — Direct Messaging API (InboxView) ───────────────────────

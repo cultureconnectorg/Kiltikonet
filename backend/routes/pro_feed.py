@@ -210,6 +210,8 @@ async def _generate_batch_posts(count: int = 50):
             "dimension": random.choice(["Musique", "Arts Visuels & Sceniques", "Patrimoine & Traditions", "Gastronomie", "Langue Creole"]),
             "likes": likers,
             "likes_count": len(likers),
+            "eclairs": [],
+            "eclairs_count": 0,
             "comments": [],
             "comments_count": random.randint(0, 8),
             "shares_count": random.randint(0, 5),
@@ -262,6 +264,8 @@ async def _generate_batch_reels(count: int = 20):
             "thumbnail_url": random.choice(REEL_THUMBNAILS),
             "likes": [],
             "likes_count": random.randint(10, 500),
+            "eclairs": [],
+            "eclairs_count": 0,
             "comments_count": random.randint(1, 30),
             "shares_count": random.randint(0, 20),
             "views_count": random.randint(200, 10000),
@@ -354,11 +358,12 @@ class CreatePostBody(BaseModel):
     post_type: str = "insight"
     dimension: str = "Musique"
     is_reel: bool = False
+    thumbnail_url: Optional[str] = None
 
 @router.post("/post", dependencies=[Depends(require_permission("publish_content"))])
 async def create_post(body: CreatePostBody):
     """Create a real user post."""
-    user = await _db.registrations.find_one({"id": body.author_id}, {"_id": 0, "full_name": 1, "email": 1, "profile_type": 1, "image": 1})
+    user = await _db.registrations.find_one({"id": body.author_id}, {"_id": 0, "full_name": 1, "email": 1, "profile_type": 1, "image": 1, "frek_id": 1})
     if not user:
         raise HTTPException(404, "Utilisateur non trouvé")
 
@@ -366,14 +371,18 @@ async def create_post(body: CreatePostBody):
     post = {
         "id": f"post_{str(uuid.uuid4())[:12]}",
         "author_id": body.author_id,
+        "author_frek_id": user.get("frek_id", ""),
         "author_name": user.get("full_name", "Utilisateur"),
         "author_title": user.get("profile_type", "Membre"),
         "author_image": user.get("image", ""),
         "content": body.content,
+        "thumbnail_url": body.thumbnail_url or "",
         "post_type": body.post_type,
         "dimension": body.dimension,
         "likes": [],
         "likes_count": 0,
+        "eclairs": [],
+        "eclairs_count": 0,
         "comments": [],
         "comments_count": 0,
         "shares_count": 0,
@@ -443,7 +452,7 @@ async def seed_feed_content(data: dict = None):
 # ═══════════════════════════════════════════════════════════
 @router.post("/posts/{post_id}/eclair")
 async def eclair_post(post_id: str, data: dict):
-    """Eclair a post: debit 1 KT from caller, credit 1 KT to post author."""
+    """Eclair a post: debit 1 JCC from caller (registrations.jetons_solde), credit 1 JCC to author."""
     user_frek_id = data.get("frek_id")
     if not user_frek_id:
         raise HTTPException(400, "frek_id requis")
@@ -453,38 +462,37 @@ async def eclair_post(post_id: str, data: dict):
     if not post:
         raise HTTPException(404, "Post non trouve")
 
-    author_frek_id = post.get("author_frek_id") or post.get("author_id")
-    if not author_frek_id:
-        raise HTTPException(400, "Auteur du post introuvable")
-
     # Prevent self-eclair
-    if user_frek_id == author_frek_id:
+    if user_frek_id == post.get("author_frek_id"):
         raise HTTPException(400, "Impossible d'eclairer son propre post")
 
     # Check if already eclaired
-    eclairs = post.get("eclairs", [])
+    eclairs = post.get("eclairs") or []
     if user_frek_id in eclairs:
         raise HTTPException(400, "Deja eclaire")
 
-    # Check caller wallet
-    caller_wallet = await _db.kn_wallets.find_one({"frek_id": user_frek_id}, {"_id": 0})
-    if not caller_wallet or (caller_wallet.get("balance_kt", 0) < 1):
-        raise HTTPException(402, "Solde KT insuffisant")
+    # Check caller balance from registrations (the balance users actually see)
+    caller_reg = await _db.registrations.find_one({"frek_id": user_frek_id}, {"_id": 0, "jetons_solde": 1, "full_name": 1})
+    if not caller_reg:
+        raise HTTPException(404, "Utilisateur introuvable")
+    if (caller_reg.get("jetons_solde") or 0) < 1:
+        raise HTTPException(402, "Solde JCC insuffisant — rechargez votre wallet")
 
     now = datetime.now(timezone.utc).isoformat()
 
-    # Debit 1 KT from caller
-    await _db.kn_wallets.update_one(
+    # Debit 1 JCC from caller
+    await _db.registrations.update_one(
         {"frek_id": user_frek_id},
-        {"$inc": {"balance_kt": -1}, "$set": {"updated_at": now}}
+        {"$inc": {"jetons_solde": -1}}
     )
 
-    # Credit 1 KT to author
-    await _db.kn_wallets.update_one(
-        {"frek_id": author_frek_id},
-        {"$inc": {"balance_kt": 1}, "$set": {"updated_at": now}},
-        upsert=True
-    )
+    # Credit 1 JCC to author (if they have a registration)
+    author_frek_id = post.get("author_frek_id") or ""
+    if author_frek_id and not author_frek_id.startswith("ghost_"):
+        await _db.registrations.update_one(
+            {"frek_id": author_frek_id},
+            {"$inc": {"jetons_solde": 1}}
+        )
 
     # Update post eclairs
     eclairs.append(user_frek_id)
@@ -499,26 +507,25 @@ async def eclair_post(post_id: str, data: dict):
         "actor_frek_id": user_frek_id,
         "target_frek_id": author_frek_id,
         "post_id": post_id,
-        "kt_amount": 1,
+        "jcc_amount": 1,
         "timestamp": now,
     })
 
     # Push notification to post author
     try:
         from routes.push_notifications import send_event_push
-        caller_profile = await _db.kn_profiles.find_one({"frek_id": user_frek_id}, {"_id": 0, "name": 1, "full_name": 1})
-        caller_name = (caller_profile or {}).get("name") or (caller_profile or {}).get("full_name") or user_frek_id
-        await send_event_push("FEED_ECLAIR", author_frek_id, actor_name=caller_name)
+        caller_name = (caller_reg or {}).get("full_name") or user_frek_id
+        if author_frek_id:
+            await send_event_push("FEED_ECLAIR", author_frek_id, actor_name=caller_name)
     except Exception:
         pass
 
-    # Get new balances
-    new_wallet = await _db.kn_wallets.find_one({"frek_id": user_frek_id}, {"_id": 0, "balance_kt": 1})
-
+    # Return updated count + new balance
+    updated_reg = await _db.registrations.find_one({"frek_id": user_frek_id}, {"_id": 0, "jetons_solde": 1})
     return {
         "success": True,
         "eclairs_count": len(eclairs),
-        "new_balance_kt": new_wallet.get("balance_kt", 0) if new_wallet else 0,
+        "new_balance_jcc": (updated_reg or {}).get("jetons_solde", 0),
     }
 
 
@@ -526,6 +533,17 @@ async def eclair_post(post_id: str, data: dict):
 # GET  /api/pro/feed/posts/{post_id}/comments — Get comments
 # POST /api/pro/feed/posts/{post_id}/comment  — Add comment
 # ═══════════════════════════════════════════════════════════
+
+@router.delete("/posts/{post_id}")
+async def delete_post(post_id: str, author_id: str):
+    """Delete a post — only the original author can delete their own post."""
+    if not post_id or not author_id:
+        raise HTTPException(400, "post_id et author_id requis")
+    result = await _db.pro_posts.delete_one({"id": post_id, "author_id": author_id, "is_ghost": False})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Post introuvable ou non autorise")
+    return {"success": True, "deleted": post_id}
+
 
 @router.get("/posts/{post_id}/comments")
 async def get_post_comments(post_id: str):

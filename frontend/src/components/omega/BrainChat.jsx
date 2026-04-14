@@ -15,14 +15,6 @@ export default function BrainChat({ onBack, onSelect, balance, auth }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [useWeb, setUseWeb] = useState(false);
   const [layoutMode, setLayoutMode] = useState("default"); // default | split
-  // lg: force split view + sidebar
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
-    const handler = (e) => { if (e.matches) { setLayoutMode('split'); setSidebarOpen(true); } };
-    handler(mq);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
   const [sessions, setSessions] = useState([]);
   const [activity, setActivity] = useState([]);
   const [copiedId, setCopiedId] = useState(null);
