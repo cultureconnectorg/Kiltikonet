@@ -1902,7 +1902,36 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
   const [webauthnModal, setWebauthnModal] = useState(false);
   const [webauthnEmail, setWebauthnEmail] = useState('');
   const [webauthnStep, setWebauthnStep] = useState('email'); // email | verify | error
+  const [silentBioAttempted, setSilentBioAttempted] = useState(false);
+
+  // Silent biometric auto-trigger — if user has logged in before, try Face ID / Touch ID automatically
+  useEffect(() => {
+    if (silentBioAttempted) return;
+    const savedEmail = localStorage.getItem('kk_last_login_email');
+    if (!savedEmail) return;
+    // Check if WebAuthn is supported
+    if (!window.PublicKeyCredential) return;
+    setSilentBioAttempted(true);
+    
+    const trySilentBio = async () => {
+      try {
+        const { startAuthentication } = await import("@simplewebauthn/browser");
+        const beginRes = await axios.post(`${API}/auth/webauthn/login/begin`, { email: savedEmail });
+        if (!beginRes.data) return;
+        const authResp = await startAuthentication({ optionsJSON: beginRes.data });
+        const completeRes = await axios.post(`${API}/auth/webauthn/login/complete`, { email: savedEmail, credential: authResp }, { withCredentials: true });
+        if (completeRes.data.success) {
+          finishLogin(completeRes.data.profile);
+        }
+      } catch {
+        // Silent fail — user will see normal login screen
+      }
+    };
+    trySilentBio();
+  }, [silentBioAttempted]);
   const finishLogin = (p) => {
+    // Save email for silent biometric on next launch
+    localStorage.setItem('kk_last_login_email', p.email);
     sessionStorage.setItem('cc2026_pro_session', JSON.stringify({
       id: p.id, email: p.email, name: p.full_name, image: p.image,
       type: p.profile_type, frek_id: p.frek_id, language: p.language || 'fr',
@@ -2180,14 +2209,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
                 Continuer avec mon identifiant
               </button>
 
-              {/* WebAuthn — Face ID / Touch ID */}
-              <button onClick={() => { setWebauthnModal(true); setWebauthnStep('email'); setWebauthnEmail(''); }}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01] active:scale-[0.97] mb-3"
-                data-testid="webauthn-login-btn"
-                style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04))', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)', minHeight: 48 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#22c55e', fontVariationSettings: "'FILL' 1" }}>face</span>
-                Face ID / Touch ID
-              </button>
+              {/* WebAuthn is now silent — no visible button */}
 
               {/* FREK ID Login Modal */}
               {frekMode && (
