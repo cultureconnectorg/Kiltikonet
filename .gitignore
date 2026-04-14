@@ -262,3 +262,11 @@ credentials.json
 *.pem
 *.key
 .credentials
+-e 
+# Environment and credential files
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+config.bat
