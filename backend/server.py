@@ -218,11 +218,11 @@ RATE_LIMIT_MAX = 500     # requests per window per IP (production-grade)
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    """Basic IP-based rate limiting for production."""
+    """Basic IP-based rate limiting — only for non-API routes to prevent abuse."""
     if IS_PRODUCTION:
         path = request.url.path
-        # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning") or path.startswith("/api/upload") or path.startswith("/api/builder") or path.startswith("/api/notifications") or path.startswith("/api/jetons") or path.startswith("/api/create-checkout") or path.startswith("/api/faq") or path.startswith("/api/support") or path.startswith("/api/geo") or path.startswith("/api/shared") or path.startswith("/api/cms") or path.startswith("/api/programme") or path.startswith("/api/checkout") or path.startswith("/api/files") or path.startswith("/api/health") or path.startswith("/api/partners") or path.startswith("/api/registrations") or path.startswith("/api/badges")):
+        # All API routes are excluded — rate limit only applies to static/unknown routes
+        if not path.startswith("/api/"):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
