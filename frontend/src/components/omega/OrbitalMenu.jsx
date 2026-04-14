@@ -117,8 +117,8 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
       {/* Header — CC2026, JCC, Profil */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-20" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)' }} data-testid="omega-header">
         {/* Back to site — discreet */}
-        <motion.a
-          href="/"
+        <motion.div
+          onClick={() => { window.location.href = '/'; }}
           whileHover={{ scale: 1.05, borderColor: "rgba(255,255,255,0.2)" }}
           whileTap={{ scale: 0.95 }}
           className="flex items-center gap-1.5 rounded-full px-3 py-1 cursor-pointer transition-all"
@@ -127,7 +127,7 @@ export default function OrbitalMenu({ onSelect, balance, frekId }) {
         >
           <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>language</span>
           <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>Site</span>
-        </motion.a>
+        </motion.div>
         <div className="flex items-center gap-2">
           <motion.div whileHover={{ scale: 1.05, borderColor: "rgba(242, 202, 80, 0.4)" }} whileTap={{ scale: 0.95 }}
             onClick={() => onSelect("accreditation")} className="flex items-center gap-1.5 rounded-full px-3 py-1 cursor-pointer transition-all"

@@ -328,7 +328,8 @@ const ProSpaceDashboard = () => {
       .catch(() => {});
   };
 
-  useEffect(() => { if (!loading && !isAuthenticated) navigate('/espace-pro/connexion'); }, [loading, isAuthenticated, navigate]);
+  // Stay on /pro — login handled inline below
+  useEffect(() => {}, [loading, isAuthenticated]);
   useEffect(() => { if (session?.id) loadAll(); }, [session?.id]);
 
   useEffect(() => {
@@ -350,7 +351,7 @@ const ProSpaceDashboard = () => {
     if (session?.id) axios.get(`${API}/cultural-identity/${session.id}`).then(r => setCulturalIdentity(r.data)).catch(() => {});
   }, [session?.id]);
 
-  useEffect(() => { axios.post(`${API}/ghost/seed`).catch(() => {}); }, []);
+  // Ghost seed disabled in production
 
   const loadAll = async () => {
     try {
@@ -368,18 +369,22 @@ const ProSpaceDashboard = () => {
     reloadDoctrine();
   };
 
-  const handleLogout = () => { logout(); toast.success('Déconnexion'); navigate('/espace-pro/connexion'); };
+  const handleLogout = () => { logout(); toast.success('Déconnexion'); };
   const handleOnboardingComplete = (result) => {
     setShowOnboarding(false);
     if (result) { setJetonsBalance(prev => prev + (result.jetons_awarded || 10)); toast.success(`${result.jetons_awarded || 10} Jetons CC offerts !`); }
     loadAll();
   };
 
-  if (loading || !session) return (
+  // Loading state
+  if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: C.bg }}>
       <div className="w-10 h-10 border-3 border-t-transparent rounded-full animate-spin" style={{ borderColor: C.gold }} />
     </div>
   );
+
+  // Not authenticated — show login inline (never navigate away from /pro)
+  if (!session) return <ProSpaceLogin onLogin={() => window.location.reload()} />;
 
   const unreadCount = messages.filter(m => !m.read && m.to === session.id).length;
   const handleNavClick = (id) => {

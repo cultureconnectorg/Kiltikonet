@@ -21,10 +21,10 @@ export function SplashScreen({ onComplete }) {
     return () => clearTimeout(fallbackTimer);
   }, []);
 
-  // Fallback: logo animation for 2s then complete
+  // Fallback: logo animation for 4s then complete
   useEffect(() => {
     if (showFallback) {
-      const timer = setTimeout(done, 2000);
+      const timer = setTimeout(done, 4000);
       return () => clearTimeout(timer);
     }
   }, [showFallback]);

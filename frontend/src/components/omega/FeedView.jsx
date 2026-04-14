@@ -252,7 +252,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
       <div ref={containerRef} className="flex-1 overflow-y-auto" style={viewMode === 'reels' ? { scrollSnapType: 'y mandatory' } : {}} data-testid="feed-scroll">
         {viewMode === 'feed' ? (
         <div className="max-w-lg mx-auto">
-          {posts.length === 0 && !loading && (
+          {posts.length === 0 && !loadingMore && (
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
               <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", damping: 20 }}
                 className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"

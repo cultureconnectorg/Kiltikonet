@@ -124,27 +124,59 @@ const Loading3D = () => (
   </div>
 );
 
-// Pro Splash Wrapper — shows green splash video before ProApp
+// Pro Splash Wrapper — plays splash FIRST, then checks auth, then shows ProApp
 const ProSplashWrapper = () => {
   const [splashDone, setSplashDone] = React.useState(() => {
-    // Play once per session
     return !!sessionStorage.getItem('kk_pro_splash_done');
   });
+  const [sessionReady, setSessionReady] = React.useState(false);
+  const [hasSession, setHasSession] = React.useState(false);
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('kk_pro_splash_done', '1');
     setSplashDone(true);
   };
 
+  // Check session after splash
+  React.useEffect(() => {
+    if (!splashDone) return;
+    const stored = sessionStorage.getItem('cc2026_pro_session');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.createdAt && (Date.now() - parsed.createdAt) < 7 * 24 * 60 * 60 * 1000) {
+          setHasSession(true);
+          setSessionReady(true);
+          return;
+        }
+      } catch {}
+    }
+    // No valid session
+    setHasSession(false);
+    setSessionReady(true);
+  }, [splashDone]);
+
+  // Phase 1: Splash video
   if (!splashDone) {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
-  return (
-    <ProProtectedRoute>
-      <ProApp />
-    </ProProtectedRoute>
-  );
+  // Phase 2: Checking session
+  if (!sessionReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0b' }}>
+        <div className="w-10 h-10 border-3 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#f2ca50' }} />
+      </div>
+    );
+  }
+
+  // Phase 3: No session → login inline
+  if (!hasSession) {
+    return <ProSpaceLogin onLogin={() => window.location.reload()} />;
+  }
+
+  // Phase 4: Authenticated → ProApp (Omega)
+  return <ProApp />;
 };
 
 // Page tracker component - must be inside BrowserRouter
