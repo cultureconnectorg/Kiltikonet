@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Zap, MessageSquare, Share2, ShieldCheck, ArrowLeft, Send, X, Plus, Loader2, ChevronUp } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
+const LIMIT = 10;
 
 export default function FeedView({ onBack, onNavigate, auth }) {
   const [posts, setPosts] = useState([]);
@@ -22,11 +23,12 @@ export default function FeedView({ onBack, onNavigate, auth }) {
   const observerRef = useRef(null);
   const sentinelRef = useRef(null);
 
-  // Fetch posts
+  // Fetch posts from /api/pro/feed
   const fetchPosts = useCallback(async (p = 1, append = false) => {
     if (p > 1) setLoadingMore(true);
     try {
-      const res = await fetch(`${API}/api/feed/posts?page=${p}&limit=10`, { credentials: 'include' });
+      const skip = (p - 1) * LIMIT;
+      const res = await fetch(`${API}/api/pro/feed?skip=${skip}&limit=${LIMIT}`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         const newPosts = data.posts || [];
@@ -66,7 +68,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
     setActiveIndex(idx);
   }, []);
 
-  // Eclair — debit 1 KT
+  // Eclair — debit 1 KT via /api/pro/feed/posts/{id}/eclair
   const handleEclair = async (postId) => {
     setEclairLoading(postId);
     try {
@@ -78,24 +80,20 @@ export default function FeedView({ onBack, onNavigate, auth }) {
       if (res.ok) {
         const data = await res.json();
         setPosts(prev => prev.map(p =>
-          p.post_id === postId || p.id === postId ? { ...p, nb_eclairs: data.eclairs_count, eclairs_count: data.eclairs_count } : p
+          p.id === postId ? { ...p, eclairs_count: data.eclairs_count } : p
         ));
         auth?.playNotifSound?.();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        if (res.status === 402) {
-          // Toast insufficient KT
-          if (window.__KILTI_TOAST) window.__KILTI_TOAST('Solde KT insuffisant — recharge ton wallet');
-        }
+      } else if (res.status === 402) {
+        if (window.__KILTI_TOAST) window.__KILTI_TOAST('Solde KT insuffisant — recharge ton wallet');
       }
     } catch {}
     finally { setEclairLoading(null); }
   };
 
-  // Load comments
+  // Load comments from /api/pro/feed/posts/{id}/comments
   const loadComments = async (postId) => {
     try {
-      const res = await fetch(`${API}/api/feed/posts/${postId}/commentaires`, { credentials: 'include' });
+      const res = await fetch(`${API}/api/pro/feed/posts/${postId}/comments`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setCommentsList(data.commentaires || []);
@@ -108,21 +106,22 @@ export default function FeedView({ onBack, onNavigate, auth }) {
     loadComments(postId);
   };
 
-  // Submit comment
+  // Submit comment to /api/pro/feed/posts/{id}/comment
   const handleComment = async () => {
     if (!newComment.trim() || !showComments) return;
     setCommentLoading(true);
+    const prenom = auth?.user?.name || auth?.userName || 'Anonyme';
     try {
-      const res = await fetch(`${API}/api/feed/posts/${showComments}/commentaire`, {
+      const res = await fetch(`${API}/api/pro/feed/posts/${showComments}/comment`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contenu: newComment }), credentials: 'include',
+        body: JSON.stringify({ contenu: newComment, prenom }), credentials: 'include',
       });
       if (res.ok) {
         const data = await res.json();
         setCommentsList(prev => [...prev, data.comment]);
         setNewComment("");
         setPosts(prev => prev.map(p =>
-          p.post_id === showComments ? { ...p, nb_commentaires: (p.nb_commentaires || 0) + 1 } : p
+          p.id === showComments ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p
         ));
       }
     } catch {}
@@ -131,7 +130,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
 
   // Native share
   const handleShare = (post) => {
-    const text = `${post.prenom_auteur}: ${post.contenu?.slice(0, 100)}...`;
+    const text = `${post.author_name}: ${post.content?.slice(0, 100)}...`;
     if (navigator.share) {
       navigator.share({ title: "Kiltikonet Feed", text, url: window.location.href });
     } else {
@@ -139,18 +138,24 @@ export default function FeedView({ onBack, onNavigate, auth }) {
     }
   };
 
-  // Create new post
+  // Create new post via /api/pro/feed/post
   const handleNewPost = async () => {
     if (!newPostContent.trim()) return;
     setPostingNew(true);
     try {
-      const res = await fetch(`${API}/api/feed/posts`, {
+      const res = await fetch(`${API}/api/pro/feed/post`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contenu: newPostContent }), credentials: 'include',
+        body: JSON.stringify({
+          author_id: auth?.user?.id || '',
+          content: newPostContent,
+          post_type: 'insight',
+          dimension: 'Musique',
+        }), credentials: 'include',
       });
       if (res.ok) {
         setNewPostContent("");
         setShowNewPost(false);
+        setPage(1);
         fetchPosts(1);
       }
     } catch {}
@@ -179,86 +184,87 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         </motion.button>
       </header>
 
-      {/* Feed container — snap scroll mobile, grid lg: */}
+      {/* Feed container */}
       <div className="flex-1 flex overflow-hidden">
         {/* Main feed */}
         <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto lg:grid lg:grid-cols-2 lg:gap-4 lg:p-4 lg:auto-rows-min lg:overflow-y-auto" style={{ scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' }}>
           {posts.map((post, idx) => (
-            <div key={post.post_id || idx} className="relative w-full flex-shrink-0 lg:rounded-2xl lg:overflow-hidden lg:h-auto lg:min-h-[400px]" style={{ height: 'calc(100vh - 56px)', scrollSnapAlign: 'start' }}>
-            {/* Background image */}
-            {post.media_url && (
-              <div className="absolute inset-0">
-                <img src={post.media_url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.4) 100%)' }} />
-              </div>
-            )}
-
-            {/* Content overlay */}
-            <div className="absolute bottom-0 left-0 right-16 p-5 pb-8 z-10">
-              {/* Author */}
-              <div className="flex items-center gap-3 mb-3">
-                {post.photo_auteur && (
-                  <img src={post.photo_auteur} alt="" className="w-10 h-10 rounded-full object-cover" style={{ border: '2px solid rgba(242,202,80,0.4)' }} />
-                )}
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-white">{post.prenom_auteur}</span>
-                    {post.badge_frek && <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />}
-                  </div>
-                </div>
-              </div>
-
-              {/* Text */}
-              <p className="text-sm text-white/90 leading-relaxed mb-3 line-clamp-4">{post.contenu}</p>
-
-              {/* Tags */}
-              {post.tags?.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap">
-                  {post.tags.map((t, i) => (
-                    <span key={i} className="text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider" style={{ background: 'rgba(242,202,80,0.15)', color: '#f2ca50' }}>#{t}</span>
-                  ))}
+            <div key={post.id || idx} className="relative w-full flex-shrink-0 lg:rounded-2xl lg:overflow-hidden lg:h-auto lg:min-h-[400px]" style={{ height: 'calc(100vh - 56px)', scrollSnapAlign: 'start' }}>
+              {/* Background image */}
+              {post.thumbnail_url && (
+                <div className="absolute inset-0">
+                  <img src={post.thumbnail_url} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.4) 100%)' }} />
                 </div>
               )}
+
+              {/* Content overlay */}
+              <div className="absolute bottom-0 left-0 right-16 p-5 pb-8 z-10">
+                {/* Author */}
+                <div className="flex items-center gap-3 mb-3">
+                  {post.author_image && (
+                    <img src={post.author_image} alt="" className="w-10 h-10 rounded-full object-cover" style={{ border: '2px solid rgba(242,202,80,0.4)' }} onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+                  )}
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-white">{post.author_name}</span>
+                      {!post.is_ghost && <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />}
+                    </div>
+                    {post.author_title && (
+                      <span className="text-[10px] text-gray-400">{post.author_title}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Text */}
+                <p className="text-sm text-white/90 leading-relaxed mb-3 line-clamp-4">{post.content}</p>
+
+                {/* Dimension tag */}
+                {post.dimension && (
+                  <div className="flex gap-1.5 flex-wrap">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider" style={{ background: 'rgba(242,202,80,0.15)', color: '#f2ca50' }}>#{post.dimension}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Right actions */}
+              <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-20">
+                {/* Eclair */}
+                <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleEclair(post.id)} disabled={eclairLoading === post.id} className="flex flex-col items-center gap-1" data-testid={`eclair-btn-${idx}`}>
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(242,202,80,0.3)' }}>
+                    {eclairLoading === post.id ? <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" /> : <Zap className="w-5 h-5" style={{ color: '#f2ca50' }} />}
+                  </div>
+                  <span className="text-[10px] text-white/70 font-bold">{formatCount(post.eclairs_count)}</span>
+                </motion.button>
+
+                {/* Comment */}
+                <motion.button whileTap={{ scale: 0.8 }} onClick={() => openComments(post.id)} className="flex flex-col items-center gap-1" data-testid={`comment-btn-${idx}`}>
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                    <MessageSquare className="w-5 h-5 text-white/80" />
+                  </div>
+                  <span className="text-[10px] text-white/70 font-bold">{formatCount(post.comments_count)}</span>
+                </motion.button>
+
+                {/* Share */}
+                <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleShare(post)} className="flex flex-col items-center gap-1" data-testid={`share-btn-${idx}`}>
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                    <Share2 className="w-5 h-5 text-white/80" />
+                  </div>
+                </motion.button>
+              </div>
             </div>
+          ))}
 
-            {/* Right actions */}
-            <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-20">
-              {/* Eclair */}
-              <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleEclair(post.post_id)} disabled={eclairLoading === post.post_id} className="flex flex-col items-center gap-1" data-testid={`eclair-btn-${idx}`}>
-                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(242,202,80,0.3)' }}>
-                  {eclairLoading === post.post_id ? <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" /> : <Zap className="w-5 h-5" style={{ color: '#f2ca50' }} />}
-                </div>
-                <span className="text-[10px] text-white/70 font-bold">{formatCount(post.nb_eclairs)}</span>
-              </motion.button>
-
-              {/* Comment */}
-              <motion.button whileTap={{ scale: 0.8 }} onClick={() => openComments(post.post_id)} className="flex flex-col items-center gap-1" data-testid={`comment-btn-${idx}`}>
-                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                  <MessageSquare className="w-5 h-5 text-white/80" />
-                </div>
-                <span className="text-[10px] text-white/70 font-bold">{formatCount(post.nb_commentaires)}</span>
-              </motion.button>
-
-              {/* Share */}
-              <motion.button whileTap={{ scale: 0.8 }} onClick={() => handleShare(post)} className="flex flex-col items-center gap-1" data-testid={`share-btn-${idx}`}>
-                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                  <Share2 className="w-5 h-5 text-white/80" />
-                </div>
-              </motion.button>
-            </div>
+          {/* Sentinel for infinite scroll */}
+          <div ref={sentinelRef} className="h-20 flex items-center justify-center">
+            {loadingMore && <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" />}
+            {!hasMore && posts.length > 0 && (
+              <span className="text-xs text-gray-600">Fin du feed</span>
+            )}
           </div>
-        ))}
-
-        {/* Sentinel for infinite scroll */}
-        <div ref={sentinelRef} className="h-20 flex items-center justify-center">
-          {loadingMore && <Loader2 className="w-5 h-5 animate-spin text-[#f2ca50]" />}
-          {!hasMore && posts.length > 0 && (
-            <span className="text-xs text-gray-600">Fin du feed</span>
-          )}
         </div>
-      </div>
 
-        {/* Desktop sidebar — lg: only */}
+        {/* Desktop sidebar */}
         <aside className="hidden lg:flex flex-col w-[280px] shrink-0 overflow-y-auto p-4 space-y-4" style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', scrollbarWidth: 'thin' }}>
           <div className="rounded-xl p-4" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}>
             <div className="text-[9px] text-gray-500 tracking-widest uppercase mb-2">Trending</div>
@@ -297,7 +303,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
             <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
               {commentsList.length === 0 && <p className="text-xs text-gray-600 text-center py-8">Aucun commentaire. Soyez le premier !</p>}
               {commentsList.map((c, i) => (
-                <div key={i} className="flex gap-3">
+                <div key={c.id || i} className="flex gap-3">
                   <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: 'rgba(242,202,80,0.15)', color: '#f2ca50' }}>{(c.prenom || '?')[0]}</div>
                   <div>
                     <span className="text-xs font-bold text-white">{c.prenom || 'Anonyme'}</span>
