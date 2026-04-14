@@ -8,6 +8,7 @@
   /* FAB (ex: CvlBrainFloat) — positionné au-dessus de la nav */
   --kk-fab-bottom-mobile: calc(var(--kk-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
   --kk-fab-bottom-desktop: 24px;
+  --kk-fab-bottom: var(--kk-fab-bottom-mobile);
 
   /* Padding bas des contenus scrollables pour laisser place à la nav */
   --kk-content-pb: calc(var(--kk-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 8px);
@@ -24,6 +25,12 @@
   --z-nav: 90;
   --z-chat: 95;
   --z-critical: 100;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --kk-fab-bottom: var(--kk-fab-bottom-desktop);
+  }
 }
 
 .App {
