@@ -113,7 +113,7 @@ export const RegistrationForm = () => {
       const uploadData = new FormData();
       uploadData.append('file', file);
       
-      const response = await axios.post(`${API}/upload-image`, uploadData, {
+      const response = await axios.post(`${API}/api/upload-image`, uploadData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
@@ -200,7 +200,7 @@ export const RegistrationForm = () => {
         captcha_token: captchaToken
       };
       
-      const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
+      const response = await axios.post(`${API}/api/create-checkout-session`, checkoutData);
       
       // Redirect to Stripe Checkout
       if (response.data.url) {

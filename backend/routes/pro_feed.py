@@ -543,8 +543,21 @@ async def delete_post(post_id: str, author_id: str):
     """Delete a post — only the original author can delete their own post."""
     if not post_id or not author_id:
         raise HTTPException(400, "post_id et author_id requis")
+    # Try matching by author_id, frek_id, or email
     result = await _db.pro_posts.delete_one({"id": post_id, "author_id": author_id, "is_ghost": False})
     if result.deleted_count == 0:
+        result = await _db.pro_posts.delete_one({"id": post_id, "author_frek_id": author_id, "is_ghost": False})
+    if result.deleted_count == 0:
+        result = await _db.pro_posts.delete_one({"id": post_id, "author_email": author_id, "is_ghost": False})
+    if result.deleted_count == 0:
+        # Also check if author_id matches any of the author fields
+        post = await _db.pro_posts.find_one({"id": post_id, "is_ghost": False}, {"_id": 0, "author_id": 1, "author_frek_id": 1, "author_email": 1})
+        if post:
+            # Check frek_id lookup
+            reg = await _db.registrations.find_one({"$or": [{"id": author_id}, {"frek_id": author_id}, {"email": author_id}]}, {"_id": 0, "id": 1, "frek_id": 1, "email": 1})
+            if reg and (post.get("author_id") in [reg.get("id"), reg.get("frek_id"), reg.get("email")] or post.get("author_frek_id") == reg.get("frek_id") or post.get("author_email") == reg.get("email")):
+                await _db.pro_posts.delete_one({"id": post_id})
+                return {"success": True, "deleted": post_id}
         raise HTTPException(404, "Post introuvable ou non autorise")
     return {"success": True, "deleted": post_id}
 

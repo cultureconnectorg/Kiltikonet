@@ -222,7 +222,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning") or path.startswith("/api/upload") or path.startswith("/api/builder") or path.startswith("/api/notifications")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning") or path.startswith("/api/upload") or path.startswith("/api/builder") or path.startswith("/api/notifications") or path.startswith("/api/jetons") or path.startswith("/api/create-checkout")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -3370,6 +3370,66 @@ async def unlink_sponsor_from_registration(partner_id: str, registration_id: str
     )
     
     return {"success": True, "message": "Sponsor link removed"}
+
+
+# ================== JETONS (PUBLIC PAGE) ==================
+
+JETONS_PACKS = [
+    {"id": "kt-decouverte", "name": "Decouverte", "jetons": 15, "price_eur": 10, "value_eur": 15, "savings_pct": 33, "badge": "Decouverte", "price_per_token": 0.67},
+    {"id": "kt-culture",    "name": "Culture",    "jetons": 40, "price_eur": 25, "value_eur": 40, "savings_pct": 38, "badge": "Populaire", "price_per_token": 0.63},
+    {"id": "kt-diaspora",   "name": "Diaspora",   "jetons": 85, "price_eur": 50, "value_eur": 85, "savings_pct": 41, "badge": "Meilleur rapport", "price_per_token": 0.59},
+    {"id": "kt-vip",        "name": "VIP",        "jetons": 180,"price_eur": 100,"value_eur": 180,"savings_pct": 44, "badge": "Premium", "price_per_token": 0.56},
+]
+
+@api_router.get("/jetons/packs")
+async def get_jetons_packs():
+    return {"packs": JETONS_PACKS}
+
+@api_router.get("/jetons/wallet/{badge_id}")
+async def get_jetons_wallet(badge_id: str):
+    reg = await db.registrations.find_one(
+        {"$or": [{"frek_id": badge_id}, {"id": badge_id}]},
+        {"_id": 0, "frek_id": 1, "full_name": 1, "email": 1}
+    )
+    if not reg:
+        raise HTTPException(404, "Badge non trouve")
+    wallet = await db.wallets.find_one({"frek_id": reg.get("frek_id", badge_id)}, {"_id": 0})
+    return {
+        "badge_id": reg.get("frek_id", badge_id),
+        "name": reg.get("full_name", ""),
+        "balance_jcc": (wallet or {}).get("balance_kt", 0),
+        "total_received": (wallet or {}).get("total_earned", 0),
+    }
+
+@api_router.post("/jetons/checkout")
+async def jetons_checkout(data: dict, request: Request):
+    badge_id = data.get("badge_id", "")
+    pack_id = data.get("pack", "")
+    origin_url = data.get("origin_url", "")
+    pack = next((p for p in JETONS_PACKS if p["id"] == pack_id), None)
+    if not pack:
+        raise HTTPException(400, "Pack non trouve")
+    stripe_key = os.environ.get("STRIPE_API_KEY", "")
+    if not stripe_key:
+        raise HTTPException(500, "Stripe non configure")
+    import stripe as _stripe
+    _stripe.api_key = stripe_key
+    session = _stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "eur",
+                "unit_amount": int(pack["price"] * 100),
+                "product_data": {"name": f"{pack['name']} — {pack['tokens']} JCC"},
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
+        success_url=f"{origin_url}/jetons?success=true&pack={pack_id}",
+        cancel_url=f"{origin_url}/jetons?canceled=true",
+        metadata={"badge_id": badge_id, "pack_id": pack_id, "tokens": str(pack["tokens"])},
+    )
+    return {"url": session.url}
 
 # ================== API V1 - STATISTICS & INTELLIGENCE ==================
 

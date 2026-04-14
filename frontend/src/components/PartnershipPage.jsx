@@ -265,7 +265,7 @@ export const PartnershipPage = () => {
         captcha_token: partnerCaptchaToken
       };
 
-      const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
+      const response = await axios.post(`${API}/api/create-checkout-session`, checkoutData);
 
       if (response.data.url) {
         window.location.href = response.data.url;

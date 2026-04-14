@@ -41,7 +41,7 @@ export const PartnerManagement = () => {
 
   const fetchPartners = useCallback(async () => {
     try {
-      const response = await axios.get(`${API}/partners/admin`);
+      const response = await axios.get(`${API}/api/partners/admin`);
       setPartners(response.data.partners || []);
     } catch (error) {
       console.error('Error fetching partners:', error);
@@ -52,7 +52,7 @@ export const PartnerManagement = () => {
 
   const fetchRegistrations = useCallback(async () => {
     try {
-      const response = await axios.get(`${API}/registrations`);
+      const response = await axios.get(`${API}/api/registrations`);
       setRegistrations(response.data.registrations || []);
     } catch (error) {
       console.error('Error fetching registrations:', error);
@@ -66,7 +66,7 @@ export const PartnerManagement = () => {
 
   const handleAddPartner = async () => {
     try {
-      await axios.post(`${API}/partners/manual`, newPartner);
+      await axios.post(`${API}/api/partners/manual`, newPartner);
       setShowAddForm(false);
       setNewPartner({
         company_name: '',
@@ -89,7 +89,7 @@ export const PartnerManagement = () => {
     if (!window.confirm(language === 'fr' ? 'Supprimer ce partenaire ?' : 'Delete this partner?')) return;
     
     try {
-      await axios.delete(`${API}/partners/${partnerId}`);
+      await axios.delete(`${API}/api/partners/${partnerId}`);
       fetchPartners();
     } catch (error) {
       console.error('Error deleting partner:', error);
@@ -100,7 +100,7 @@ export const PartnerManagement = () => {
     if (!selectedPartner) return;
     
     try {
-      await axios.post(`${API}/partners/${selectedPartner.id}/sponsor/${registrationId}`);
+      await axios.post(`${API}/api/partners/${selectedPartner.id}/sponsor/${registrationId}`);
       fetchPartners();
       fetchRegistrations();
       setShowLinkModal(false);
@@ -111,7 +111,7 @@ export const PartnerManagement = () => {
 
   const handleUnlinkRegistration = async (partnerId, registrationId) => {
     try {
-      await axios.delete(`${API}/partners/${partnerId}/sponsor/${registrationId}`);
+      await axios.delete(`${API}/api/partners/${partnerId}/sponsor/${registrationId}`);
       fetchPartners();
       fetchRegistrations();
     } catch (error) {
@@ -121,7 +121,7 @@ export const PartnerManagement = () => {
 
   const handleToggleLanding = async (partner) => {
     try {
-      await axios.patch(`${API}/partners/${partner.id}`, {
+      await axios.patch(`${API}/api/partners/${partner.id}`, {
         show_on_landing: !partner.show_on_landing
       });
       fetchPartners();

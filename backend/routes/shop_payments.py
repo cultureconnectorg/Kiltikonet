@@ -32,10 +32,10 @@ STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
 # FIXED PACKAGES — Server-side only (never trust frontend amounts)
 # ═══════════════════════════════════════════════════════════
 KILTI_TOKEN_PACKAGES = {
-    "pack-decouverte": {"name": "Pack Decouverte — 10 JCC", "tokens": 10, "price": 10.00, "currency": "eur", "badge": "Decouverte"},
-    "pack-culture":    {"name": "Pack Culture — 25 JCC",    "tokens": 25, "price": 25.00, "currency": "eur", "badge": "Populaire"},
-    "pack-diaspora":   {"name": "Pack Diaspora — 50 JCC",   "tokens": 50, "price": 50.00, "currency": "eur", "badge": "Meilleur rapport"},
-    "pack-vip":        {"name": "Pack VIP — 100 JCC",       "tokens": 100,"price": 100.00,"currency": "eur", "badge": "Premium"},
+    "kt-decouverte": {"name": "Pack Decouverte — 15 JCC", "tokens": 15, "price": 10.00, "currency": "eur", "badge": "Decouverte"},
+    "kt-culture":    {"name": "Pack Culture — 40 JCC",    "tokens": 40, "price": 25.00, "currency": "eur", "badge": "Populaire"},
+    "kt-diaspora":   {"name": "Pack Diaspora — 85 JCC",   "tokens": 85, "price": 50.00, "currency": "eur", "badge": "Meilleur rapport"},
+    "kt-vip":        {"name": "Pack VIP — 180 JCC",       "tokens": 180,"price": 100.00,"currency": "eur", "badge": "Premium"},
 }
 
 
