@@ -1939,6 +1939,20 @@ async def admin_validate_accreditation(body: AdminValidateRequest, request: Requ
         if frek_id:
             await write_audit_log(frek_id, "ACCREDITATION_APPROVED", body.accreditation_id, "accreditation")
 
+        # Send badge confirmation email
+        try:
+            from services.brevo_templates import badge_confirmation
+            from server import send_email_async
+            subj, html = badge_confirmation(
+                prenom=doc["prenom"],
+                type_badge=doc.get("type_label", doc["type_accreditation"]),
+                frek_id=frek_id or "",
+                badge_id=badge_id,
+            )
+            await send_email_async(doc["email"], subj, html)
+        except Exception:
+            pass  # Email failure must not block badge generation
+
         return {"success": True, "decision": "APPROUVE", "badge_id": badge_id, "qr_token": qr_token}
     else:
         await _db.accreditations_cc2026.update_one(

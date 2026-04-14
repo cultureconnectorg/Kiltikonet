@@ -520,3 +520,35 @@ async def eclair_post(post_id: str, data: dict):
         "eclairs_count": len(eclairs),
         "new_balance_kt": new_wallet.get("balance_kt", 0) if new_wallet else 0,
     }
+
+
+# ═══════════════════════════════════════════════════════════
+# GET  /api/pro/feed/posts/{post_id}/comments — Get comments
+# POST /api/pro/feed/posts/{post_id}/comment  — Add comment
+# ═══════════════════════════════════════════════════════════
+
+@router.get("/posts/{post_id}/comments")
+async def get_post_comments(post_id: str):
+    """Return comments array for a feed post."""
+    post = await _db.pro_posts.find_one({"id": post_id}, {"_id": 0, "comments": 1})
+    return {"commentaires": (post.get("comments") or []) if post else []}
+
+
+@router.post("/posts/{post_id}/comment")
+async def add_post_comment(post_id: str, data: dict):
+    """Append a comment to a feed post."""
+    contenu = (data.get("contenu") or "").strip()
+    if not contenu:
+        raise HTTPException(400, "contenu requis")
+
+    comment = {
+        "id": str(uuid.uuid4())[:8],
+        "prenom": (data.get("prenom") or "Anonyme").strip(),
+        "contenu": contenu,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await _db.pro_posts.update_one(
+        {"id": post_id},
+        {"$push": {"comments": comment}, "$inc": {"comments_count": 1}},
+    )
+    return {"success": True, "comment": comment}

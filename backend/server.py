@@ -7872,8 +7872,129 @@ async def send_pro_message(data: dict):
     }
     
     await db.pro_messages.insert_one(message)
-    
+
     return {"success": True, "message_id": message["id"]}
+
+
+# ─── /api/messages/* — Direct Messaging API (InboxView) ───────────────────────
+
+@app.get("/api/messages/conversations")
+async def get_conversations(request: Request):
+    """List all conversations for the current user (grouped by partner)."""
+    session = get_session_from_cookie(request)
+    user_id = (session or {}).get("profile_id") or (session or {}).get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Non authentifie")
+
+    msgs = await db.pro_messages.find(
+        {"$or": [{"from": user_id}, {"to": user_id}]}
+    ).sort("timestamp", -1).to_list(1000)
+
+    seen: dict = {}
+    for m in msgs:
+        m.pop("_id", None)
+        partner_id = m["to"] if m.get("from") == user_id else m.get("from")
+        if not partner_id or partner_id in seen:
+            continue
+        partner = await db.registrations.find_one(
+            {"id": partner_id}, {"_id": 0, "full_name": 1, "email": 1, "image": 1}
+        )
+        seen[partner_id] = {
+            "conversation_id": partner_id,
+            "other_name": (partner or {}).get("full_name", "Inconnu"),
+            "other_email": (partner or {}).get("email", ""),
+            "other_avatar": (partner or {}).get("image", ""),
+            "last_message": m.get("content", ""),
+            "last_message_at": m.get("timestamp", ""),
+            "unread": 0,
+        }
+
+    for partner_id, conv in seen.items():
+        unread = await db.pro_messages.count_documents(
+            {"from": partner_id, "to": user_id, "read": False}
+        )
+        conv["unread"] = unread
+
+    return {"conversations": list(seen.values())}
+
+
+@app.get("/api/messages/{partner_id}")
+async def get_messages_with_partner(partner_id: str, request: Request):
+    """Get messages exchanged with a specific partner."""
+    session = get_session_from_cookie(request)
+    user_id = (session or {}).get("profile_id") or (session or {}).get("id")
+    if not user_id:
+        return {"messages": []}
+
+    msgs = await db.pro_messages.find(
+        {"$or": [
+            {"from": user_id, "to": partner_id},
+            {"from": partner_id, "to": user_id},
+        ]}
+    ).sort("timestamp", 1).to_list(200)
+
+    user_doc = await db.registrations.find_one({"id": user_id}, {"_id": 0, "email": 1})
+    partner_doc = await db.registrations.find_one({"id": partner_id}, {"_id": 0, "email": 1})
+    user_email = (user_doc or {}).get("email", user_id)
+    partner_email = (partner_doc or {}).get("email", partner_id)
+
+    result = []
+    for m in msgs:
+        m.pop("_id", None)
+        result.append({
+            "message_id": m.get("id"),
+            "sender": user_email if m.get("from") == user_id else partner_email,
+            "content": m.get("content"),
+            "timestamp": m.get("timestamp"),
+            "read": m.get("read", False),
+        })
+
+    await db.pro_messages.update_many(
+        {"from": partner_id, "to": user_id, "read": False},
+        {"$set": {"read": True}}
+    )
+
+    return {"messages": result}
+
+
+@app.post("/api/messages/send")
+async def send_message_api(data: dict, request: Request):
+    """Send a direct message to a user identified by email."""
+    session = get_session_from_cookie(request)
+    user_id = (session or {}).get("profile_id") or (session or {}).get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Non authentifie")
+
+    recipient_email = (data.get("recipient_email") or "").strip()
+    content = (data.get("content") or "").strip()
+    if not recipient_email or not content:
+        raise HTTPException(status_code=400, detail="recipient_email et content requis")
+
+    recipient = await db.registrations.find_one(
+        {"email": recipient_email}, {"_id": 0, "id": 1}
+    )
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Destinataire introuvable")
+
+    recipient_id = recipient["id"]
+    msg = {
+        "id": str(uuid.uuid4()),
+        "from": user_id,
+        "to": recipient_id,
+        "content": content,
+        "read": False,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.pro_messages.insert_one(msg)
+
+    return {
+        "success": True,
+        "conversation_id": recipient_id,
+        "message_id": msg["id"],
+    }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 
 @app.get("/api/pro/opportunities")
 async def get_pro_opportunities():
