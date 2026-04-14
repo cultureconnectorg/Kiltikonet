@@ -31,6 +31,8 @@ export default function BuilderView({ onBack, onSelect, auth }) {
   });
   const saveTimerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const mountedRef = useRef(true);
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
   // Camera state
   const [cameraActive, setCameraActive] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -208,8 +210,8 @@ export default function BuilderView({ onBack, onSelect, auth }) {
         setTimeout(() => setPublishToast(null), 3000);
         // Redirect after publish
         if (onSelect) {
-          if (publishCanal === 'feed') setTimeout(() => onSelect('feed'), 1500);
-          else if (publishCanal === 'shop') setTimeout(() => onSelect('shop'), 1500);
+          if (publishCanal === 'feed') setTimeout(() => { if (mountedRef.current) onSelect('feed'); }, 1500);
+          else if (publishCanal === 'shop') setTimeout(() => { if (mountedRef.current) onSelect('shop'); }, 1500);
         }
       }
     } catch { /* silent */ }

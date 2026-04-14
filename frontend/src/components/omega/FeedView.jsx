@@ -91,7 +91,9 @@ export default function FeedView({ onBack, onNavigate, auth }) {
       } else if (res.status === 402) {
         if (window.__KILTI_TOAST) window.__KILTI_TOAST('Solde KT insuffisant — recharge ton wallet');
       }
-    } catch {}
+    } catch (e) {
+      if (window.__KILTI_TOAST) window.__KILTI_TOAST('Erreur réseau — réessaie');
+    }
     finally { setEclairLoading(null); }
   };
 
@@ -103,7 +105,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         const data = await res.json();
         setCommentsList(data.commentaires || []);
       }
-    } catch {}
+    } catch (e) { console.error("loadComments error:", e); }
   };
 
   const openComments = (postId) => {
@@ -128,8 +130,12 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         setPosts(prev => prev.map(p =>
           p.id === showComments ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p
         ));
+      } else if (res.status === 401) {
+        if (window.__KILTI_TOAST) window.__KILTI_TOAST('Connecte-toi pour commenter');
       }
-    } catch {}
+    } catch (e) {
+      if (window.__KILTI_TOAST) window.__KILTI_TOAST('Erreur réseau — réessaie');
+    }
     finally { setCommentLoading(false); }
   };
 
@@ -145,7 +151,9 @@ export default function FeedView({ onBack, onNavigate, auth }) {
         const data = await res.json();
         setNewPostImage(data.url || data.file_url || '');
       }
-    } catch {}
+    } catch (e) {
+      if (window.__KILTI_TOAST) window.__KILTI_TOAST('Erreur upload image — réessaie');
+    }
     finally { setUploadingImage(false); }
   };
 
@@ -178,8 +186,12 @@ export default function FeedView({ onBack, onNavigate, auth }) {
       });
       if (res.ok) {
         setPosts(prev => prev.filter(p => p.id !== postId));
+      } else if (res.status === 403 || res.status === 404) {
+        if (window.__KILTI_TOAST) window.__KILTI_TOAST('Post introuvable ou non autorisé');
       }
-    } catch {}
+    } catch (e) {
+      if (window.__KILTI_TOAST) window.__KILTI_TOAST('Erreur réseau — réessaie');
+    }
     finally { setDeletingPostId(null); }
   };
 
