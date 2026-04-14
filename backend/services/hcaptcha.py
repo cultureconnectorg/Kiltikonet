@@ -10,15 +10,21 @@ logger = logging.getLogger(__name__)
 
 HCAPTCHA_SECRET = os.environ.get("HCAPTCHA_SECRET", "")
 HCAPTCHA_VERIFY_URL = "https://api.hcaptcha.com/siteverify"
+ENV = os.environ.get("ENV", "development")
 
 
 async def verify_hcaptcha(token: str, remote_ip: str = "unknown") -> dict:
     """
     Verify an hCaptcha token against the hCaptcha API.
     Returns {"success": True/False, "error": str|None}
+    In production, HCAPTCHA_SECRET must be set — missing secret blocks all requests.
+    In development/staging, missing secret logs a warning and allows through.
     """
     if not HCAPTCHA_SECRET:
-        logger.warning("HCAPTCHA_SECRET not configured, skipping verification")
+        if ENV == "production":
+            logger.error("HCAPTCHA_SECRET not configured in production — blocking request")
+            return {"success": False, "error": "Configuration captcha manquante"}
+        logger.warning("HCAPTCHA_SECRET not configured, skipping verification (dev mode)")
         return {"success": True, "error": None}
 
     if not token:

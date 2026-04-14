@@ -535,7 +535,7 @@ async def eclair_post(post_id: str, data: dict):
 # ═══════════════════════════════════════════════════════════
 
 @router.delete("/posts/{post_id}")
-async def delete_post(post_id: str, author_id: str):
+async def delete_post(post_id: str, author_id: str = Query(..., description="ID de l'auteur — seul l'auteur peut supprimer son post")):
     """Delete a post — only the original author can delete their own post."""
     if not post_id or not author_id:
         raise HTTPException(400, "post_id et author_id requis")

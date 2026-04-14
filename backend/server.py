@@ -1124,14 +1124,17 @@ class SiteConfig(BaseModel):
 async def create_checkout_session(request: Request, checkout_data: CheckoutRequest):
     """Create a Stripe checkout session for accreditation or partnership"""
     
-    # hCaptcha verification — non-blocking for payment flows (Stripe handles fraud)
+    # hCaptcha verification — blocking: reject bots before creating Stripe sessions
     if checkout_data.captcha_token:
         try:
             from services.hcaptcha import verify_hcaptcha
             client_ip = request.client.host if request.client else "unknown"
             captcha_result = await verify_hcaptcha(checkout_data.captcha_token, client_ip)
             if not captcha_result["success"]:
-                logger.warning(f"hCaptcha verification failed for checkout (non-blocking): {captcha_result['error']}")
+                logger.warning(f"hCaptcha verification failed for checkout: {captcha_result['error']}")
+                raise HTTPException(status_code=403, detail="Vérification captcha échouée. Veuillez réessayer.")
+        except HTTPException:
+            raise
         except Exception as e:
             logger.warning(f"hCaptcha error during checkout (non-blocking): {e}")
     
@@ -8549,19 +8552,23 @@ async def scan_debit(req: ScanDebitRequest):
                 "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge_type}
             }
     
-    # Jeton debit if montant > 0
+    # Jeton debit if montant > 0 — atomic to prevent race conditions
     jeton_info = {}
     if req.montant > 0:
-        current_solde = badge.get("jetons_solde", 0) or 0
-        if current_solde < req.montant:
+        debit_result = await db.cc_badges.update_one(
+            {"badge_id": badge_id, "jetons_solde": {"$gte": req.montant}},
+            {"$inc": {"jetons_solde": -req.montant}}
+        )
+        if debit_result.matched_count == 0:
+            current_solde = badge.get("jetons_solde", 0) or 0
             return {
                 "status": "insufficient", "code": "LOW_BALANCE", "color": "orange",
                 "message": f"Solde insuffisant ({current_solde}/{req.montant} Jetons)",
                 "badge_id": badge_id, "jetons_solde": current_solde,
                 "person": {"full_name": f"{badge.get('prenom','')} {badge.get('nom','')}", "type_badge": badge_type}
             }
+        current_solde = badge.get("jetons_solde", 0) or 0
         new_solde = current_solde - req.montant
-        await db.cc_badges.update_one({"badge_id": badge_id}, {"$set": {"jetons_solde": new_solde}})
         
         # Log transaction
         await db.cc_transactions.insert_one({

@@ -2258,14 +2258,14 @@ async def builder_analytics(request: Request):
 
     projects = await _db.builder_projects.count_documents({"email": email})
     published = await _db.builder_projects.count_documents({"email": email, "published": True})
-    posts = await _db.feed_posts.count_documents({"auteur_frek_id": frek_id})
+    posts = await _db.pro_posts.count_documents({"author_frek_id": frek_id})
 
     # Count eclairs received
     pipeline = [
-        {"$match": {"auteur_frek_id": frek_id}},
-        {"$group": {"_id": None, "total_eclairs": {"$sum": "$eclairs"}}},
+        {"$match": {"author_frek_id": frek_id}},
+        {"$group": {"_id": None, "total_eclairs": {"$sum": "$eclairs_count"}}},
     ]
-    eclair_result = await _db.feed_posts.aggregate(pipeline).to_list(1)
+    eclair_result = await _db.pro_posts.aggregate(pipeline).to_list(1)
     total_eclairs = eclair_result[0]["total_eclairs"] if eclair_result else 0
 
     return {
@@ -2400,13 +2400,13 @@ async def get_frek_profile(frek_id: str):
 
     # Compute score
     eclairs_pipeline = [
-        {"$match": {"auteur_frek_id": frek_id}},
-        {"$group": {"_id": None, "total": {"$sum": "$eclairs"}}},
+        {"$match": {"author_frek_id": frek_id}},
+        {"$group": {"_id": None, "total": {"$sum": "$eclairs_count"}}},
     ]
-    eclair_res = await _db.feed_posts.aggregate(eclairs_pipeline).to_list(1)
+    eclair_res = await _db.pro_posts.aggregate(eclairs_pipeline).to_list(1)
     eclairs = eclair_res[0]["total"] if eclair_res else 0
 
-    posts = await _db.feed_posts.count_documents({"auteur_frek_id": frek_id})
+    posts = await _db.pro_posts.count_documents({"author_frek_id": frek_id})
     certifications = await _db.frek_certifications.count_documents({"frek_id": frek_id})
 
     # Days since creation
