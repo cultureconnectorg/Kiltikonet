@@ -3,40 +3,53 @@
 ## Vision
 Plateforme evenementielle culturelle souveraine pour Culture Connect 2026, Martinique.
 
-## Bug Fixes Applied (2026-04-14)
+## Implemented (2026-04-14)
 
-### Stripe Payments — FIXED (Double /api/api/ Bug)
-- **Root Cause**: Fichiers frontend avec `const API = '${BACKEND_URL}/api'` utilisaient `${API}/api/create-checkout-session`, formant des URLs `/api/api/...` → 404 silencieux
-- **Fix**: Suppression du `/api/` en trop dans les appels fetch/axios de **8 fichiers**
-- **Testing**: 16/16 tests backend PASS, frontend Playwright PASS
+### Stripe Fix — Double /api/api/
+- Root cause: Frontend files with `const API = '${BACKEND_URL}/api'` using `${API}/api/xxx` → 404
+- Fixed 8 files, tested 16/16 PASS
 
-### UX Clarifications (2026-04-14)
-- **PricingPage**: Description Visiteur clarifiee ("Pre-inscription gratuite — Marche Culturel uniquement"), exclusions affichees en rouge ("Concerts & spectacles non inclus", "Conferences non incluses")
-- **FREK masque**: Mentions "FREK-ID" retirees des pages publiques (PricingPage, ConfirmationScreen, BadgeInscription). FREK reste en backend et dans l'Espace Pro comme autorite silencieuse.
+### UX Clarifications
+- PricingPage: Visiteur = "Pre-inscription gratuite — Marche Culturel uniquement" + exclusions en rouge
+- FREK masque sur toutes pages publiques ET Espace Pro (autorite silencieuse)
+- Email remplace: contact@kiltikonet.fr partout (ancien: cultureconnectorg@gmail.com)
 
-### Previous Fixes (Still Active)
-- Shop pack IDs `pack-*` → `kt-*`, Wallet IDs + prix mis a jour
-- Jetons endpoints crees, Rate limiter exclusions
-- Permissions buy_tokens/publish_content/support_creators tous roles
-- Feed Instagram + Reels rewrite, Feed Delete fix, Auth useAuth.js fix
+### FAQ System (NEW)
+- Backend: GET /api/faq (public), POST/PUT/DELETE /api/admin/faq (admin)
+- Frontend: /faq page avec recherche, filtres par categorie, accordeon
+- 7 FAQ par defaut seedees au demarrage
+- Categories: general, jetons, technique, evenement
+
+### Support Tickets (NEW)
+- Backend: POST /api/support/tickets (public), GET /api/admin/support/tickets (admin)
+- Frontend: /support page avec formulaire (nom, email, categorie, sujet, message)
+- Categories: general, complaint, technical, billing
+- Ecran de confirmation avec reference ticket TK-XXXX
+
+### Tutoriel Premiere Connexion (NEW)
+- ProTutorial.jsx: 8 etapes tooltips animees (Welcome, Feed, Builder, Wallet, Shop, Brain, Profile, Ready)
+- Affiche 1 seule fois (localStorage kk_tutorial_done)
+- Integre dans ProApp.jsx, remplace l'ancien welcome modal
+
+### Builder → Feed Fix
+- Fallback: publie le post meme si pas de registration (utilise email comme auteur)
 
 ## Key Endpoints
 - POST /api/create-checkout-session (accreditation, partnership, ticket)
-- POST /api/shop/checkout/create (kt-decouverte, kt-culture, kt-diaspora, kt-vip)
-- GET /api/jetons/packs, POST /api/jetons/checkout
+- GET /api/faq, POST /api/admin/faq
+- POST /api/support/tickets, GET /api/admin/support/tickets
 - GET /api/pro/feed, POST /api/pro/feed/post
-- DELETE /api/pro/feed/posts/{id}?author_id=
+- POST /api/builder/publish
+
+## Architecture Note
+- FREK = autorite silencieuse. Jamais affiche cote utilisateur.
+- Convention URL: `const API = '${BACKEND_URL}/api'` (appels: `${API}/xxx`) vs `const API = BACKEND_URL` (appels: `${API}/api/xxx`)
 
 ## Backlog
-- P1: Logo OrbitalMenu centre (Desktop), InboxView empty state, Profile photo preview
-- P2: ShopView/AgendaView responsives
+- P1: Logo OrbitalMenu centre, InboxView empty state, Profile photo preview test e2e
+- P2: ShopView/AgendaView responsives, Shop visuels packs
 - P3: Geolocalisation (Leaflet.js)
 - P4: i18n 8 langues, Smart Engine & Analytics
 
-## Architecture Note
-- Convention URL frontend: certains fichiers utilisent `const API = '${BACKEND_URL}/api'` (appels: `${API}/xxx`), d'autres `const API = process.env.REACT_APP_BACKEND_URL` (appels: `${API}/api/xxx`). Les deux conventions coexistent.
-- FREK = autorite silencieuse. Ne pas mentionner sur les pages publiques.
-
 ## Credentials
 - Admin: cultureconnectorg@gmail.com / code 000000
-- FREK Admin: FREK-ADM-0001
