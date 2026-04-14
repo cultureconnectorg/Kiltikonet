@@ -290,6 +290,52 @@ async def send_individual(to_email: str, subject: str, html_body: str) -> dict:
     return await _send_ses_email(to_email, subject, html_body)
 
 
+def template_badge_recovery(prenom: str, badge_id: str, frek_id: str, qr_token: str) -> str:
+    qr_b64 = _generate_qr_base64(f"{APP_URL}/activer-badge/{qr_token}") if qr_token else ""
+    qr_img = f'<img src="data:image/png;base64,{qr_b64}" alt="QR Code" style="width:160px;height:160px;border-radius:8px;"/>' if qr_b64 else ""
+    return _wrap_template(f"""
+<h2 style="color:#A65D47;margin:0 0 15px;">Recuperation de votre badge</h2>
+<p>Bonjour {prenom},</p>
+<p>Voici vos informations Culture Connect 2026 retrouvees suite a votre demande.</p>
+<div style="background:#F4F0E8;border:1px solid #A65D47;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+  <p style="color:#6B6560;margin:0 0 10px;font-size:12px;">VOTRE BADGE</p>
+  <p style="color:#A65D47;font-size:22px;font-weight:bold;margin:0 0 5px;">{badge_id}</p>
+  <p style="color:#6B6560;margin:0 0 15px;font-size:12px;">FREK-ID: <strong>{frek_id}</strong></p>
+  {qr_img}
+</div>
+<p style="color:#6B6560;font-size:13px;margin-top:20px;">
+  Conservez cet email. Si vous n'avez pas demande cette recuperation, ignorez ce message.
+</p>
+""")
+
+
+async def send_badge_recovery(to_email: str, prenom: str, badge_id: str, frek_id: str, qr_token: str) -> dict:
+    html = template_badge_recovery(prenom, badge_id, frek_id, qr_token)
+    return await _send_ses_email(to_email, "Recuperation badge — Culture Connect 2026", html)
+
+
+def template_ticket_confirmation(name: str, ticket_id: str, tier_name: str, access: str) -> str:
+    return _wrap_template(f"""
+<h2 style="color:#A65D47;margin:0 0 15px;">Billet confirme !</h2>
+<p>Bonjour {name},</p>
+<p>Votre billet pour <strong style="color:#A65D47;">Culture Connect 2026</strong> est confirme.</p>
+<div style="background:#F4F0E8;border:2px solid #A65D47;border-radius:8px;padding:24px;margin:20px 0;text-align:center;">
+  <p style="color:#6B6560;margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Votre billet</p>
+  <p style="color:#A65D47;font-size:26px;font-weight:bold;margin:0 0 4px;">{tier_name}</p>
+  <p style="color:#6B6560;font-size:13px;margin:0 0 16px;">{ticket_id}</p>
+  <hr style="border:none;border-top:1px solid #E8E0D0;margin:12px 0;"/>
+  <p style="color:#1A1510;font-size:14px;margin:0;"><strong>Accès :</strong> {access}</p>
+  <p style="color:#6B6560;font-size:13px;margin:8px 0 0;">20-23 Mai 2026 · Parc de La Savane, Fort-de-France</p>
+</div>
+<p style="color:#6B6560;font-size:13px;">Conservez cet email — votre numero de billet vous sera demande a l'entree.</p>
+""")
+
+
+async def send_ticket_confirmation(to_email: str, name: str, ticket_id: str, tier_name: str, access: str) -> dict:
+    html = template_ticket_confirmation(name, ticket_id, tier_name, access)
+    return await _send_ses_email(to_email, f"Billet confirme — Culture Connect 2026", html)
+
+
 # Full template registry
 TEMPLATE_REGISTRY = {
     "bienvenue": {"fn": send_bienvenue, "subject": "Bienvenue — CC2026", "requires": ["prenom", "badge_id", "frek_id", "qr_token"]},

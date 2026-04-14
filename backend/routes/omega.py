@@ -670,7 +670,10 @@ class AdhesionSubscribeRequest(BaseModel):
 
 @router.post("/api/adhesion/subscribe")
 async def subscribe_adhesion(request: Request, body: AdhesionSubscribeRequest):
-    """Souscrire a un niveau d'adhesion."""
+    """Souscrire a un niveau d'adhesion.
+    - FREE: activation immediate
+    - Paid tiers: returns Stripe checkout URL; adhesion activated by webhook on payment
+    """
     email = _get_session_email(request)
     level = body.level.upper()
     if level not in ADHESION_LEVELS:
@@ -678,44 +681,54 @@ async def subscribe_adhesion(request: Request, body: AdhesionSubscribeRequest):
 
     config = ADHESION_LEVELS[level]
 
-    # Deactivate existing
-    await _db.adhesions.update_many({"email": email, "actif": True}, {"$set": {"actif": False}})
+    # FREE level — activate immediately, no payment
+    if config["prix_mensuel"] == 0:
+        await _db.adhesions.update_many({"email": email, "actif": True}, {"$set": {"actif": False}})
+        now = datetime.now(timezone.utc)
+        adhesion_doc = {
+            "adhesion_id": str(uuid.uuid4()),
+            "email": email, "level": level,
+            "prix_mensuel": 0, "brain_quota_daily": config["brain_quota_daily"],
+            "brain_quota_used_today": 0,
+            "brain_quota_reset": (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).isoformat(),
+            "date_debut": now.isoformat(), "date_fin": None, "auto_renew": False, "actif": True,
+        }
+        await _db.adhesions.insert_one(adhesion_doc)
+        return {"success": True, "level": level, "kt_offerts": 0, "adhesion_id": adhesion_doc["adhesion_id"]}
 
-    now = datetime.now(timezone.utc)
-    tomorrow_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-
-    adhesion_doc = {
-        "adhesion_id": str(uuid.uuid4()),
-        "email": email,
-        "level": level,
-        "prix_mensuel": config["prix_mensuel"],
-        "brain_quota_daily": config["brain_quota_daily"],
-        "brain_quota_used_today": 0,
-        "brain_quota_reset": tomorrow_midnight.isoformat(),
-        "date_debut": now.isoformat(),
-        "date_fin": None,
-        "auto_renew": level != "FREE",
-        "actif": True,
-    }
-    await _db.adhesions.insert_one(adhesion_doc)
-
-    # Credit KT offerts
-    kt = config["kt_offerts"]
-    if kt > 0:
-        await _db.registrations.update_one({"email": email}, {"$inc": {"jetons_solde": kt}})
-        await _db.cc_transactions.insert_one({
-            "email": email, "type": "credit", "jetons": kt,
-            "label": f"KT offerts adhesion {level}",
-            "timestamp": now.isoformat(), "status": "completed",
+    # Paid tier — create Stripe checkout session
+    try:
+        import os
+        from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+        api_key = os.environ.get("STRIPE_API_KEY")
+        base_url = str(request.base_url).rstrip("/")
+        webhook_url = f"{base_url}/api/webhook/stripe"
+        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+        checkout_request = CheckoutSessionRequest(
+            amount=float(config["prix_mensuel"]),
+            currency="eur",
+            success_url=f"{base_url}/pro?adhesion=success&level={level}",
+            cancel_url=f"{base_url}/pro?adhesion=cancelled",
+            metadata={
+                "type": "adhesion",
+                "email": email,
+                "level": level,
+                "kt_offerts": str(config["kt_offerts"]),
+                "brain_quota_daily": str(config["brain_quota_daily"]),
+            },
+        )
+        session = await stripe_checkout.create_checkout_session(checkout_request)
+        # Store pending adhesion
+        await _db.adhesions_pending.insert_one({
+            "session_id": session.session_id,
+            "email": email, "level": level,
+            "amount": config["prix_mensuel"],
+            "created_at": datetime.now(timezone.utc).isoformat(),
         })
-
-    frek_id = await _get_user_frek_id(email)
-    if frek_id:
-        await write_audit_log(frek_id, "ADHESION_SUBSCRIBE", adhesion_doc["adhesion_id"],
-                              "adhesion", {"level": level, "kt_offerts": kt})
-
-    return {"success": True, "level": level, "kt_offerts": kt,
-            "adhesion_id": adhesion_doc["adhesion_id"]}
+        return {"success": True, "requires_payment": True, "checkout_url": session.url,
+                "session_id": session.session_id, "level": level}
+    except Exception as e:
+        raise HTTPException(500, f"Stripe checkout creation failed: {str(e)}")
 
 
 @router.post("/api/adhesion/cancel")
@@ -2201,42 +2214,38 @@ async def publish_builder_project(request: Request, body: BuilderPublishRequest)
         {"$set": {"published": True, "canal": body.canal, "published_at": now, "updated_at": now}}
     )
 
-    # If canal == feed or shop, create a post in pro_posts (used by FeedView)
+    # If canal == feed, create a real post in pro_posts (the active feed)
     if body.canal in ("feed", "shop"):
-        post_id = f"post_{str(uuid.uuid4())[:12]}"
-        reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "full_name": 1, "photo_url": 1, "avatar_url": 1, "profile_type": 1, "image": 1})
-        display = (reg or {}).get("full_name", email.split("@")[0])
-        photo = (reg or {}).get("avatar_url", "") or (reg or {}).get("photo_url", "") or (reg or {}).get("image", "")
-        content = f"{project.get('titre', '')}"
-        if project.get('description'):
-            content += f"\n\n{project['description']}"
-        feed_post = {
-            "id": post_id,
-            "author_id": frek_id or email,
-            "author_name": display,
-            "author_title": (reg or {}).get("profile_type", "Createur"),
-            "author_image": photo,
-            "author_email": email,
-            "author_frek_id": frek_id or "",
-            "content": content,
-            "post_type": "creation",
-            "dimension": "Culture",
-            "media_url": project.get("media_url", ""),
-            "media_type": project.get("media_type", ""),
-            "likes": [],
-            "likes_count": 0,
-            "eclairs": [],
-            "eclairs_count": 0,
-            "comments": [],
-            "comments_count": 0,
-            "shares_count": 0,
-            "views_count": 0,
-            "is_ghost": False,
-            "is_reel": False,
-            "created_at": now,
-            "updated_at": now,
-        }
-        await _db.pro_posts.insert_one(feed_post)
+        reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "id": 1, "full_name": 1, "profile_type": 1, "image": 1, "frek_id": 1})
+        if reg:
+            from datetime import timezone as _tz
+            post = {
+                "id": f"post_{str(uuid.uuid4())[:12]}",
+                "author_id": reg.get("id", ""),
+                "author_frek_id": reg.get("frek_id", frek_id or ""),
+                "author_name": reg.get("full_name", email.split("@")[0]),
+                "author_title": reg.get("profile_type", "Membre"),
+                "author_image": reg.get("image", ""),
+                "content": (project.get("titre") or "") + ("\n\n" + project["description"] if project.get("description") else ""),
+                "thumbnail_url": project.get("media_url", ""),
+                "post_type": "creation",
+                "dimension": "Arts Visuels & Sceniques",
+                "likes": [],
+                "likes_count": 0,
+                "eclairs": [],
+                "eclairs_count": 0,
+                "comments": [],
+                "comments_count": 0,
+                "shares_count": 0,
+                "views_count": 0,
+                "is_ghost": False,
+                "is_reel": False,
+                "builder_project_id": body.project_id,
+                "canal": body.canal,
+                "created_at": now,
+                "updated_at": now,
+            }
+            await _db.pro_posts.insert_one(post)
 
     await write_audit_log(frek_id, "BUILDER_PUBLISH", body.project_id, "builder", {"canal": body.canal})
     return {"success": True, "canal": body.canal, "project_id": body.project_id}
@@ -2249,14 +2258,14 @@ async def builder_analytics(request: Request):
 
     projects = await _db.builder_projects.count_documents({"email": email})
     published = await _db.builder_projects.count_documents({"email": email, "published": True})
-    posts = await _db.pro_posts.count_documents({"author_id": frek_id})
+    posts = await _db.feed_posts.count_documents({"auteur_frek_id": frek_id})
 
     # Count eclairs received
     pipeline = [
-        {"$match": {"author_id": frek_id}},
-        {"$group": {"_id": None, "total_eclairs": {"$sum": "$eclairs_count"}}},
+        {"$match": {"auteur_frek_id": frek_id}},
+        {"$group": {"_id": None, "total_eclairs": {"$sum": "$eclairs"}}},
     ]
-    eclair_result = await _db.pro_posts.aggregate(pipeline).to_list(1)
+    eclair_result = await _db.feed_posts.aggregate(pipeline).to_list(1)
     total_eclairs = eclair_result[0]["total_eclairs"] if eclair_result else 0
 
     return {

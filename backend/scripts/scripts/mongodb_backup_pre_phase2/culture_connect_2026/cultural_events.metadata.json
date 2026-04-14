@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"d4b541a06fee4244980dfd805d1d6c3e","collectionName":"cultural_events","type":"collection"}

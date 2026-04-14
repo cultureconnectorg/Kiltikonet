@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
-import { Check, ArrowRight, Star } from 'lucide-react';
+import { Check, ArrowRight, Star, Ticket, Loader2, X } from 'lucide-react';
 import { useIntersectionObserver } from '../hooks/useAnimations';
+import { toast } from 'sonner';
+
+const API = process.env.REACT_APP_BACKEND_URL;
 
 // Animated pricing card component
 const PricingCard = ({ tier, index, language, onSelect }) => {
@@ -103,7 +106,51 @@ const PricingCard = ({ tier, index, language, onSelect }) => {
 export const PricingPage = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [heroVisible, setHeroVisible] = useState(false);
+
+  // Ticket purchase state
+  const [ticketModal, setTicketModal] = useState(null); // 'general' | 'vip' | null
+  const [ticketForm, setTicketForm] = useState({ name: '', email: '' });
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [ticketSuccess, setTicketSuccess] = useState(false);
+
+  // Show success toast when returning from Stripe
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('ticket') === 'success') {
+      setTicketSuccess(true);
+    }
+  }, [location.search]);
+
+  const handleTicketCheckout = async (tier) => {
+    if (!ticketForm.name.trim() || !ticketForm.email.trim()) {
+      toast.error(language === 'fr' ? 'Nom et email requis' : 'Name and email required');
+      return;
+    }
+    setTicketLoading(true);
+    try {
+      const res = await fetch(`${API}/api/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'ticket',
+          tier,
+          origin_url: window.location.origin,
+          buyer_name: ticketForm.name.trim(),
+          buyer_email: ticketForm.email.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.detail || 'Erreur paiement');
+      }
+    } catch {
+      toast.error('Erreur de connexion');
+    }
+    setTicketLoading(false);
+  };
   
   const prefersReducedMotion = typeof window !== 'undefined' && 
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -303,6 +350,142 @@ export const PricingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Ticket success banner */}
+      {ticketSuccess && (
+        <div className="bg-sage/10 border-b border-sage/30 py-4 px-4 text-center">
+          <p className="text-sage font-medium text-sm">
+            {language === 'fr'
+              ? 'Paiement confirmé — votre billet a été envoyé par email.'
+              : 'Payment confirmed — your ticket has been sent by email.'}
+          </p>
+        </div>
+      )}
+
+      {/* Tickets Section */}
+      <section className="py-20 bg-charcoal">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta/20 rounded-full mb-4">
+              <Ticket className="w-4 h-4 text-terracotta" />
+              <span className="text-terracotta text-sm font-medium">
+                {language === 'fr' ? 'Billetterie — Entrée Événement' : 'Tickets — Event Entry'}
+              </span>
+            </div>
+            <h2 className="font-serif text-3xl text-cream mb-3">
+              {language === 'fr' ? 'Venez vivre l\'expérience' : 'Come live the experience'}
+            </h2>
+            <p className="text-cream/60 text-sm">20-23 Mai 2026 · Parc de La Savane, Fort-de-France</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                id: 'general',
+                name: language === 'fr' ? 'Billet Général' : 'General Ticket',
+                price: 45,
+                access: language === 'fr'
+                  ? ['Entrée générale 4 jours', 'Concerts & spectacles', 'Marché culturel', 'Ateliers ouverts', 'Accès La Savane (22 Mai)']
+                  : ['4-day general entry', 'Concerts & shows', 'Cultural market', 'Open workshops', 'La Savane access (May 22)'],
+              },
+              {
+                id: 'vip',
+                name: language === 'fr' ? 'Billet VIP' : 'VIP Ticket',
+                price: 150,
+                popular: true,
+                access: language === 'fr'
+                  ? ['Tout le Billet Général', 'Lounge VIP 4 jours', 'Conférences & tables rondes', 'Networking privé', 'Backstage & rencontres artistes']
+                  : ['All General Ticket', 'VIP Lounge 4 days', 'Conferences & round tables', 'Private networking', 'Backstage & artist meet'],
+              }
+            ].map((t) => (
+              <div key={t.id} className={`relative bg-paper rounded-lg p-6 ${t.popular ? 'ring-2 ring-terracotta' : ''}`}>
+                {t.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-terracotta text-paper text-xs font-medium rounded-full flex items-center gap-1">
+                    <Star className="w-3 h-3" /> VIP
+                  </div>
+                )}
+                <div className="mb-4">
+                  <h3 className="font-serif text-xl text-charcoal">{t.name}</h3>
+                  <div className="mt-2">
+                    <span className="font-serif text-3xl text-charcoal">{t.price}€</span>
+                    <span className="text-charcoal/50 text-sm ml-1">
+                      {language === 'fr' ? '/ personne' : '/ person'}
+                    </span>
+                  </div>
+                </div>
+                <ul className="space-y-2 mb-6">
+                  {t.access.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-charcoal/70">
+                      <Check className="w-4 h-4 text-sage flex-shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => { setTicketModal(t.id); setTicketForm({ name: '', email: '' }); }}
+                  className={`w-full h-11 font-syne text-sm rounded-none ${t.popular ? 'bg-terracotta hover:bg-terracotta/90 text-paper' : 'bg-charcoal hover:bg-charcoal/90 text-paper'}`}
+                >
+                  <Ticket className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Acheter ce billet' : 'Buy this ticket'}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Ticket checkout modal */}
+      {ticketModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => !ticketLoading && setTicketModal(null)}>
+          <div className="bg-paper rounded-lg p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-serif text-lg text-charcoal">
+                {ticketModal === 'vip' ? (language === 'fr' ? 'Billet VIP — 150€' : 'VIP Ticket — €150') : (language === 'fr' ? 'Billet Général — 45€' : 'General Ticket — €45')}
+              </h3>
+              <button onClick={() => setTicketModal(null)} disabled={ticketLoading} className="text-charcoal/40 hover:text-charcoal">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-1">
+                  {language === 'fr' ? 'Nom complet' : 'Full name'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={ticketForm.name}
+                  onChange={e => setTicketForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full h-10 px-3 border border-lightborder bg-cream text-charcoal text-sm rounded-none"
+                  placeholder={language === 'fr' ? 'Votre nom' : 'Your name'}
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-charcoal/60 uppercase tracking-wider mb-1">Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={ticketForm.email}
+                  onChange={e => setTicketForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full h-10 px-3 border border-lightborder bg-cream text-charcoal text-sm rounded-none"
+                  placeholder="votre@email.com"
+                />
+              </div>
+              <Button
+                onClick={() => handleTicketCheckout(ticketModal)}
+                disabled={ticketLoading || !ticketForm.name || !ticketForm.email}
+                className="w-full h-11 bg-terracotta hover:bg-terracotta/90 text-paper font-syne text-sm rounded-none disabled:opacity-50"
+              >
+                {ticketLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Ticket className="w-4 h-4 mr-2" />}
+                {language === 'fr' ? 'Payer avec Stripe' : 'Pay with Stripe'}
+              </Button>
+              <p className="text-xs text-charcoal/40 text-center">
+                {language === 'fr' ? 'Paiement sécurisé · Billet envoyé par email' : 'Secure payment · Ticket sent by email'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* FAQ Section */}
       <section className="py-16 bg-cream">

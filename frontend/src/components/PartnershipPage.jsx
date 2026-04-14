@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -175,6 +175,7 @@ const TierCard = ({ tier, index, selectedTier, onSelect, language }) => {
 export const PartnershipPage = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedTier, setSelectedTier] = useState(null);
   const [formData, setFormData] = useState({ 
     company_name: '', 
@@ -197,6 +198,18 @@ export const PartnershipPage = () => {
     const timer = setTimeout(() => setHeroVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Pre-select tier when coming from BadgeInscription (Exposant flow)
+  useEffect(() => {
+    const pre = location.state?.preSelectedTier;
+    if (pre && partnerTiersData[pre]) {
+      setSelectedTier(pre);
+      setShowPaymentForm(true);
+      setTimeout(() => {
+        document.getElementById('payment-form')?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -224,10 +237,11 @@ export const PartnershipPage = () => {
   const tierToBadgeType = { bronze: 'EXP-B', silver: 'EXP-S', gold: 'EXP-G' };
 
   const handleSelectTier = (tierId) => {
-    const tier = partnerTiersData[tierId];
-    const badgeType = tierToBadgeType[tierId] || 'SPO';
-    const tierName = language === 'fr' ? tier.nameFr : tier.nameEn;
-    navigate('/badge-inscription', { state: { selectedType: badgeType, tierName } });
+    setSelectedTier(tierId);
+    setShowPaymentForm(true);
+    setTimeout(() => {
+      document.getElementById('payment-form')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSubmitPartnership = async (e) => {

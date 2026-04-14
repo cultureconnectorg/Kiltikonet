@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Zap, MessageSquare, Share2, ShieldCheck, ArrowLeft, Send, X, Plus, Loader2, ChevronUp } from "lucide-react";
+import { Zap, MessageSquare, Share2, ShieldCheck, ArrowLeft, Send, X, Plus, Loader2, ChevronUp, Trash2, MoreVertical, Image } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const LIMIT = 10;
@@ -18,7 +18,12 @@ export default function FeedView({ onBack, onNavigate, auth }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPostContent, setNewPostContent] = useState("");
+  const [newPostImage, setNewPostImage] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [postingNew, setPostingNew] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState(null);
+  const [openMenuPostId, setOpenMenuPostId] = useState(null);
+  const fileInputRef = useRef(null);
   const containerRef = useRef(null);
   const observerRef = useRef(null);
   const sentinelRef = useRef(null);
@@ -128,14 +133,54 @@ export default function FeedView({ onBack, onNavigate, auth }) {
     finally { setCommentLoading(false); }
   };
 
-  // Native share
-  const handleShare = (post) => {
+  // Upload image for new post
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`${API}/api/builder/upload`, { method: 'POST', credentials: 'include', body: fd });
+      if (res.ok) {
+        const data = await res.json();
+        setNewPostImage(data.url || data.file_url || '');
+      }
+    } catch {}
+    finally { setUploadingImage(false); }
+  };
+
+  // Native share with error handling
+  const handleShare = async (post) => {
     const text = `${post.author_name}: ${post.content?.slice(0, 100)}...`;
-    if (navigator.share) {
-      navigator.share({ title: "Kiltikonet Feed", text, url: window.location.href });
-    } else {
-      navigator.clipboard?.writeText(text);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Kiltikonet Feed", text, url: window.location.href });
+      } else {
+        await navigator.clipboard?.writeText(text);
+        if (window.__KILTI_TOAST) window.__KILTI_TOAST('Lien copié dans le presse-papiers');
+      }
+    } catch (e) {
+      // User cancelled share or clipboard unavailable — silent
+      if (e?.name !== 'AbortError') {
+        try { await navigator.clipboard?.writeText(text); } catch {}
+      }
     }
+  };
+
+  // Delete own post
+  const handleDelete = async (postId) => {
+    if (deletingPostId) return;
+    setDeletingPostId(postId);
+    setOpenMenuPostId(null);
+    try {
+      const res = await fetch(`${API}/api/pro/feed/posts/${postId}?author_id=${encodeURIComponent(auth?.user?.id || '')}`, {
+        method: 'DELETE', credentials: 'include',
+      });
+      if (res.ok) {
+        setPosts(prev => prev.filter(p => p.id !== postId));
+      }
+    } catch {}
+    finally { setDeletingPostId(null); }
   };
 
   // Create new post via /api/pro/feed/post
@@ -150,10 +195,12 @@ export default function FeedView({ onBack, onNavigate, auth }) {
           content: newPostContent,
           post_type: 'insight',
           dimension: 'Musique',
+          thumbnail_url: newPostImage || null,
         }), credentials: 'include',
       });
       if (res.ok) {
         setNewPostContent("");
+        setNewPostImage(null);
         setShowNewPost(false);
         setPage(1);
         fetchPosts(1);
@@ -226,6 +273,25 @@ export default function FeedView({ onBack, onNavigate, auth }) {
                   </div>
                 )}
               </div>
+
+              {/* 3-dot menu for own posts */}
+              {!post.is_ghost && post.author_id === auth?.user?.id && (
+                <div className="absolute top-3 right-3 z-20">
+                  <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}>
+                    <MoreVertical className="w-4 h-4 text-white/70" />
+                  </button>
+                  <AnimatePresence>
+                    {openMenuPostId === post.id && (
+                      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute right-0 top-9 rounded-xl overflow-hidden shadow-xl z-30" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', minWidth: 140 }}>
+                        <button onClick={() => handleDelete(post.id)} disabled={deletingPostId === post.id} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-40">
+                          {deletingPostId === post.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          Supprimer
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
               {/* Right actions */}
               <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-20">
@@ -329,12 +395,27 @@ export default function FeedView({ onBack, onNavigate, auth }) {
             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className="w-full rounded-t-3xl p-5" style={{ background: '#0e0e0e', border: '1px solid rgba(255,255,255,0.08)' }} data-testid="new-post-modal">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-bold tracking-wider uppercase" style={{ color: '#f2ca50' }}>Nouveau Post</span>
-                <button onClick={() => setShowNewPost(false)}><X className="w-5 h-5 text-gray-500" /></button>
+                <button onClick={() => { setShowNewPost(false); setNewPostImage(null); }}><X className="w-5 h-5 text-gray-500" /></button>
               </div>
               <textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder="Partagez avec la communaute..." rows={4} className="w-full bg-white/5 text-sm px-4 py-3 rounded-xl outline-none text-white resize-none" style={{ border: '1px solid rgba(255,255,255,0.1)' }} data-testid="new-post-textarea" />
-              <motion.button whileTap={{ scale: 0.95 }} onClick={handleNewPost} disabled={postingNew || !newPostContent.trim()} className="w-full mt-3 py-3 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: postingNew ? '#333' : '#f2ca50', color: 'black' }} data-testid="new-post-submit-btn">
-                {postingNew ? 'Publication...' : 'Publier'}
-              </motion.button>
+              {/* Image preview */}
+              {newPostImage && (
+                <div className="relative mt-3 rounded-xl overflow-hidden" style={{ maxHeight: 160 }}>
+                  <img src={newPostImage} alt="" className="w-full h-40 object-cover rounded-xl" />
+                  <button onClick={() => setNewPostImage(null)} className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)' }}><X className="w-3 h-3 text-white" /></button>
+                </div>
+              )}
+              {/* Actions row */}
+              <div className="flex items-center gap-3 mt-3">
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ''; }} />
+                <button onClick={() => fileInputRef.current?.click()} disabled={uploadingImage} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs" style={{ background: 'rgba(255,255,255,0.05)', color: '#aaa', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Image className="w-3.5 h-3.5" />}
+                  Photo
+                </button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={handleNewPost} disabled={postingNew || !newPostContent.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: postingNew ? '#333' : '#f2ca50', color: 'black' }} data-testid="new-post-submit-btn">
+                  {postingNew ? 'Publication...' : 'Publier'}
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}

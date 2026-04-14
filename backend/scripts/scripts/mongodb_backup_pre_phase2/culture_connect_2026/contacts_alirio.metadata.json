@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"9e7abd54a0684a06a5a49d77e2407042","collectionName":"contacts_alirio","type":"collection"}

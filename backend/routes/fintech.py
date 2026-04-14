@@ -1,21 +1,33 @@
 """
 KILTIKONET FINTECH — Service Financier Centralisé
 ===================================================
-Wallet Universel · Stripe Omnicanal · Jetons Transversaux · Ghost Bridge
+Wallet Universel · Stripe Omnicanal · Ghost Bridge
 
-Architecture :
-- Wallet unifié par user_id + frek_id (sync temps réel)
-- Transactions taggées par channel (web/app/terminal/api)
-- Stripe Checkout multi-canal (kiltikonet.fr, App, CC2026)
-- Webhook centralisé pour créditer le wallet
-- Ghost Bridge post-achat (preuve de vie globale)
-- Ledger complet avec audit trail
+ARCHITECTURE MONÉTAIRE (deux devises indépendantes)
+────────────────────────────────────────────────────
+KT  (Kilti-Token)    — monnaie physique NFC terminal CC2026
+    · Stocké dans    : kn_wallets.balance  (currency="KT")
+    · Transactions   : kn_transactions (wallet_id)
+    · Canal          : terminaux NFC, bornes sur site, app offline
+    · Utilisé pour   : achats sur site pendant l'événement
+    · Index MongoDB  : kn_wallets.frek_id (sparse unique)
+
+JCC (Jeton CC)       — monnaie digitale web/app
+    · Stocké dans    : registrations.jetons_solde  ← SOURCE DE VÉRITÉ
+    · Mirror vitrine : cc_badges.jetons_solde (sync, non-autoritatif)
+    · Transactions   : cc_transactions (badge_id)
+    · Canal          : web, app, Stripe Checkout
+    · Utilisé pour   : éclairs, Brain, shop pro, achats digitaux
+
+Conversion KT↔JCC 1:1 disponible via POST /api/wallet/swap (espace pro).
 
 Collections MongoDB :
-- kn_wallets       : { user_id, frek_id, balance, currency, channel_balances }
-- kn_transactions  : { wallet_id, amount, type, channel, metadata, ... }
-- kn_checkout_sessions : { session_id, wallet_id, package, status, channel }
-- shop_products    : { id, name, price, category, ... }
+- kn_wallets            : wallet KT par user (pro space)
+- kn_transactions       : ledger KT
+- kn_checkout_sessions  : sessions Stripe (shop KT packs)
+- registrations         : inclut jetons_solde (JCC) — source autoritaire
+- cc_badges             : inclut jetons_solde (JCC) — mirror vitrine
+- cc_transactions       : ledger JCC
 """
 import os
 import uuid
@@ -145,9 +157,8 @@ async def credit_wallet(user_id: str, amount: int, tx_type: str, reason: str,
                   "total_received": amount if tx_type == "transfer_in" else 0},
          "$set": {"updated_at": now}}
     )
-
-    # Also sync legacy balance
-    await _db.registrations.update_one({"id": user_id}, {"$inc": {"jetons_solde": amount}})
+    # NOTE: KT and JCC are separate currencies. KT operations do NOT touch
+    # registrations.jetons_solde (JCC). Use /api/wallet/swap for conversion.
 
     # Log transaction
     tx = {
@@ -181,7 +192,7 @@ async def debit_wallet(user_id: str, amount: int, tx_type: str, reason: str,
         {"$inc": {"balance": -amount, "total_spent": amount},
          "$set": {"updated_at": now}}
     )
-    await _db.registrations.update_one({"id": user_id}, {"$inc": {"jetons_solde": -amount}})
+    # NOTE: KT debit does NOT touch registrations.jetons_solde (JCC is separate).
 
     tx = {
         "tx_id": f"tx_{str(uuid.uuid4())[:12]}",
@@ -237,16 +248,29 @@ async def get_transactions(user_id: str, limit: int = 50, channel: str = None):
 
 @router.get("/api/wallet/frek/{frek_id}")
 async def get_wallet_by_frek(frek_id: str):
-    """Lookup wallet par FREK-ID (pour terminaux CC2026 / NFC scan)."""
+    """Lookup wallet KT par FREK-ID (terminaux NFC CC2026).
+
+    Si le wallet existe mais n'a pas de frek_id (champ NULL legacy),
+    cherche via registrations et crée/lie le wallet automatiquement.
+    """
     wallet = await _db.kn_wallets.find_one({"frek_id": frek_id}, {"_id": 0})
     if not wallet:
-        raise HTTPException(404, "Aucun wallet lié à ce FREK-ID")
+        # frek_id not indexed in kn_wallets — try via registrations
+        reg = await _db.registrations.find_one(
+            {"frek_id": frek_id}, {"_id": 0, "id": 1, "frek_id": 1}
+        )
+        if not reg:
+            raise HTTPException(404, "Aucun wallet lié à ce FREK-ID")
+        # get_or_create_wallet will create wallet AND backfill frek_id
+        wallet = await get_or_create_wallet(reg["id"], frek_id)
+
     return {
         "wallet_id": wallet["wallet_id"],
         "user_id": wallet["user_id"],
-        "frek_id": wallet["frek_id"],
-        "balance": wallet.get("balance", 0),
+        "frek_id": wallet.get("frek_id", frek_id),
+        "balance_kt": wallet.get("balance", 0),
         "eur_value": round((wallet.get("balance", 0) or 0) * KT_EUR_RATE, 2),
+        "currency": "KT",
         "status": wallet.get("status", "active"),
     }
 
