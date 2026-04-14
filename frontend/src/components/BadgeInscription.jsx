@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { UserPlus, CheckCircle, Loader2, QrCode, Copy, Check, ArrowLeft, ArrowRight, Store, Users, Briefcase, Star } from 'lucide-react';
+import { UserPlus, CheckCircle, Loader2, QrCode, Copy, Check, ArrowLeft, ArrowRight, Store, Users, Briefcase, Star, KeyRound, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import HCaptchaWidget from './HCaptchaWidget';
@@ -57,6 +57,14 @@ export default function BadgeInscription() {
   const [copied, setCopied] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
   const captchaRef = useRef(null);
+
+  // Recovery form state
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoveryCaptcha, setRecoveryCaptcha] = useState(null);
+  const recoveryCaptchaRef = useRef(null);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoverySent, setRecoverySent] = useState(false);
 
   useEffect(() => {
     if (preSelectedType) {
@@ -127,6 +135,32 @@ export default function BadgeInscription() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleRecovery = async (e) => {
+    e.preventDefault();
+    if (!recoveryEmail) { toast.error('Veuillez saisir votre email'); return; }
+    if (!recoveryCaptcha) { toast.error('Veuillez compléter le captcha'); return; }
+    setRecoveryLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/badges/recover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: recoveryEmail, captcha_token: recoveryCaptcha }),
+      });
+      if (res.ok) {
+        setRecoverySent(true);
+        toast.success('Email de récupération envoyé !');
+      } else {
+        const data = await res.json();
+        toast.error(data.detail || 'Erreur lors de la récupération');
+        recoveryCaptchaRef.current?.reset();
+        setRecoveryCaptcha(null);
+      }
+    } catch {
+      toast.error('Erreur de connexion');
+    }
+    setRecoveryLoading(false);
+  };
+
   // Step indicator
   const StepBar = () => (
     <div className="flex items-center justify-center gap-2 mb-8" data-testid="step-bar">
@@ -187,6 +221,64 @@ export default function BadgeInscription() {
                 <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: C.muted }} />
               </button>
             ))}
+
+            {/* FREK / Badge recovery */}
+            <div className="mt-6 rounded-xl overflow-hidden" style={{ border: `1px solid ${C.warm}` }}>
+              <button
+                onClick={() => { setShowRecovery(v => !v); setRecoverySent(false); }}
+                className="w-full flex items-center justify-between p-4 text-left"
+                style={{ background: C.card }}
+                data-testid="toggle-recovery"
+              >
+                <div className="flex items-center gap-3">
+                  <KeyRound className="w-4 h-4" style={{ color: C.muted }} />
+                  <span className="text-sm" style={{ color: C.muted }}>J'ai perdu mon badge / FREK-ID</span>
+                </div>
+                <ChevronDown className="w-4 h-4 transition-transform" style={{ color: C.muted, transform: showRecovery ? 'rotate(180deg)' : 'none' }} />
+              </button>
+
+              {showRecovery && (
+                <div className="p-4 pt-0" style={{ background: C.card }}>
+                  {recoverySent ? (
+                    <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: `${C.sage}15` }}>
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.sage }} />
+                      <p className="text-sm" style={{ color: C.dark }}>
+                        Si un badge existe pour cet email, les informations ont été renvoyées.
+                      </p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleRecovery} className="space-y-3">
+                      <p className="text-xs" style={{ color: C.muted }}>
+                        Saisissez l'email utilisé lors de votre inscription pour recevoir votre Badge ID et FREK-ID.
+                      </p>
+                      <input
+                        type="email"
+                        required
+                        placeholder="votre@email.com"
+                        value={recoveryEmail}
+                        onChange={e => setRecoveryEmail(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg text-sm border"
+                        style={{ borderColor: C.warm, background: C.bg, color: C.dark }}
+                      />
+                      <HCaptchaWidget
+                        ref={recoveryCaptchaRef}
+                        onVerify={token => setRecoveryCaptcha(token)}
+                        onExpire={() => setRecoveryCaptcha(null)}
+                      />
+                      <button
+                        type="submit"
+                        disabled={recoveryLoading || !recoveryCaptcha}
+                        className="w-full py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                        style={{ background: C.muted, color: '#fff' }}
+                      >
+                        {recoveryLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                        Récupérer mon badge
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

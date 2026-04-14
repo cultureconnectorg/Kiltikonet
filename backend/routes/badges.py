@@ -91,6 +91,11 @@ class ScanRequest(BaseModel):
     zone: str
 
 
+class RecoveryRequest(BaseModel):
+    email: str
+    captcha_token: str
+
+
 # ============ ROUTES ============
 
 @router.get("/frek-discovery")
@@ -301,6 +306,37 @@ async def lookup_badge(badge_id: str):
     badge.pop("baserow_row_id", None)
     badge["type_label"] = BADGE_TYPES.get(badge.get("type_badge", ""), "")
     return badge
+
+
+@router.post("/recover")
+async def recover_badge(req: RecoveryRequest, request: Request):
+    """Récupération de badge/FREK-ID par email — protégé hCaptcha.
+
+    Répond toujours avec success=True pour ne pas révéler si l'email existe.
+    """
+    # hCaptcha check
+    client_ip = request.client.host if request.client else "unknown"
+    captcha_result = await verify_hcaptcha(req.captcha_token, client_ip)
+    if not captcha_result["success"]:
+        raise HTTPException(status_code=403, detail=captcha_result["error"])
+
+    email = req.email.lower().strip()
+    badge = await _db.cc_badges.find_one({"email": email}, {"_id": 0})
+
+    if badge:
+        asyncio.create_task(ses_service.send_badge_recovery(
+            to_email=badge["email"],
+            prenom=badge.get("prenom", ""),
+            badge_id=badge.get("badge_id", ""),
+            frek_id=badge.get("frek_id", ""),
+            qr_token=badge.get("qr_token", ""),
+        ))
+
+    # Always return success to prevent email enumeration
+    return {
+        "success": True,
+        "message": "Si un badge existe pour cet email, les informations ont été renvoyées."
+    }
 
 
 @router.get("/list")
