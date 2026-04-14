@@ -124,18 +124,21 @@ const Loading3D = () => (
   </div>
 );
 
-// Pro Splash Wrapper — shows SplashScreen before ProApp on every /pro visit
+// Pro Splash Wrapper — shows IntroSequence (green animation) before ProApp
 const ProSplashWrapper = () => {
-  const [splashDone, setSplashDone] = React.useState(false);
+  const [introDone, setIntroDone] = React.useState(() => {
+    // Skip intro if already seen this session
+    return !!sessionStorage.getItem('kk_pro_intro_done');
+  });
   const location = useLocation();
 
-  // Reset splashDone to false every time user navigates to /pro
-  React.useEffect(() => {
-    setSplashDone(false);
-  }, [location.pathname]);
+  const handleIntroComplete = () => {
+    sessionStorage.setItem('kk_pro_intro_done', '1');
+    setIntroDone(true);
+  };
 
-  if (!splashDone) {
-    return <SplashScreen onComplete={() => setSplashDone(true)} />;
+  if (!introDone) {
+    return <IntroSequence onComplete={handleIntroComplete} />;
   }
 
   return (
