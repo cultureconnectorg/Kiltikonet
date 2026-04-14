@@ -1,6 +1,8 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import "@/App.css";
+import "./i18n";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { initTracker } from "./lib/smartTracker";
 import { LanguageProvider } from "./context/LanguageContext";
 import { SharedDataProvider } from "./contexts/SharedDataContext";
 import { Header } from "./components/Header";
@@ -223,6 +225,9 @@ const IntroWrapper = () => {
 };
 
 function App() {
+  // Initialize analytics tracker
+  useEffect(() => { initTracker(); }, []);
+
   return (
     <LanguageProvider>
       <SharedDataProvider>

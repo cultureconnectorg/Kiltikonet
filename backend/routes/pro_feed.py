@@ -359,6 +359,9 @@ class CreatePostBody(BaseModel):
     dimension: str = "Musique"
     is_reel: bool = False
     thumbnail_url: Optional[str] = None
+    location_lat: Optional[float] = None
+    location_lng: Optional[float] = None
+    location_name: Optional[str] = None
 
 @router.post("/post", dependencies=[Depends(require_permission("publish_content"))])
 async def create_post(body: CreatePostBody):
@@ -393,6 +396,9 @@ async def create_post(body: CreatePostBody):
         "views_count": 0,
         "is_ghost": False,
         "is_reel": body.is_reel,
+        "location_lat": body.location_lat,
+        "location_lng": body.location_lng,
+        "location_name": body.location_name or "",
         "created_at": now.isoformat(),
         "updated_at": now.isoformat(),
     }
@@ -587,3 +593,40 @@ async def add_post_comment(post_id: str, data: dict):
         {"$push": {"comments": comment}, "$inc": {"comments_count": 1}},
     )
     return {"success": True, "comment": comment}
+
+
+# ═══════════════════════════════════════════════════════════
+# GEOLOCATION — Reverse geocoding + map points
+# ═══════════════════════════════════════════════════════════
+
+@router.get("/geo/reverse")
+async def reverse_geocode(lat: float, lng: float):
+    """Reverse geocode lat/lng to city, country using free Nominatim API."""
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            res = await client.get(
+                "https://nominatim.openstreetmap.org/reverse",
+                params={"lat": lat, "lon": lng, "format": "json", "zoom": 10, "accept-language": "fr"},
+                headers={"User-Agent": "Kiltikonet/1.0"}
+            )
+            if res.status_code == 200:
+                data = res.json()
+                addr = data.get("address", {})
+                city = addr.get("city") or addr.get("town") or addr.get("village") or addr.get("municipality") or ""
+                country = addr.get("country", "")
+                location_name = f"{city}, {country}" if city else country
+                return {"location_name": location_name, "city": city, "country": country}
+    except Exception:
+        pass
+    return {"location_name": "", "city": "", "country": ""}
+
+
+@router.get("/geo/points")
+async def feed_geo_points():
+    """Get all geolocated posts for the globe map."""
+    posts = await _db.pro_posts.find(
+        {"location_lat": {"$ne": None}, "location_lng": {"$ne": None}},
+        {"_id": 0, "id": 1, "author_name": 1, "location_lat": 1, "location_lng": 1, "location_name": 1, "content": 1, "created_at": 1}
+    ).sort("created_at", -1).to_list(200)
+    return {"points": posts, "total": len(posts)}

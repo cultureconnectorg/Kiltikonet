@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { RGPDCheckbox } from './legal';
 import { Reveal } from '../hooks/useAnimations';
 import HCaptchaWidget from './HCaptchaWidget';
+import { trackConversion } from '../lib/smartTracker';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -204,6 +205,7 @@ export const RegistrationForm = () => {
       
       // Redirect to Stripe Checkout
       if (response.data.url) {
+        trackConversion('accreditation_checkout', { tier: selectedTier, price: tier.price });
         window.location.href = response.data.url;
       } else {
         throw new Error('No checkout URL received');

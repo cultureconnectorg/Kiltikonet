@@ -4,12 +4,29 @@ import { useLanguage } from '../context/LanguageContext';
 import { Globe, Menu, X, ChevronDown, User, Users, Settings } from 'lucide-react';
 
 export const Header = () => {
-  const { language, toggleLanguage } = useLanguage();
+  const { language, setLanguage, toggleLanguage } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [accountOpen, setAccountOpen] = React.useState(false);
+  const [langOpen, setLangOpen] = React.useState(false);
   const accountRef = React.useRef(null);
+  const langRef = React.useRef(null);
+
+  const LANGS = [
+    { code: 'fr', label: 'FR' },
+    { code: 'en', label: 'EN' },
+    { code: 'es', label: 'ES' },
+    { code: 'pt', label: 'PT' },
+    { code: 'kw', label: 'KW' },
+  ];
+
+  // Close lang dropdown on outside click
+  React.useEffect(() => {
+    const handler = (e) => { if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const isActive = (path) => location.pathname === path;
 
@@ -102,15 +119,31 @@ export const Header = () => {
               )}
             </div>
 
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-charcoal/70 hover:text-charcoal transition-colors"
-              data-testid="language-toggle"
-            >
-              <Globe className="w-4 h-4" />
-              <span>{language === 'fr' ? 'EN' : 'FR'}</span>
-            </button>
+            {/* Language Selector */}
+            <div className="relative" ref={langRef}>
+              <button
+                onClick={() => setLangOpen(o => !o)}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-charcoal/70 hover:text-charcoal transition-colors"
+                data-testid="language-toggle"
+              >
+                <Globe className="w-4 h-4" />
+                <span>{language.toUpperCase()}</span>
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1 bg-paper border border-lightborder shadow-lg z-50 min-w-[80px]">
+                  {LANGS.map(l => (
+                    <button
+                      key={l.code}
+                      onClick={() => { setLanguage(l.code); setLangOpen(false); }}
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${language === l.code ? 'text-terracotta font-bold bg-terracotta/5' : 'text-charcoal/70 hover:bg-cream'}`}
+                      data-testid={`lang-${l.code}`}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Mobile menu button */}
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'} className="lg:hidden p-2 text-charcoal">

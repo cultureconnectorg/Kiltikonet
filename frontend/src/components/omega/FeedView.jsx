@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Zap, MessageSquare, Share2, ShieldCheck, ArrowLeft, Send, X, Plus, Loader2, Trash2, MoreVertical, Image, Bookmark } from "lucide-react";
+import { Zap, MessageSquare, Share2, ShieldCheck, ArrowLeft, Send, X, Plus, Loader2, Trash2, MoreVertical, Image, Bookmark, MapPin } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const LIMIT = 10;
@@ -23,6 +23,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
   const [postingNew, setPostingNew] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState(null);
   const [openMenuPostId, setOpenMenuPostId] = useState(null);
+  const [userLocation, setUserLocation] = useState(null); // { lat, lng, name }
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
   const sentinelRef = useRef(null);
@@ -43,6 +44,25 @@ export default function FeedView({ onBack, onNavigate, auth }) {
   }, []);
 
   useEffect(() => { fetchPosts(1); }, [fetchPosts]);
+
+  // Geolocation — ask once, cache in localStorage
+  useEffect(() => {
+    const cached = localStorage.getItem('kk_user_location');
+    if (cached) { try { setUserLocation(JSON.parse(cached)); } catch {} return; }
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      try {
+        const res = await fetch(`${API}/api/pro/feed/geo/reverse?lat=${latitude}&lng=${longitude}`);
+        if (res.ok) {
+          const data = await res.json();
+          const loc = { lat: latitude, lng: longitude, name: data.location_name || '' };
+          setUserLocation(loc);
+          localStorage.setItem('kk_user_location', JSON.stringify(loc));
+        }
+      } catch {}
+    }, () => {}, { enableHighAccuracy: false, timeout: 5000 });
+  }, []);
 
   // Infinite scroll
   useEffect(() => {
@@ -162,6 +182,9 @@ export default function FeedView({ onBack, onNavigate, auth }) {
           thumbnail_url: newPostImage || '',
           post_type: 'insight',
           dimension: 'Culture',
+          location_lat: userLocation?.lat || null,
+          location_lng: userLocation?.lng || null,
+          location_name: userLocation?.name || null,
         }), credentials: 'include',
       });
       if (res.ok) {
@@ -242,6 +265,7 @@ export default function FeedView({ onBack, onNavigate, auth }) {
                     </div>
                     <div className="flex items-center gap-2">
                       {post.author_title && <span className="text-[11px] text-gray-500">{post.author_title}</span>}
+                      {post.location_name && <span className="text-[11px] text-gray-600 flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{post.location_name}</span>}
                       <span className="text-[11px] text-gray-600">{formatTime(post.created_at)}</span>
                     </div>
                   </div>

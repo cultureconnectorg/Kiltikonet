@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Check, ArrowRight, Star, Ticket, Loader2, X, XCircle } from 'lucide-react';
 import { useIntersectionObserver } from '../hooks/useAnimations';
 import { toast } from 'sonner';
+import { trackConversion } from '../lib/smartTracker';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -155,6 +156,7 @@ export const PricingPage = () => {
       });
       const data = await res.json();
       if (res.ok && data.url) {
+        trackConversion('ticket_checkout', { tier, price: tier === 'vip' ? 150 : 45 });
         window.location.href = data.url;
       } else {
         toast.error(data.detail || 'Erreur paiement');

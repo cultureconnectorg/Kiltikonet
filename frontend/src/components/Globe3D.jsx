@@ -97,6 +97,34 @@ export const Globe3D = () => {
 
   useEffect(() => { loadTerritories(); }, [loadTerritories]);
 
+  // --- LOAD GEOLOCATED POSTS FROM FEED ---
+  const [feedPoints, setFeedPoints] = useState([]);
+  useEffect(() => {
+    const loadFeedGeo = async () => {
+      try {
+        const res = await axios.get(`${API}/api/pro/feed/geo/points`);
+        if (res.data?.points?.length) {
+          const pts = res.data.points.map(p => ({
+            id: p.id,
+            name: p.location_name || p.author_name,
+            lat: p.location_lat,
+            lng: p.location_lng,
+            color: '#f2ca50',
+            size: 0.25,
+            label: `${p.author_name} · ${p.location_name || ''}`.trim(),
+          }));
+          setFeedPoints(pts);
+        }
+      } catch {}
+    };
+    loadFeedGeo();
+    const interval = setInterval(loadFeedGeo, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Merge territories + feed geo points
+  const allPoints = useMemo(() => [...territories, ...feedPoints], [territories, feedPoints]);
+
   useEffect(() => {
     const unsubscribe = subscribe('territory_update', () => { loadTerritories(); });
     return unsubscribe;
@@ -199,13 +227,13 @@ export const Globe3D = () => {
 
   // --- POINTS DATA ---
   const pointsData = useMemo(() =>
-    territories.map(t => ({
+    allPoints.map(t => ({
       lat: t.lat, lng: t.lng, color: t.color,
       altitude: t.isCenter ? 0.06 : 0.03,
       radius: t.isCenter ? 0.6 : 0.35,
       label: t.label, name: t.name, isCenter: t.isCenter,
     })),
-    [territories]
+    [allPoints]
   );
 
   // Pulsing rings on center point

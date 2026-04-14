@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { Check, Users, Globe, BarChart3, Mic2, MapPin, Calendar, CreditCard, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { trackConversion } from '../lib/smartTracker';
 import { Reveal, useIntersectionObserver } from '../hooks/useAnimations';
 import HCaptchaWidget from './HCaptchaWidget';
 
@@ -268,9 +269,8 @@ export const PartnershipPage = () => {
       const response = await axios.post(`${API}/create-checkout-session`, checkoutData);
 
       if (response.data.url) {
+        trackConversion('partnership_checkout', { tier: selectedTier, price: partnerTiersData[selectedTier]?.price });
         window.location.href = response.data.url;
-      } else {
-        throw new Error('No checkout URL received');
       }
     } catch (error) {
       console.error('Payment error:', error);

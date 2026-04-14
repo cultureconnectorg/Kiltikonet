@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
 import { HelpCircle, MessageSquare, Plus, Trash2, Edit, Save, X, ChevronDown, ChevronUp, Loader2, CheckCircle, Clock, AlertCircle, Send } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
