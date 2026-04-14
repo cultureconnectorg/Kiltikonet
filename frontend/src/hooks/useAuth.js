@@ -19,6 +19,7 @@ export function useAuth() {
           const proSession = JSON.parse(proRaw);
           if (proSession && proSession.email) {
             setUser({
+              id: proSession.id || '',
               email: proSession.email,
               name: proSession.name || proSession.email.split('@')[0],
               full_name: proSession.name,
