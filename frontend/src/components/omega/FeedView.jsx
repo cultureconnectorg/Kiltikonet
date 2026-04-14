@@ -252,6 +252,29 @@ export default function FeedView({ onBack, onNavigate, auth }) {
       <div ref={containerRef} className="flex-1 overflow-y-auto" style={viewMode === 'reels' ? { scrollSnapType: 'y mandatory' } : {}} data-testid="feed-scroll">
         {viewMode === 'feed' ? (
         <div className="max-w-lg mx-auto">
+          {posts.length === 0 && !loading && (
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+              <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", damping: 20 }}
+                className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
+                style={{ background: 'rgba(242,202,80,0.08)', border: '1px solid rgba(242,202,80,0.15)' }}>
+                <Zap className="w-8 h-8" style={{ color: 'rgba(242,202,80,0.5)' }} />
+              </motion.div>
+              <motion.h3 initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
+                className="text-base font-bold text-white mb-2">Bienvenue dans le Feed</motion.h3>
+              <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                className="text-xs text-gray-500 leading-relaxed mb-6 max-w-[260px]">
+                Le contenu vit grâce à la communauté. Soyez le premier à partager et à inspirer.
+              </motion.p>
+              <motion.button initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={() => setShowNewPost(true)}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase flex items-center gap-2"
+                style={{ background: '#f2ca50', color: '#0a0a0b' }}
+                data-testid="feed-first-post-btn">
+                <Plus className="w-3.5 h-3.5" /> Publier en premier
+              </motion.button>
+            </div>
+          )}
           {posts.map((post, idx) => (
             <article key={post.id || idx} className="border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
               {/* Post header */}

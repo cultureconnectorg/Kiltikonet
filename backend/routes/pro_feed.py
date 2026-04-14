@@ -291,14 +291,8 @@ async def get_pro_feed(
     post_type: Optional[str] = None,
     dimension: Optional[str] = None,
 ):
-    """Unified LinkedIn-style feed with ghost + real posts."""
-    # Auto-seed if empty
-    total = await _db.pro_posts.count_documents({"is_reel": {"$ne": True}})
-    if total < 10:
-        await _generate_batch_posts(60)
-        await _generate_batch_reels(25)
-
-    query = {"is_reel": {"$ne": True}}
+    """Unified LinkedIn-style feed with real posts only."""
+    query = {"is_reel": {"$ne": True}, "is_ghost": {"$ne": True}}
     if post_type:
         query["post_type"] = post_type
     if dimension:
@@ -326,15 +320,10 @@ async def get_reels(
     skip: int = Query(default=0, ge=0),
     dimension: Optional[str] = None,
 ):
-    """TikTok/Reels-style short content feed."""
-    query = {"is_reel": True}
+    """Short-form content feed — real content only."""
+    query = {"is_reel": True, "is_ghost": {"$ne": True}}
     if dimension:
         query["dimension"] = dimension
-
-    # Auto-seed if empty
-    total = await _db.pro_posts.count_documents(query)
-    if total < 5:
-        await _generate_batch_reels(25)
 
     reels = await _db.pro_posts.find(
         query, {"_id": 0}

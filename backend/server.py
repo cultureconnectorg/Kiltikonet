@@ -214,7 +214,7 @@ api_v1_router = APIRouter(prefix="/api/v1")
 # ── Global Rate Limiter (production) ──
 _rate_limit_store: Dict[str, list] = {}
 RATE_LIMIT_WINDOW = 60  # seconds
-RATE_LIMIT_MAX = 200     # requests per window per IP
+RATE_LIMIT_MAX = 500     # requests per window per IP (production-grade)
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
@@ -222,7 +222,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if IS_PRODUCTION:
         path = request.url.path
         # Skip rate limiting for admin/workspace routes (already auth-protected)
-        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning") or path.startswith("/api/upload") or path.startswith("/api/builder") or path.startswith("/api/notifications") or path.startswith("/api/jetons") or path.startswith("/api/create-checkout")):
+        if not (path.startswith("/api/admin") or path.startswith("/api/workspace") or path.startswith("/api/smart-engine") or path.startswith("/api/analytics") or path.startswith("/api/ws") or path.startswith("/api/auth") or path.startswith("/api/brain") or path.startswith("/api/pro") or path.startswith("/api/growth") or path.startswith("/api/wallet") or path.startswith("/api/my-wallet") or path.startswith("/api/doctrine") or path.startswith("/api/terminal") or path.startswith("/api/feed") or path.startswith("/api/shop") or path.startswith("/api/trade") or path.startswith("/api/adhesion") or path.startswith("/api/gouvernance") or path.startswith("/api/user") or path.startswith("/api/frek") or path.startswith("/api/omega") or path.startswith("/api/catalog") or path.startswith("/api/planning") or path.startswith("/api/upload") or path.startswith("/api/builder") or path.startswith("/api/notifications") or path.startswith("/api/jetons") or path.startswith("/api/create-checkout") or path.startswith("/api/faq") or path.startswith("/api/support") or path.startswith("/api/geo")):
             client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
             now = datetime.now(timezone.utc).timestamp()
             
@@ -5514,6 +5514,50 @@ async def create_indexes():
 
         # Omega indexes (audit_logs, brain_training, adhesions, feed, frek_id unique)
         await create_omega_indexes()
+
+        # Production-grade indexes for scale (100k+ users)
+        try:
+            # Analytics — high-volume, needs compound indexes
+            await db.analytics_events.create_index("session_id")
+            await db.analytics_events.create_index("type")
+            await db.analytics_events.create_index("timestamp")
+            await db.analytics_events.create_index([("type", 1), ("timestamp", -1)])
+            await db.analytics_events.create_index([("session_id", 1), ("type", 1)])
+            # Site events
+            await db.site_events.create_index("event_type")
+            await db.site_events.create_index("timestamp")
+            await db.site_events.create_index([("event_type", 1), ("timestamp", -1)])
+            # Support tickets
+            await db.support_tickets.create_index("status")
+            await db.support_tickets.create_index("email")
+            await db.support_tickets.create_index([("status", 1), ("created_at", -1)])
+            # FAQ
+            await db.faqs.create_index([("published", 1), ("order", 1)])
+            await db.faqs.create_index("category")
+            # Pro posts — compound for feed performance
+            await db.pro_posts.create_index([("is_ghost", 1), ("is_reel", 1), ("created_at", -1)])
+            await db.pro_posts.create_index([("is_reel", 1), ("created_at", -1)])
+            await db.pro_posts.create_index("builder_project_id")
+            await db.pro_posts.create_index([("location_lat", 1), ("location_lng", 1)])
+            # Messages
+            await db.pro_messages.create_index([("conversation_id", 1), ("created_at", -1)])
+            await db.pro_messages.create_index("sender_id")
+            # Wallets
+            await db.kn_wallets.create_index("owner_email", unique=True, sparse=True)
+            await db.kn_wallets.create_index("frek_id", sparse=True)
+            # Builder projects
+            await db.builder_projects.create_index([("author_email", 1), ("updated_at", -1)])
+            await db.builder_projects.create_index("project_id", unique=True)
+            # Checkout sessions
+            await db.kn_checkout_sessions.create_index("session_id", unique=True, sparse=True)
+            await db.kn_checkout_sessions.create_index("email")
+            # Pro access logs — TTL index for auto-cleanup (90 days)
+            await db.pro_access_logs.create_index("timestamp", expireAfterSeconds=7776000)
+            # Workspace logs — TTL (30 days)
+            await db.workspace_logs.create_index("timestamp", expireAfterSeconds=2592000)
+            logger.info("Production indexes created successfully")
+        except Exception as idx_err:
+            logger.warning(f"Some production indexes already exist: {idx_err}")
 
         # Doctrine layer — seed permissions + backfill actor_roles
         await _doctrine_seed()
