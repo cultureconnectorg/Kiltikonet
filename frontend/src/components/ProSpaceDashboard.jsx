@@ -249,7 +249,7 @@ const useProSession = () => {
     // Fallback: verify via httpOnly cookie
     const checkCookie = async () => {
       try {
-        const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+        const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           if (data.authenticated && data.session?.role === 'pro') {
@@ -266,7 +266,7 @@ const useProSession = () => {
   const logout = async () => {
     sessionStorage.removeItem('cc2026_pro_session');
     setSession(null);
-    try { await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
+    try { await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
   };
   return { session, loading, logout, isAuthenticated: !!session };
 };
@@ -1732,7 +1732,7 @@ const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
     try {
       await axios.post(`${API}/pro/delete-account`, { user_id: session.id, email: session.email });
       sessionStorage.removeItem('cc2026_pro_session');
-      try { await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
+      try { await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { /* silent */ }
       toast.success('Compte supprime');
       window.location.href = '/espace-pro/connexion';
     } catch { toast.error('Erreur de suppression'); }

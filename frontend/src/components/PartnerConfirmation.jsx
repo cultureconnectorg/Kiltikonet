@@ -46,7 +46,7 @@ export const PartnerConfirmation = () => {
     }
     
     try {
-      const response = await axios.get(`${API}/api/checkout/status/${sid}`);
+      const response = await axios.get(`${API}/checkout/status/${sid}`);
       const data = response.data;
       
       if (data.payment_status === 'paid') {

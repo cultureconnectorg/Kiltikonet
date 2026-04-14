@@ -647,7 +647,7 @@ const PartnersCarousel = ({ language }) => {
   useEffect(() => {
     const loadPartners = async () => {
       try {
-        const res = await axios.get(`${API}/api/cms/partners`);
+        const res = await axios.get(`${API}/cms/partners`);
         if (res.data?.partners?.length > 0) {
           setPartners(res.data.partners.filter(p => p.published));
         } else {

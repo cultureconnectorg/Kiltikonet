@@ -90,7 +90,7 @@ export const AdminDashboard = () => {
     // No sessionStorage cache — check cookie via API
     const checkCookie = async () => {
       try {
-        const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+        const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           if (data.authenticated && data.session?.role === 'admin') {
