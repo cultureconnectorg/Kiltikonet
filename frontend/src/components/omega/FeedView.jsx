@@ -88,8 +88,12 @@ export default function FeedView({ onBack, onNavigate, auth }) {
           p.id === postId ? { ...p, eclairs_count: data.eclairs_count } : p
         ));
         auth?.playNotifSound?.();
+        if (window.__KILTI_TOAST) window.__KILTI_TOAST('Eclair envoyé !');
       } else if (res.status === 402) {
         if (window.__KILTI_TOAST) window.__KILTI_TOAST('Solde KT insuffisant — recharge ton wallet');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        if (window.__KILTI_TOAST) window.__KILTI_TOAST(err.detail || 'Erreur');
       }
     } catch {}
     finally { setEclairLoading(null); }

@@ -43,6 +43,7 @@ export function useAuth() {
         if (data.authenticated && data.session) {
           const s = data.session;
           setUser({
+            id: s.profile_id || s.frek_id || '',
             email: s.email || '',
             name: s.name || s.email?.split('@')[0] || '',
             full_name: s.name || '',

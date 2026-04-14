@@ -365,6 +365,10 @@ async def create_post(body: CreatePostBody):
     """Create a real user post."""
     user = await _db.registrations.find_one({"id": body.author_id}, {"_id": 0, "full_name": 1, "email": 1, "profile_type": 1, "image": 1, "frek_id": 1})
     if not user:
+        user = await _db.registrations.find_one({"frek_id": body.author_id}, {"_id": 0, "full_name": 1, "email": 1, "profile_type": 1, "image": 1, "frek_id": 1})
+    if not user:
+        user = await _db.registrations.find_one({"email": body.author_id}, {"_id": 0, "full_name": 1, "email": 1, "profile_type": 1, "image": 1, "frek_id": 1})
+    if not user:
         raise HTTPException(404, "Utilisateur non trouvé")
 
     now = datetime.now(timezone.utc)

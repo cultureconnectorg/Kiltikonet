@@ -132,6 +132,7 @@ DOCTRINE_SEED = [
             "access_studio_full",
             "create_reels",
             "create_shop_products",
+            "buy_tokens",
         ],
         "receives": [
             "algorithmic_visibility",
@@ -159,6 +160,9 @@ DOCTRINE_SEED = [
             "run_campaigns",
             "access_advanced_analytics",
             "bulk_token_purchase",
+            "buy_tokens",
+            "publish_content",
+            "support_creators",
         ],
         "receives": [
             "roster_management_tools",
@@ -186,6 +190,9 @@ DOCTRINE_SEED = [
             "access_impact_reports",
             "vote_governance",
             "sponsor_creators",
+            "buy_tokens",
+            "publish_content",
+            "support_creators",
         ],
         "receives": [
             "territorial_impact_reports",
@@ -213,6 +220,9 @@ DOCTRINE_SEED = [
             "access_networking",
             "use_terminal_ia",
             "invoice_cc",
+            "buy_tokens",
+            "publish_content",
+            "support_creators",
         ],
         "receives": [
             "catalog_visibility",
@@ -240,6 +250,7 @@ DOCTRINE_SEED = [
             "attend_events",
             "vote_governance_basic",
             "use_terminal_ia",
+            "publish_content",
         ],
         "receives": [
             "free_and_premium_content",

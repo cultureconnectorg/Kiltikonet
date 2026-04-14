@@ -16,12 +16,12 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
   const currentEur = balance * 1.50;
   const plafondPct = Math.min((currentEur / plafondEur) * 100, 100);
 
-  // Pack IDs must match shop_payments.py KILTI_TOKEN_PACKAGES keys
+  // Pack IDs must match fintech.py KT_PACKAGES keys
   const PACKS = [
-    { name: "Decouverte", id: "pack-decouverte", jcc: 10, price: 10 },
-    { name: "Culture",    id: "pack-culture",    jcc: 25, price: 25 },
-    { name: "Diaspora",   id: "pack-diaspora",   jcc: 50, price: 50 },
-    { name: "VIP",        id: "pack-vip",        jcc: 100, price: 100 },
+    { name: "Decouverte", id: "kt-decouverte", jcc: 15, price: 10 },
+    { name: "Culture",    id: "kt-culture",    jcc: 40, price: 25 },
+    { name: "Diaspora",   id: "kt-diaspora",   jcc: 85, price: 50 },
+    { name: "VIP",        id: "kt-vip",        jcc: 180, price: 100 },
   ];
 
   // Route through Stripe checkout (same flow as ShopView)
