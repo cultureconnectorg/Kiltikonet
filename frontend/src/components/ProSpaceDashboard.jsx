@@ -1977,8 +1977,14 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
         navigate('/pro', { replace: true });
       }
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Erreur lors de l\'inscription';
-      toast.error(msg);
+      const detail = err.response?.data?.detail || '';
+      if (detail.includes('existe deja') || detail.includes('already')) {
+        toast.error('Ce compte existe déjà', { description: 'Utilisez "Recevoir mon lien de connexion" avec cet email' });
+        setShowRegister(false);
+        setEmail(regEmail.trim());
+      } else {
+        toast.error(detail || 'Erreur lors de l\'inscription');
+      }
     } finally { setLoading(false); }
   };
 

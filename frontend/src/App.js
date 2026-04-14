@@ -161,11 +161,11 @@ const ProSplashWrapper = () => {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
-  // Phase 2: Checking session
+  // Phase 2: Checking session (should be instant, but show logo as safety)
   if (!sessionReady) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0b' }}>
-        <div className="w-10 h-10 border-3 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#f2ca50' }} />
+        <img src="/logo-kiltikonet.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.5 }} />
       </div>
     );
   }
