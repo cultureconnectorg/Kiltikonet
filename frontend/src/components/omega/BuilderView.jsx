@@ -98,7 +98,7 @@ export default function BuilderView({ onBack, onSelect, auth }) {
   const navItems = [
     { id: "projects", label: "Projets", icon: FolderOpen },
     { id: "studio", label: "Studio", icon: SquarePen },
-    { id: "frek", label: "FREK", icon: ShieldCheck },
+    { id: "frek", label: "Certifier", icon: ShieldCheck },
     { id: "publish", label: "Publier", icon: Rocket },
     { id: "analytics", label: "Stats", icon: BarChart3 },
   ];
@@ -261,7 +261,7 @@ export default function BuilderView({ onBack, onSelect, auth }) {
             <span className="font-mono text-[9px] tracking-widest font-bold" style={{ color: 'rgba(242,202,80,0.8)' }}>JCC</span>
           </motion.div>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => onSelect("frek_id")} className="flex items-center gap-1.5 rounded-full px-3 py-1 cursor-pointer transition-all" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }} data-testid="builder-frek-badge">
-            <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>FREK-ID</span>
+            <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>ID Certifié</span>
           </motion.div>
           <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setSubView("publish")} className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-[#f2ca50] hover:text-black transition-all" style={{ background: 'rgba(242,202,80,0.1)', border: '1px solid rgba(242,202,80,0.2)', color: '#f2ca50' }} data-testid="builder-publish-nav">
             <Rocket className="w-4 h-4" />
@@ -278,7 +278,7 @@ export default function BuilderView({ onBack, onSelect, auth }) {
                   { label: "Projets actifs", value: String(projects.length) },
                   { label: "Publiés", value: String(projects.filter(p => p.published).length) },
                   { label: "Brouillons", value: String(projects.filter(p => !p.published).length) },
-                  { label: "Certifiés FREK", value: String(projects.filter(p => p.frek_certified).length) },
+                  { label: "Certifiés", value: String(projects.filter(p => p.frek_certified).length) },
                 ].map((stat, i) => (
                   <div key={i} className="bg-white/5 p-4 rounded-2xl" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
                     <div className="text-2xl font-bold" style={{ color: '#f2ca50' }}>{stat.value}</div>
@@ -524,7 +524,7 @@ export default function BuilderView({ onBack, onSelect, auth }) {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setSubView("frek")} className="flex-1 py-3 bg-white/5 rounded-xl text-[10px] font-bold tracking-widest flex items-center justify-center gap-2" style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#f2ca50' }} data-testid="builder-certify-btn"><ShieldCheck className="w-4 h-4" />CERTIFIER FREK-ID</button>
+                  <button onClick={() => setSubView("frek")} className="flex-1 py-3 bg-white/5 rounded-xl text-[10px] font-bold tracking-widest flex items-center justify-center gap-2" style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#f2ca50' }} data-testid="builder-certify-btn"><ShieldCheck className="w-4 h-4" />CERTIFIER</button>
                   <button onClick={() => setSubView("publish")} className="flex-1 py-3 rounded-xl text-[10px] font-bold tracking-widest flex items-center justify-center gap-2" style={{ background: '#f2ca50', color: 'black' }} data-testid="builder-publish-btn"><Rocket className="w-4 h-4" />PUBLIER</button>
                 </div>
               </div>
@@ -534,8 +534,8 @@ export default function BuilderView({ onBack, onSelect, auth }) {
           {subView === "frek" && (
             <motion.div key="frek" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="p-6 space-y-8">
               <div className="space-y-2">
-                <div className="text-[10px] text-gray-500 uppercase tracking-widest">Architecture Luciole · FREK v2</div>
-                <h2 className="italic text-3xl" style={{ fontFamily: "'Noto Serif', serif", color: '#f2ca50' }}>Certification FREK-ID</h2>
+                <div className="text-[10px] text-gray-500 uppercase tracking-widest">Architecture Luciole · Certification v2</div>
+                <h2 className="italic text-3xl" style={{ fontFamily: "'Noto Serif', serif", color: '#f2ca50' }}>Certification Culturelle</h2>
                 <p className="text-xs text-gray-400 leading-relaxed">Identité culturelle souveraine. ~2.5KB/oeuvre. 3% visible, 97% invisible.</p>
               </div>
               <div className="space-y-3">

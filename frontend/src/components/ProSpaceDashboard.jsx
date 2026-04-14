@@ -61,7 +61,7 @@ const BRAIN_SUGGESTIONS = [
   { label: 'Kiltikonet', icon: 'info', q: "C'est quoi kiltikonet ?" },
   { label: 'Jeton CC', icon: 'toll', q: 'Comment fonctionne le Jeton CC ?' },
   { label: 'CC2026', icon: 'festival', q: 'Parle-moi de Culture Connect 2026' },
-  { label: 'Mon FREK-ID', icon: 'fingerprint', q: 'À quoi sert mon FREK-ID ?' },
+  { label: 'Mon Identité', icon: 'fingerprint', q: 'À quoi sert mon identité culturelle ?' },
   { label: 'Espace Pro', icon: 'dashboard', q: "Quelles sont les fonctionnalités de l'Espace Pro ?" },
   { label: 'Culture', icon: 'music_note', q: 'Parle-moi de la culture caribéenne' },
 ];
@@ -1758,7 +1758,7 @@ const SettingsSection = ({ session, jetonsBalance, onLogout }) => {
             {session?.frek_id && (
               <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }} data-testid="frek-id-display">
                 <span className="material-symbols-outlined" style={{ color: '#8b5cf6', fontSize: 12 }}>shield</span>
-                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: '#8b5cf6' }}>{session.frek_id}</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 10, fontWeight: 700, color: '#8b5cf6' }}>ID Certifié</span>
               </div>
             )}
           </div>
@@ -2030,7 +2030,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
         toast.success('Code envoye !', { description: `Verifiez ${res.data.email_hint}` });
       }
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'FREK-ID introuvable');
+      toast.error(err.response?.data?.detail || 'Identifiant introuvable');
     } finally { setLoading(false); }
   };
 
@@ -2060,8 +2060,8 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
       content: `Les Kilti-Tokens (KT) sont des unites de valeur prepayees emises par Factory Maker Studio EURL.\n\n1. Nature juridique : Les KT sont des bons d'achat numeriques a usage unique ou multiple au sein de l'ecosysteme KiltiKonet. Ils ne constituent ni une monnaie electronique au sens de la directive 2009/110/CE, ni un instrument financier.\n\n2. Non-remboursabilite : Les KT acquis ne sont pas remboursables en euros. L'achat est definitif.\n\n3. Validite etendue : Les KT sont utilisables pour l'ensemble des evenements et services de l'ecosysteme Culture Connect (CC2026, CC2027 et editions suivantes). Cette validite etendue est un engagement commercial de Factory Maker Studio EURL.\n\n4. Utilisation : Les KT permettent d'acceder a des contenus, soutenir des artistes, acheter des produits culturels et participer aux evenements de l'ecosysteme.\n\n5. Transferabilite : Les KT peuvent etre transferes entre utilisateurs au sein de la plateforme.\n\n6. Rachat commercant : Les commercants partenaires peuvent echanger les KT recus contre des euros au taux de rachat en vigueur (actuellement 1.35 EUR/KT).`
     },
     frekid: {
-      title: 'Politique FREK-ID',
-      content: `Le FREK-ID est un identifiant culturel unique attribue a chaque utilisateur de la plateforme KiltiKonet.\n\n1. Finalite : Le FREK-ID permet l'identification securisee au sein de l'ecosysteme, le suivi du wallet Kilti-Tokens, et l'acces aux evenements CC2026.\n\n2. Donnees collectees : Email, nom, preferences culturelles, historique de transactions KT. Aucune donnee biometrique n'est collectee.\n\n3. Protection : Les donnees sont chiffrees et stockees conformement au RGPD (Reglement UE 2016/679). L'hebergement est realise au sein de l'Espace Economique Europeen.\n\n4. Droits : Conformement au RGPD, vous disposez d'un droit d'acces, de rectification, d'effacement, de portabilite et d'opposition. Exercez vos droits via la section "Parametres > Gerer mes donnees" ou par email a dpo@kiltikonet.fr.\n\n5. Conservation : Les donnees sont conservees pendant la duree d'utilisation du service et 3 ans apres la derniere activite.\n\n6. Sous-traitants : Stripe (paiements), hebergeur cloud (infrastructure). Tous conformes RGPD.`
+      title: 'Politique Identité Culturelle',
+      content: `Votre identifiant culturel est un identifiant unique attribue a chaque utilisateur de la plateforme KiltiKonet.\n\n1. Finalite : Il permet l'identification securisee au sein de l'ecosysteme, le suivi du wallet Kilti-Tokens, et l'acces aux evenements CC2026.\n\n2. Donnees collectees : Email, nom, preferences culturelles, historique de transactions KT. Aucune donnee biometrique n'est collectee.\n\n3. Protection : Les donnees sont chiffrees et stockees conformement au RGPD (Reglement UE 2016/679). L'hebergement est realise au sein de l'Espace Economique Europeen.\n\n4. Droits : Conformement au RGPD, vous disposez d'un droit d'acces, de rectification, d'effacement, de portabilite et d'opposition. Exercez vos droits via la section "Parametres > Gerer mes donnees" ou par email a dpo@kiltikonet.fr.\n\n5. Conservation : Les donnees sont conservees pendant la duree d'utilisation du service et 3 ans apres la derniere activite.\n\n6. Sous-traitants : Stripe (paiements), hebergeur cloud (infrastructure). Tous conformes RGPD.`
     }
   };
 
@@ -2141,7 +2141,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
                     className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
                     data-testid="register-submit-btn"
                     style={{ background: C.gold, color: '#0a0a0b', minHeight: 48, opacity: loading ? 0.5 : 1 }}>
-                    {loading ? 'Creation...' : "Creer mon compte + FREK-ID"}
+                    {loading ? 'Creation...' : "Creer mon compte"}
                   </button>
                 </form>
                 <button onClick={() => setShowRegister(false)} className="w-full text-center text-xs mt-4 underline transition-colors hover:text-white" style={{ color: C.dim }} data-testid="switch-to-login">
@@ -2177,7 +2177,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
                 data-testid="frekid-login-btn"
                 style={{ background: 'linear-gradient(135deg, rgba(232,213,160,0.12), rgba(232,213,160,0.04))', color: C.gold, border: `1px solid rgba(232,213,160,0.2)`, minHeight: 48 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 20, color: C.gold, fontVariationSettings: "'FILL' 1" }}>fingerprint</span>
-                Continuer avec FREK ID
+                Continuer avec mon identifiant
               </button>
 
               {/* WebAuthn — Face ID / Touch ID */}
@@ -2201,7 +2201,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
                         <div className="flex items-center gap-2">
                           <span className="material-symbols-outlined" style={{ color: C.gold, fontSize: 22, fontVariationSettings: "'FILL' 1" }}>fingerprint</span>
                           <h2 className="text-base font-black" style={{ color: C.text }}>
-                            {frekStep === 1 ? 'Connexion FREK-ID' : 'Verification'}
+                            {frekStep === 1 ? 'Connexion par identifiant' : 'Verification'}
                           </h2>
                         </div>
                         <button onClick={() => setFrekMode(false)} className="p-1.5 rounded-lg hover:bg-white/5" data-testid="close-frek-modal">
@@ -2213,7 +2213,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
                         <form onSubmit={handleFrekInitiate} className="space-y-4">
                           <div>
                             <label className="block text-xs mb-2 font-semibold uppercase tracking-wider" style={{ color: C.muted }}>
-                              Votre FREK-ID
+                              Votre identifiant
                             </label>
                             <input type="text" placeholder="FREK-XXXX-YYYY" value={frekId} onChange={e => setFrekId(e.target.value.toUpperCase())}
                               className="w-full px-4 rounded-xl text-sm transition-all focus:ring-1"
@@ -2249,7 +2249,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
                             {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#0a0a0b' }} />Verification...</span> : 'Valider'}
                           </button>
                           <button type="button" onClick={() => { setFrekStep(1); setFrekOtp(''); }} className="w-full text-xs underline transition-colors hover:text-white" style={{ color: C.dim }} data-testid="frek-back-btn">
-                            Utiliser un autre FREK-ID
+                            Utiliser un autre identifiant
                           </button>
                         </form>
                       )}
@@ -2292,7 +2292,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
                       data-testid="pro-email-input" autoComplete="email"
                       style={{ background: '#0a0a0b', border: `1px solid ${C.border}`, color: C.text, outline: 'none', minHeight: 48, fontFamily: "'DM Sans', sans-serif" }} />
                     <p className="text-[10px] mt-1.5" style={{ color: C.dim }}>
-                      Nouveau ? Un compte sera cree automatiquement avec un FREK-ID unique.
+                      Nouveau ? Un compte sera cree automatiquement avec un identifiant unique.
                     </p>
                   </div>
                   <button type="submit" disabled={loading || !email} className="w-full rounded-xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[0.99]"
@@ -2427,7 +2427,7 @@ export const ProSpaceLogin = ({ onLogin } = {}) => {
             <span className="text-[10px]" style={{ color: C.border }}>·</span>
             <button onClick={() => setLegalModal('frekid')} className="text-[10px] font-medium transition-colors hover:text-white"
               style={{ color: C.dim }} data-testid="link-politique-frekid">
-              Politique FREK-ID
+              Politique Identité
             </button>
             <span className="text-[10px]" style={{ color: C.border }}>·</span>
             <button onClick={() => navigate('/confidentialite')} className="text-[10px] font-medium transition-colors hover:text-white"

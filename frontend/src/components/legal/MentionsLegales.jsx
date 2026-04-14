@@ -30,7 +30,7 @@ export const MentionsLegales = () => {
                   <strong>Culture Connect</strong> (Powered by Factory Maker Studio)<br />
                   Fort-de-France, Martinique<br />
                   SIRET : 91824710700017<br />
-                  Email : cultureconnectorg@gmail.com
+                  Email : contact@kiltikonet.fr
                 </>
               ) : (
                 <>
@@ -38,7 +38,7 @@ export const MentionsLegales = () => {
                   <strong>Culture Connect</strong> (Powered by Factory Maker Studio)<br />
                   Fort-de-France, Martinique<br />
                   SIRET: 91824710700017<br />
-                  Email: cultureconnectorg@gmail.com
+                  Email: contact@kiltikonet.fr
                 </>
               )}
             </p>
@@ -111,8 +111,8 @@ export const MentionsLegales = () => {
             </h2>
             <p>
               {language === 'fr' 
-                ? "Pour toute question concernant ce site, vous pouvez nous contacter à l'adresse : cultureconnectorg@gmail.com"
-                : "For any questions about this site, you can contact us at: cultureconnectorg@gmail.com"
+                ? "Pour toute question concernant ce site, vous pouvez nous contacter à l'adresse : contact@kiltikonet.fr"
+                : "For any questions about this site, you can contact us at: contact@kiltikonet.fr"
               }
             </p>
           </section>

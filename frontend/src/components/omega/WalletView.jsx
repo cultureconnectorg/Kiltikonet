@@ -137,7 +137,7 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
               </div>
               <div className="flex justify-between items-end">
                 <div className="flex flex-col">
-                  <span className="text-[7px] text-white/20 uppercase tracking-widest">Frek-ID Identity</span>
+                  <span className="text-[7px] text-white/20 uppercase tracking-widest">Identité Culturelle</span>
                   <span className="text-[9px] font-mono text-white/50 tracking-wider">{frekId || '—'}</span>
                 </div>
                 <div className="flex gap-1">

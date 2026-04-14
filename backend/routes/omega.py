@@ -2217,35 +2217,46 @@ async def publish_builder_project(request: Request, body: BuilderPublishRequest)
     # If canal == feed, create a real post in pro_posts (the active feed)
     if body.canal in ("feed", "shop"):
         reg = await _db.registrations.find_one({"email": email}, {"_id": 0, "id": 1, "full_name": 1, "profile_type": 1, "image": 1, "frek_id": 1})
+        # Fallback: if no registration found, use session/email info
+        author_name = email.split("@")[0]
+        author_id = ""
+        author_title = "Membre"
+        author_image = ""
+        author_frek = frek_id or ""
         if reg:
-            from datetime import timezone as _tz
-            post = {
-                "id": f"post_{str(uuid.uuid4())[:12]}",
-                "author_id": reg.get("id", ""),
-                "author_frek_id": reg.get("frek_id", frek_id or ""),
-                "author_name": reg.get("full_name", email.split("@")[0]),
-                "author_title": reg.get("profile_type", "Membre"),
-                "author_image": reg.get("image", ""),
-                "content": (project.get("titre") or "") + ("\n\n" + project["description"] if project.get("description") else ""),
-                "thumbnail_url": project.get("media_url", ""),
-                "post_type": "creation",
-                "dimension": "Arts Visuels & Sceniques",
-                "likes": [],
-                "likes_count": 0,
-                "eclairs": [],
-                "eclairs_count": 0,
-                "comments": [],
-                "comments_count": 0,
-                "shares_count": 0,
-                "views_count": 0,
-                "is_ghost": False,
-                "is_reel": False,
-                "builder_project_id": body.project_id,
-                "canal": body.canal,
-                "created_at": now,
-                "updated_at": now,
-            }
-            await _db.pro_posts.insert_one(post)
+            author_name = reg.get("full_name", author_name)
+            author_id = reg.get("id", "")
+            author_title = reg.get("profile_type", "Membre")
+            author_image = reg.get("image", "")
+            author_frek = reg.get("frek_id", frek_id or "")
+
+        post = {
+            "id": f"post_{str(uuid.uuid4())[:12]}",
+            "author_id": author_id,
+            "author_frek_id": author_frek,
+            "author_name": author_name,
+            "author_title": author_title,
+            "author_image": author_image,
+            "content": (project.get("titre") or "") + ("\n\n" + project["description"] if project.get("description") else ""),
+            "thumbnail_url": project.get("media_url", ""),
+            "post_type": "creation",
+            "dimension": "Arts Visuels & Sceniques",
+            "likes": [],
+            "likes_count": 0,
+            "eclairs": [],
+            "eclairs_count": 0,
+            "comments": [],
+            "comments_count": 0,
+            "shares_count": 0,
+            "views_count": 0,
+            "is_ghost": False,
+            "is_reel": False,
+            "builder_project_id": body.project_id,
+            "canal": body.canal,
+            "created_at": now,
+            "updated_at": now,
+        }
+        await _db.pro_posts.insert_one(post)
 
     await write_audit_log(frek_id, "BUILDER_PUBLISH", body.project_id, "builder", {"canal": body.canal})
     return {"success": True, "canal": body.canal, "project_id": body.project_id}

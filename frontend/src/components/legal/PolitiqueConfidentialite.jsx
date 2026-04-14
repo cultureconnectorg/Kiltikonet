@@ -35,13 +35,13 @@ export const PolitiqueConfidentialite = () => {
                 <>
                   Le responsable du traitement des données est :<br />
                   <strong>Factory Maker Studio</strong><br />
-                  Email : cultureconnectorg@gmail.com
+                  Email : contact@kiltikonet.fr
                 </>
               ) : (
                 <>
                   The data controller is:<br />
                   <strong>Factory Maker Studio</strong><br />
-                  Email: cultureconnectorg@gmail.com
+                  Email: contact@kiltikonet.fr
                 </>
               )}
             </p>
@@ -137,8 +137,8 @@ export const PolitiqueConfidentialite = () => {
             </ul>
             <p className="mt-3">
               {language === 'fr' 
-                ? 'Pour exercer ces droits, contactez-nous à : cultureconnectorg@gmail.com'
-                : 'To exercise these rights, contact us at: cultureconnectorg@gmail.com'
+                ? 'Pour exercer ces droits, contactez-nous à : contact@kiltikonet.fr'
+                : 'To exercise these rights, contact us at: contact@kiltikonet.fr'
               }
             </p>
           </section>

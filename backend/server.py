@@ -498,7 +498,7 @@ def get_confirmation_email(name: str, tier: str, email: str) -> str:
             </div>
             <div class="footer">
                 <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
-                <p>cultureconnectorg@gmail.com</p>
+                <p>contact@kiltikonet.fr</p>
             </div>
         </div>
     </body>
@@ -548,7 +548,7 @@ def get_approval_email(name: str, tier: str, registration_id: str) -> str:
             </div>
             <div class="footer">
                 <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
-                <p>cultureconnectorg@gmail.com</p>
+                <p>contact@kiltikonet.fr</p>
             </div>
         </div>
     </body>
@@ -584,7 +584,7 @@ def get_rejection_email(name: str) -> str:
                 <p>Cette décision ne remet pas en cause la qualité de votre profil. Le nombre de places étant limité, nous avons dû faire des choix difficiles.</p>
                 <div class="contact-box">
                     <p style="margin: 0;"><strong>Des questions ?</strong></p>
-                    <p style="margin: 10px 0 0 0;">N'hésitez pas à nous écrire à <a href="mailto:cultureconnectorg@gmail.com" style="color: #A65D47;">cultureconnectorg@gmail.com</a></p>
+                    <p style="margin: 10px 0 0 0;">N'hésitez pas à nous écrire à <a href="mailto:contact@kiltikonet.fr" style="color: #A65D47;">contact@kiltikonet.fr</a></p>
                 </div>
                 <p>Nous vous souhaitons une excellente continuation dans vos projets.</p>
                 <p style="margin-top: 30px;">Bien cordialement,<br><strong>L'équipe Culture Connect</strong></p>
@@ -641,7 +641,7 @@ def get_partner_welcome_email(company_name: str, tier: str, contact_name: str) -
             </div>
             <div class="footer">
                 <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
-                <p>cultureconnectorg@gmail.com</p>
+                <p>contact@kiltikonet.fr</p>
             </div>
         </div>
     </body>
@@ -836,7 +836,7 @@ def get_badge_email_html(participant_name: str, tier: str, registration_id: str)
             </div>
             <div class="footer">
                 <p>Culture Connect 2026 · Fort-de-France, Martinique · 20-23 Mai 2026</p>
-                <p>cultureconnectorg@gmail.com</p>
+                <p>contact@kiltikonet.fr</p>
             </div>
         </div>
     </body>
@@ -4136,6 +4136,11 @@ app.include_router(pro_feed_router)
 app.include_router(wallet_router)
 app.include_router(shop_payments_router)
 app.include_router(site_analytics_router)
+
+# FAQ & Support Tickets
+from routes.support import router as support_router, seed_default_faq
+app.include_router(support_router)
+
 from routes.doctrine import router as doctrine_router, seed_doctrine as _doctrine_seed, backfill_actor_roles as _doctrine_backfill, require_permission as _require_perm
 app.include_router(doctrine_router)
 
@@ -5522,6 +5527,12 @@ async def create_indexes():
             init_storage()
         except Exception as storage_err:
             logger.warning(f"Object Storage init deferred: {storage_err}")
+
+        # Seed default FAQ
+        try:
+            await seed_default_faq()
+        except Exception as faq_err:
+            logger.warning(f"FAQ seed deferred: {faq_err}")
 
     except Exception as e:
         logger.error(f"⚠️ Error creating indexes: {str(e)}")

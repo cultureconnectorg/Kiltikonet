@@ -227,7 +227,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
                   <h2 className="text-lg font-bold text-white">{userName}</h2>
                   <div className="flex items-center gap-1.5 mt-1">
                     <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#f2ca50' }} />
-                    <span className="text-[10px] font-bold tracking-wider uppercase" style={{ color: '#f2ca50' }}>FREK-ID: {frekId || '---'}</span>
+                    <span className="text-[10px] font-bold tracking-wider uppercase" style={{ color: '#f2ca50' }}>ID: {frekId || '---'}</span>
                   </div>
                   <span className="text-[10px] text-gray-500">{email}</span>
                 </div>
@@ -297,7 +297,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
                   {(profileAnalytics.builder?.published || 0) > 0 && (profileAnalytics.builder?.eclairs_recus || 0) === 0 && (
                     <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.15)' }}>
                       <Zap className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#f2ca50' }} />
-                      <p className="text-[10px] text-gray-300 leading-relaxed">Votre contenu est en ligne mais n'a pas encore reçu d'Éclairs. Partagez votre FREK-ID avec votre réseau et commentez les posts des autres pour augmenter votre visibilité.</p>
+                      <p className="text-[10px] text-gray-300 leading-relaxed">Votre contenu est en ligne mais n'a pas encore reçu d'Éclairs. Partagez votre profil avec votre réseau et commentez les posts des autres pour augmenter votre visibilité.</p>
                     </div>
                   )}
                   {(profileAnalytics.builder?.eclairs_recus || 0) > 5 && (
@@ -403,7 +403,7 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
                     <AlertTriangle className="w-4 h-4 text-red-400" />
                     <span className="text-sm font-bold text-red-400">Suppression du compte (RGPD)</span>
                   </div>
-                  <p className="text-xs text-gray-500 mb-3">Cette action est irreversible. Vos donnees personnelles seront anonymisees conformement au RGPD. Votre FREK-ID sera desactive. Les logs d'audit seront conserves de maniere anonyme.</p>
+                  <p className="text-xs text-gray-500 mb-3">Cette action est irreversible. Vos donnees personnelles seront anonymisees conformement au RGPD. Votre identifiant sera desactive. Les logs d'audit seront conserves de maniere anonyme.</p>
                   <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowDeleteConfirm(true)} className="w-full py-3 rounded-xl text-sm font-bold tracking-widest uppercase" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }} data-testid="delete-account-btn">
                     Supprimer mon compte
                   </motion.button>

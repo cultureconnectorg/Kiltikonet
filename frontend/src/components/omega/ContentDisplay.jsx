@@ -69,7 +69,7 @@ export default function ContentDisplay({ onBack, onSelectBrainChat, onNavigate, 
     { id: "quick_feed", label: "QUICK FEED", icon: Zap },
     { id: "inbox", label: "INBOX", icon: MessageSquare },
     { id: "wallet", label: "WALLET", icon: Wallet },
-    { id: "frek-id", label: "FREK-ID", icon: ShieldCheck },
+    { id: "frek-id", label: "Identité", icon: ShieldCheck },
     { id: "cockpit", label: "COCKPIT", icon: Gauge },
     { id: "admin", label: "ADMIN", icon: Settings },
   ];
@@ -105,7 +105,7 @@ export default function ContentDisplay({ onBack, onSelectBrainChat, onNavigate, 
               <span className="font-mono text-[9px] tracking-widest font-bold" style={{ color: 'rgba(242,202,80,0.8)' }}>24 JCC</span>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => onNavigate("frek_id")} className="flex items-center gap-1.5 rounded-full px-3 py-1 cursor-pointer transition-all" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.1)' }}>
-              <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>FREK-ID: 99421</span>
+              <span className="font-mono text-[9px] tracking-widest font-bold uppercase" style={{ color: 'rgba(242,202,80,0.8)' }}>ID: 99421</span>
             </motion.div>
           </div>
         </div>

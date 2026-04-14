@@ -17,6 +17,7 @@ import InboxView from "./InboxView";
 import SovereignProfileView from "./SovereignProfileView";
 import BuilderView from "./BuilderView";
 import { useNotificationSound } from "../../hooks/useNotificationSound";
+import ProTutorial from "./ProTutorial";
 import { Download, X } from "lucide-react";
 
 /**
@@ -61,14 +62,18 @@ export default function ProApp() {
 
   const handleBack = () => setCurrentView("orbital");
 
-  // Welcome modal for first login
+  // Tutorial for first-time users
+  const [showTutorial, setShowTutorial] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   useEffect(() => {
+    const tutorialDone = localStorage.getItem('kk_tutorial_done');
     try {
       const raw = sessionStorage.getItem('cc2026_pro_session');
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.first_login) {
+        if (s.first_login && !tutorialDone) {
+          setShowTutorial(true);
+        } else if (s.first_login) {
           setShowWelcome(true);
         }
       }
@@ -231,9 +236,20 @@ export default function ProApp() {
         </>
       )}
 
-      {/* Welcome Modal for first login */}
+      {/* Tutorial for first-time users */}
+      {showTutorial && (
+        <ProTutorial
+          userName={sessionData.name || userName}
+          onComplete={() => {
+            setShowTutorial(false);
+            dismissWelcome();
+          }}
+        />
+      )}
+
+      {/* Welcome Modal for returning first login (tutorial already done) */}
       <AnimatePresence>
-        {showWelcome && (
+        {showWelcome && !showTutorial && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)' }}
@@ -250,7 +266,7 @@ export default function ProApp() {
               </h2>
               <p className="text-sm text-gray-400 mb-6">Ton identite culturelle souveraine est prete.</p>
               <div className="rounded-2xl p-4 mb-4" style={{ background: '#0a0a0b', border: '1px solid rgba(242,202,80,0.2)' }}>
-                <div className="text-[9px] uppercase tracking-[0.3em] mb-2" style={{ color: 'rgba(242,202,80,0.5)' }}>Ton FREK-ID</div>
+                <div className="text-[9px] uppercase tracking-[0.3em] mb-2" style={{ color: 'rgba(242,202,80,0.5)' }}>Ton Identifiant</div>
                 <div className="font-mono text-lg font-bold" style={{ color: '#f2ca50' }}>{sessionData.frek_id || frekId}</div>
               </div>
               <div className="rounded-2xl p-4 mb-6" style={{ background: '#0a0a0b', border: '1px solid rgba(255,255,255,0.1)' }}>

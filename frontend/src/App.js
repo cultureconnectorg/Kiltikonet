@@ -44,6 +44,8 @@ import JetonsAnalyticsDashboard from "./components/JetonsAnalyticsDashboard";
 import UserDashboard from "./components/UserDashboard";
 import AppelPage from "./components/AppelPage";
 import AccessibilitePage from "./components/AccessibilitePage";
+import FAQPage from "./components/FAQPage";
+import SupportPage from "./components/SupportPage";
 // Workspaces
 import WorkspaceLaurent from "./components/workspaces/WorkspaceLaurent";
 import WorkspaceTwina from "./components/workspaces/WorkspaceTwina";
@@ -321,6 +323,11 @@ function App() {
               <Route path="/confidentialite" element={<PolitiqueConfidentialite />} />
               <Route path="/cgu" element={<CGU />} />
               <Route path="/cookies" element={<Cookies />} />
+              {/* FAQ & Support */}
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/aide" element={<FAQPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/contact" element={<SupportPage />} />
               {/* Dynamic CMS Pages */}
               <Route path="/p/:slug" element={<DynamicPage />} />
                 </Routes>

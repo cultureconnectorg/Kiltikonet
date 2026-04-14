@@ -5,7 +5,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const WELCOME_MESSAGES = [
   "Sak pasé ? Man sé CVL BRAIN — Intelligence Souveraine CVLN. Ki mannyè man pé édé'w jòdi-a ?",
-  "Bienvenue. Man konnet tout sou CC2026, FREK-ID, Jeton CC, et l'écosystème CVLN. Pozé kestion'w.",
+  "Bienvenue. Man konnet tout sou CC2026, Jeton CC, et l'écosystème CVLN. Pozé kestion'w.",
   "Man la pou ou. Demandez-moi n'importe quoi sur kiltikonet, la flywheel economy, ou votre profil.",
 ];
 
@@ -14,7 +14,7 @@ const QUICK_ACTIONS = [
   { label: "Mon profil", icon: "person", q: "Donne-moi des conseils pour améliorer ma visibilité sur la plateforme" },
   { label: "Jeton CC", icon: "toll", q: "Comment fonctionne le Jeton CC et quels packs sont disponibles ?" },
   { label: "CC2026", icon: "festival", q: "Donne-moi les infos clés sur Culture Connect 2026" },
-  { label: "Mon FREK-ID", icon: "fingerprint", q: "À quoi sert mon FREK-ID ?" },
+  { label: "Mon Identité", icon: "fingerprint", q: "À quoi sert mon identité culturelle ?" },
   { label: "Espace Pro", icon: "dashboard", q: "Quelles sont les fonctionnalités de l'Espace Pro ?" },
 ];
 

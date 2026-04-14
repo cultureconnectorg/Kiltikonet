@@ -509,8 +509,8 @@ export const PartnershipPage = () => {
               <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> 20-23 Mai 2026</p>
             </div>
             <p className="mt-6">
-              <a href="mailto:cultureconnectorg@gmail.com" className="text-terracotta hover:underline font-syne">
-                cultureconnectorg@gmail.com
+              <a href="mailto:contact@kiltikonet.fr" className="text-terracotta hover:underline font-syne">
+                contact@kiltikonet.fr
               </a>
             </p>
           </div>

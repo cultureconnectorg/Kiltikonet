@@ -125,8 +125,8 @@ export const Cookies = () => {
             </h2>
             <p>
               {language === 'fr' 
-                ? 'Pour toute question concernant notre utilisation des cookies, contactez-nous à : cultureconnectorg@gmail.com'
-                : 'For any questions about our use of cookies, contact us at: cultureconnectorg@gmail.com'
+                ? 'Pour toute question concernant notre utilisation des cookies, contactez-nous à : contact@kiltikonet.fr'
+                : 'For any questions about our use of cookies, contact us at: contact@kiltikonet.fr'
               }
             </p>
           </section>

@@ -279,7 +279,7 @@ const ProOnboarding = ({ session, onComplete }) => {
             <div className="flex gap-2">
               <Button onClick={() => setStep(2)} variant="ghost" className="rounded-full px-4" style={{ color: C.muted }}>Retour</Button>
               <Button onClick={handleSubmit} disabled={!goal || loading} className="flex-1 h-11 rounded-full" style={{ background: goal ? C.gold : C.dim, color: '#000' }} data-testid="submit-onboarding-btn">
-                {loading ? 'CVL BRAIN analyse...' : 'Révéler mon FREK-ID'}
+                {loading ? 'CVL BRAIN analyse...' : 'Accéder à mon espace'}
               </Button>
             </div>
           </div>

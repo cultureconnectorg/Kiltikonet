@@ -417,11 +417,11 @@ export const LandingPage = () => {
               
               <div className="space-y-4 mb-8">
                 <a 
-                  href="mailto:cultureconnectorg@gmail.com" 
+                  href="mailto:contact@kiltikonet.fr" 
                   className="flex items-center gap-3 text-charcoal/70 hover:text-terracotta transition-colors"
                 >
                   <Mail className="w-5 h-5" />
-                  cultureconnectorg@gmail.com
+                  contact@kiltikonet.fr
                 </a>
               </div>
               
@@ -499,7 +499,11 @@ export const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-charcoal/50">
             <p>Culture Connect 2026 · Fort-de-France, Martinique</p>
-            <p>Factory Maker Studio</p>
+            <div className="flex items-center gap-4">
+              <a href="/faq" className="hover:text-terracotta transition-colors">FAQ</a>
+              <a href="/support" className="hover:text-terracotta transition-colors">{language === 'fr' ? 'Support' : 'Support'}</a>
+              <span>Factory Maker Studio</span>
+            </div>
           </div>
           <div className="mt-6 pt-4 border-t border-lightborder">
             <LegalFooter />

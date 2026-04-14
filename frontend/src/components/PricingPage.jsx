@@ -516,10 +516,10 @@ export const PricingPage = () => {
             }
           </p>
           <a 
-            href="mailto:cultureconnectorg@gmail.com"
+            href="mailto:contact@kiltikonet.fr"
             className="text-terracotta hover:text-terracotta/80 underline underline-offset-4 transition-colors"
           >
-            cultureconnectorg@gmail.com
+            contact@kiltikonet.fr
           </a>
         </div>
       </section>
