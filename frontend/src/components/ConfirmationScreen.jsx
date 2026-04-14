@@ -219,12 +219,12 @@ export const ConfirmationScreen = () => {
               </div>
             )}
             
-            {/* FREK ID */}
+            {/* Identifiant culturel - affiché sans mention technique */}
             {frekId && (
               <div className="text-center p-3 rounded-xl" style={{ background: '#F4F0E8' }}>
                 <QrCode className="w-4 h-4 mx-auto mb-1" style={{ color: '#C9A84C' }} />
-                <p className="text-xs" style={{ color: '#6B6560' }}>FREK-ID: {frekId}</p>
-                <p className="text-xs mt-1" style={{ color: '#4A5D4E' }}>Identite FREK certifiee</p>
+                <p className="text-xs" style={{ color: '#6B6560' }}>ID: {frekId}</p>
+                <p className="text-xs mt-1" style={{ color: '#4A5D4E' }}>Identité culturelle certifiée</p>
               </div>
             )}
             

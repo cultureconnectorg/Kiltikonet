@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
-import { Check, ArrowRight, Star, Ticket, Loader2, X } from 'lucide-react';
+import { Check, ArrowRight, Star, Ticket, Loader2, X, XCircle } from 'lucide-react';
 import { useIntersectionObserver } from '../hooks/useAnimations';
 import { toast } from 'sonner';
 
@@ -70,7 +70,7 @@ const PricingCard = ({ tier, index, language, onSelect }) => {
         )}
       </div>
 
-      <ul className="space-y-3 mb-8">
+      <ul className="space-y-3 mb-4">
         {tier.features.map((feature, i) => (
           <li 
             key={i} 
@@ -88,6 +88,19 @@ const PricingCard = ({ tier, index, language, onSelect }) => {
           </li>
         ))}
       </ul>
+
+      {tier.exclusions && tier.exclusions.length > 0 && (
+        <ul className="space-y-2 mb-8 pt-3 border-t border-lightborder">
+          {tier.exclusions.map((excl, i) => (
+            <li key={i} className="flex items-start gap-3 text-sm text-terracotta/70">
+              <XCircle className="w-4 h-4 mt-0.5 text-terracotta/50 flex-shrink-0" />
+              <span>{excl}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!tier.exclusions && <div className="mb-8" />}
 
       <Button
         onClick={() => onSelect(tier)}
@@ -166,24 +179,27 @@ export const PricingPage = () => {
       name: language === 'fr' ? 'Visiteur' : 'Visitor',
       price: 0,
       description: language === 'fr'
-        ? 'Accès gratuit pour découvrir l\'événement'
-        : 'Free access to discover the event',
+        ? 'Pré-inscription gratuite — Marché Culturel uniquement'
+        : 'Free pre-registration — Cultural Market only',
       color: 'sage',
       badge_type: 'VIS',
       features: language === 'fr' ? [
-        'Accès à l\'entrée générale',
-        'Badge Culture Connect',
-        'FREK-ID culturel',
-        'Accès aux ateliers ouverts',
-        'Accès à la Savane (22 Mai)',
+        'Accès au Marché Culturel',
+        'Badge visiteur Culture Connect',
+        'Ateliers ouverts gratuits',
         'Documentation digitale'
       ] : [
-        'General entrance access',
-        'Culture Connect badge',
-        'Cultural FREK-ID',
-        'Open workshop access',
-        'La Savane access (May 22)',
+        'Cultural Market access',
+        'Culture Connect visitor badge',
+        'Free open workshops',
         'Digital documentation'
+      ],
+      exclusions: language === 'fr' ? [
+        'Concerts & spectacles non inclus',
+        'Conférences non incluses'
+      ] : [
+        'Concerts & shows not included',
+        'Conferences not included'
       ]
     },
     {
@@ -197,14 +213,14 @@ export const PricingPage = () => {
       badge_type: 'BNV',
       features: language === 'fr' ? [
         'Accès aux conférences',
-        'Badge accréditation',
+        'Badge accréditation officiel',
         'Networking sessions',
         'Accès à la Savane (22 Mai)',
         'Documentation digitale',
         'Certificat de participation'
       ] : [
         'Conference access',
-        'Accreditation badge',
+        'Official accreditation badge',
         'Networking sessions',
         'La Savane access (May 22)',
         'Digital documentation',

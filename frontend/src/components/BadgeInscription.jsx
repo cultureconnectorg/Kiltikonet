@@ -232,7 +232,7 @@ export default function BadgeInscription() {
               >
                 <div className="flex items-center gap-3">
                   <KeyRound className="w-4 h-4" style={{ color: C.muted }} />
-                  <span className="text-sm" style={{ color: C.muted }}>J'ai perdu mon badge / FREK-ID</span>
+                  <span className="text-sm" style={{ color: C.muted }}>J'ai perdu mon badge</span>
                 </div>
                 <ChevronDown className="w-4 h-4 transition-transform" style={{ color: C.muted, transform: showRecovery ? 'rotate(180deg)' : 'none' }} />
               </button>
@@ -249,7 +249,7 @@ export default function BadgeInscription() {
                   ) : (
                     <form onSubmit={handleRecovery} className="space-y-3">
                       <p className="text-xs" style={{ color: C.muted }}>
-                        Saisissez l'email utilisé lors de votre inscription pour recevoir votre Badge ID et FREK-ID.
+                        Saisissez l'email utilisé lors de votre inscription pour recevoir votre Badge ID.
                       </p>
                       <input
                         type="email"
@@ -379,9 +379,9 @@ export default function BadgeInscription() {
               </div>
               <div className="text-center p-3 rounded-lg" style={{ background: C.bg }}>
                 <QrCode size={18} className="mx-auto mb-1" style={{ color: C.gold }} />
-                <p className="text-xs" style={{ color: C.muted }}>FREK-ID: {result.frek_id}</p>
+                <p className="text-xs" style={{ color: C.muted }}>ID: {result.frek_id}</p>
                 <p className="text-xs mt-1" style={{ color: result.frek_status === 'emitted' ? C.sage : C.gold }}>
-                  {result.frek_status === 'emitted' ? 'Identité FREK certifiée' : 'En cours de certification'}
+                  {result.frek_status === 'emitted' ? 'Identité culturelle certifiée' : 'En cours de certification'}
                 </p>
               </div>
               <p className="text-center text-xs" style={{ color: C.muted }}>Un email de confirmation vous sera envoyé. Conservez votre Badge ID.</p>
