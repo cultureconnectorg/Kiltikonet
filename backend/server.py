@@ -248,6 +248,20 @@ async def session_cookie_middleware(request: Request, call_next):
     return response
 
 
+
+# ── Health check endpoint (for deployment/monitoring) ──
+@app.get("/api/health")
+async def health_check():
+    """Production health check — verifies DB connectivity."""
+    try:
+        from motor.motor_asyncio import AsyncIOMotorClient
+        client = AsyncIOMotorClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017"), serverSelectionTimeoutMS=3000)
+        await client.server_info()
+        return {"status": "ok", "db": "connected", "version": "1.0.0"}
+    except Exception:
+        return JSONResponse(status_code=503, content={"status": "error", "db": "disconnected"})
+
+
 # ── Session endpoints ──
 @app.get("/api/auth/me")
 async def auth_me(request: Request):
