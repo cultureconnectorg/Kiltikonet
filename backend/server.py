@@ -1546,6 +1546,35 @@ async def process_successful_payment(transaction: dict, metadata: dict):
         
         logger.info(f"Created partner {partner_id} with {len(vip_ids)} VIP accreditations from payment {session_id}")
 
+    elif payment_type == "adhesion":
+        # Activate adhesion after successful payment
+        email = metadata.get("email", "")
+        level = metadata.get("level", "FREE")
+        kt_offerts = int(metadata.get("kt_offerts", 0))
+        brain_quota = int(metadata.get("brain_quota_daily", 10))
+        if email and level:
+            now_iso = datetime.now(timezone.utc)
+            await db.adhesions.update_many({"email": email, "actif": True}, {"$set": {"actif": False}})
+            adhesion_doc = {
+                "adhesion_id": str(uuid.uuid4()),
+                "email": email, "level": level,
+                "prix_mensuel": float(metadata.get("prix_mensuel", 0)),
+                "brain_quota_daily": brain_quota,
+                "brain_quota_used_today": 0,
+                "brain_quota_reset": (now_iso.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).isoformat(),
+                "date_debut": now_iso.isoformat(), "date_fin": None, "auto_renew": True, "actif": True,
+                "stripe_session_id": session_id,
+            }
+            await db.adhesions.insert_one(adhesion_doc)
+            # Credit welcome JCC
+            if kt_offerts > 0:
+                await db.registrations.update_one({"email": email}, {"$inc": {"jetons_solde": kt_offerts}})
+            # Mark pending record as processed
+            await db.adhesions_pending.update_one(
+                {"session_id": session_id}, {"$set": {"processed": True}}
+            )
+            logger.info(f"Adhesion {level} activated for {email} via Stripe session {session_id}")
+
 @api_router.get("/stripe-public-key")
 async def get_stripe_public_key():
     """Return the Stripe public key for frontend"""

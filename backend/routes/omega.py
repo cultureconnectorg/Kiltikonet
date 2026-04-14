@@ -670,7 +670,10 @@ class AdhesionSubscribeRequest(BaseModel):
 
 @router.post("/api/adhesion/subscribe")
 async def subscribe_adhesion(request: Request, body: AdhesionSubscribeRequest):
-    """Souscrire a un niveau d'adhesion."""
+    """Souscrire a un niveau d'adhesion.
+    - FREE: activation immediate
+    - Paid tiers: returns Stripe checkout URL; adhesion activated by webhook on payment
+    """
     email = _get_session_email(request)
     level = body.level.upper()
     if level not in ADHESION_LEVELS:
@@ -678,44 +681,54 @@ async def subscribe_adhesion(request: Request, body: AdhesionSubscribeRequest):
 
     config = ADHESION_LEVELS[level]
 
-    # Deactivate existing
-    await _db.adhesions.update_many({"email": email, "actif": True}, {"$set": {"actif": False}})
+    # FREE level — activate immediately, no payment
+    if config["prix_mensuel"] == 0:
+        await _db.adhesions.update_many({"email": email, "actif": True}, {"$set": {"actif": False}})
+        now = datetime.now(timezone.utc)
+        adhesion_doc = {
+            "adhesion_id": str(uuid.uuid4()),
+            "email": email, "level": level,
+            "prix_mensuel": 0, "brain_quota_daily": config["brain_quota_daily"],
+            "brain_quota_used_today": 0,
+            "brain_quota_reset": (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).isoformat(),
+            "date_debut": now.isoformat(), "date_fin": None, "auto_renew": False, "actif": True,
+        }
+        await _db.adhesions.insert_one(adhesion_doc)
+        return {"success": True, "level": level, "kt_offerts": 0, "adhesion_id": adhesion_doc["adhesion_id"]}
 
-    now = datetime.now(timezone.utc)
-    tomorrow_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-
-    adhesion_doc = {
-        "adhesion_id": str(uuid.uuid4()),
-        "email": email,
-        "level": level,
-        "prix_mensuel": config["prix_mensuel"],
-        "brain_quota_daily": config["brain_quota_daily"],
-        "brain_quota_used_today": 0,
-        "brain_quota_reset": tomorrow_midnight.isoformat(),
-        "date_debut": now.isoformat(),
-        "date_fin": None,
-        "auto_renew": level != "FREE",
-        "actif": True,
-    }
-    await _db.adhesions.insert_one(adhesion_doc)
-
-    # Credit KT offerts
-    kt = config["kt_offerts"]
-    if kt > 0:
-        await _db.registrations.update_one({"email": email}, {"$inc": {"jetons_solde": kt}})
-        await _db.cc_transactions.insert_one({
-            "email": email, "type": "credit", "jetons": kt,
-            "label": f"KT offerts adhesion {level}",
-            "timestamp": now.isoformat(), "status": "completed",
+    # Paid tier — create Stripe checkout session
+    try:
+        import os
+        from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+        api_key = os.environ.get("STRIPE_API_KEY")
+        base_url = str(request.base_url).rstrip("/")
+        webhook_url = f"{base_url}/api/webhook/stripe"
+        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+        checkout_request = CheckoutSessionRequest(
+            amount=float(config["prix_mensuel"]),
+            currency="eur",
+            success_url=f"{base_url}/pro?adhesion=success&level={level}",
+            cancel_url=f"{base_url}/pro?adhesion=cancelled",
+            metadata={
+                "type": "adhesion",
+                "email": email,
+                "level": level,
+                "kt_offerts": str(config["kt_offerts"]),
+                "brain_quota_daily": str(config["brain_quota_daily"]),
+            },
+        )
+        session = await stripe_checkout.create_checkout_session(checkout_request)
+        # Store pending adhesion
+        await _db.adhesions_pending.insert_one({
+            "session_id": session.session_id,
+            "email": email, "level": level,
+            "amount": config["prix_mensuel"],
+            "created_at": datetime.now(timezone.utc).isoformat(),
         })
-
-    frek_id = await _get_user_frek_id(email)
-    if frek_id:
-        await write_audit_log(frek_id, "ADHESION_SUBSCRIBE", adhesion_doc["adhesion_id"],
-                              "adhesion", {"level": level, "kt_offerts": kt})
-
-    return {"success": True, "level": level, "kt_offerts": kt,
-            "adhesion_id": adhesion_doc["adhesion_id"]}
+        return {"success": True, "requires_payment": True, "checkout_url": session.url,
+                "session_id": session.session_id, "level": level}
+    except Exception as e:
+        raise HTTPException(500, f"Stripe checkout creation failed: {str(e)}")
 
 
 @router.post("/api/adhesion/cancel")
