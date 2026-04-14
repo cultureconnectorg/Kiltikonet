@@ -511,7 +511,11 @@ const ProSpaceDashboard = () => {
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 600 }}>{item.label}</span>
               </button>
             ))}
-            <div className="pt-6">
+            <div className="pt-6 space-y-1">
+              <button onClick={() => navigate('/')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors hover:bg-white/5" style={{ color: '#9ca3af' }} data-testid="back-to-site-btn">
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>language</span>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 600 }}>Site public</span>
+              </button>
               <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" style={{ color: '#ffb4ab' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 600 }}>Se déconnecter</span>
