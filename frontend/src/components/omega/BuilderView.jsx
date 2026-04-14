@@ -199,11 +199,17 @@ export default function BuilderView({ onBack, onSelect, auth }) {
       if (r.ok) {
         setCurrentProject(prev => ({ ...prev, published: true, canal: publishCanal }));
         loadProjects();
-        setPublishToast(publishCanal === 'feed' ? 'Post publie dans le feed' : 'Publie sur ' + publishCanal);
+        const toastMsg = {
+          'feed': 'Post publié dans le feed public ✓',
+          'pro':  'Contenu enregistré dans votre Espace Pro ✓',
+          'shop': 'Contenu soumis au shop — visible dans votre boutique ✓',
+        }[publishCanal] || 'Publié ✓';
+        setPublishToast(toastMsg);
         setTimeout(() => setPublishToast(null), 3000);
-        // Redirect to feed after 1.5s
-        if (publishCanal === 'feed' && onSelect) {
-          setTimeout(() => onSelect('feed'), 1500);
+        // Redirect after publish
+        if (onSelect) {
+          if (publishCanal === 'feed') setTimeout(() => onSelect('feed'), 1500);
+          else if (publishCanal === 'shop') setTimeout(() => onSelect('shop'), 1500);
         }
       }
     } catch { /* silent */ }
@@ -560,7 +566,11 @@ export default function BuilderView({ onBack, onSelect, auth }) {
               </div>
               <div className="bg-white/5 rounded-2xl p-6 space-y-6" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
                 <div className="text-[10px] text-gray-500 uppercase tracking-widest">Canal de diffusion</div>
-                {[{ id: "feed", title: "Feed Public", desc: "Visible par tous · SPA1 Feed User", icon: Clapperboard, color: "text-[#f2ca50]" }, { id: "pro", title: "Espace Pro", desc: "Réservé aux membres Pro · Premium", icon: Briefcase, color: "text-purple-500" }, { id: "shop", title: "Shop + Jeton CC", desc: "Contenu payant · Prix en JCC", icon: Store, color: "text-green-500" }].map((opt) => {
+                {[
+                  { id: "feed",  title: "Feed Public",   desc: "Publié immédiatement · visible dans le fil global de tous les membres", icon: Clapperboard, color: "text-[#f2ca50]" },
+                  { id: "pro",   title: "Espace Pro",    desc: "Sauvegardé dans votre espace personnel · non visible dans le feed public",  icon: Briefcase,   color: "text-purple-500" },
+                  { id: "shop",  title: "Shop + JCC",    desc: "Contenu mis en vente dans la boutique · prix fixé en Jetons CC",            icon: Store,       color: "text-green-500"  },
+                ].map((opt) => {
                   const Icon = opt.icon;
                   const selected = publishCanal === opt.id;
                   return (

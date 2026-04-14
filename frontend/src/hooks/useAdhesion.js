@@ -44,6 +44,10 @@ export function useAdhesion() {
       throw new Error(data.detail || 'Erreur adhesion');
     }
     const data = await res.json();
+    if (data.requires_payment && data.checkout_url) {
+      window.location.href = data.checkout_url;
+      return data;
+    }
     await refresh();
     return data;
   }, [refresh]);

@@ -16,30 +16,33 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
   const currentEur = balance * 1.50;
   const plafondPct = Math.min((currentEur / plafondEur) * 100, 100);
 
+  // Pack IDs must match shop_payments.py KILTI_TOKEN_PACKAGES keys
   const PACKS = [
-    { name: "Decouverte", jcc: 10, price: 10 },
-    { name: "Culture", jcc: 25, price: 25 },
-    { name: "Diaspora", jcc: 50, price: 50 },
-    { name: "VIP", jcc: 100, price: 100 },
+    { name: "Decouverte", id: "pack-decouverte", jcc: 10, price: 10 },
+    { name: "Culture",    id: "pack-culture",    jcc: 25, price: 25 },
+    { name: "Diaspora",   id: "pack-diaspora",   jcc: 50, price: 50 },
+    { name: "VIP",        id: "pack-vip",        jcc: 100, price: 100 },
   ];
 
-  const handleTopUp = async (packName) => {
+  // Route through Stripe checkout (same flow as ShopView)
+  const handleTopUp = async (packId) => {
     setIsTopUpLoading(true);
     try {
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/my-wallet/buy-pack`, {
+      const userId = auth?.user?.id || auth?.user?.email || 'anon';
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/checkout/create`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pack_name: packName.toLowerCase() }), credentials: 'include',
+        body: JSON.stringify({ package_id: packId, user_id: userId, origin_url: window.location.origin }),
+        credentials: 'include',
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.checkout_url) {
-          window.open(data.checkout_url, '_blank');
-        } else {
-          setBalance && setBalance(prev => prev);
-          addTransaction({ type: "receive", label: `Pack ${packName}`, amount: `+JCC` });
-        }
+        if (data.url) window.location.href = data.url;
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Erreur lors du paiement');
       }
-    } catch (e) {} finally { setIsTopUpLoading(false); }
+    } catch (e) { alert('Erreur réseau'); }
+    finally { setIsTopUpLoading(false); }
   };
 
   const handleSend = async () => {
@@ -295,7 +298,7 @@ export default function WalletView({ onBack, onSelect, balance, setBalance, tran
                   )}
                   <div className="grid grid-cols-2 gap-2">
                     {PACKS.map(p => (
-                      <motion.button key={p.name} whileTap={{ scale: 0.95 }} onClick={() => handleTopUp(p.name)}
+                      <motion.button key={p.name} whileTap={{ scale: 0.95 }} onClick={() => handleTopUp(p.id)}
                         className="p-3 rounded-xl text-left" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
                         <span className="text-[8px] text-gray-500 uppercase tracking-widest">{p.name}</span>
                         <div className="flex items-baseline gap-1 mt-1">

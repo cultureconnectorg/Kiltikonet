@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ShieldCheck, ArrowLeft, Fingerprint, Globe, ChevronRight, User, Scale, Award, History, Settings, Shield, Bell, Eye, LogOut, Moon, Save, Loader2, Trash2, AlertTriangle, Languages, X, CheckCircle, Smartphone, Plus, Camera } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Fingerprint, Globe, ChevronRight, User, Scale, Award, History, Settings, Shield, Bell, Eye, LogOut, Moon, Save, Loader2, Trash2, AlertTriangle, Languages, X, CheckCircle, Smartphone, Plus, Camera, TrendingUp, Zap, MessageSquare, BarChart2, Lightbulb } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function SovereignProfileView({ onBack, auth, adhesion, adhesionLevels, onSubscribe, onCancelAdhesion }) {
   const [showSettings, setShowSettings] = useState(false);
   const [activeSection, setActiveSection] = useState("account");
+  const [profileAnalytics, setProfileAnalytics] = useState(null);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,6 +59,22 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
   }, []);
 
   useEffect(() => { fetchSettings(); }, [fetchSettings]);
+
+  // Fetch analytics data for insights panel
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [walletRes, builderRes] = await Promise.all([
+          fetch(`${API}/api/my-wallet/analytics`, { credentials: 'include' }),
+          fetch(`${API}/api/builder/analytics`, { credentials: 'include' }),
+        ]);
+        const wallet = walletRes.ok ? await walletRes.json() : {};
+        const builder = builderRes.ok ? await builderRes.json() : {};
+        setProfileAnalytics({ wallet, builder });
+      } catch {}
+    };
+    load();
+  }, []);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -246,6 +263,58 @@ export default function SovereignProfileView({ onBack, auth, adhesion, adhesionL
                 ))}
               </div>
             </div>
+
+            {/* Analytics & Insights */}
+            {profileAnalytics && (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 text-[10px] text-gray-500 tracking-widest uppercase mb-3">
+                  <BarChart2 className="w-3.5 h-3.5" />
+                  Vos stats & conseils
+                </div>
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="text-sm font-bold text-white">{profileAnalytics.builder?.published || 0}</div>
+                    <div className="text-[8px] text-gray-600 uppercase tracking-wider mt-0.5">Publiés</div>
+                  </div>
+                  <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="text-sm font-bold" style={{ color: '#f2ca50' }}>{profileAnalytics.builder?.eclairs_recus || 0}</div>
+                    <div className="text-[8px] text-gray-600 uppercase tracking-wider mt-0.5">Éclairs reçus</div>
+                  </div>
+                  <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="text-sm font-bold text-white">{profileAnalytics.wallet?.total_spent || 0}</div>
+                    <div className="text-[8px] text-gray-600 uppercase tracking-wider mt-0.5">JCC dépensés</div>
+                  </div>
+                </div>
+                {/* Actionable insights */}
+                <div className="space-y-2">
+                  {(profileAnalytics.builder?.published || 0) === 0 && (
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.15)' }}>
+                      <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#f2ca50' }} />
+                      <p className="text-[10px] text-gray-300 leading-relaxed">Vous n'avez pas encore publié de contenu. Utilisez le <strong>Builder</strong> pour créer votre premier post — il apparaîtra dans le Feed public et dans votre portfolio.</p>
+                    </div>
+                  )}
+                  {(profileAnalytics.builder?.published || 0) > 0 && (profileAnalytics.builder?.eclairs_recus || 0) === 0 && (
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(242,202,80,0.05)', border: '1px solid rgba(242,202,80,0.15)' }}>
+                      <Zap className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#f2ca50' }} />
+                      <p className="text-[10px] text-gray-300 leading-relaxed">Votre contenu est en ligne mais n'a pas encore reçu d'Éclairs. Partagez votre FREK-ID avec votre réseau et commentez les posts des autres pour augmenter votre visibilité.</p>
+                    </div>
+                  )}
+                  {(profileAnalytics.builder?.eclairs_recus || 0) > 5 && (
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
+                      <TrendingUp className="w-4 h-4 mt-0.5 shrink-0 text-green-400" />
+                      <p className="text-[10px] text-gray-300 leading-relaxed">Bonne traction ! Vos {profileAnalytics.builder.eclairs_recus} Éclairs reçus montrent que votre audience est engagée. Pensez à publier plus régulièrement pour maintenir l'élan.</p>
+                    </div>
+                  )}
+                  {(profileAnalytics.wallet?.total_spent || 0) === 0 && (
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <MessageSquare className="w-4 h-4 mt-0.5 shrink-0 text-gray-400" />
+                      <p className="text-[10px] text-gray-300 leading-relaxed">Utilisez vos JCC pour soutenir d'autres créateurs via l'Éclair (⚡) ou accéder au CVL Brain pour booster votre contenu.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Settings button */}
             <motion.button whileTap={{ scale: 0.98 }} onClick={() => setShowSettings(true)} className="w-full p-4 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }} data-testid="open-settings-btn">

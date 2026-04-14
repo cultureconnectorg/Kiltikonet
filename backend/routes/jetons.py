@@ -1,7 +1,16 @@
 """
 Jetons CC Routes — Economic model for Culture Connect 2026
-1 Jeton CC = 1.50EUR valeur faciale
-Primary: MongoDB | Mirror: Baserow
+1 Jeton CC (JCC) = 1.50EUR valeur faciale
+
+Source de vérité unique : registrations.jetons_solde
+  - Utilisé par l'espace pro (wallet.py, omega.py, pro_feed.py)
+  - Mis à jour ici lors de tout achat/dépense JCC vitrine
+  - cc_badges.jetons_solde est gardé en sync (affichage vitrine)
+
+À NE PAS CONFONDRE avec les Kilti-Tokens (KT) :
+  - KT = monnaie physique NFC terminal CC2026 (collection kn_wallets)
+  - JCC = monnaie digitale app/web (registrations.jetons_solde)
+  - Conversion KT↔JCC 1:1 possible via /api/wallet/swap (espace pro)
 """
 import os
 import logging
@@ -149,10 +158,16 @@ async def _process_jeton_purchase(metadata: dict):
     current_solde = badge.get("jetons_solde", 0) or 0
     new_solde = current_solde + jetons_to_add
 
-    # Update MongoDB
+    # Update cc_badges (vitrine display)
     await _db.cc_badges.update_one(
         {"badge_id": badge_id}, {"$set": {"jetons_solde": new_solde}}
     )
+
+    # Sync registrations.jetons_solde — single source of truth for espace pro
+    if email:
+        await _db.registrations.update_one(
+            {"email": email.lower()}, {"$inc": {"jetons_solde": jetons_to_add}}
+        )
 
     # Log transaction
     await _db.cc_transactions.insert_one({
@@ -188,7 +203,18 @@ async def get_wallet(badge_id: str):
     badge = await _db.cc_badges.find_one({"badge_id": badge_id}, {"_id": 0})
     if not badge:
         raise HTTPException(status_code=404, detail="Badge non trouve")
+
+    # Prefer registrations.jetons_solde (single source of truth for espace pro)
+    # Fall back to cc_badges.jetons_solde for badge holders without a pro account
+    email = badge.get("email", "")
     solde = badge.get("jetons_solde", 0) or 0
+    if email:
+        reg = await _db.registrations.find_one(
+            {"email": email.lower()}, {"_id": 0, "jetons_solde": 1}
+        )
+        if reg is not None:
+            solde = reg.get("jetons_solde", 0) or 0
+
     return {
         "badge_id": badge_id,
         "jetons_solde": solde,
@@ -216,6 +242,13 @@ async def spend_jetons(req: JetonSpendRequest):
     await _db.cc_badges.update_one(
         {"badge_id": req.badge_id}, {"$set": {"jetons_solde": new_solde}}
     )
+
+    # Sync registrations.jetons_solde — single source of truth for espace pro
+    email = badge.get("email", "")
+    if email:
+        await _db.registrations.update_one(
+            {"email": email.lower()}, {"$inc": {"jetons_solde": -req.amount}}
+        )
 
     await _db.cc_transactions.insert_one({
         "badge_id": req.badge_id, "type": "depense", "jetons": -req.amount,
