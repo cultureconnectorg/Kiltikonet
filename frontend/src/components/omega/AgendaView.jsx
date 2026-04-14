@@ -67,7 +67,7 @@ export default function AgendaView({ onBack, auth }) {
         ) : (
           <>
             <div className="text-xs text-gray-500 mb-4 font-bold tracking-widest uppercase">{currentDay.label}</div>
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {(currentDay.events || []).map((evt, idx) => {
                 const Icon = TYPE_ICONS[evt.type] || CalendarDays;
                 return (

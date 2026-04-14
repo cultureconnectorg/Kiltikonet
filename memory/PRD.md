@@ -5,49 +5,30 @@ Plateforme evenementielle culturelle souveraine pour Culture Connect 2026, Marti
 
 ## Implemented (2026-04-14)
 
-### Stripe Fix — Double /api/api/
-- Fixed 8 files, tested 16/16 PASS
-
-### UX Clarifications
-- PricingPage: Visiteur = "Pre-inscription gratuite — Marche Culturel uniquement" + exclusions en rouge
-- FREK masque partout (pages publiques + Espace Pro + OrbitalMenu header) — autorite silencieuse
-- Email: contact@kiltikonet.fr partout
-
-### FAQ System
-- Backend: GET /api/faq, POST/PUT/DELETE /api/admin/faq
-- Frontend: /faq page avec recherche, filtres, accordeon. 7 FAQ seedees.
-
-### Support Tickets
-- Backend: POST /api/support/tickets, GET /api/admin/support/tickets
-- Frontend: /support page formulaire complet, confirmation avec ref TK-XXXX
-
-### Tutoriel Premiere Connexion
-- ProTutorial.jsx: 8 etapes tooltips animes. Affiche 1 seule fois (localStorage).
-
-### Builder → Feed Fix
-- Fallback: publie le post meme si pas de registration
-
-### OrbitalMenu Fix
-- Logo centre sur Desktop (lg:pr-[280px] au lieu de justify-start)
-- Header: "Profil" au lieu de "FREK-ID: XXX"
-
-### InboxView Empty State
-- Animation elegante avec icone, texte explicatif et bouton "Nouvelle conversation"
-
-### Photo de Profil
-- Code complet: preview locale (URL.createObjectURL) + upload POST /api/user/avatar
-- Endpoint protege par auth, sauvegarde dans registrations
+### Stripe Fix — 8 fichiers, 16/16 PASS
+### UX — Visiteur "Marche uniquement" + exclusions rouge, FREK masque partout, email contact@kiltikonet.fr
+### FAQ System — /faq, /api/faq, 7 FAQ seedees, recherche + filtres
+### Support Tickets — /support, /api/support/tickets, formulaire + ref TK-XXXX
+### Tutoriel — ProTutorial 8 etapes tooltips
+### Builder → Feed Fix — Fallback sans registration
+### OrbitalMenu — Logo centre Desktop, header "Profil" au lieu de FREK-ID
+### InboxView — Empty state anime avec CTA "Nouvelle conversation"
+### Photo de Profil — Preview locale + upload /api/user/avatar
+### Admin Support Panel — Onglet "Support" dans AdminDashboard avec:
+  - Gestion FAQ: CRUD (ajouter, editer, supprimer, publier/depublier)
+  - Gestion Tickets: liste, filtres par statut, stats, reponse directe, changement statut
+### ShopView/AgendaView Responsives — Grid lg:grid-cols-4 shop, lg:grid-cols-2 agenda
+### Shop Visuels Exemples — 2 packs (Culture, VIP) avec images Unsplash
 
 ## Key Endpoints
 - POST /api/create-checkout-session
-- GET /api/faq, POST /api/admin/faq
+- GET /api/faq, POST/PUT/DELETE /api/admin/faq
 - POST /api/support/tickets, GET /api/admin/support/tickets
+- PUT /api/admin/support/tickets/{id}/status, POST /api/admin/support/tickets/{id}/reply
 - POST /api/user/avatar
 - POST /api/builder/publish
 
 ## Backlog
-- P1: Admin panel FAQ + Tickets (valide par user, a faire apres)
-- P2: Shop visuels packs, ShopView/AgendaView responsives
 - P3: Geolocalisation (Leaflet.js)
 - P4: i18n 8 langues, Smart Engine & Analytics
 

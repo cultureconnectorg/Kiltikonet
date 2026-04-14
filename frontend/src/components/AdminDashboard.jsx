@@ -12,7 +12,7 @@ import {
   Search, Mail, MoreHorizontal, Trash2, Eye, EyeOff, Plus,
   BarChart3, Handshake, FileDown,
   CheckSquare, Square, Send, History, Loader2, Coins, Shield, FileText,
-  Sparkles, QrCode, RefreshCw, BookOpen, Settings, Calendar, X
+  Sparkles, QrCode, RefreshCw, BookOpen, Settings, Calendar, X, MessageSquare
 } from 'lucide-react';
 import SmartEngineDashboard from './SmartEngineDashboard';
 import AIAgentsDashboard from './AIAgentsDashboard';
@@ -30,6 +30,7 @@ import AdminRegistrationDetail from './admin/AdminRegistrationDetail';
 import { AdminAddParticipantModal, AdminExportModal, AdminEmailHistoryModal } from './admin/AdminModals';
 import AdminHealthPanel from './admin/AdminHealthPanel';
 import AdminTeamPanel from './admin/AdminTeamPanel';
+import AdminSupportPanel from './admin/AdminSupportPanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -752,6 +753,18 @@ export const AdminDashboard = () => {
                 Sante
               </button>
               <button
+                onClick={() => setActiveTab('support')}
+                className={`px-4 py-3 text-sm font-syne border-b-2 transition-colors ${
+                  activeTab === 'support'
+                    ? 'border-terracotta text-terracotta'
+                    : 'border-transparent text-charcoal/50 hover:text-charcoal'
+                }`}
+                data-testid="tab-support"
+              >
+                <MessageSquare className="w-4 h-4 inline mr-2" />
+                Support
+              </button>
+              <button
                 onClick={() => setShowExportModal(true)}
                 className="ml-auto px-4 py-3 text-sm font-syne text-charcoal/50 hover:text-terracotta transition-colors"
                 data-testid="filtered-export-btn"
@@ -797,6 +810,10 @@ export const AdminDashboard = () => {
           ) : activeTab === 'health' ? (
             <div className="flex-1 overflow-auto p-6">
               <AdminHealthPanel />
+            </div>
+          ) : activeTab === 'support' ? (
+            <div className="flex-1 overflow-auto">
+              <AdminSupportPanel />
             </div>
           ) : (
             <div className="flex-1 overflow-auto">
