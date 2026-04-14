@@ -167,7 +167,7 @@ export const Header = () => {
               </button>
             ))}
             <div className="border-t border-lightborder pt-3 mt-3 space-y-2">
-              {accountLinks.map((item) => (
+              {accountLinks.filter(item => item.path !== '/pro').map((item) => (
                 <button
                   key={item.path}
                   onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
